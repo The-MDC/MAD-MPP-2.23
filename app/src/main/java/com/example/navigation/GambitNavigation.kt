@@ -1,10 +1,19 @@
 package com.example.navigation
 import com.example.ui.components.HoverTooltip
+import com.example.ui.components.neonIconComposer
+import com.example.ui.components.getGlassReflectionBrush
+import com.example.ui.components.glassReflection
+import com.example.ui.components.SlateSubduedColor
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -15,6 +24,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.Image
 import androidx.compose.ui.Alignment
@@ -26,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import com.example.ui.screens.*
 import com.example.ui.theme.*
 import com.example.viewmodel.GambitViewModel
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.graphics.Brush
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,10 +56,19 @@ fun GambitNavigation(vm: GambitViewModel) {
                 floatingActionButton = {
                     androidx.compose.material3.FloatingActionButton(
                         onClick = { vm.toggleAiChat() },
-                        containerColor = theme.brandSecondary,
-                        contentColor = theme.bgDeep
+                        containerColor = Color.Black,
+                        contentColor = Color.Unspecified,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .size(60.dp)
+                            .border(1.2.dp, theme.brandSecondary, RoundedCornerShape(12.dp))
                     ) {
-                        Icon(Icons.Filled.SupportAgent, contentDescription = "AI Hub")
+                        androidx.compose.foundation.Image(
+                            painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.mad_logo),
+                            contentDescription = "AI Hub Logo",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit
+                        )
                     }
                 },
                 topBar = {
@@ -68,24 +89,91 @@ fun GambitNavigation(vm: GambitViewModel) {
                             },
                         actions = {
                             var isNotificationsOpen by remember { mutableStateOf(false) }
-                            HoverTooltip(text = "View Platform Alerts") {
-                                IconButton(
-                                    onClick = { isNotificationsOpen = true },
+                            
+                            // PROPOSE MARKET button in top menu when on predictive markets (circus)
+                            if (currentRoute == "circus") {
+                                Button(
+                                    onClick = {
+                                        vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 70)
+                                        vm.setShowProposeModal(true)
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.White.copy(alpha = 0.08f),
+                                        contentColor = theme.brandSecondary
+                                    ),
                                     modifier = Modifier
                                         .padding(end = 8.dp)
-                                        .border(1.dp, theme.borderBrush, androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                                        .border(
+                                            BorderStroke(
+                                                1.dp,
+                                                Brush.linearGradient(
+                                                    listOf(
+                                                        Color.White.copy(alpha = 0.3f),
+                                                        Color.White.copy(alpha = 0.05f)
+                                                    )
+                                                )
+                                            ),
+                                            androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                                        ),
+                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                                 ) {
-                                    Icon(Icons.Filled.Notifications, contentDescription = "View alerts", tint = theme.brandSecondary)
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Text("🔮", fontSize = 12.sp)
+                                        Text(
+                                            "PROPOSE",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Black,
+                                            fontFamily = com.example.ui.theme.AllertaStencilFamily,
+                                            letterSpacing = 1.sp
+                                        )
+                                    }
+                                }
+                            }
+                            
+                            HoverTooltip(text = "View Platform Alerts") {
+                                Box(
+                                    modifier = Modifier
+                                        .padding(end = 8.dp)
+                                        .size(40.dp)
+                                        .glassReflection(
+                                            baseColor = theme.brandSecondary,
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                        .clickable { isNotificationsOpen = true },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Box(Modifier.fillMaxSize().background(getGlassReflectionBrush(theme.brandSecondary)))
+                                    Icon(
+                                        Icons.Filled.Notifications, 
+                                        contentDescription = "View alerts", 
+                                        modifier = Modifier.size(20.dp).neonIconComposer(isActive = true),
+                                        tint = Color.White
+                                    )
                                 }
                             }
                             HoverTooltip(text = "Expand global platform menu") {
-                                IconButton(
-                                    onClick = { isMenuOpen = true },
+                                Box(
                                     modifier = Modifier
                                         .padding(end = 8.dp)
-                                        .border(1.dp, theme.borderBrush, androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                                        .size(40.dp)
+                                        .glassReflection(
+                                            baseColor = theme.brandPrimary,
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                        .clickable { isMenuOpen = true },
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(Icons.Filled.Menu, contentDescription = "Open full menu", tint = theme.brandPrimary)
+                                    Box(Modifier.fillMaxSize().background(getGlassReflectionBrush(theme.brandPrimary)))
+                                    Icon(
+                                        Icons.Filled.Menu, 
+                                        contentDescription = "Open full menu", 
+                                        modifier = Modifier.size(20.dp).neonIconComposer(isActive = true),
+                                        tint = Color.White
+                                    )
                                 }
                             }
                             com.example.ui.components.NotificationDrawer(
@@ -94,38 +182,118 @@ fun GambitNavigation(vm: GambitViewModel) {
                             )
                         }
                     )
-                        com.example.ui.components.SatireTickerWidget()
-                    }
-                },
-                bottomBar = {
-                NavigationBar(modifier = Modifier.background(theme.brushedMetal), containerColor = androidx.compose.ui.graphics.Color.Transparent) {
-                    val items = listOf(
-                        NavItem("circus", "Circus", Icons.Filled.Insights, "Predictive Markets"),
-                        NavItem("shield", "Shield", Icons.Filled.Shield, "Sybil Defense"),
-                        NavItem("auction", "Auction", Icons.Filled.LocalFireDepartment, "Token Auctions"),
-                        NavItem("kaito", "Terminal", Icons.Filled.Terminal, "System Console"),
-                        NavItem("stake", "Stake", Icons.Filled.AccountBalanceWallet, "Liquid Staking")
-                    )
-                    items.forEach { item ->
-                        NavigationBarItem(
-                            selected = currentRoute == item.route,
-                            onClick = { currentRoute = item.route },
-                            icon = { 
-                                Icon(item.icon, contentDescription = item.label)
-                            },
-                            label = { Text(item.label, fontSize = 9.5.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace) },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = theme.bgDeep,
-                                selectedTextColor = theme.brandSecondary,
-                                unselectedIconColor = theme.textSecondary.copy(alpha=0.5f),
-                                unselectedTextColor = theme.textSecondary.copy(alpha=0.5f),
-                                indicatorColor = theme.brandSecondary
-                            )
+                    
+                    // Glass-style platform wide interactive ticker just below primary top menu
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 6.dp)
+                    ) {
+                        com.example.ui.components.IntegratedTickerWidget(
+                            isSatireMode = false,
+                            telemetry = state.telemetryStats,
+                            isNeuralOnly = false,
+                            isClickable = true
                         )
                     }
                 }
-            }
-        ) { padding ->
+                },
+                bottomBar = {
+                    val neonButtonGradient = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFF00E5FF), // Subtle Neon Blue
+                            Color(0xFFFF007F), // Subtle Pink
+                            Color(0xFFFF073A), // Subtle Red
+                            Color(0xFF9D00FF)  // Subtle Purple
+                        )
+                    )
+                    val glassHighlight = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.35f),
+                            Color.White.copy(alpha = 0.05f),
+                            Color.Transparent
+                        )
+                    )
+                    NavigationBar(
+                        modifier = Modifier
+                            .graphicsLayer {
+                                shadowElevation = 16f
+                                shape = androidx.compose.foundation.shape.RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                                clip = true
+                            }
+                            .background(theme.brushedMetal)
+                            .border(0.5.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                            .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()),
+                        containerColor = Color.Transparent, // Let the background brush show through
+                        windowInsets = WindowInsets(0) // Render manually via padding to prevent system inset clip bugs
+                    ) {
+                        val items = listOf(
+                            NavItem("circus", "Circus", Icons.Filled.Insights, "Predictive Markets"),
+                            NavItem("shield", "Shield", Icons.Filled.Shield, "Sybil Defense"),
+                            NavItem("auction", "Auction", Icons.Filled.LocalFireDepartment, "Token Auctions"),
+                            NavItem("kaito", "Terminal", Icons.Filled.Terminal, "System Console"),
+                            NavItem("profile", "Gambit 🃏", Icons.Filled.Style, "MADHATS Gambit Cards")
+                        )
+                        items.forEach { item ->
+                            val isSelected = currentRoute == item.route
+
+                            NavigationBarItem(
+                                selected = isSelected,
+                                onClick = { 
+                                    currentRoute = item.route 
+                                    vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 40)
+                                },
+                                icon = {
+                                    val buttonColor = if (isSelected) theme.brandSecondary else Color.Gray.copy(alpha = 0.5f)
+                                    Box(
+                                        modifier = Modifier
+                                            .size(54.dp, 32.dp)
+                                            .glassReflection(
+                                                baseColor = buttonColor,
+                                                shape = RoundedCornerShape(10.dp)
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        // Glass Reflection Layer inside the button (subtle sheen matching current button color)
+                                        Box(
+                                            Modifier
+                                                .fillMaxSize()
+                                                .background(getGlassReflectionBrush(buttonColor))
+                                        )
+                                        
+                                        val iconModifier = Modifier
+                                            .size(if (isSelected) 24.dp else 20.dp)
+                                            .neonIconComposer(isSelected)
+
+                                        Icon(
+                                            item.icon, 
+                                            contentDescription = item.label,
+                                            modifier = iconModifier,
+                                            tint = if (isSelected) Color.White else SlateSubduedColor
+                                        )
+                                    }
+                                },
+                                label = { 
+                                    Text(
+                                        item.label, 
+                                        fontSize = 9.sp, 
+                                        fontWeight = FontWeight.Bold, 
+                                        fontFamily = com.example.ui.theme.ArialNarrowFamily,
+                                        color = if (isSelected) Color.White else Color.Gray.copy(alpha = 0.8f)
+                                    ) 
+                                },
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor = Color.White,
+                                    selectedTextColor = Color.White,
+                                    unselectedIconColor = Color.Gray,
+                                    unselectedTextColor = Color.Gray,
+                                    indicatorColor = Color.Transparent
+                                )
+                            )
+                        }
+                    }
+                }
+            ) { padding ->
             Box(Modifier.padding(padding).fillMaxSize()) {
                 // Background themes global effects
                 if (theme.isPopArt) {
@@ -220,8 +388,8 @@ fun GambitNavigation(vm: GambitViewModel) {
         }
         AnimatedVisibility(
             visible = state.isAiChatOpen,
-            enter = slideInVertically(initialOffsetY = { it }),
-            exit = slideOutVertically(targetOffsetY = { it }),
+            enter = slideInHorizontally(initialOffsetX = { it }),
+            exit = slideOutHorizontally(targetOffsetX = { it }),
             modifier = Modifier.fillMaxSize()
         ) {
             com.example.ui.screens.AiChatScreen(vm)

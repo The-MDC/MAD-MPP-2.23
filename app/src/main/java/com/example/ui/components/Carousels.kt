@@ -25,32 +25,119 @@ import androidx.compose.ui.unit.sp
 import com.example.ui.theme.*
 import com.example.model.Scenario
 import com.example.math.GambitMath
+import com.example.ui.components.glassContainerBackground
 import kotlin.math.roundToInt
+
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.animation.core.*
+
+@Composable
+fun GaugeChart(conviction: Float, prediction: Float, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier) {
+        val strokeWidth = 8.dp.toPx()
+        val radius = size.minDimension / 2 - strokeWidth
+        val center = androidx.compose.ui.geometry.Offset(size.width / 2, size.height / 2)
+        
+        // Background arc
+        drawArc(
+            color = Color.DarkGray.copy(alpha = 0.5f),
+            startAngle = 135f,
+            sweepAngle = 270f,
+            useCenter = false,
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth, cap = androidx.compose.ui.graphics.StrokeCap.Round),
+            topLeft = androidx.compose.ui.geometry.Offset(center.x - radius, center.y - radius),
+            size = androidx.compose.ui.geometry.Size(radius * 2, radius * 2)
+        )
+        
+        // Conviction Arc (Left side, Pink)
+        drawArc(
+            color = NeonMagenta,
+            startAngle = 135f,
+            sweepAngle = 135f * conviction,
+            useCenter = false,
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth, cap = androidx.compose.ui.graphics.StrokeCap.Round),
+            topLeft = androidx.compose.ui.geometry.Offset(center.x - radius, center.y - radius),
+            size = androidx.compose.ui.geometry.Size(radius * 2, radius * 2)
+        )
+        
+        // Prediction Arc (Right side, Cyan)
+        drawArc(
+            color = NeonCyan,
+            startAngle = 405f - (135f * prediction),
+            sweepAngle = 135f * prediction,
+            useCenter = false,
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth, cap = androidx.compose.ui.graphics.StrokeCap.Round),
+            topLeft = androidx.compose.ui.geometry.Offset(center.x - radius, center.y - radius),
+            size = androidx.compose.ui.geometry.Size(radius * 2, radius * 2)
+        )
+    }
+}
+
+@Composable
+fun SparklineChart(data: List<Float>, color: Color, pulseAlpha: Float = 1f, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier.graphicsLayer(alpha = pulseAlpha)) {
+        if (data.isEmpty()) return@Canvas
+        val min = data.minOrNull() ?: 0f
+        val max = data.maxOrNull() ?: 1f
+        val range = (max - min).coerceAtLeast(0.01f)
+        
+        val width = size.width
+        val height = size.height
+        val stepX = width / (data.size - 1).coerceAtLeast(1)
+        
+        val path = androidx.compose.ui.graphics.Path()
+        data.forEachIndexed { index, value ->
+            val x = index * stepX
+            val y = height - ((value - min) / range * height)
+            if (index == 0) path.moveTo(x, y)
+            else path.lineTo(x, y)
+        }
+        
+        drawPath(
+            path = path,
+            color = color,
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.dp.toPx())
+        )
+    }
+}
 
 @Composable
 fun TopHottestCarousel(scenarios: List<Scenario>) {
     Column(Modifier.fillMaxWidth()) {
         Text(
-            text = "☠️ ALPHA REPOSITORIES",
+            text = "☠️ TOP 5 HOTTEST MARKETS",
             color = NeonMagenta,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = com.example.ui.theme.ArialNarrowFamily,
             modifier = Modifier.padding(bottom = 12.dp)
         )
-        
+             val infiniteTransition = rememberInfiniteTransition()
+        val pulseAlpha by infiniteTransition.animateFloat(
+            initialValue = 0.5f,
+            targetValue = 1.0f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1500, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse
+            )
+        )
+
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(scenarios.filter { it.isHot }.take(10)) { sys ->
+            items(scenarios.filter { it.isHot }.take(5)) { sys ->
+                    val trendData = remember(sys.id) { List(24) { java.util.Random().nextFloat() * 100f } }
+                    val convictionValue = remember(sys.id) { 0.4f + java.util.Random().nextFloat() * 0.5f }
+                    val predictionValue = remember(sys.id) { 0.3f + java.util.Random().nextFloat() * 0.6f }
                     HoverTooltip(text = "Explore the ${sys.tag} meme stream and see live yield multipliers.") {
                         Box(
                             modifier = Modifier
-                                .width(260.dp)
+                                .width(280.dp)
                                 .shadow(24.dp, RoundedCornerShape(16.dp), spotColor = NeonCyan.copy(alpha = 0.2f))
-                                .background(BgCard.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                                .glassContainerBackground(NeonMagenta, RoundedCornerShape(16.dp))
                                 .border(1.dp, GoldFlakeBrush, RoundedCornerShape(16.dp))
-                                .padding(20.dp)
+                                .padding(16.dp)
                         ) {
                             Column {
                                 Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -59,6 +146,31 @@ fun TopHottestCarousel(scenarios: List<Scenario>) {
                                 }
                                 Spacer(Modifier.height(16.dp))
                                 Text(sys.name, color = BrandEggwhite, fontSize = 18.sp, fontWeight = FontWeight.Black, maxLines = 1, style = androidx.compose.ui.text.TextStyle(shadow = androidx.compose.ui.graphics.Shadow(Color.Black, blurRadius = 4f)))
+                                Spacer(Modifier.height(16.dp))
+                                
+                                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text("24h Sentiment", color = Color.Gray, fontSize = 10.sp)
+                                        Spacer(Modifier.height(4.dp))
+                                        SparklineChart(
+                                            data = trendData,
+                                            color = NeonCyan,
+                                            pulseAlpha = pulseAlpha,
+                                            modifier = Modifier.fillMaxWidth().height(30.dp)
+                                        )
+                                    }
+                                    Spacer(Modifier.width(16.dp))
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text("CV vs PR", color = Color.Gray, fontSize = 10.sp)
+                                        Spacer(Modifier.height(4.dp))
+                                        GaugeChart(
+                                            conviction = convictionValue,
+                                            prediction = predictionValue,
+                                            modifier = Modifier.size(30.dp)
+                                        )
+                                    }
+                                }
+                                
                                 Spacer(Modifier.height(16.dp))
                                 Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                     Text("Yield Rate:", color = Color.LightGray, fontSize = 12.sp)
@@ -117,7 +229,7 @@ fun CustomizableMetricsCarousel() {
                             .width(160.dp)
                             .height(110.dp)
                             .shadow(12.dp, RoundedCornerShape(16.dp), spotColor = metric.color.copy(alpha = 0.4f))
-                            .background(BgCard.copy(alpha=0.2f), RoundedCornerShape(16.dp))
+                            .glassContainerBackground(metric.color, RoundedCornerShape(16.dp))
                             .border(1.dp, metric.color.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                             .clickable { showInfoPopup = metric }
                             .padding(16.dp),

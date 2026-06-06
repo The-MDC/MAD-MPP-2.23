@@ -41,7 +41,7 @@ fun HoverTooltip(
             ) {
                 Text(
                     text = text,
-                    fontFamily = com.example.ui.theme.ArialNarrowFamily,
+                    fontFamily = com.example.ui.theme.AllertaStencilFamily,
                     fontSize = 11.sp,
                     lineHeight = 16.sp,
                     color = theme.textPrimary.copy(alpha = 0.9f),

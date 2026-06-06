@@ -21,6 +21,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.components.HolographicCard
+import com.example.ui.components.GlassKeycapButton
+import com.example.ui.components.neonIconComposer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import com.example.ui.theme.*
 import com.example.viewmodel.GambitViewModel
 
@@ -83,24 +87,32 @@ fun AuctionScreen(vm: GambitViewModel) {
         }
 
         HoverTooltip(text = "Mint a randomized Scandal Pack using MADx tokens.") {
-            Button(
-                onClick = { vm.purchasePack() },
-                enabled = canAfford,
+            val baseBtnColor = if (canAfford) NeonGreen else Color.Gray.copy(alpha = 0.5f)
+            GlassKeycapButton(
+                onClick = { if (canAfford) vm.purchasePack() },
                 modifier = Modifier.fillMaxWidth().height(64.dp),
+                baseColor = baseBtnColor,
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (canAfford) NeonGreen else BgCard,
-                    disabledContainerColor = BgCard
-                )
-            ) {
-                Text(
-                    if (canAfford) "MINT SCANDAL PACK" else "INSUFFICIENT MADx", 
-                    color = if (canAfford) BgDeep else Color.Gray, 
-                    fontWeight = FontWeight.Black,
-                    fontSize = 16.sp,
-                    letterSpacing = 1.2.sp
-                )
-            }
+                icon = {
+                    Icon(
+                        imageVector = Icons.Filled.LocalFireDepartment,
+                        contentDescription = "Pack Auction",
+                        modifier = Modifier
+                            .size(24.dp)
+                            .neonIconComposer(isActive = canAfford),
+                        tint = Color.White
+                    )
+                },
+                label = {
+                    Text(
+                        if (canAfford) "MINT SCANDAL PACK" else "INSUFFICIENT MADx", 
+                        color = if (canAfford) Color.White else Color.Gray, 
+                        fontWeight = FontWeight.Black,
+                        fontSize = 16.sp,
+                        letterSpacing = 1.2.sp
+                    )
+                }
+            )
         }
 
         Spacer(Modifier.height(8.dp))

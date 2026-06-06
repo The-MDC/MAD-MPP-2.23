@@ -23,105 +23,156 @@ import kotlinx.coroutines.delay
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.graphics.Shadow
 
-@Composable
-fun SatireTickerWidget() {
-    val theme = LocalGambitTheme.current
-    var isSatireMode by remember { mutableStateOf(true) }
+import androidx.compose.ui.graphics.graphicsLayer
 
-    // Mock realistic updates every 2 mins simulated using a fast ticker for demo
-    var tick by remember { mutableStateOf(0) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(120_000L) // 2 real minutes
-            tick++
-        }
-    }
+@Composable
+fun IntegratedTickerWidget(
+    isSatireMode: Boolean,
+    telemetry: com.example.model.NeuralTelemetryStats? = null,
+    isNeuralOnly: Boolean = false,
+    isClickable: Boolean = true
+) {
+    val theme = LocalGambitTheme.current
 
     val satireItems = listOf(
-        "BREAKING: FED prints more money, water still wet. \uD83D\uDCB8",
-        "SEC classifies breathing as an unregistered security. \uD83D\uDEAB",
-        "Crypto Bros discover outside world, report 'graphics are okay but gameplay sucks'. \uD83C\uDFDE\uFE0F",
-        "Wall Street bets guy YOLO's life savings into gourd futures again. \uD83C\uDF83",
-        "Elizabeth Warren yells at Bitcoin manager to speak to the CEO. \uD83D\uDC69\u200D\uD83D\uDCBC",
-        "TikTok influencer explains macroeconomics, millions instantly poorer. \uD83D\uDCF1",
-        "Goldbugs still waiting for the imminent collapse of society. \uD83E\uDDF1",
-        "SBF writes new book: 'How I Lost 8 Billion and Kept My Hair'. \uD83D\uDCD6",
-        "Local man 'buying the dip' for the 14th consecutive time this week. \uD83D\uDE2D",
-        "AI Agent trades better than 99% of hedge funds by just sleeping. \uD83E\uDD16"
+        "BREAKING: FED prints more money, water still wet. 💵",
+        "LIAR ENGINE: 89% probability this 'DeFi Summer' is just 3 guys in a basement. 🚫",
+        "CONVICTION ALERT: Herd mentality surging on meme ticker \$WIF. 🏔️",
+        "SENTINEL ONLINE: Tracking 14 new alpha repositories. 🎃",
+        "MORPHO VAULTS: Rates looking suspiciously generous today. 👩‍💼",
+        "AERODROME POOLS: Liquidity providers experiencing maximal dopamine. 📱",
+        "SYBIL DEFENSE: 42,000 bots blocked from taking your yield. 🧱",
+        "MAD SHIELD: Circuit breaker primed and ready to ruin someone's day. 📚",
+        "PREDICTION CIRCUS: Over/Under on total global collapse is leaning Over. 😭",
+        "AI Agent trades better than 99% of hedge funds by just sleeping. 🤖"
     )
 
     val marketItems = listOf(
-        "BTC $69,420 (+4.2%)", "ETH $3,800 (+1.1%)", "USDT $1.00 (0.0%)", "USDC $1.00 (0.0%)", 
+        "BTC $94,420 (+4.2%)", "ETH $3,800 (+1.1%)", "USDT $1.00 (0.0%)", "USDC $1.00 (0.0%)", 
         "BNB $590 (-0.5%)", "SOL $145 (+8.4%)", "XRP $0.62 (-1.2%)", "DOGE $0.16 (+12.0%)", 
-        "ADA $0.45 (+0.1%)", "AVAX $35.00 (+2.3%)", "AAPL $190.12 (-0.2%)", "MSFT $415.50 (+1.4%)", 
+        "AERO $1.45 (+40.1%)", "MADDEX $35.00 (+200.3%)", "MORPHO $2.12 (-0.2%)", "MSFT $415.50 (+1.4%)", 
         "NVDA $1150.00 (+5.6%)", "TSLA $175.20 (-2.1%)", "AMZN $185.00 (+0.8%)", "META $470.30 (+1.1%)",
         "GOOGL $170.80 (-0.4%)", "BRK.B $405.10 (+0.2%)", "JPM $200.50 (+0.5%)", "V $275.60 (-0.1%)",
-        "WMT $65.20 (+0.4%)", "XOM $115.40 (-1.5%)", "GOLD $2,350/oz (+0.8%)", "SILVER $30.50/oz (+2.1%)",
-        "PLATINUM $1,050/oz (-0.5%)", "PALLADIUM $980/oz (+1.2%)", "COPPER $4.80/lb (+3.4%)", 
-        "CRUDE OIL $78.50/bbl (-1.1%)", "NAT GAS $2.40/MMBtu (+1.5%)", "WHEAT $6.50/bu (+0.2%)"
+        "GOLD $2,350/oz (+0.8%)", "SILVER $30.50/oz (+2.1%)"
     )
 
-    // The data is conceptually responsive to the 'tick'
-    val displayItems = remember(isSatireMode, tick) {
-        if (isSatireMode) satireItems.shuffled() else marketItems.shuffled()
+    val neuralTelemetryItems = remember(telemetry) {
+        val sentimentVal = telemetry?.sentimentMetric ?: 89.4f
+        val trustVal = telemetry?.dynamicConfidence?.let { "%.2f".format(it * 100) } ?: "99.8"
+        val blockedVal = telemetry?.sybilAttacksDeflected ?: 4210
+        val bandwidthVal = telemetry?.networkSpeedGbps?.let { "%.1f".format(it) } ?: "98.4"
+        val loadVal = telemetry?.cognitiveLoad?.let { "${(it * 100).toInt()}%" } ?: "72%"
+        
+        listOf(
+            "🧠 EIGENTRUST: $trustVal% [SECURED]",
+            "🧠 TELEMETRY SENTIMENT: ${"%.2f".format(sentimentVal)}% [LIVE-STREAM]",
+            "🧠 MADx SYSTEM LOAD: $loadVal",
+            "🧠 BANDWIDTH: $bandwidthVal Gbps",
+            "🧠 SYBIL BLOCKS: $blockedVal DEFLECTED",
+            "🧠 AVG WIN RATE: ${(sentimentVal * 0.6).toInt()}% [STABLE]",
+            "🧠 GLOBAL RANK: #84 [ELITE]",
+            "🧠 CARD W/L RATIO: 58.2% [BULLISH]"
+        )
     }
 
-    val baseColor = if (isSatireMode) theme.brandAccent else theme.brandSecondary
+    var activeChoiceState by remember { mutableStateOf(if (isSatireMode) 2 else 0) }
+    val activeChoice = if (isNeuralOnly) 1 else activeChoiceState
+
+    val displayItems = remember(activeChoice, telemetry) {
+        when (activeChoice) {
+            0 -> marketItems
+            1 -> neuralTelemetryItems
+            else -> satireItems
+        }
+    }
+
+    val baseColor = when (activeChoice) {
+        0 -> com.example.ui.theme.NeonGreen
+        1 -> com.example.ui.theme.NeonCyan
+        else -> com.example.ui.theme.NeonMagenta
+    }
+
+    val labelText = when (activeChoice) {
+        0 -> "GLOBAL MARKETS 📈"
+        1 -> "NEURAL TELEMETRY 🧠"
+        else -> "MAD SATIRE 🌐"
+    }
 
     var showInfoPopup by remember { mutableStateOf(false) }
-
-    val bgGlass = Color(0x33000000) // Transparent dark for glass effect
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(bgGlass)
-            .border(1.dp, baseColor.copy(alpha = 0.3f))
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { showInfoPopup = true },
-                    onDoubleTap = { isSatireMode = !isSatireMode }
-                )
+            .glassContainerBackground(baseColor, RoundedCornerShape(4.dp))
+            .let {
+                if (isClickable) {
+                    it.clickable {
+                        activeChoiceState = (activeChoiceState + 1) % 3
+                    }
+                } else {
+                    it
+                }
             }
-            .padding(vertical = 6.dp, horizontal = 0.dp)
+            .padding(vertical = 4.dp, horizontal = 4.dp)
+            .graphicsLayer {
+                rotationX = 15f
+                rotationY = if (activeChoice == 2) -2f else 2f
+                cameraDistance = 10f * density
+                shadowElevation = 8f
+                shape = RoundedCornerShape(4.dp)
+                clip = true
+            }
     ) {
-        HoverTooltip(text = "Double tap to toggle between Satire News & Global Markets feeds") {
+        val tooltipText = if (isClickable) "Tap to cycle feed choice: Markets ➡️ Telemetry ➡️ Satire Alerts" else "Neural Telemetry live feed [PERPETUAL]"
+        HoverTooltip(text = tooltipText) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .basicMarquee(
                         iterations = Int.MAX_VALUE,
-                        velocity = 40.dp
+                        animationMode = androidx.compose.foundation.MarqueeAnimationMode.Immediately,
+                        velocity = 45.dp
                     ),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Ticker Label
+                // Ticker Label (Clickable alone for info popup)
                 Box(
                     modifier = Modifier
-                        .background(baseColor.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
-                        .border(1.dp, baseColor, RoundedCornerShape(4.dp))
+                        .glassReflection(baseColor, RoundedCornerShape(4.dp))
+                        .let {
+                            if (isClickable) {
+                                it.clickable { 
+                                    showInfoPopup = true 
+                                }
+                            } else {
+                                it
+                            }
+                        }
                         .padding(horizontal = 8.dp, vertical = 2.dp)
                 ) {
+                    Box(Modifier.matchParentSize().background(getGlassReflectionBrush(baseColor)))
                     Text(
-                        text = if (isSatireMode) "MAD NEWS" else "GLOBAL MARKETS",
+                        text = labelText,
                         color = baseColor,
-                        fontSize = 12.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Black,
-                        fontFamily = com.example.ui.theme.ArialNarrowFamily,
+                        fontFamily = com.example.ui.theme.AllertaStencilFamily,
                         style = TextStyle(shadow = Shadow(baseColor, blurRadius = 8f))
                     )
                 }
                 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                displayItems.forEach { item ->
+                val tickerColors = listOf(com.example.ui.theme.NeonMagenta, com.example.ui.theme.NeonCyan, com.example.ui.theme.BrandGold)
+                displayItems.forEachIndexed { index, item ->
                     Text(
                         text = item,
-                        color = theme.textPrimary,
-                        fontSize = 14.sp,
+                        color = tickerColors[index % tickerColors.size],
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        fontFamily = com.example.ui.theme.ArialNarrowFamily,
-                        modifier = Modifier.padding(end = 32.dp)
+                        fontFamily = com.example.ui.theme.AllertaStencilFamily,
+                        modifier = Modifier.padding(end = 32.dp),
+                        style = TextStyle(shadow = Shadow(tickerColors[index % tickerColors.size].copy(alpha=0.5f), blurRadius = 6f))
                     )
                 }
             }
@@ -138,8 +189,8 @@ fun SatireTickerWidget() {
             },
             containerColor = theme.bgCard,
             titleContentColor = theme.brandSecondary,
-            title = { Text(if (isSatireMode) "MAD NEWS REASONER" else "GLOBAL MARKETS REPORT") },
-            text = { Text(if (isSatireMode) "The MAD News feed utilizes LLM NLP to aggregate and satirize current market sentiment in real time. It's built to keep dopamine levels active." else "Live market streams connected via RSS feeds tracking major indices and alt-coins globally in real time.", color = theme.textPrimary) }
+            title = { Text(if (activeChoice == 2) "MAD TELEMETRY STREAM" else if (activeChoice == 1) "NEURAL TELEMETRY FEED" else "GLOBAL MARKETS REPORT") },
+            text = { Text(if (activeChoice == 2) "The MAD Telemetry feed utilizes LLM NLP to aggregate and satirize current market sentiment in real time. Combined with Global Markets." else if (activeChoice == 1) "Live market streams connected via Neural Telemetry tracking major indices and alt-coins globally in real time. Combined with MAD News." else "Real-time pricing for the leading blockchain pairs and macro equities tracking dynamic, unredacted volume activity.", color = theme.textPrimary) }
         )
     }
 }

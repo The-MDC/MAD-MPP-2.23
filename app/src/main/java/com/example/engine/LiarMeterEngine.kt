@@ -113,7 +113,10 @@ data class AnalysisResult(
     val economicImpact: EconomicImpact,
     val fullRoast: String,
     val markets: List<MarketPlay>,
-    val madconvScore: Double
+    val madconvScore: Double,
+    val trustScore: Double = 100.0 - lieScore,
+    val sentiment: String = if (lieScore > 60.0) "🩸 LIQUIDATED OPTIMISM" else "⚡ NEUTRAL SPECULATION",
+    val factualConsistency: String = if (lieScore > 50.0) "🚫 CONTRADICTORY SPEECH" else "✅ HIGH COGNITIVE ALIGNMENT"
 )
 
 class LiarMeterEngine {
@@ -161,6 +164,54 @@ class LiarMeterEngine {
             markets = markets,
             madconvScore = Math.round((lieScore * (1 + currentVol) * 0.85) * 10.0) / 10.0
         )
+    }
+
+    suspend fun analyzeEventWithGemini(
+        event: LiarMeterEvent,
+        roastSeverity: Int = 70,
+        memeHumour: Int = 65
+    ): AnalysisResult {
+        val shock = kotlin.math.min(1.0, event.viralityScore * 1.4)
+        val currentVol = garch.update(shock)
+
+        val geminiResult = GeminiForecastClient.analyzeEconomicConvictionWithGemini(
+            userText = event.text,
+            roastSeverity = roastSeverity,
+            memeHumour = memeHumour
+        )
+
+        if (geminiResult != null) {
+            val lieScore = geminiResult.lieScore
+            val trustScore = geminiResult.trustScore
+            val econImpact = EconomicImpact(
+                projectedStockMovePct = geminiResult.projectedStockMovePct,
+                adRevenueImpactM = geminiResult.adRevenueImpactM,
+                confidence = geminiResult.confidence
+            )
+            
+            val markets = generateMarkets(econImpact, event, currentVol)
+            
+            return AnalysisResult(
+                speaker = geminiResult.speaker,
+                category = geminiResult.category,
+                lieScore = Math.round(lieScore * 10.0) / 10.0,
+                garchVolatility = Math.round(currentVol * 10000.0) / 100.0,
+                economicImpact = econImpact,
+                fullRoast = geminiResult.fullRoast,
+                markets = markets,
+                madconvScore = Math.round((lieScore * (1 + currentVol) * 0.85) * 10.0) / 10.0,
+                sentiment = geminiResult.sentiment,
+                factualConsistency = geminiResult.factualConsistency,
+                trustScore = Math.round(trustScore * 10.0) / 10.0
+            )
+        } else {
+            val fallback = analyzeEvent(event, roastSeverity, memeHumour)
+            return fallback.copy(
+                sentiment = "Sarcastic speculation (Fallback)",
+                factualConsistency = "Partially verified (Fallback)",
+                trustScore = Math.round((100.0 - fallback.lieScore) * 10.0) / 10.0
+            )
+        }
     }
 
     private fun buildRoastPrompt(event: LiarMeterEvent, lieScore: Double, severity: Int, humour: Int): String {

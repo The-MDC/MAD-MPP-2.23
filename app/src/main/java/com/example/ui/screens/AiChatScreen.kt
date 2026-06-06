@@ -5,6 +5,9 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.theme.LocalGambitTheme
 import com.example.viewmodel.GambitViewModel
+import com.example.ui.components.glassContainerBackground
 
 @Composable
 fun AiChatScreen(vm: GambitViewModel) {
@@ -32,14 +36,15 @@ fun AiChatScreen(vm: GambitViewModel) {
     Box(
         Modifier
             .fillMaxSize()
-            .background(theme.bgDeep)
+            .background(Color(0xE608080E)) // Semi-translucent dark slate
+            .glassContainerBackground(theme.brandSecondary, RoundedCornerShape(0.dp))
     ) {
         Column(Modifier.fillMaxSize()) {
             // Header
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .background(theme.bgCard)
+                    .background(Color.Black.copy(alpha = 0.4f))
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -47,11 +52,27 @@ fun AiChatScreen(vm: GambitViewModel) {
                     Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "Close", tint = theme.brandSecondary)
                 }
                 Spacer(Modifier.width(8.dp))
+                Box(
+                    Modifier
+                        .size(48.dp)
+                        .background(Color.Black, RoundedCornerShape(8.dp))
+                        .border(1.dp, theme.brandSecondary, RoundedCornerShape(8.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.mad_logo),
+                        contentDescription = "Chat Logo",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+                Spacer(Modifier.width(10.dp))
                 Column {
                     Text("LLM Support Hub", color = theme.textPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold, fontFamily = com.example.ui.theme.ArialNarrowFamily)
                     Text("Powered by Google Gemini 3.1 Pro", color = theme.brandSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                 }
             }
+            HorizontalDivider(color = theme.brandSecondary.copy(alpha = 0.15f), thickness = 1.dp)
             
             // Connected Integrations
             LazyColumn(
@@ -103,7 +124,7 @@ fun AiChatScreen(vm: GambitViewModel) {
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .background(theme.bgCard)
+                    .background(Color.Black.copy(alpha = 0.5f))
                     .border(theme.borderWidth, theme.borderBrush, RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -164,21 +185,58 @@ fun IntegrationBadge(name: String, color: Color) {
 @Composable
 fun ChatMessage(isUser: Boolean, sender: String, text: String) {
     val theme = LocalGambitTheme.current
-    Column(
+    Row(
         Modifier
             .fillMaxWidth()
             .padding(bottom = 12.dp),
-        horizontalAlignment = if (isUser) Alignment.End else Alignment.Start
+        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
+        verticalAlignment = Alignment.Top
     ) {
-        Text(sender, color = if (isUser) theme.brandSecondary else theme.brandPrimary, fontSize = 10.5.sp, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(4.dp))
-        Box(
-            Modifier
-                .background(if (isUser) theme.brandSecondary.copy(alpha=0.2f) else theme.bgCard, RoundedCornerShape(12.dp))
-                .border(1.dp, if (isUser) theme.brandSecondary.copy(alpha=0.5f) else theme.bgCard, RoundedCornerShape(12.dp))
-                .padding(12.dp)
+        if (!isUser) {
+            Box(
+                Modifier
+                    .size(36.dp)
+                    .background(Color.Black, RoundedCornerShape(6.dp))
+                    .border(1.dp, theme.brandPrimary.copy(alpha = 0.5f), RoundedCornerShape(6.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.mad_logo),
+                    contentDescription = "System Avatar",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+        }
+
+        Column(
+            horizontalAlignment = if (isUser) Alignment.End else Alignment.Start
         ) {
-            Text(text, color = theme.textPrimary, fontSize = 14.sp)
+            Text(sender, color = if (isUser) theme.brandSecondary else theme.brandPrimary, fontSize = 10.5.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(4.dp))
+            Box(
+                Modifier
+                    .widthIn(max = 260.dp)
+                    .background(if (isUser) theme.brandSecondary.copy(alpha=0.2f) else theme.bgCard, RoundedCornerShape(12.dp))
+                    .border(1.dp, if (isUser) theme.brandSecondary.copy(alpha=0.5f) else theme.bgCard, RoundedCornerShape(12.dp))
+                    .padding(12.dp)
+            ) {
+                Text(text, color = theme.textPrimary, fontSize = 14.sp)
+            }
+        }
+
+        if (isUser) {
+            Spacer(Modifier.width(8.dp))
+            Box(
+                Modifier
+                    .size(32.dp)
+                    .background(theme.brandSecondary.copy(alpha = 0.1f), CircleShape)
+                    .border(1.dp, theme.brandSecondary.copy(alpha = 0.4f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("👤", fontSize = 14.sp)
+            }
         }
     }
 }

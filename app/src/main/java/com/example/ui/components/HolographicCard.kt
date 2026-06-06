@@ -31,14 +31,7 @@ fun HolographicCard(card: SatiricalCard, onClick: () -> Unit = {}) {
         modifier = Modifier
             .size(140.dp)
             .scale(scale)
-            .background(
-                Brush.linearGradient(listOf(
-                    rarityColor.copy(alpha = 0.6f), 
-                    NeonPink.copy(alpha = 0.4f),
-                    ElegantPurple.copy(alpha = 0.6f)
-                )),
-                RoundedCornerShape(12.dp)
-            )
+            .glassContainerBackground(rarityColor, RoundedCornerShape(12.dp))
             .border(1.dp, GoldFlakeBrush, RoundedCornerShape(12.dp))
             .pointerInput(Unit) {
                 detectTapGestures(

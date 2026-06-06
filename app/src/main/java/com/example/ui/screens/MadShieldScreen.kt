@@ -1,4 +1,8 @@
 package com.example.ui.screens
+import com.example.ui.components.GlassKeycapButton
+import com.example.ui.components.neonIconComposer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Shield
 import com.example.ui.components.HoverTooltip
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -111,14 +115,25 @@ fun MadShieldScreen(vm: GambitViewModel) {
                 
                 Spacer(Modifier.height(32.dp))
                 HoverTooltip(text = "Activates Sybil Defense Module: Deducts the premium from your account to insure against impermanent loss.") {
-                    Button(
+                    GlassKeycapButton(
                         onClick = { vm.stakeOnScenario(premium, 1.0) }, 
                         modifier = Modifier.fillMaxWidth().height(56.dp),
+                        baseColor = NeonPurple,
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = NeonPurple)
-                    ) {
-                        Text("OPT-IN TO SHIELD", color = BrandEggwhite, fontWeight = FontWeight.Black, fontSize = 16.sp, letterSpacing = 1.sp)
-                    }
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Filled.Shield,
+                                contentDescription = "Shield Opt-In",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .neonIconComposer(isActive = true),
+                                tint = Color.White
+                            )
+                        },
+                        label = {
+                            Text("OPT-IN TO SHIELD", color = BrandEggwhite, fontWeight = FontWeight.Black, fontSize = 16.sp, letterSpacing = 1.sp)
+                        }
+                    )
                 }
             }
         }
