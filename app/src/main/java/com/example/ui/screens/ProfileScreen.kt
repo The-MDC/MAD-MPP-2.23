@@ -60,8 +60,8 @@ fun ProfileScreen(vm: GambitViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .background(theme.bgDeep)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(0.5.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         // Profile Header
         item {
@@ -1308,7 +1308,7 @@ fun MadArenaView(vm: GambitViewModel) {
     var tournamentMadxDistributed by remember { mutableStateOf(0.0) }
     var tournamentTelemetryLog by remember { mutableStateOf("Tournament Center Online. Initiating stress test evaluates 5,000 parallel prediction outcomes under hyper-density congestion.") }
     
-    // Blockchain Exit sync popup state
+    // Secure Cloud Sync state
     var showExitOverlay by remember { mutableStateOf(false) }
     var blockchainSyncStatus by remember { mutableStateOf("") }
     var blockchainSyncProgress by remember { mutableStateOf(0f) }
@@ -1350,20 +1350,20 @@ fun MadArenaView(vm: GambitViewModel) {
     LaunchedEffect(showExitOverlay) {
         if (showExitOverlay) {
             blockchainSyncProgress = 0f
-            blockchainSyncStatus = "Compiling current NFT states & gameplay outcomes..."
-            blockchainSyncTxnHash = "0x" + java.util.UUID.randomUUID().toString().replace("-", "").take(24).uppercase()
+            blockchainSyncStatus = "Optimizing digital asset states & offline progress..."
+            blockchainSyncTxnHash = "SYNC-" + java.util.UUID.randomUUID().toString().replace("-", "").take(12).uppercase()
             
             kotlinx.coroutines.delay(800)
             blockchainSyncProgress = 0.25f
-            blockchainSyncStatus = "Broadcasting cryptographic state variables to consensus group..."
+            blockchainSyncStatus = "Aggregating game telemetry parameters to global node map..."
             
             kotlinx.coroutines.delay(900)
             blockchainSyncProgress = 0.6f
-            blockchainSyncStatus = "Evaluating state proof. Gas fee of 0.042 \$MADx reserved."
+            blockchainSyncStatus = "Signing secure state credentials to cloud backup vault..."
             
             kotlinx.coroutines.delay(850)
             blockchainSyncProgress = 1.0f
-            blockchainSyncStatus = "Ledger sequence finalized! Written back block record successfully."
+            blockchainSyncStatus = "Secure vault sync completed! Weapon records saved successfully."
             
             vm.writeToBlockchainSimulated(
                 cardName = activeCard.name,
@@ -1377,7 +1377,7 @@ fun MadArenaView(vm: GambitViewModel) {
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
         
-        // EXIT GATE AND BLOCKCHAIN EXECUTABLE BANNER
+        // EXIT GATE AND SYSTEM CONFIGURATION BANNER
         Box(
             Modifier
                 .fillMaxWidth()
@@ -1389,9 +1389,9 @@ fun MadArenaView(vm: GambitViewModel) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("🔗 LOBBY GATEWAY", color = theme.brandPrimary, fontSize = 11.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace)
+                        Text("🛡️ SECURE VAULT GATEWAY", color = theme.brandPrimary, fontSize = 11.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace)
                         Box(Modifier.size(6.dp).background(Color.Green, CircleShape))
-                        Text("CONNECTED D'APP", color = Color.Gray, fontSize = 9.sp, fontFamily = FontFamily.Monospace)
+                        Text("HIGH FIDELITY SYNC", color = Color.Gray, fontSize = 9.sp, fontFamily = FontFamily.Monospace)
                     }
                     
                     Button(
@@ -1400,11 +1400,11 @@ fun MadArenaView(vm: GambitViewModel) {
                         shape = RoundedCornerShape(6.dp),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                     ) {
-                        Text("🚪 EXIT TO CARD GAME LOBBY (SYNC)", color = theme.bgDeep, fontSize = 10.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace)
+                        Text("🔌 SYNC PLAYER STATE & LOBBY", color = theme.bgDeep, fontSize = 10.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace)
                     }
                 }
                 Text(
-                    "When exiting back to the global lobby, your character states, damage durability, and reward pools are compiled into a merkle root and submitted directly to the on-chain ledger.",
+                    "When saving player state, your upgraded weapons, game variables, and earned \$MADx balance are compiled securely and synced live with the global cloud servers.",
                     color = theme.textSecondary,
                     fontSize = 11.sp
                 )
@@ -1448,7 +1448,7 @@ fun MadArenaView(vm: GambitViewModel) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         StepIndicator(num = 4, text = "Incinerator Burn & Scrap Reclamation", done = true)
                         StepIndicator(num = 5, text = "Mass Multi-User Tournaments", done = true)
-                        StepIndicator(num = 6, text = "Simulated Blockchain d'App Sync", done = true)
+                        StepIndicator(num = 6, text = "Secure High-Fidelity Cloud Sync", done = true)
                     }
                 }
             }
@@ -1922,7 +1922,7 @@ fun MadArenaView(vm: GambitViewModel) {
         }
     }
 
-    // BLOCKCHAIN SIGNING CONFIRMATION MODAL / OVERLAY
+    // SECURE CLOUD STORAGE SYNC OVERLAY
     if (showExitOverlay) {
         AlertDialog(
             onDismissRequest = { if (blockchainSyncProgress >= 1f) showExitOverlay = false },
@@ -1930,13 +1930,13 @@ fun MadArenaView(vm: GambitViewModel) {
             tonalElevation = 12.dp,
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("🛡️ LEDGER STATE EMITTANCE", color = theme.brandSecondary, fontSize = 15.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                    Text("🛡️ SECURE VAULT SYNCHRONIZATION", color = theme.brandSecondary, fontSize = 14.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
                 }
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        text = "Establishing decentralized hub connection layer, matching cryptographic signatures...",
+                        text = "Establishing high-security sync pipeline, preserving upgraded weapon stages, damage wear, and live game balances...",
                         color = Color.LightGray,
                         fontSize = 11.sp
                     )
@@ -1948,9 +1948,9 @@ fun MadArenaView(vm: GambitViewModel) {
                             .padding(8.dp)
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text("TXN HASH: $blockchainSyncTxnHash", color = Color.Gray, fontSize = 8.5.sp, fontFamily = FontFamily.Monospace)
-                            Text("TARGET HUB: 'CardGame Lobby' spoke connection", color = Color.Gray, fontSize = 8.5.sp, fontFamily = FontFamily.Monospace)
-                            Text("SYNC STATE: $blockchainSyncStatus", color = theme.brandPrimary, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
+                            Text("SYNC SESSION ID: $blockchainSyncTxnHash", color = Color.Gray, fontSize = 8.5.sp, fontFamily = FontFamily.Monospace)
+                            Text("TARGET ENDPOINT: Live Battle Lobby Database Spoke", color = Color.Gray, fontSize = 8.5.sp, fontFamily = FontFamily.Monospace)
+                            Text("SYNC PROCESS: $blockchainSyncStatus", color = theme.brandPrimary, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
                         }
                     }
                     
@@ -1968,7 +1968,7 @@ fun MadArenaView(vm: GambitViewModel) {
                     enabled = blockchainSyncProgress >= 1f,
                     colors = ButtonDefaults.buttonColors(containerColor = theme.brandPrimary)
                 ) {
-                    Text("DONE", color = theme.bgDeep, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                    Text("COMPLETE SYNC", color = theme.bgDeep, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                 }
             }
         )

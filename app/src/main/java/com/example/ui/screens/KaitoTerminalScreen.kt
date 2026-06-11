@@ -36,8 +36,8 @@ fun KaitoTerminalScreen(vm: GambitViewModel) {
             .fillMaxSize()
             .background(BgDeep)
             .verticalScroll(scroll)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(0.5.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         Column(Modifier.padding(horizontal = 4.dp)) {
             Text(

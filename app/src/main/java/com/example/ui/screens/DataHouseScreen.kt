@@ -37,8 +37,8 @@ fun DataHouseScreen(vm: GambitViewModel) {
             .fillMaxSize()
             .background(theme.bgDeep)
             .verticalScroll(scroll)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+            .padding(0.5.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         Column {
             Text("THE DATA HOUSE", color = theme.brandSecondary, fontSize = 24.sp, fontWeight = FontWeight.Bold, fontFamily = com.example.ui.theme.ArialNarrowFamily)
@@ -59,10 +59,12 @@ fun DataHouseScreen(vm: GambitViewModel) {
                 .fillMaxWidth()
                 .background(theme.bgCard, RoundedCornerShape(12.dp))
                 .border(theme.borderWidth, theme.borderBrush, RoundedCornerShape(12.dp))
-                .padding(16.dp)
+                .padding(1.dp)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text("IMPRESSIONS, SENTIMENTS & PSYCHOGRAPHICS", color = theme.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+            Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                com.example.ui.components.SatiricalTooltip(com.example.model.SatireGuardrailEngine.getMADHATrTooltip("sentiment")) {
+                    Text("IMPRESSIONS, SENTIMENTS & PSYCHOGRAPHICS", color = theme.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+                }
                 
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Column(Modifier.weight(1f)) {

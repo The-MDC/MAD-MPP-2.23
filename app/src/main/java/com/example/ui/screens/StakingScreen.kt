@@ -23,15 +23,20 @@ import com.example.viewmodel.GambitViewModel
 
 @Composable
 fun StakingScreen(vm: GambitViewModel) {
+    val state by vm.state.collectAsState()
     val scroll = rememberScrollState()
+
+    // Calculate Dynamic APY: APY_user = APY_base * (1 + NFT_Clout / 200)
+    val equippedClout = state.ownedCards.maxOfOrNull { it.cloutMultiplier * 100.0 } ?: 0.0
+    val dynamicModifier = 1.0 + (equippedClout / 200.0)
 
     Column(
         Modifier
             .fillMaxSize()
             .background(BgDeep)
             .verticalScroll(scroll)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(0.5.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         Column(Modifier.padding(horizontal = 4.dp)) {
             Text(
@@ -58,15 +63,15 @@ fun StakingScreen(vm: GambitViewModel) {
                 .padding(24.dp)
         ) {
             Column {
-                Text("TIER YIELDS (APY)", color = NeonCyan, fontWeight = FontWeight.Black, fontFamily = com.example.ui.theme.ArialNarrowFamily, letterSpacing = 1.sp)
+                Text("TIER YIELDS (APY) - Boosted x${"%.2f".format(dynamicModifier)}", color = NeonCyan, fontWeight = FontWeight.Black, fontFamily = com.example.ui.theme.ArialNarrowFamily, letterSpacing = 1.sp)
                 Spacer(Modifier.height(16.dp))
                 
-                StakingTierRow("BRONZE", "12% APY", BrandEggwhite)
-                StakingTierRow("SILVER", "18% APY", BrandEggwhite)
-                StakingTierRow("GOLD", "25% APY", BrandGold)
-                StakingTierRow("DIAMOND", "38% APY", NeonCyan)
-                StakingTierRow("OBSIDIAN", "52% APY (+ Governance)", NeonPurple)
-                StakingTierRow("MAD TIER", "68% APY (+ Dispute Arbitration)", NeonMagenta)
+                StakingTierRow("BRONZE", "${"%.1f".format(12.0 * dynamicModifier)}% APY", BrandEggwhite)
+                StakingTierRow("SILVER", "${"%.1f".format(18.0 * dynamicModifier)}% APY", BrandEggwhite)
+                StakingTierRow("GOLD", "${"%.1f".format(25.0 * dynamicModifier)}% APY", BrandGold)
+                StakingTierRow("DIAMOND", "${"%.1f".format(38.0 * dynamicModifier)}% APY", NeonCyan)
+                StakingTierRow("OBSIDIAN", "${"%.1f".format(52.0 * dynamicModifier)}% APY (+ Governance)", NeonPurple)
+                StakingTierRow("MAD TIER", "${"%.1f".format(68.0 * dynamicModifier)}% APY (+ Arbitration)", NeonMagenta)
             }
         }
         

@@ -12,6 +12,7 @@ import com.example.viewmodel.GambitViewModel
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.example.engine.MadhatrVoice.init(this)
         val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, exception ->
             com.example.diagnostics.ErrorDiagnosticsModule.logException(exception, "GlobalUncaughtExceptionHandler")

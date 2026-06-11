@@ -90,11 +90,13 @@ class GambitViewModel(application: Application) : AndroidViewModel(application) 
 
         recalcAllocations()
         startDutchAuctionTick()
+        startAuctionSimulationTick()
         startBotWaveSimulation()
         startSentimentCycle()
         startTrendSimulation()
         startNeuralTelemetrySimulation()
         fetchDailyForecast()
+        fetchSentimentFeed()
     }
 
     private fun startNeuralTelemetrySimulation() {
@@ -177,6 +179,129 @@ class GambitViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    private fun startAuctionSimulationTick() {
+        viewModelScope.launch {
+            _state.update { s ->
+                s.copy(
+                    liveAuctions = listOf(
+                        LiveAuction("auc1", "Politely Hallucinating Chatbot Card", "Artificial Intelligence", "A satirical card recording a conversation where an artificial agent nicely hallucinated fake financial statistics, earning maximum charm.", 240.0, "Sentinel Node 5", 95, isTracked = true, biddingHistory = listOf(100.0, 120.0, 150.0, 190.0, 240.0)),
+                        LiveAuction("auc2", "Politician AI Correspondence Ledger", "Political Bureaucracy", "Leaked files containing AI-drafted sympathy letters used by premium public servants to automate empathy.", 380.0, "Whale Node 3", 145, isTracked = false, biddingHistory = listOf(180.0, 220.0, 270.0, 310.0, 380.0)),
+                        LiveAuction("auc3", "Private Yacht Regatta for Climate Action Deed", "Elite Philanthropy", "A pristine deed grant allowing secondary access to carbon offset boat races, designed specifically for high-net-worth consensus brokers.", 150.0, "Anonymous Node", 55, isTracked = true, biddingHistory = listOf(80.0, 100.0, 110.0, 130.0, 150.0))
+                    ),
+                    auctionActivity = listOf(
+                        AuctionActivityLog("act1", System.currentTimeMillis() - 20000, "Anonymous Node Bid Placed", "Placed a bid of 145.0 MADx for Private Yacht Regatta Deed.", "BID"),
+                        AuctionActivityLog("act2", System.currentTimeMillis() - 10000, "Sentinel Node 5 Bid Placed", "Placed a bid of 240.0 MADx for Politely Hallucinating Chatbot Card.", "BID")
+                    )
+                )
+            }
+
+            while (isActive) {
+                delay(1000)
+                _state.update { s ->
+                    val updatedAuctions = mutableListOf<LiveAuction>()
+                    val newActivityList = s.auctionActivity.toMutableList()
+                    var newToasts = s.volatilityToasts.toMutableList()
+
+                    s.liveAuctions.forEach { auc ->
+                        var currentSec = auc.timeRemainingSeconds - 1
+                        var currentBidVal = auc.currentBid
+                        var highBidderName = auc.highBidder
+                        var userPlacedBidState = auc.userPlacedBid
+
+                        if (currentSec == 25 && auc.isTracked) {
+                            val alert = com.example.model.VolatilityAlertToast(
+                                id = java.util.UUID.randomUUID().toString(),
+                                eventName = "⏳ AUCTION ENDING SOON",
+                                volatilityScore = 65.0,
+                                text = "Only 25 seconds remain on tracked asset \"${auc.title}\". Action required!"
+                            )
+                            newToasts.add(0, alert)
+                            try { toneGenerator?.startTone(android.media.ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 150) } catch (e: Exception) {}
+                        }
+
+                        if (currentSec <= 0) {
+                            val record = AuctionActivityLog(
+                                id = java.util.UUID.randomUUID().toString(),
+                                title = "⚖️ Auction Settled: ${auc.title}",
+                                description = "Completed with winning bid of ${auc.currentBid.toInt()} MADx by $highBidderName.",
+                                type = "SETTLEMENT"
+                            )
+                            newActivityList.add(0, record)
+
+                            currentSec = (60..150).random()
+                            currentBidVal = (100..300).random().toDouble()
+                            highBidderName = listOf("Sentinel Node 9", "Whale Node 4", "Anonymous Agent", "Council Member").random()
+                            userPlacedBidState = false
+
+                            val startRecord = AuctionActivityLog(
+                                id = java.util.UUID.randomUUID().toString(),
+                                title = "🏁 Auction Started: ${auc.title}",
+                                description = "Accepting bids starting at ${currentBidVal.toInt()} MADx.",
+                                type = "START"
+                            )
+                            newActivityList.add(0, startRecord)
+                        } else {
+                            if (Math.random() < 0.08) {
+                                val increase = (15..45).random()
+                                val oldBidder = highBidderName
+                                val newBidVal = currentBidVal + increase
+                                highBidderName = listOf("Sentinel Node 6", "Whale Node 2", "Council Delegate", "Asset Aggregator", "Expert Broker").random()
+                                
+                                val wasUserHigh = oldBidder.contains("You")
+
+                                val bidRecord = AuctionActivityLog(
+                                    id = java.util.UUID.randomUUID().toString(),
+                                    title = "💥 Counter-Bid Filed",
+                                    description = "$highBidderName placed a bid of ${newBidVal.toInt()} MADx on \"${auc.title}\".",
+                                    type = "BID"
+                                )
+                                newActivityList.add(0, bidRecord)
+
+                                if (wasUserHigh && auc.isTracked) {
+                                    val outbidAlert = com.example.model.VolatilityAlertToast(
+                                        id = java.util.UUID.randomUUID().toString(),
+                                        eventName = "🚨 AUCTION OUTBID: ${auc.title}",
+                                        volatilityScore = 95.0,
+                                        text = "$highBidderName submitted a higher bid of ${newBidVal.toInt()} MADx. Secure your reservation!"
+                                    )
+                                    newToasts.add(0, outbidAlert)
+                                    try { toneGenerator?.startTone(android.media.ToneGenerator.TONE_CDMA_ABBR_ALERT, 180) } catch (e: Exception) {}
+                                }
+                                
+                                currentBidVal = newBidVal
+                                userPlacedBidState = false
+                            }
+                        }
+
+                        val updatedHistory = if (currentSec <= 0 || auc.timeRemainingSeconds <= 1) {
+                            listOf(currentBidVal * 0.6, currentBidVal * 0.8, currentBidVal)
+                        } else if (currentBidVal != auc.currentBid) {
+                            (auc.biddingHistory + currentBidVal).takeLast(15)
+                        } else {
+                            auc.biddingHistory
+                        }
+
+                        updatedAuctions.add(
+                            auc.copy(
+                                timeRemainingSeconds = currentSec,
+                                currentBid = currentBidVal,
+                                highBidder = highBidderName,
+                                userPlacedBid = userPlacedBidState,
+                                biddingHistory = updatedHistory
+                            )
+                        )
+                    }
+
+                    s.copy(
+                        liveAuctions = updatedAuctions,
+                        auctionActivity = newActivityList.take(30),
+                        volatilityToasts = newToasts.take(3)
+                    )
+                }
+            }
+        }
+    }
+
     private fun startBotWaveSimulation() {
         viewModelScope.launch {
             while (isActive) {
@@ -217,11 +342,34 @@ class GambitViewModel(application: Application) : AndroidViewModel(application) 
                         (listOf(extraActivity) + s.highStakesFeed).take(15)
                     } else s.highStakesFeed
                     
+                    var newToasts = s.volatilityToasts
+                    if (Math.random() > 0.75) {
+                        val trackingScenarios = s.activeScenarios.filter { s.bookmarkedScenarioIds.contains(it.id) || it.isHot }
+                        val targetSc = if (trackingScenarios.isNotEmpty()) trackingScenarios.random() else s.activeScenarios.randomOrNull()
+                        if (targetSc != null) {
+                            val volScore = 30.0 + (Math.random() * 60.0)
+                            val textAlert = when {
+                                volScore > 75.0 -> "🔥 VOLATILITY SHIFT: Severe conviction convergence! High-density order flow detected."
+                                volScore > 50.0 -> "⚡ STABILITY THRESHOLD BREACHED: Social sentiment volatility spiking above safety levels."
+                                else -> "📉 METRIC UPDATE: Direct neural delta speed has exceeded the 30u threshold."
+                            }
+                            val newToast = com.example.model.VolatilityAlertToast(
+                                id = java.util.UUID.randomUUID().toString(),
+                                eventName = targetSc.name,
+                                volatilityScore = volScore,
+                                text = textAlert
+                            )
+                            newToasts = (newToasts + newToast).take(3)
+                            try { toneGenerator?.startTone(android.media.ToneGenerator.TONE_CDMA_PIP, 100) } catch (e: Exception) {}
+                        }
+                    }
+
                     s.copy(
                         eigenTrustLogs = (listOf(msg) + s.eigenTrustLogs).take(15),
                         xp = s.xp + 0.04f,
                         madxBalance = if (isBot) s.madxBalance else s.madxBalance + (Math.random() * 0.5),
-                        highStakesFeed = updatedFeed
+                        highStakesFeed = updatedFeed,
+                        volatilityToasts = newToasts
                     )
                 }
             }
@@ -373,7 +521,25 @@ class GambitViewModel(application: Application) : AndroidViewModel(application) 
         if (safeStake <= 0.0) return
         _state.update { s ->
             if (s.madxBalance < safeStake) return@update s
-            s.copy(madxBalance = (s.madxBalance - safeStake).coerceAtLeast(0.0))
+            
+            // DL-LMSR Update
+            val volume = safeStake * 1.5 // simulated Volume
+            val currentShares = s.activeScenarios.map { it.crowdConvictionSpeed }
+            val bLiquidity = 1000.0 // simulated base liquidity
+            
+            val dLmsrCost = com.example.math.GambitMath.calculateDLLMSRCost(currentShares, bLiquidity, volume)
+            
+            // The Furnace (Deflationary Logic)
+            val txFees = safeStake * 0.02
+            val burnPercent = com.example.math.GambitMath.calculateFurnaceBurnPercent(volume, txFees)
+            val burnAmount = safeStake * (burnPercent / 100.0)
+            
+            // TeaBag Risk Engine
+            val riskVariance = 0.55 // simulated variance
+            val premium = com.example.math.GambitMath.calculateTeaBagPremium(safeStake, 0.45, riskVariance)
+            
+            val finalDeduction = safeStake + premium + burnAmount
+            s.copy(madxBalance = (s.madxBalance - finalDeduction).coerceAtLeast(0.0))
         }
     }
 
@@ -433,6 +599,39 @@ class GambitViewModel(application: Application) : AndroidViewModel(application) 
         _state.update { it.copy(isAiChatOpen = !it.isAiChatOpen) }
     }
 
+    fun sendMessageToAi(message: String) {
+        val trimmed = message.trim()
+        if (trimmed.isEmpty()) return
+
+        val userMessage = ChatMessageInfo(isUser = true, sender = "You", text = trimmed)
+        
+        _state.update { s -> 
+            s.copy(
+                aiChatMessages = s.aiChatMessages + userMessage,
+                isAiChatTyping = true
+            )
+        }
+
+        viewModelScope.launch {
+            val repository = com.example.api.GeminiRepository()
+            val aiResponseText = repository.chatWithPersona(trimmed)
+            
+            val aiMessage = ChatMessageInfo(isUser = false, sender = "MADHAT'r", text = aiResponseText)
+            
+            _state.update { s -> 
+                s.copy(
+                    aiChatMessages = s.aiChatMessages + aiMessage,
+                    isAiChatTyping = false
+                )
+            }
+            com.example.engine.MadhatrVoice.speak(aiResponseText)
+            
+            try {
+                toneGenerator?.startTone(android.media.ToneGenerator.TONE_CDMA_CONFIRM, 120)
+            } catch (e: Exception) {}
+        }
+    }
+
     fun toggleBookmark(scenarioId: String) {
         _state.update { s ->
             val set = s.bookmarkedScenarioIds.toMutableSet()
@@ -448,7 +647,8 @@ class GambitViewModel(application: Application) : AndroidViewModel(application) 
         marketType: MarketType,
         lockWeeks: Int,
         isLiarMeter: Boolean,
-        cannedOutcomes: List<String>
+        cannedOutcomes: List<String>,
+        marketScope: String = "Global"
     ) {
         val sanitizedName = name.trim().take(75).replace(Regex("[^a-zA-Z0-9\\s?\\-_!@#\$%^&*()+=.:;/]"), "")
         if (sanitizedName.isBlank()) return
@@ -489,7 +689,8 @@ class GambitViewModel(application: Application) : AndroidViewModel(application) 
             sentimentBullishRatio = 0.50,
             psychographicCoreBias = "$psychographicBias\n($extractedInsight)",
             lockPeriodWeeks = safeLockWeeks,
-            category = safeCategory
+            category = safeCategory,
+            marketScope = marketScope
         )
 
         _state.update { s ->
@@ -500,7 +701,7 @@ class GambitViewModel(application: Application) : AndroidViewModel(application) 
         }
         recalcAllocations()
 
-        val feedDescription = "Degen Oracle parsed scraper logs: $finalTitle. conversion outcome matrix mapped: $safeOutcomes"
+        val feedDescription = "Degen Oracle parsed scraper logs: $finalTitle. scope: $marketScope outcome matrix mapped: $safeOutcomes"
         val customActivity = HighStakesActivity(
             id = java.util.UUID.randomUUID().toString(),
             timestamp = System.currentTimeMillis(),
@@ -518,40 +719,119 @@ class GambitViewModel(application: Application) : AndroidViewModel(application) 
         playFeedbackTone(android.media.ToneGenerator.TONE_CDMA_HIGH_PBX_SLS, 150)
     }
 
+    /**
+     * Resolves a prediction/conviction market using decentralized Oracle consensus.
+     * Calculated utilizing LMSR pricing logic and delta-limit payouts.
+     */
+    fun resolveScenario(scenarioId: String, winningOutcome: String) {
+        _state.update { s ->
+            val sc = s.activeScenarios.find { it.id == scenarioId } ?: return@update s
+            if (sc.isResolved) return@update s
+
+            val yesProb = GambitMath.calculateDLLMSRPrice(sc.yesShares, listOf(sc.yesShares, sc.noShares), 1000.0)
+            val payoutFactor = if (winningOutcome == "YES" || winningOutcome == "OVER" || winningOutcome == "BUY_TARGET_MET") {
+                1.0 / (yesProb.coerceIn(0.1, 0.9))
+            } else {
+                1.0 / ((1.0 - yesProb).coerceIn(0.1, 0.9))
+            }
+
+            val payoutAmount = sc.gildedConvictionReserve * payoutFactor
+            val msg = "Oracle parsed consensus: '${sc.name}' -> '$winningOutcome'. settled at ${"%.2f".format(payoutFactor)}x. Distributing $payoutAmount \$MADx rewards."
+
+            val resolutionActivity = HighStakesActivity(
+                id = java.util.UUID.randomUUID().toString(),
+                timestamp = System.currentTimeMillis(),
+                eventName = sc.name,
+                text = msg,
+                amount = payoutAmount,
+                speedBoost = payoutFactor,
+                type = "LIQUIDATION"
+            )
+
+            val updatedScenarios = s.activeScenarios.map {
+                if (it.id == scenarioId) {
+                    it.copy(
+                        isResolved = true,
+                        winningOutcome = winningOutcome
+                    )
+                } else it
+            }
+
+            val rewardAmt = (50..250).random().toDouble() * payoutFactor.coerceIn(1.0, 5.0)
+
+            viewModelScope.launch(Dispatchers.Default) {
+                try {
+                    toneGenerator?.startTone(android.media.ToneGenerator.TONE_CDMA_CONFIRM, 250)
+                } catch (e: Exception) {}
+            }
+
+            s.copy(
+                activeScenarios = updatedScenarios,
+                madxBalance = s.madxBalance + rewardAmt,
+                xp = s.xp + 50f,
+                highStakesFeed = (listOf(resolutionActivity) + s.highStakesFeed).take(15)
+            )
+        }
+    }
+
     /** Evolutionary Upgrade system using earned xp & $MADx inside Room */
     fun evolveCardState(cardId: Int) {
         viewModelScope.launch {
             val cardToUpdate = _state.value.ownedCards.find { it.id == cardId } ?: return@launch
             if (cardToUpdate.evolutionStage >= 3) return@launch
             
-            val nextStage = cardToUpdate.evolutionStage + 1
-            val newName = when (nextStage) {
-                2 -> "★ ${cardToUpdate.name} ELITE"
-                3 -> "★★ ${cardToUpdate.name} SUPREME ASCENDED"
-                else -> cardToUpdate.name
-            }
-            val evolved = cardToUpdate.copy(
-                name = newName,
-                evolutionStage = nextStage,
-                powerLevel = cardToUpdate.powerLevel + 1200,
-                cloutMultiplier = cardToUpdate.cloutMultiplier + 0.6,
-                apyBoost = cardToUpdate.apyBoost + 0.05
-            )
-            localDao.insertUserCard(UserCardEntity.fromSatiricalCard(evolved))
+            val buzzScore = 75.0 // Hardcoded for simulated Oracle BuzzScore
+            val simulatedEvolution = com.example.engine.EvolutionEngine.attemptEvolution(cardToUpdate, buzzScore)
             
-            localDao.insertHistory(
-                CardEvolutionHistoryEntity(
-                    timestamp = System.currentTimeMillis(),
-                    cardId = cardId,
-                    cardName = evolved.name,
-                    previousStage = cardToUpdate.evolutionStage,
-                    nextStage = nextStage,
-                    type = "EVOLVE",
-                    details = "🧬 DNA Evolved to Stage $nextStage! Clout & power factors elevated."
+            if (simulatedEvolution != null) {
+                // Success
+                val nextStage = simulatedEvolution.evolutionStage
+                val newName = when (nextStage) {
+                    2 -> "★ ${simulatedEvolution.name} ELITE"
+                    3 -> "★★ ${simulatedEvolution.name} SUPREME ASCENDED"
+                    else -> simulatedEvolution.name
+                }
+                
+                val fullyEvolved = simulatedEvolution.copy(
+                    name = newName,
+                    apyBoost = simulatedEvolution.apyBoost + 0.05
                 )
-            )
-            
-            _state.update { s -> s.copy(xp = s.xp + 15f) }
+                
+                localDao.insertUserCard(UserCardEntity.fromSatiricalCard(fullyEvolved))
+                
+                localDao.insertHistory(
+                    CardEvolutionHistoryEntity(
+                        timestamp = System.currentTimeMillis(),
+                        cardId = cardId,
+                        cardName = fullyEvolved.name,
+                        previousStage = cardToUpdate.evolutionStage,
+                        nextStage = nextStage,
+                        type = "EVOLVE",
+                        details = "🧬 DNA Evolved to Stage $nextStage! Clout & power factors elevated."
+                    )
+                )
+                _state.update { s -> s.copy(xp = s.xp + 15f) }
+            } else {
+                // Failure: Burn
+                localDao.deleteUserCard(cardId)
+                
+                // Add Near-Miss Effect check
+                val isNearMiss = buzzScore * 1.15 > 100.0 // Near-miss logic
+                
+                localDao.insertHistory(
+                    CardEvolutionHistoryEntity(
+                        timestamp = System.currentTimeMillis(),
+                        cardId = cardId,
+                        cardName = cardToUpdate.name,
+                        previousStage = cardToUpdate.evolutionStage,
+                        nextStage = 0,
+                        type = "BURN",
+                        details = "🔥 VRF Failure (Random >= $buzzScore). Asset incinerated." + if (isNearMiss) " Near miss! The card cracked gold before turning to dust." else ""
+                    )
+                )
+                // Burn 100% of NFT upgrade fees
+                _state.update { s -> s.copy(madxBalance = java.lang.Math.max(0.0, s.madxBalance - 50.0)) }
+            }
         }
     }
 
@@ -629,10 +909,63 @@ class GambitViewModel(application: Application) : AndroidViewModel(application) 
     /** Record active rewards to user balance, synced through Room */
     fun addEarningsToCard(cardId: Int, amount: Double) {
         viewModelScope.launch {
-            val cardToUpdate = _state.value.ownedCards.find { it.id == cardId } ?: return@launch
-            val updated = cardToUpdate.copy(earnsCount = cardToUpdate.earnsCount + amount)
+            val s = _state.value
+            val cardToUpdate = s.ownedCards.find { it.id == cardId } ?: return@launch
+            
+            // Dopamine Optimizer: Variable Ratio Reinforcement using Expanded Fibonacci
+            val userDopamineIndex = GambitMath.calculateUserDopamineIndex(
+                evolutionStage = cardToUpdate.evolutionStage,
+                xp = s.xp,
+                socialStanding = s.currentPerformanceRating
+            )
+            val fibonacciMultiplier = GambitMath.getFibonacciReward(userDopamineIndex)
+            
+            // Cosmic Anchor: Lunar Cycle Multiplier Integration
+            val lunarMultiplier = GambitMath.getLunarPhaseMultiplier(System.currentTimeMillis())
+            
+            // Calculate ultimate optimized yield 
+            val optimizedReward = amount * fibonacciMultiplier * lunarMultiplier
+            
+            val updated = cardToUpdate.copy(earnsCount = cardToUpdate.earnsCount + optimizedReward)
             localDao.insertUserCard(UserCardEntity.fromSatiricalCard(updated))
-            _state.update { s -> s.copy(madxBalance = s.madxBalance + amount) }
+            
+            val newNotification = RewardNotification(
+                id = java.util.UUID.randomUUID().toString(),
+                message = com.example.model.SatireGuardrailEngine.injectHumor("Yield generated by ${updated.name}!"),
+                amount = optimizedReward,
+                fibonacciIndex = userDopamineIndex
+            )
+            
+            _state.update { curr -> 
+                curr.copy(
+                    madxBalance = curr.madxBalance + optimizedReward,
+                    rewardNotifications = curr.rewardNotifications + newNotification
+                ) 
+            }
+        }
+    }
+    
+    fun dismissRewardNotification(id: String) {
+        _state.update { s -> 
+            s.copy(rewardNotifications = s.rewardNotifications.filter { it.id != id })
+        }
+    }
+
+    fun dismissVolatilityToast(id: String) {
+        _state.update { s ->
+            s.copy(volatilityToasts = s.volatilityToasts.filter { it.id != id })
+        }
+    }
+
+    fun triggerVolatilityToast(eventName: String, score: Double, text: String) {
+        val newToast = com.example.model.VolatilityAlertToast(
+            id = java.util.UUID.randomUUID().toString(),
+            eventName = eventName,
+            volatilityScore = score,
+            text = text
+        )
+        _state.update { s ->
+            s.copy(volatilityToasts = (s.volatilityToasts + newToast).take(3))
         }
     }
 
@@ -834,6 +1167,86 @@ class GambitViewModel(application: Application) : AndroidViewModel(application) 
                     )
                 }
             }
+        }
+    }
+
+    fun toggleSentimentFeed(isOpen: Boolean) {
+        _state.update { it.copy(isSentimentFeedOpen = isOpen) }
+        if (isOpen && _state.value.sentimentFeedItems.isEmpty()) {
+            fetchSentimentFeed()
+        }
+    }
+
+    fun fetchSentimentFeed() {
+        viewModelScope.launch {
+            _state.update { s -> s.copy(isSentimentFeedLoading = true, sentimentFeedError = null) }
+            try {
+                val results = com.example.engine.GeminiSentimentClient.generateSentimentFeedItems()
+                _state.update { s -> s.copy(sentimentFeedItems = results, isSentimentFeedLoading = false) }
+            } catch (e: Exception) {
+                _state.update { s ->
+                    s.copy(
+                        isSentimentFeedLoading = false,
+                        sentimentFeedError = e.localizedMessage ?: "Failed to generate sentiment feed"
+                    )
+                }
+            }
+        }
+    }
+
+    fun placeBid(auctionId: String, amount: Double) {
+        _state.update { s ->
+            val auction = s.liveAuctions.find { it.id == auctionId } ?: return@update s
+            if (s.madxBalance < amount) {
+                try { toneGenerator?.startTone(android.media.ToneGenerator.TONE_CDMA_SOFT_ERROR_LITE, 200) } catch (e: Exception) {}
+                return@update s
+            }
+            if (amount <= auction.currentBid) {
+                try { toneGenerator?.startTone(android.media.ToneGenerator.TONE_CDMA_SOFT_ERROR_LITE, 200) } catch (e: Exception) {}
+                return@update s
+            }
+            
+            var balanceAdjustment = amount
+            if (auction.userPlacedBid) {
+                balanceAdjustment -= auction.currentBid
+            }
+
+            val updatedAuctions = s.liveAuctions.map {
+                if (it.id == auctionId) {
+                    val nextHistory = (it.biddingHistory + amount).takeLast(15)
+                    it.copy(
+                        currentBid = amount,
+                        highBidder = "You (Sovereign)",
+                        userPlacedBid = true,
+                        biddingHistory = nextHistory
+                    )
+                } else it
+            }
+            val log = AuctionActivityLog(
+                id = java.util.UUID.randomUUID().toString(),
+                title = "🎁 Bid Submitted Successfully",
+                description = "You filed a new high-bid of ${amount.toInt()} MADx on \"${auction.title}\".",
+                type = "BID"
+            )
+            try { toneGenerator?.startTone(android.media.ToneGenerator.TONE_PROP_ACK, 100) } catch (e: Exception) {}
+            s.copy(
+                liveAuctions = updatedAuctions,
+                auctionActivity = (listOf(log) + s.auctionActivity).take(30),
+                madxBalance = s.madxBalance - balanceAdjustment
+            )
+        }
+    }
+
+    fun toggleAuctionTracking(auctionId: String) {
+        _state.update { s ->
+            val updated = s.liveAuctions.map {
+                if (it.id == auctionId) {
+                    val nextTrack = !it.isTracked
+                    try { toneGenerator?.startTone(android.media.ToneGenerator.TONE_PROP_ACK, 80) } catch (e: Exception) {}
+                    it.copy(isTracked = nextTrack)
+                } else it
+            }
+            s.copy(liveAuctions = updated)
         }
     }
 }

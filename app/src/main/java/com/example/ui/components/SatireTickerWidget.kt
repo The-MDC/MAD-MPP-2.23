@@ -34,51 +34,89 @@ fun IntegratedTickerWidget(
 ) {
     val theme = LocalGambitTheme.current
 
-    val satireItems = listOf(
-        "BREAKING: FED prints more money, water still wet. 💵",
-        "LIAR ENGINE: 89% probability this 'DeFi Summer' is just 3 guys in a basement. 🚫",
-        "CONVICTION ALERT: Herd mentality surging on meme ticker \$WIF. 🏔️",
-        "SENTINEL ONLINE: Tracking 14 new alpha repositories. 🎃",
-        "MORPHO VAULTS: Rates looking suspiciously generous today. 👩‍💼",
-        "AERODROME POOLS: Liquidity providers experiencing maximal dopamine. 📱",
-        "SYBIL DEFENSE: 42,000 bots blocked from taking your yield. 🧱",
-        "MAD SHIELD: Circuit breaker primed and ready to ruin someone's day. 📚",
-        "PREDICTION CIRCUS: Over/Under on total global collapse is leaning Over. 😭",
-        "AI Agent trades better than 99% of hedge funds by just sleeping. 🤖"
+    var fetchedSatireItems by remember { mutableStateOf<List<String>>(emptyList()) }
+    var fetchedRssArticles by remember { mutableStateOf<List<com.example.api.RssFeedFetcher.RssItem>>(emptyList()) }
+    var isFetching by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        if (fetchedSatireItems.isEmpty()) {
+            isFetching = true
+            try {
+                val rssItems = com.example.api.RssFeedFetcher.fetchRealRssArticles()
+                if (rssItems.isNotEmpty()) {
+                    fetchedRssArticles = rssItems
+                }
+                
+                val items = com.example.api.GeminiRepository().fetchSatiricalHeadlines()
+                fetchedSatireItems = items.ifEmpty {
+                    if (rssItems.isNotEmpty()) {
+                        rssItems.shuffled().take(6).map { "BREAKING: [${it.source}] ${it.title} -> MADHAT'r says: Total madness! 🎩" }
+                    } else {
+                        listOf(
+                            "BREAKING: FED prints more money, water still wet. 💵",
+                            "LIAR ENGINE: 89% probability this 'DeFi Summer' is just 3 guys in a basement. 🚫",
+                            "CONVICTION ALERT: Herd mentality surging on meme tickers. 🏔️",
+                            "SENTINEL ONLINE: Tracking 14 new alpha news streams. 🎃",
+                            "SYBIL DEFENSE: 42,000 bots blocked from taking your yield. 🧱",
+                            "MAD SHIELD: Circuit breaker primed and ready to lock buffers. 📚"
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("SatireTickerWidget", "Error fetching real RSS items", e)
+            } finally {
+                isFetching = false
+            }
+        }
+    }
+
+    val satireItems = if (fetchedSatireItems.isNotEmpty()) fetchedSatireItems else listOf(
+        "Loading real-time satirical news via Google Search Grounding..."
     )
 
-    val marketItems = listOf(
-        "BTC $94,420 (+4.2%)", "ETH $3,800 (+1.1%)", "USDT $1.00 (0.0%)", "USDC $1.00 (0.0%)", 
-        "BNB $590 (-0.5%)", "SOL $145 (+8.4%)", "XRP $0.62 (-1.2%)", "DOGE $0.16 (+12.0%)", 
-        "AERO $1.45 (+40.1%)", "MADDEX $35.00 (+200.3%)", "MORPHO $2.12 (-0.2%)", "MSFT $415.50 (+1.4%)", 
-        "NVDA $1150.00 (+5.6%)", "TSLA $175.20 (-2.1%)", "AMZN $185.00 (+0.8%)", "META $470.30 (+1.1%)",
-        "GOOGL $170.80 (-0.4%)", "BRK.B $405.10 (+0.2%)", "JPM $200.50 (+0.5%)", "V $275.60 (-0.1%)",
-        "GOLD $2,350/oz (+0.8%)", "SILVER $30.50/oz (+2.1%)"
-    )
+    val marketItems = remember(fetchedRssArticles) {
+        val baseCrypto = listOf(
+            "BTC $94,420 (+4.2%)", "ETH $3,800 (+1.1%)", "SOL $145 (+8.4%)", "MADDEX $35.00 (+200.3%)"
+        )
+        val macroRss = fetchedRssArticles.filter { it.source == "CNBC" || it.source == "BBC" || it.source == "YahooFinance" }
+        if (macroRss.isNotEmpty()) {
+            baseCrypto + macroRss.take(6).map { "${if (it.source == "CNBC") "💵" else "📈"} [${it.source}] ${it.title}" }
+        } else {
+            baseCrypto + listOf(
+                "NVDA $1150.00 (+5.6%)", "TSLA $175.20 (-2.1%)", "AMZN $185.00 (+0.8%)", "GOLD $2,350/oz (+0.8%)"
+            )
+        }
+    }
 
-    val neuralTelemetryItems = remember(telemetry) {
+    val neuralTelemetryItems = remember(telemetry, fetchedRssArticles) {
         val sentimentVal = telemetry?.sentimentMetric ?: 89.4f
         val trustVal = telemetry?.dynamicConfidence?.let { "%.2f".format(it * 100) } ?: "99.8"
         val blockedVal = telemetry?.sybilAttacksDeflected ?: 4210
         val bandwidthVal = telemetry?.networkSpeedGbps?.let { "%.1f".format(it) } ?: "98.4"
         val loadVal = telemetry?.cognitiveLoad?.let { "${(it * 100).toInt()}%" } ?: "72%"
         
-        listOf(
+        val baseTelem = listOf(
             "🧠 EIGENTRUST: $trustVal% [SECURED]",
             "🧠 TELEMETRY SENTIMENT: ${"%.2f".format(sentimentVal)}% [LIVE-STREAM]",
-            "🧠 MADx SYSTEM LOAD: $loadVal",
-            "🧠 BANDWIDTH: $bandwidthVal Gbps",
-            "🧠 SYBIL BLOCKS: $blockedVal DEFLECTED",
-            "🧠 AVG WIN RATE: ${(sentimentVal * 0.6).toInt()}% [STABLE]",
-            "🧠 GLOBAL RANK: #84 [ELITE]",
-            "🧠 CARD W/L RATIO: 58.2% [BULLISH]"
+            "🧠 MADx LOAD: $loadVal",
+            "🧠 SYBIL BLOCKS: $blockedVal DEFLECTED"
         )
+        
+        val cryptoNews = fetchedRssArticles.filter { it.source == "CoinDesk" || it.source == "CoinTelegraph" }
+        if (cryptoNews.isNotEmpty()) {
+            baseTelem + cryptoNews.take(4).map { "🧠 [${it.source}] ${it.title}" }
+        } else {
+            baseTelem + listOf(
+                "🧠 AVG WIN RATE: ${(sentimentVal * 0.6).toInt()}% [STABLE]",
+                "🧠 GLOBAL RANK: #84 [ELITE]"
+            )
+        }
     }
 
     var activeChoiceState by remember { mutableStateOf(if (isSatireMode) 2 else 0) }
     val activeChoice = if (isNeuralOnly) 1 else activeChoiceState
 
-    val displayItems = remember(activeChoice, telemetry) {
+    val displayItems = remember(activeChoice, telemetry, marketItems, neuralTelemetryItems, satireItems) {
         when (activeChoice) {
             0 -> marketItems
             1 -> neuralTelemetryItems
@@ -148,15 +186,16 @@ fun IntegratedTickerWidget(
                                 it
                             }
                         }
-                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                        .padding(1.5.dp) // optimized inner padding
                 ) {
                     Box(Modifier.matchParentSize().background(getGlassReflectionBrush(baseColor)))
                     Text(
                         text = labelText,
                         color = baseColor,
-                        fontSize = 13.sp,
+                        fontSize = 13.5.sp, // optimized for 1.5 pt relative scale
                         fontWeight = FontWeight.Black,
                         fontFamily = com.example.ui.theme.AllertaStencilFamily,
+                        modifier = Modifier.padding(1.5.dp), // 1.5pt padding on font
                         style = TextStyle(shadow = Shadow(baseColor, blurRadius = 8f))
                     )
                 }
@@ -168,10 +207,10 @@ fun IntegratedTickerWidget(
                     Text(
                         text = item,
                         color = tickerColors[index % tickerColors.size],
-                        fontSize = 15.sp,
+                        fontSize = 15.sp, // optimized for 1.5 pt relative scale
                         fontWeight = FontWeight.Bold,
                         fontFamily = com.example.ui.theme.AllertaStencilFamily,
-                        modifier = Modifier.padding(end = 32.dp),
+                        modifier = Modifier.padding(end = 32.dp, top = 1.5.dp, bottom = 1.5.dp, start = 1.5.dp), // combined 1.5pt padding
                         style = TextStyle(shadow = Shadow(tickerColors[index % tickerColors.size].copy(alpha=0.5f), blurRadius = 6f))
                     )
                 }

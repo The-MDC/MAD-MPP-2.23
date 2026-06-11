@@ -41,11 +41,23 @@ import com.example.model.MarketType
 import com.example.model.Scenario
 import com.example.model.HighStakesActivity
 import com.example.engine.AnalysisResult
-import androidx.compose.foundation.BorderStroke
+import com.example.ui.components.MarketHeatmapWidget
+import com.example.ui.components.ExportSummaryDialog
 import androidx.compose.animation.core.*
+import android.content.Intent
+import android.speech.RecognizerIntent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.app.Activity
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.ui.platform.LocalContext
 
 import com.example.ui.components.SeikoClockWidget
 import com.example.ui.components.glassContainerBackground
+import com.example.ui.components.innerGlassContainerBackground
 import com.example.ui.components.TopHottestCarousel
 import com.example.ui.components.CustomizableMetricsCarousel
 import com.example.ui.components.DopamineBurstEffect
@@ -57,8 +69,26 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
     val state by vm.state.collectAsState()
     val theme = LocalGambitTheme.current
     val scroll = rememberScrollState()
+    val context = LocalContext.current
+    
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedSentimentFilter by remember { mutableStateOf("All Sentiment") } // "All Sentiment", "Bullish (>55%)", "Bearish (<45%)"
     var selectedCategory by remember { mutableStateOf("All") }
     val categories = listOf("All", "Liar Meter", "Crypto", "Geopolitics", "Culture", "Tech")
+
+    val speechLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data = result.data
+            val results = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            val spokenText = results?.firstOrNull() ?: ""
+            if (spokenText.isNotBlank()) {
+                searchQuery = spokenText
+                vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 100)
+            }
+        }
+    }
     
     var showDailySummary by remember { mutableStateOf(false) }
     val showProposeModal by vm.showProposeModal.collectAsState()
@@ -69,6 +99,7 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
         var selectedType by remember { mutableStateOf(MarketType.BINARY) }
         var lockWeeks by remember { mutableStateOf(4) }
         var isLiarMeter by remember { mutableStateOf(false) }
+        var marketScope by remember { mutableStateOf("Global") } // "Local" or "Global"
         
         var outcomesList by remember { mutableStateOf(listOf("YES", "NO")) }
         var newOutcomeText by remember { mutableStateOf("") }
@@ -218,6 +249,34 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
                         )
                     }
 
+                    // NETWORK TARGET SCOPE Selector
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("NETWORK TARGET SCOPE", color = NeonCyan, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            listOf("Local", "Global").forEach { scope ->
+                                val isSel = marketScope == scope
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(if (isSel) NeonCyan.copy(alpha = 0.25f) else BgDeep)
+                                        .border(1.dp, if (isSel) NeonCyan else Color.DarkGray, RoundedCornerShape(6.dp))
+                                        .clickable { 
+                                            marketScope = scope
+                                            vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 50)
+                                        }
+                                        .padding(vertical = 8.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(scope.uppercase(), color = if (isSel) Color.White else Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                                }
+                            }
+                        }
+                    }
+
                     // 5. Liar Meter Toggle
                     Row(
                         modifier = Modifier
@@ -309,7 +368,8 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
                                 marketType = selectedType,
                                 lockWeeks = lockWeeks,
                                 isLiarMeter = isLiarMeter,
-                                cannedOutcomes = outcomesList
+                                cannedOutcomes = outcomesList,
+                                marketScope = marketScope
                             )
                             vm.setShowProposeModal(false)
                         }
@@ -352,8 +412,8 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
                 .fillMaxSize()
                 .background(BgDeep)
                 .verticalScroll(scroll)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(0.5.dp), // upgraded container layout metric 0.5
+            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
         if (state.isOfflineCache) {
             Box(
@@ -502,15 +562,176 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
         com.example.ui.components.ConvictionTrendsChart(trendHistory = state.trendHistory)
 
         Spacer(Modifier.height(12.dp))
+        MarketHeatmapWidget(activeScenarios = state.activeScenarios)
+
+        Spacer(Modifier.height(12.dp))
         ConvictionMarketplaceWidget(vm)
         Spacer(Modifier.height(12.dp))
 
-        val filteredScenarios = state.activeScenarios.filter {
-            when (selectedCategory) {
-                "All" -> true
-                "Liar Meter" -> it.tag == "[SENTINEL]"
-                else -> it.category == selectedCategory
+        // --- CUSTOM HIGH FIDELITY GLASS-MORPHIC SEARCH & HANDS-FREE VOICE INPUT BAR ---
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 6.dp)
+                .glassContainerBackground(theme.brandPrimary.copy(alpha = 0.15f), RoundedCornerShape(14.dp))
+                .border(1.dp, NeonCyan.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
+                .padding(12.dp)
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "🔍 NEURAL CONVICTION FILTER",
+                        color = NeonCyan,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = com.example.ui.theme.ArialNarrowFamily
+                    )
+                    Text(
+                        text = "HANDS-FREE MIC ACTIVE",
+                        color = Color.LightGray,
+                        fontSize = 8.5.sp,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+
+                // Interactive Text Input Row with Speech Trigger
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text("Filter events or scan keywords...", color = Color.Gray, fontSize = 12.sp, fontFamily = com.example.ui.theme.ArialNarrowFamily) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = NeonCyan,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    },
+                    trailingIcon = {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(end = 4.dp)) {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { searchQuery = "" }, modifier = Modifier.size(24.dp)) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Clear",
+                                        tint = Color.LightGray,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                            IconButton(
+                                onClick = {
+                                    val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                                        putExtra(RecognizerIntent.EXTRA_PROMPT, "TRANSCEIVING NEURAL CONVICTION...")
+                                    }
+                                    try {
+                                        speechLauncher.launch(intent)
+                                    } catch (e: Exception) {
+                                        // Dynamic offline fallback
+                                        val mockVoiceInputs = listOf(
+                                            "The Hallucinating LLM",
+                                            "BTC EOD Price",
+                                            "Meme Ticker Speculation",
+                                            "Insider Dump Watch",
+                                            "Rug-Pull Warning"
+                                        )
+                                        searchQuery = mockVoiceInputs.random()
+                                        vm.playFeedbackTone(android.media.ToneGenerator.TONE_CDMA_CONFIRM, 120)
+                                    }
+                                },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Mic,
+                                    contentDescription = "Speech Voice Input",
+                                    tint = BrandGold,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = NeonCyan,
+                        unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                        cursorColor = NeonCyan,
+                        focusedContainerColor = BgDeep.copy(alpha = 0.5f),
+                        unfocusedContainerColor = BgDeep.copy(alpha = 0.3f)
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    textStyle = TextStyle(fontSize = 13.sp, fontFamily = com.example.ui.theme.ArialFamily)
+                )
+
+                // Jargon-Free Sentiment Category Tags Filter Row
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Vibe Filter:",
+                        color = Color.LightGray,
+                        fontSize = 11.sp,
+                        fontFamily = com.example.ui.theme.ArialNarrowFamily
+                    )
+                    
+                    listOf("All Sentiment", "Bullish", "Skeptical").forEach { filterName ->
+                        val isSelected = selectedSentimentFilter == filterName
+                        val chipColor = when (filterName) {
+                            "Bullish" -> Color(0xFF39FF14) // Neon Green
+                            "Skeptical" -> Color(0xFFFF073A) // Neon Red
+                            else -> NeonCyan
+                        }
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(if (isSelected) chipColor.copy(alpha = 0.25f) else Color.Transparent)
+                                .border(1.dp, if (isSelected) chipColor else Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+                                .clickable {
+                                    selectedSentimentFilter = filterName
+                                    vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 60)
+                                }
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = filterName,
+                                color = if (isSelected) Color.White else Color.LightGray,
+                                fontSize = 10.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                fontFamily = com.example.ui.theme.ArialNarrowFamily
+                            )
+                        }
+                    }
+                }
             }
+        }
+
+        Spacer(Modifier.height(10.dp))
+
+        val filteredScenarios = state.activeScenarios.filter { sc ->
+            val matchesCategory = when (selectedCategory) {
+                "All" -> true
+                "Liar Meter" -> sc.tag == "[SENTINEL]"
+                else -> sc.category == selectedCategory
+            }
+            val matchesSearch = if (searchQuery.isBlank()) true else {
+                sc.name.contains(searchQuery, ignoreCase = true) || 
+                sc.tag.contains(searchQuery, ignoreCase = true) ||
+                sc.category.contains(searchQuery, ignoreCase = true)
+            }
+            val matchesSentiment = when (selectedSentimentFilter) {
+                "Bullish" -> sc.sentimentBullishRatio >= 0.55
+                "Skeptical" -> sc.sentimentBullishRatio < 0.45
+                else -> true
+            }
+            matchesCategory && matchesSearch && matchesSentiment
         }
         
         if (selectedCategory == "Liar Meter") {
@@ -554,7 +775,9 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
                     ) {
                         Box(Modifier.weight(1f).background(BrandCrimson.copy(alpha=0.15f), RoundedCornerShape(4.dp)).border(1.dp, BrandCrimson.copy(alpha=0.3f), RoundedCornerShape(4.dp)).padding(8.dp)) {
                             Column {
-                                Text("SENTINEL THRESHOLD", color = Color.Gray, fontSize = 8.sp, fontFamily = FontFamily.Monospace)
+                                com.example.ui.components.SatiricalTooltip("AI knows you are bluffing but will let you run out of money first") {
+                                    Text("SENTINEL THRESHOLD", color = Color.Gray, fontSize = 8.sp, fontFamily = FontFamily.Monospace)
+                                }
                                 Text("98.7% Anomalous", color = BrandCrimson, fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
                             }
                         }
@@ -587,14 +810,16 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
                     Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text(
-                                    "CONVICTION MARKET", 
-                                    color = BrandGold, 
-                                    fontSize = 9.5.sp, 
-                                    fontFamily = com.example.ui.theme.ArialNarrowFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 2.sp
-                                )
+                                com.example.ui.components.SatiricalTooltip(com.example.model.SatireGuardrailEngine.getMADHATrTooltip("conviction")) {
+                                    Text(
+                                        "CONVICTION MARKET", 
+                                        color = BrandGold, 
+                                        fontSize = 9.5.sp, 
+                                        fontFamily = com.example.ui.theme.ArialNarrowFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 2.sp
+                                    )
+                                }
                                 IconButton(onClick = { vm.toggleBookmark(sc.id) }, modifier = Modifier.size(24.dp)) {
                                     Text(if(state.bookmarkedScenarioIds.contains(sc.id)) "📌" else "📍", fontSize = 12.sp)
                                 }
@@ -630,20 +855,24 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
                             )
                         }
                         Column(horizontalAlignment = Alignment.End) {
-                            Text(
-                                "PREDICTION", 
-                                color = NeonGreen.copy(alpha = 0.7f), 
-                                fontSize = 9.5.sp,
-                                fontFamily = com.example.ui.theme.ArialNarrowFamily
-                            )
-                            Text(
-                                "${"%.1f".format(alloc * 100)}%", 
-                                color = NeonGreen, 
-                                fontSize = 24.sp, 
-                                fontFamily = com.example.ui.theme.ArialNarrowFamily, 
-                                fontWeight = FontWeight.Black,
-                                style = TextStyle(shadow = Shadow(NeonGreen.copy(alpha=0.5f), blurRadius = 16f))
-                            )
+                            com.example.ui.components.SatiricalTooltip(tooltipText = com.example.model.SatireGuardrailEngine.getMADHATrTooltip("prediction")) {
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text(
+                                        "PREDICTION", 
+                                        color = NeonGreen.copy(alpha = 0.7f), 
+                                        fontSize = 9.5.sp,
+                                        fontFamily = com.example.ui.theme.ArialNarrowFamily
+                                    )
+                                    Text(
+                                        "${"%.1f".format(alloc * 100)}%", 
+                                        color = NeonGreen, 
+                                        fontSize = 24.sp, 
+                                        fontFamily = com.example.ui.theme.ArialNarrowFamily, 
+                                        fontWeight = FontWeight.Black,
+                                        style = TextStyle(shadow = Shadow(NeonGreen.copy(alpha=0.5f), blurRadius = 16f))
+                                    )
+                                }
+                            }
                             Text(
                                 "STATUS Δ=${"%.2f".format(delta)}", 
                                 color = BrandEggwhite.copy(alpha=0.5f), 
@@ -674,7 +903,80 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
                     )
                     Spacer(Modifier.height(16.dp))
                     
-                    InteractiveConvictionControl(sc, vm, state.madxBalance)
+                    if (sc.isResolved) {
+                        Spacer(Modifier.height(12.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(theme.brandPrimary.copy(alpha = 0.12f), RoundedCornerShape(10.dp))
+                                .border(1.dp, theme.brandPrimary.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                                .padding(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text("🔮 DECENTRALIZED ORACLE RESOLUTION", color = theme.brandPrimary, fontSize = 8.5.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                                    Text("Status: SETTLED", color = Color.LightGray, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .background(NeonGreen.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                                        .border(1.dp, NeonGreen, RoundedCornerShape(4.dp))
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                                ) {
+                                    Text("WINNER: ${sc.winningOutcome}", color = NeonGreen, fontSize = 10.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace)
+                                }
+                            }
+                        }
+                    } else {
+                        InteractiveConvictionControl(sc, vm, state.madxBalance)
+                        
+                        // Settle Oracles Actions
+                        Spacer(Modifier.height(16.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .background(NeonPurple, RoundedCornerShape(3.dp))
+                                )
+                                Text(
+                                    "SIMULATED CONSENSUS ORACLE RESOLUTION",
+                                    color = Color.Gray,
+                                    fontSize = 8.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace,
+                                    letterSpacing = 1.sp
+                                )
+                            }
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                val outcomes = when(sc.marketType) {
+                                    MarketType.OVER_UNDER -> listOf("OVER", "UNDER")
+                                    MarketType.PROGRESSIVE -> listOf("BUY_TARGET_MET", "SHORT_PROGRESS")
+                                    else -> listOf("YES", "NO")
+                                }
+                                outcomes.forEach { outcome ->
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(BgDeep)
+                                            .border(0.5.dp, Color.DarkGray, RoundedCornerShape(6.dp))
+                                            .clickable {
+                                                vm.resolveScenario(sc.id, outcome)
+                                            }
+                                            .padding(vertical = 8.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("RESOLVE $outcome", color = NeonCyan, fontSize = 9.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace)
+                                    }
+                                }
+                            }
+                        }
+                    }
                     
                     if (sc.isCreatorMode) {
                         Spacer(Modifier.height(16.dp))
@@ -1196,27 +1498,43 @@ fun getTimeToLastFridayOfCurrentOrNextMonth(): TriangleCountdown {
 @Composable
 fun LiarMeterMarketsWidget(vm: GambitViewModel) {
     val state by vm.state.collectAsState()
+    val theme = LocalGambitTheme.current
     val result = state.liarMeterResult
     val isAnalyzing = state.isLiarMeterAnalyzing
     val error = state.liarMeterError
 
+    var showExportSummary by remember { mutableStateOf(false) }
+
     var inputEventText by remember { mutableStateOf("") }
     var roastIntensity by remember { mutableStateOf(70f) }
     var memeSarcasm by remember { mutableStateOf(65f) }
+    var selectedAuditCategory by remember { mutableStateOf("🏛️ Political") }
 
     // Preset configurations for swift testing
-    val presets = listOf(
-        "Fed will raise overnight rates to 18% to combat retail luxury handbag spending.",
-        "Elon Musk announces Dogecoin is officially legal tender on Mars, projects Giga-rally.",
-        "Prime Minister states housing market is 'more affordable than ever' while standing in front of custom yacht."
-    )
+    val presets = when (selectedAuditCategory) {
+        "🏛️ Political" -> listOf(
+            "We are cutting taxes for everyone while simultaneously building 5,000 new high-speed rail lines this fiscal year.",
+            "I have never spoken with that lobbyist and have zero financial interest in any offshore oil leases."
+        )
+        "💵 Economic" -> listOf(
+            "The housing market is more affordable than ever, and inflation holds a sustainable near-zero baseline.",
+            "Our corporate profits increased 300% solely due to operational efficiencies, not price gouging consumer goods."
+        )
+        "🎭 Entertainment" -> listOf(
+            "We are amicable friends and are focusing exclusively on our mutual art rather than box office drama.",
+            "I performed all of my own stunt work in that scene without any CGI or safety harnesses."
+        )
+        else -> listOf(
+            "Our next-gen token has a built-in algorithmic stabilization mechanics that renders rug-pulls mathematically impossible.",
+            "Elon Musk announces Dogecoin is officially legal tender on Mars, projects Giga-rally."
+        )
+    }
 
-    Card(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(16.dp, RoundedCornerShape(20.dp), spotColor = NeonMagenta.copy(alpha = 0.2f))
-            .border(1.dp, Brush.horizontalGradient(listOf(NeonMagenta, NeonCyan)), RoundedCornerShape(20.dp)),
-        colors = CardDefaults.cardColors(containerColor = BgCard.copy(alpha = 0.7f))
+            .padding(vertical = 8.dp)
+            .glassContainerBackground(NeonMagenta, RoundedCornerShape(20.dp))
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             // Header
@@ -1226,9 +1544,9 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("🚨", fontSize = 16.sp)
+                    Text("🎩", fontSize = 16.sp)
                     Text(
-                        text = "LIAR METER PROTOCOL",
+                        text = "Z-LIE METER VISUALIZATION SYSTEM",
                         color = Color.White,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Black,
@@ -1255,7 +1573,7 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
             Spacer(modifier = Modifier.height(8.dp))
             
             Text(
-                text = "Analyze the underlying sentiment, factual consistency, and accuracy of public statements. Unmask political bluffs and market delusions in real-time.",
+                text = "Gauges the precise sentiment, factual alignment, and underlying veracity of public declarations. Instantly dissects political bluffs, economic delusions, and habitual fabulists.",
                 color = Color.LightGray,
                 fontSize = 11.sp,
                 lineHeight = 15.sp
@@ -1263,9 +1581,51 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
             
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Text Input Field for Economic Conviction
+            // CATEGORY SELECTOR CHIPS
             Text(
-                text = "📥 SUBMIT ECONOMIC STATEMENT / BLUFF FOR AUDITING",
+                text = "📁 SELECT STATEMENT DOMAIN:",
+                color = Color.Gray,
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                listOf("🏛️ Political", "💵 Economic", "🎭 Entertainment", "🚀 Crypto").forEach { cat ->
+                    val isSel = selectedAuditCategory == cat
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .innerGlassContainerBackground(
+                                if (isSel) NeonCyan else Color.DarkGray,
+                                RoundedCornerShape(8.dp)
+                            )
+                            .clickable {
+                                selectedAuditCategory = cat
+                                vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 30)
+                            }
+                            .padding(vertical = 6.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = cat,
+                            color = if (isSel) Color.White else Color.Gray,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Text Input Field
+            Text(
+                text = "📥 SUBMIT EVENT STATEMENT FOR VERACITY AUDITING",
                 color = NeonCyan,
                 fontSize = 9.5.sp,
                 fontWeight = FontWeight.Bold,
@@ -1278,7 +1638,7 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
                 onValueChange = { inputEventText = it },
                 placeholder = {
                     Text(
-                        "Paste public statement or market conviction here...",
+                        "Paste statement or public speech here... Tap pre-filled examples below.",
                         fontSize = 12.sp,
                         color = Color.Gray
                     )
@@ -1296,7 +1656,7 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Presets
+            // Examples
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -1305,8 +1665,7 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .background(Color.DarkGray.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
-                            .border(0.5.dp, Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                            .innerGlassContainerBackground(Color.DarkGray, RoundedCornerShape(4.dp))
                             .clickable {
                                 inputEventText = preset
                                 vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 40)
@@ -1410,7 +1769,7 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
                             strokeWidth = 2.dp
                         )
                         Text(
-                            "🤖 RUNNING COGNITIVE ORACLE SCAN...",
+                            "🤖 RUNNING Z-LIE AUDITING REPORT...",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Black,
                             fontFamily = FontFamily.Monospace
@@ -1418,7 +1777,7 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
                     }
                 } else {
                     Text(
-                        "🔍 DEMOLISH SPEECH & ANALYZE CONVICTION",
+                        "🔍 TRIGGER VERACITY AUDITING SCAN",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Black,
                         fontFamily = FontFamily.Monospace
@@ -1445,7 +1804,7 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
                 }
             }
 
-            // Results Section (when calculated or fallback result exists)
+            // Results Section
             val activeResult = result
             if (activeResult != null) {
                 Spacer(modifier = Modifier.height(20.dp))
@@ -1492,7 +1851,7 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
                                 size = Size(radius * 2, radius * 2)
                             )
                             
-                            // Lie Score Arc (Neon Magenta) - drawn thinner or offset
+                            // Lie Score Arc (Neon Magenta)
                             drawArc(
                                 color = NeonMagenta,
                                 startAngle = 180f,
@@ -1517,7 +1876,7 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
                                 style = TextStyle(shadow = Shadow(NeonMagenta, blurRadius = 8f))
                             )
                             Text(
-                                text = "COGNITIVE VERACITY INDEX",
+                                text = "VERACITY RATIO",
                                 color = Color.Gray,
                                 fontSize = 8.sp,
                                 fontWeight = FontWeight.Bold,
@@ -1547,6 +1906,69 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // HABITUAL LIAR METER GAUGE - NON-TECHNICAL & BRANDED
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .innerGlassContainerBackground(
+                            if (lieVal >= 0.6f) BrandCrimson else Color.DarkGray,
+                            RoundedCornerShape(8.dp)
+                        )
+                        .padding(14.dp)
+                ) {
+                    Column {
+                        val habitualVerdict = when {
+                            lieVal >= 0.75f -> "☠️ HABITUAL LIAR (Straight-up Fabricator!)"
+                            lieVal >= 0.45f -> "⚠️ BLUFFING SPIN DOCTOR (Loves embellishments)"
+                            lieVal >= 0.15f -> "🤔 SLIGHT ENHANCER (Occasional storyteller)"
+                            else -> "😇 HONEST CONVICTION (Pure facts, no spin)"
+                        }
+                        val progressColor = when {
+                            lieVal >= 0.75f -> BrandCrimson
+                            lieVal >= 0.45f -> Color.Yellow
+                            else -> NeonCyan
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "🧠 FABULIST PROBABILITY GAUGE",
+                                color = Color.LightGray,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Black,
+                                fontFamily = FontFamily.Monospace
+                            )
+                            Text(
+                                text = "${(lieVal * 100).toInt()}% LIAR PROBABILITY",
+                                color = progressColor,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Black,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LinearProgressIndicator(
+                            progress = { lieVal },
+                            modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                            color = progressColor,
+                            trackColor = Color(0xFF1E1E2E)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = habitualVerdict,
+                            color = progressColor,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
                 // Source speaker and category details
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -1555,8 +1977,7 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .background(Color.Black.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                            .border(0.5.dp, Color.DarkGray, RoundedCornerShape(8.dp))
+                            .innerGlassContainerBackground(Color.DarkGray, RoundedCornerShape(8.dp))
                             .padding(10.dp)
                     ) {
                         Column {
@@ -1569,8 +1990,7 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .background(Color.Black.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                            .border(0.5.dp, Color.DarkGray, RoundedCornerShape(8.dp))
+                            .innerGlassContainerBackground(Color.DarkGray, RoundedCornerShape(8.dp))
                             .padding(10.dp)
                     ) {
                         Column {
@@ -1591,8 +2011,7 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .background(Color.Black.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                            .border(0.5.dp, Color.DarkGray, RoundedCornerShape(8.dp))
+                            .innerGlassContainerBackground(Color.DarkGray, RoundedCornerShape(8.dp))
                             .padding(10.dp)
                     ) {
                         Column {
@@ -1605,8 +2024,7 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .background(Color.Black.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                            .border(0.5.dp, Color.DarkGray, RoundedCornerShape(8.dp))
+                            .innerGlassContainerBackground(Color.DarkGray, RoundedCornerShape(8.dp))
                             .padding(10.dp)
                     ) {
                         Column {
@@ -1620,10 +2038,10 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // ECONOMIC IMPACT CARDS
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.4f)),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.DarkGray.copy(alpha = 0.6f))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .innerGlassContainerBackground(Color.DarkGray, RoundedCornerShape(8.dp))
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text("📉 HIGH-FIDELITY ECONOMIC SHOCK PROJECTION", color = Color.LightGray, fontSize = 9.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace)
@@ -1702,9 +2120,38 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // EXPORT ACTION BUTTON
+                Button(
+                    onClick = {
+                        vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 70)
+                        showExportSummary = true
+                    },
+                    modifier = Modifier.fillMaxWidth().height(44.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = theme.brandAccent,
+                        contentColor = Color.Black
+                    ),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text("📤 EXPORT SUMMARY REPORT", fontSize = 11.5.sp, fontWeight = FontWeight.Bold, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+                    }
+                }
             }
         }
     }
+
+    ExportSummaryDialog(
+        isOpen = showExportSummary,
+        onClose = { showExportSummary = false },
+        state = state
+    )
 }
 
 @Composable

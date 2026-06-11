@@ -25,6 +25,11 @@ val ArialNarrowFamily = FontFamily(
     Font(googleFont = ArialNarrowFont, fontProvider = provider)
 )
 
+val ArialFont = GoogleFont("Arimo") // Excellent direct Google Font clone of Arial
+val ArialFamily = FontFamily(
+    Font(googleFont = ArialFont, fontProvider = provider)
+)
+
 // Set of Material typography styles to start with
 val Typography =
   Typography(

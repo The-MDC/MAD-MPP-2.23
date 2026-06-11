@@ -31,6 +31,7 @@ import com.example.ui.components.glassContainerBackground
 fun AiChatScreen(vm: GambitViewModel) {
     val theme = LocalGambitTheme.current
     val context = LocalContext.current
+    val state by vm.state.collectAsState()
     var inputText by remember { mutableStateOf("") }
     
     Box(
@@ -45,7 +46,7 @@ fun AiChatScreen(vm: GambitViewModel) {
                 Modifier
                     .fillMaxWidth()
                     .background(Color.Black.copy(alpha = 0.4f))
-                    .padding(16.dp),
+                    .padding(24.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = { vm.toggleAiChat() }) {
@@ -68,55 +69,36 @@ fun AiChatScreen(vm: GambitViewModel) {
                 }
                 Spacer(Modifier.width(10.dp))
                 Column {
-                    Text("LLM Support Hub", color = theme.textPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+                    Text("The MADHAT'r Concierge", color = theme.textPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold, fontFamily = com.example.ui.theme.ArialNarrowFamily)
                     Text("Powered by Google Gemini 3.1 Pro", color = theme.brandSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                 }
             }
             HorizontalDivider(color = theme.brandSecondary.copy(alpha = 0.15f), thickness = 1.dp)
             
-            // Connected Integrations
+            // Active chat
             LazyColumn(
                 modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(16.dp)
+                contentPadding = PaddingValues(16.dp),
+                reverseLayout = false
             ) {
                 item {
-                    Text("CONNECTED NETWORKS", color = theme.brandAccent, fontSize = 12.sp, fontWeight = FontWeight.Black, fontFamily = com.example.ui.theme.AllertaStencilFamily)
-                    Spacer(Modifier.height(8.dp))
-                    
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        IntegrationBadge("WhatsApp", Color(0xFF25D366))
-                        IntegrationBadge("Telegram", Color(0xFF0088cc))
-                        IntegrationBadge("Discord", Color(0xFF5865F2))
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        IntegrationBadge("Meta", Color(0xFF0668E1))
-                        IntegrationBadge("Twitter (X)", Color.White)
-                    }
-                    Spacer(Modifier.height(16.dp))
-                }
-                
-                // Settings
-                item {
-                    var autoReply by remember { mutableStateOf(true) }
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                        Column {
-                            Text("Auto Responses (Gemini)", color = theme.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text("Agent will handle DMs automatically", color = theme.textSecondary, fontSize = 12.sp)
-                        }
-                        Switch(checked = autoReply, onCheckedChange = { autoReply = it }, colors = SwitchDefaults.colors(checkedThumbColor = theme.brandPrimary, checkedTrackColor = theme.brandSecondary.copy(alpha=0.5f)))
-                    }
-                    Spacer(Modifier.height(24.dp))
-                }
-                
-                // Active chat
-                item {
-                    Text("LIVE FEED", color = theme.brandPrimary, fontSize = 12.sp, fontWeight = FontWeight.Black, fontFamily = com.example.ui.theme.AllertaStencilFamily)
+                    Text("LIVE HUD PLUG-IN", color = theme.brandPrimary, fontSize = 12.sp, fontWeight = FontWeight.Black, fontFamily = com.example.ui.theme.AllertaStencilFamily)
                     Spacer(Modifier.height(16.dp))
                     
-                    ChatMessage(isUser = false, "System", "Gemini initialized. Cross-platform sync active across 5 networks.")
-                    ChatMessage(isUser = true, "You", "Enable active file upload and parsing?")
-                    ChatMessage(isUser = false, "Gemini", "File upload is available for PDFs, Images, and CSVs. Live document QA is functional.")
+                    if (state.aiChatMessages.isEmpty()) {
+                        ChatMessage(isUser = false, "MADHAT'r", "Ayyy! Welcome to the MAD Gambit, buddy! The name's MADHAT'r. What's crack'n? I got analytics, I got predictions, and I got enough sarcasm to sink a battle-cruiser. What do ya need?")
+                    }
+                }
+                
+                items(state.aiChatMessages.size) { index ->
+                    val msg = state.aiChatMessages[index]
+                    ChatMessage(isUser = msg.isUser, sender = msg.sender, text = msg.text)
+                }
+                
+                if (state.isAiChatTyping) {
+                    item {
+                        ChatMessage(isUser = false, "MADHAT'r", "Typin' away, hold your horses...")
+                    }
                 }
             }
             
@@ -129,7 +111,6 @@ fun AiChatScreen(vm: GambitViewModel) {
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Email Support
                 IconButton(onClick = {
                     val intent = Intent(Intent.ACTION_SENDTO).apply {
                         data = Uri.parse("mailto:theTeam@MADGambit.fun")
@@ -142,24 +123,31 @@ fun AiChatScreen(vm: GambitViewModel) {
                 
                 Spacer(Modifier.width(8.dp))
                 
-                Box(
-                    Modifier
-                        .weight(1f)
-                        .background(theme.bgDeep, RoundedCornerShape(24.dp))
-                        .border(theme.borderWidth, theme.textSecondary.copy(alpha=0.3f), RoundedCornerShape(24.dp))
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
-                ) {
-                    Text(if (inputText.isEmpty()) "Ask Gemini or type..." else inputText, color = if (inputText.isEmpty()) theme.textSecondary else theme.textPrimary, fontSize = 14.sp)
-                }
+                TextField(
+                    value = inputText,
+                    onValueChange = { inputText = it },
+                    modifier = Modifier.weight(1f),
+                    placeholder = { Text("Ask the MADHAT'r...", color = theme.textSecondary, fontSize = 14.sp) },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = theme.bgDeep,
+                        unfocusedContainerColor = theme.bgDeep,
+                        focusedTextColor = theme.textPrimary,
+                        unfocusedTextColor = theme.textPrimary,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
+                    shape = RoundedCornerShape(24.dp)
+                )
                 
                 Spacer(Modifier.width(8.dp))
                 
-                IconButton(onClick = { /* File upload not active currently */ }) {
-                    Icon(Icons.Filled.AttachFile, contentDescription = "Upload", tint = theme.textSecondary)
-                }
-                
-                IconButton(onClick = { /* Send message */ }) {
-                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send", tint = theme.brandPrimary)
+                IconButton(onClick = { 
+                    if (inputText.isNotBlank() && !state.isAiChatTyping) {
+                        vm.sendMessageToAi(inputText)
+                        inputText = ""
+                    }
+                }) {
+                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send", tint = if (inputText.isNotBlank() && !state.isAiChatTyping) theme.brandPrimary else theme.textSecondary)
                 }
             }
         }

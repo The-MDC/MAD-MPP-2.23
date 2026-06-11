@@ -101,9 +101,21 @@ fun Modifier.glassContainerBackground(
     baseColor: Color,
     shape: Shape = RoundedCornerShape(12.dp)
 ): Modifier {
+    // Restoring background opacity back to its recent prior state of 35% transparent (65% opaque)
+    val glassBaseColor = baseColor.copy(alpha = 0.65f)
     return this
         .clip(shape)
-        .background(baseColor.copy(alpha = 0.08f))
+        .background(glassBaseColor)
+        .border(
+            width = 1.dp,
+            brush = Brush.verticalGradient(
+                colors = listOf(
+                    baseColor.copy(alpha = 0.45f),
+                    baseColor.copy(alpha = 0.15f)
+                )
+            ),
+            shape = shape
+        )
         .drawWithCache {
             onDrawWithContent {
                 drawContent()
@@ -111,8 +123,46 @@ fun Modifier.glassContainerBackground(
                 drawRect(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            baseColor.copy(alpha = 0.22f),
-                            baseColor.copy(alpha = 0.04f),
+                            baseColor.copy(alpha = 0.25f),
+                            baseColor.copy(alpha = 0.05f),
+                            Color.Transparent
+                        )
+                    )
+                )
+            }
+        }
+}
+
+/**
+ * High-fidelity glass effect explicitly crafted for all inner containers.
+ * Preserves the premium glass sheen with 35% transparency.
+ */
+fun Modifier.innerGlassContainerBackground(
+    baseColor: Color,
+    shape: Shape = RoundedCornerShape(8.dp)
+): Modifier {
+    val glassBaseColor = baseColor.copy(alpha = 0.65f) // 35% transparent
+    return this
+        .clip(shape)
+        .background(glassBaseColor)
+        .border(
+            width = 0.75.dp,
+            brush = Brush.verticalGradient(
+                colors = listOf(
+                    baseColor.copy(alpha = 0.35f),
+                    baseColor.copy(alpha = 0.1f)
+                )
+            ),
+            shape = shape
+        )
+        .drawWithCache {
+            onDrawWithContent {
+                drawContent()
+                // Beautiful inner reflection layer
+                drawRect(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            baseColor.copy(alpha = 0.15f),
                             Color.Transparent
                         )
                     )

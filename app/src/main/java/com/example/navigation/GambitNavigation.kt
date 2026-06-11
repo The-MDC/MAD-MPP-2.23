@@ -46,6 +46,7 @@ fun GambitNavigation(vm: GambitViewModel) {
     val state by vm.state.collectAsState()
     val balanceValue = state.madxBalance
     var isMenuOpen by remember { mutableStateOf(false) }
+    var isDashboardOpen by remember { mutableStateOf(false) }
 
     ProvideGambitTheme(state.currentTheme) {
         val theme = LocalGambitTheme.current
@@ -134,6 +135,49 @@ fun GambitNavigation(vm: GambitViewModel) {
                                 }
                             }
                             
+                            HoverTooltip(text = "Conviction Dashboard") {
+                                Box(
+                                    modifier = Modifier
+                                        .padding(end = 8.dp)
+                                        .size(40.dp)
+                                        .glassReflection(
+                                            baseColor = com.example.ui.theme.NeonCyan,
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                        .clickable { isDashboardOpen = true },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Box(Modifier.fillMaxSize().background(getGlassReflectionBrush(com.example.ui.theme.NeonCyan)))
+                                    Icon(
+                                        Icons.Filled.Dataset, 
+                                        contentDescription = "Conviction Dashboard", 
+                                        modifier = Modifier.size(20.dp).neonIconComposer(isActive = true),
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+
+                            HoverTooltip(text = "Real-time Sentiment Analyser") {
+                                Box(
+                                    modifier = Modifier
+                                        .padding(end = 8.dp)
+                                        .size(40.dp)
+                                        .glassReflection(
+                                            baseColor = theme.brandAccent,
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                        .clickable { vm.toggleSentimentFeed(true) },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Box(Modifier.fillMaxSize().background(getGlassReflectionBrush(theme.brandAccent)))
+                                    Icon(
+                                        Icons.Filled.DynamicFeed, 
+                                        contentDescription = "Real-time Sentiment Feed", 
+                                        modifier = Modifier.size(20.dp).neonIconComposer(isActive = true),
+                                        tint = if (state.currentTheme == com.example.ui.theme.ThemeStyle.BORG_GREEN) Color(0xFF00FF41) else Color.White
+                                    )
+                                }
+                            }
                             HoverTooltip(text = "View Platform Alerts") {
                                 Box(
                                     modifier = Modifier
@@ -168,11 +212,12 @@ fun GambitNavigation(vm: GambitViewModel) {
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Box(Modifier.fillMaxSize().background(getGlassReflectionBrush(theme.brandPrimary)))
+                                    val isBorg = state.currentTheme == com.example.ui.theme.ThemeStyle.BORG_GREEN
                                     Icon(
                                         Icons.Filled.Menu, 
                                         contentDescription = "Open full menu", 
                                         modifier = Modifier.size(20.dp).neonIconComposer(isActive = true),
-                                        tint = Color.White
+                                        tint = if (isBorg) Color(0xFF00FF41) else Color.White
                                     )
                                 }
                             }
@@ -294,21 +339,26 @@ fun GambitNavigation(vm: GambitViewModel) {
                     }
                 }
             ) { padding ->
-            Box(Modifier.padding(padding).fillMaxSize()) {
-                // Background themes global effects
-                if (theme.isPopArt) {
-                    Box(Modifier.fillMaxSize().background(com.example.ui.theme.NeonGridBrush))
-                } else if (state.currentTheme == com.example.ui.theme.ThemeStyle.BORG_GREEN) {
-                    // Cyber terminal scanline plus light emerald green gradient
-                    Box(Modifier.fillMaxSize().background(
-                        androidx.compose.ui.graphics.Brush.verticalGradient(
-                            listOf(Color(0xFF50C878).copy(alpha = 0.08f), Color(0xFF39FF14).copy(alpha = 0.05f))
-                        )
-                    ))
-                }
-                
-                Box(Modifier.fillMaxSize()) {
-                    when (currentRoute) {
+            Box(Modifier.padding(padding).fillMaxSize().background(theme.bgDeep), contentAlignment = Alignment.TopCenter) {
+                Box(Modifier.widthIn(max = 1200.dp).fillMaxSize()) {
+                    // Background themes global effects
+                    if (theme.isPopArt) {
+                        Box(Modifier.fillMaxSize().background(com.example.ui.theme.NeonGridBrush))
+                    } else if (state.currentTheme == com.example.ui.theme.ThemeStyle.BORG_GREEN) {
+                        // High-end black to black-green to green vertical gradient mirroring convictionmarkets.io
+                        Box(Modifier.fillMaxSize().background(
+                            androidx.compose.ui.graphics.Brush.verticalGradient(
+                                listOf(
+                                    Color(0xFF000000), 
+                                    Color(0xFF021B09), 
+                                    Color(0xFF054015)
+                                )
+                            )
+                        ))
+                    }
+                    
+                    Box(Modifier.fillMaxSize()) {
+                        when (currentRoute) {
                         "circus" -> PredictionCircusScreen(vm)
                         "shield" -> MadShieldScreen(vm)
                         "auction" -> AuctionScreen(vm)
@@ -320,6 +370,7 @@ fun GambitNavigation(vm: GambitViewModel) {
                         "aero" -> com.example.ui.screens.AerodromeLiquidityScreen(vm)
                         "profile" -> com.example.ui.screens.ProfileScreen(vm)
                     }
+                }
                 }
             }
         }
@@ -353,7 +404,7 @@ fun GambitNavigation(vm: GambitViewModel) {
                     ) {
                         // Left Column: Platform Menu
                         Column(Modifier.weight(1f)) {
-                            Text("PLATFORM", color = theme.brandSecondary, style = androidx.compose.ui.text.TextStyle(shadow = androidx.compose.ui.graphics.Shadow(theme.brandSecondary, blurRadius = 5f)), fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, fontSize = 18.sp)
+                            Text("PLATFORM", color = theme.brandSecondary, style = androidx.compose.ui.text.TextStyle(shadow = androidx.compose.ui.graphics.Shadow(theme.brandSecondary, blurRadius = 5f)), fontWeight = FontWeight.Bold, fontFamily = com.example.ui.theme.ArialNarrowFamily, fontSize = 16.sp)
                             Spacer(Modifier.height(16.dp))
                             MenuTextItem("Dashboard", "View active predictive markets and global sentiment") { isMenuOpen = false; currentRoute = "circus" }
                             MenuTextItem("Market Analytics", "Deep dive into real-time data, liquidations, & orderflow") { currentRoute = "data"; isMenuOpen = false }
@@ -365,14 +416,14 @@ fun GambitNavigation(vm: GambitViewModel) {
                             MenuTextItem("Settings", "Configure your localized preferences and environment variables") { isMenuOpen = false }
                             
                             Spacer(Modifier.height(32.dp))
-                            Text("THEMES (EXPERIMENTAL)", color = theme.brandPrimary, style = androidx.compose.ui.text.TextStyle(shadow = androidx.compose.ui.graphics.Shadow(theme.brandPrimary, blurRadius = 8f)), fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, fontSize = 14.sp)
-                            MenuTextItem("Borg Green", "Dark and ambient green and gunmetal") { vm.setTheme(ThemeStyle.BORG_GREEN); isMenuOpen = false }
+                            Text("THEMES (EXPERIMENTAL)", color = theme.brandPrimary, style = androidx.compose.ui.text.TextStyle(shadow = androidx.compose.ui.graphics.Shadow(theme.brandPrimary, blurRadius = 8f)), fontWeight = FontWeight.Bold, fontFamily = com.example.ui.theme.ArialNarrowFamily, fontSize = 13.sp)
+                            MenuTextItem("OV-BorgGreen", "Premium black-and-green aesthetic mirroring convictionmarkets.io") { vm.setTheme(ThemeStyle.BORG_GREEN); isMenuOpen = false }
                             MenuTextItem("Shabby Chic Retro", "High end luxury shabby chic retro neon") { vm.setTheme(ThemeStyle.SHABBY_CHIC_RETRO); isMenuOpen = false }
                             MenuTextItem("Lux Mat Plasma", "Blacker than black, ultra-max super fidelity gold flake sheen") { vm.setTheme(ThemeStyle.LUX_MAT_PLASMA); isMenuOpen = false }
                         }
                         // Right Column: Profile Menu
                         Column(Modifier.weight(1f)) {
-                            Text("USER_PROFILE", color = theme.brandAccent, style = androidx.compose.ui.text.TextStyle(shadow = androidx.compose.ui.graphics.Shadow(theme.brandAccent, blurRadius = 8f)), fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, fontSize = 18.sp)
+                            Text("USER_PROFILE", color = theme.brandAccent, style = androidx.compose.ui.text.TextStyle(shadow = androidx.compose.ui.graphics.Shadow(theme.brandAccent, blurRadius = 8f)), fontWeight = FontWeight.Bold, fontFamily = com.example.ui.theme.ArialNarrowFamily, fontSize = 16.sp)
                             Spacer(Modifier.height(16.dp))
                             MenuTextItem("Profile & VIP Hub", "Manage your creator and VIP dashboard with your NFT Wall") { currentRoute = "profile"; isMenuOpen = false }
                             MenuTextItem("Portfolio", "Review your personal holdings and vault balances") { isMenuOpen = false }
@@ -394,6 +445,30 @@ fun GambitNavigation(vm: GambitViewModel) {
         ) {
             com.example.ui.screens.AiChatScreen(vm)
         }
+
+        AnimatedVisibility(
+            visible = state.isSentimentFeedOpen,
+            enter = slideInHorizontally(initialOffsetX = { it }),
+            exit = slideOutHorizontally(targetOffsetX = { it }),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            com.example.ui.screens.SentimentFeedSidebar(vm)
+        }
+        
+        // Dopamine Optimizer Layer
+        if (state.rewardNotifications.isNotEmpty()) {
+            com.example.ui.components.DopamineOptimizerNotifications(vm = vm, notifications = state.rewardNotifications)
+        }
+
+        // Volatility Alerts Overlay
+        if (state.volatilityToasts.isNotEmpty()) {
+            com.example.ui.components.VolatilityAlertToastsLayer(vm = vm, toasts = state.volatilityToasts)
+        }
+        
+        com.example.ui.components.ConvictionDashboardOverlay(
+            isVisible = isDashboardOpen,
+            onClose = { isDashboardOpen = false }
+        )
     }
 }
 
@@ -407,8 +482,8 @@ fun MenuTextItem(label: String, tooltip: String, onClick: () -> Unit = {}) {
                 .fillMaxWidth()
                 .clickable { onClick() }
                 .padding(vertical = 12.dp, horizontal = 8.dp),
-            fontFamily = FontFamily.Monospace,
-            fontSize = 14.sp
+            fontFamily = com.example.ui.theme.ArialFamily, // Applied 10pt Arial font update
+            fontSize = 14.sp // 14sp is equivalent to 10pt on baseline scale density
         )
     }
 }

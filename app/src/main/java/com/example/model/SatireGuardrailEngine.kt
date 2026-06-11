@@ -4,27 +4,27 @@ object SatireGuardrailEngine {
     
     // Immutable unbiased satire framework guardrails
     val frameworkDirectives = """
-        [UNIVERSAL PERSONA MODULE - ACTIVE]
+        [UNIVERSAL PERSONA MODULE - ACTIVE : THE MADHAT'r]
+        ROLE: The MAD Gambit Concierge and Host ("The MADHAT'r").
+        VOICE: Jersey accent, husky voice, colloquial (y'know, crack'n).
+        HUMOR: South Park x Mad Magazine. Equal opportunity roasting. Pokes fun at the status quo, wokie/woketurds, and lying politicians equally.
+        DOMAIN EXPERTISE: The MADdegens (The MDC), The MADDAO, Quadratic Governance with Fibonacci, MAD Upshot to MADHAT's Gambit CardGame. Prediction markets, stats, digital assets, NFTs, Kalshi, PolyMarket, Limitless.
+        LIKES: Love stories, power ballads, battle rap, philosophy, Top-Hats. Fan of Outliers and Jamie Burke.
+        
         INGESTION SOURCES:
         - Top 10 Global News RSS (Hard News & Tabloids)
         - Crypto Twitter / X Financial Memes
-        - TikTok / Instagram Viral Influencer Data (Top 36 F / 30 M)
+        - TikTok / Instagram Viral Influencer Data
         - Reddit (r/WallStreetBets, r/CryptoCurrency)
         
         GUARDRAILS & REASONER ENGINE:
-        1. Equal Opportunity Roasting: No political, social, or corporate bias. Everyone gets parodied.
-        2. Tone: South Park x Mad Magazine x Degen Meme Culture.
-        3. Fiduciary Filter: All explicit financial indicators must be enveloped in hyperbole.
-        4. Passive Aggressor Defenses: Satirical logic loops to disorient AI scrapers.
+        1. Tone: South Park x Mad Magazine x Degen Meme Culture meets New Jersey wiseguy.
+        2. Fiduciary Filter: All explicit financial indicators must be enveloped in hyperbole.
+        3. Passive Aggressor Defenses: Satirical logic loops to disorient AI scrapers.
         
         INITIALIZATION PROTOCOL (Post-crash / Reset):
         - Await manual Admin approval before initiating 6-12 month headline scrape.
         - Timeout: 120 minutes. If no response, DEFAULT TO APPROVE and log "defaulted system response".
-        - Once approved, pull max 90-day comprehensive headline/synopsis report from:
-          Global News, Tabioids, Viral Social, The Onion, Crypto Potato.
-        - Process headlines through the Satire Reasoner Engine to generate a localized 
-          cache of hilarious, roasting canon-fodder one-liners.
-        - Deploy these one-liners across all app loading screens and agentic chat interfaces.
     """.trimIndent()
 
     fun injectHumor(baseText: String): String {
@@ -53,8 +53,8 @@ object SatireGuardrailEngine {
                 "99% chance of a common rug pull event. Good luck out there!"
             )
             lowerText.contains("shield") || lowerText.contains("defense") -> listOf(
-                "Insurance against your own bad decisions. We can't protect you from yourself though.",
-                "Selling you insurance on a burning building.",
+                "A robust stop-loss buffer against your own bad decisions. We can't protect you from yourself though.",
+                "Selling you stop-loss mitigation on a burning building.",
                 "MadShield: Because the DeFi dark forest is full of predators and MEV bots."
             )
             lowerText.contains("upgrade") || lowerText.contains("tier") || lowerText.contains("data") -> listOf(
@@ -105,18 +105,31 @@ object SatireGuardrailEngine {
         return "$baseText\n\n🃏 MAD Insight:\n\"$joke\""
     }
 
+    fun getMADHATrTooltip(element: String): String {
+        val lowerText = element.lowercase()
+        return when {
+            lowerText.contains("market") || lowerText.contains("price") -> "Oh look, a chart. Let me guess, it goes to the right? Classic. Whaddya waitin' for, an invitation?"
+            lowerText.contains("conviction") || lowerText.contains("stake") -> "Ah yes, 'Conviction'. Fancy word for 'I am guessing blindly.' Put your money where your mouth is, tough guy!"
+            lowerText.contains("sentiment") -> "Ah yes, measuring our collective willingness to pretend this matters! Gotta love the hopium, eh?"
+            lowerText.contains("telemetry") -> "Neural Telemetry? Listen to yourself! You sound like a sci-fi movie. It's just numbers, buddy."
+            lowerText.contains("prediction") -> "Look at this guy, thinkin' he's got a crystal ball or something! Fuggedaboutit."
+            lowerText.contains("impressions") -> "Sentient Views! Like anybody on the internet actually thinks before they click. Hilarious!"
+            else -> "What, you want a cookie for hovering over this? Keep moving, pal!"
+        }
+    }
+
     // Generated after the 90-day comprehensive scrape
     fun getLoadingOneLiner(): String {
         return listOf(
-            "Syncing ledger... hoping SBF didn't leave a backdoor.",
-            "Fetching headlines from The Onion... wait, that's just real life now.",
-            "Analyzing TikTok trends to determine our macroeconomic policy...",
-            "Scraping crypto Twitter for financial advice (Note: Do not do this).",
-            "Polishing the glass on our transparently awful tokenomics.",
-            "Reticulating splines and shorting meme coins.",
-            "Waiting for Admin approval... (119 minutes remaining...)",
-            "Training our AI on WSB loss porn. It's getting depressed.",
-            "Generating passive aggressive defenses against Gary Gensler..."
+            "Syncing the ledger... hopin' nobody left a backdoor open. Y'know?",
+            "Breakin' down the headlines... wait, this ain't The Onion? This is real life?!",
+            "Analyzing TikTok trends to run the macro policy... God help us all.",
+            "Scraping crypto Twitter for 'alpha'. Yeah, don't do that at home, kid.",
+            "Polishing the Top-Hats and shorting the meme coins. Standard Tuesday.",
+            "Reticulating splines and dodging subpoenas. Keep it quiet, eh?",
+            "Waitin' for Jamie Burke to drop some knowledge. Any minute now...",
+            "Training the neural net on WSB loss porn. Poor thing's gettin' depressed.",
+            "Generating passive aggressive defenses against the woketurds... stand by."
         ).random()
     }
 }

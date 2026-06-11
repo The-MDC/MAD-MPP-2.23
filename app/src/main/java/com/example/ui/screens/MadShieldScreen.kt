@@ -4,6 +4,8 @@ import com.example.ui.components.neonIconComposer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Shield
 import com.example.ui.components.HoverTooltip
+import com.example.ui.components.glassContainerBackground
+import com.example.ui.components.innerGlassContainerBackground
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -62,9 +64,9 @@ fun MadShieldScreen(vm: GambitViewModel) {
                 style = TextStyle(shadow = Shadow(NeonPurpleDim, blurRadius = 24f))
             )
             Text(
-                "Sustainable Conviction Opt-In Stop-Loss", 
+                "Sustainable Conviction Opt-In Stop-Loss Shield. Avoids regulatory risk with zero legacy finance modeling.", 
                 color = BrandEggwhite.copy(alpha=0.7f), 
-                fontSize = 12.sp,
+                fontSize = 11.sp,
                 fontFamily = com.example.ui.theme.ArialNarrowFamily
             )
         }
@@ -72,8 +74,7 @@ fun MadShieldScreen(vm: GambitViewModel) {
         Box(
             Modifier
                 .fillMaxWidth()
-                .background(BgCard, RoundedCornerShape(16.dp))
-                .border(1.dp, NeonPurple, RoundedCornerShape(16.dp))
+                .glassContainerBackground(NeonPurple, RoundedCornerShape(16.dp))
                 .padding(24.dp)
         ) {
             Column {
@@ -114,7 +115,7 @@ fun MadShieldScreen(vm: GambitViewModel) {
                 }
                 
                 Spacer(Modifier.height(32.dp))
-                HoverTooltip(text = "Activates Sybil Defense Module: Deducts the premium from your account to insure against impermanent loss.") {
+                HoverTooltip(text = "Activates Sybil Defense Module: Deducts the fee from your account to shield against impermanent loss.") {
                     GlassKeycapButton(
                         onClick = { vm.stakeOnScenario(premium, 1.0) }, 
                         modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -144,13 +145,12 @@ fun MadShieldScreen(vm: GambitViewModel) {
             Text("Maximum asymptotic stop-loss: ${"%.1f".format(payout)} MADx (${if(isPremiumShield) "40%" else "28.8%"} max cap)", color = Color.Gray, fontSize = 11.sp, fontFamily = com.example.ui.theme.ArialNarrowFamily)
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(8.dp))
         Text("MAD SHIELD HISTORY / SUCCESSFUL PAYOUTS", color = BrandGold, fontSize = 16.sp, fontWeight = FontWeight.Black, fontFamily = com.example.ui.theme.ArialNarrowFamily)
         Box(
             Modifier
                 .fillMaxWidth()
-                .background(BgPanel, RoundedCornerShape(12.dp))
-                .border(1.dp, Color.DarkGray, RoundedCornerShape(12.dp))
+                .innerGlassContainerBackground(Color.Gray, RoundedCornerShape(12.dp))
                 .padding(16.dp)
         ) {
             Column {
@@ -174,7 +174,7 @@ fun MadShieldScreen(vm: GambitViewModel) {
             }
         }
              
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(8.dp))
         Text(
             "CREATOR PROFIT SHARE", 
             color = NeonCyan, 
@@ -187,8 +187,7 @@ fun MadShieldScreen(vm: GambitViewModel) {
         Box(
             Modifier
                 .fillMaxWidth()
-                .background(BgPanel, RoundedCornerShape(12.dp))
-                .border(1.dp, Color.DarkGray, RoundedCornerShape(12.dp))
+                .innerGlassContainerBackground(NeonCyan, RoundedCornerShape(12.dp))
                 .padding(20.dp)
         ) {
             Column {

@@ -68,7 +68,50 @@ data class MarketState(
     val dailyForecastError: String? = null,
     val forecastWeatherInput: String = "Nuclear Heatwave of Searing Disappointment",
     val forecastAnticsInput: String = "Protesting inflation by organizing private yacht regattas for climate justice",
-    val forecastScandalInput: String = "Politician caught using artificial intelligence chat bot to write sympathy letters"
+    val forecastScandalInput: String = "Politician caught using artificial intelligence chat bot to write sympathy letters",
+    
+    // Ai Chat State
+    val aiChatMessages: List<ChatMessageInfo> = emptyList(),
+    val isAiChatTyping: Boolean = false,
+    
+    // Dopamine Optimizer
+    val rewardNotifications: List<RewardNotification> = emptyList(),
+
+    // Volatility Toasts Tracker
+    val volatilityToasts: List<VolatilityAlertToast> = emptyList(),
+
+    // Sentiment Feed State
+    val isSentimentFeedOpen: Boolean = false,
+    val sentimentFeedItems: List<SentimentFeedItem> = emptyList(),
+    val isSentimentFeedLoading: Boolean = false,
+    val sentimentFeedError: String? = null,
+
+    // Market Live Auctions & Activities State
+    val liveAuctions: List<LiveAuction> = emptyList(),
+    val auctionActivity: List<AuctionActivityLog> = emptyList()
+)
+
+data class SentimentFeedItem(
+    val title: String,
+    val text: String,
+    val category: String, // e.g. "Tabloid News", "Entertainment", "Global Headlines", "Viral Media"
+    val sentiment: String, // "BULLISH", "BEARISH", "CHAOTIC", "MAD"
+    val multiplier: String, // e.g., "1.5x Conviction", "3.0x Leverage"
+    val timestamp: String // e.g. "2m ago"
+)
+
+data class ChatMessageInfo(
+    val isUser: Boolean,
+    val sender: String,
+    val text: String,
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+data class RewardNotification(
+    val id: String,
+    val message: String,
+    val amount: Double,
+    val fibonacciIndex: Int
 )
 
 enum class MarketType {
@@ -91,7 +134,12 @@ data class Scenario(
     val sentimentBullishRatio: Double = 0.72,
     val psychographicCoreBias: String = "Herd Mentality",
     val lockPeriodWeeks: Int = 4,
-    val category: String = "Crypto"
+    val category: String = "Crypto",
+    val marketScope: String = "Global", // "Local" or "Global"
+    val isResolved: Boolean = false,
+    val winningOutcome: String? = null,
+    val yesShares: Double = 1000.0,
+    val noShares: Double = 1000.0
 )
 
 enum class SentimentPhase(val display: String) {
@@ -125,3 +173,33 @@ data class SatiricalCard(
     val evolutionStage: Int = 1,  // 1 = Standard, 2 = Evolved, 3 = Ascended/Transcended
     val earnsCount: Double = 0.0  // Accumulated $MADx earnings from campaigns/arena
 )
+
+data class VolatilityAlertToast(
+    val id: String,
+    val eventName: String,
+    val volatilityScore: Double,
+    val text: String,
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+data class LiveAuction(
+    val id: String,
+    val title: String,
+    val category: String,
+    val description: String,
+    val currentBid: Double,
+    val highBidder: String,
+    val timeRemainingSeconds: Int,
+    val isTracked: Boolean = true,
+    val userPlacedBid: Boolean = false,
+    val biddingHistory: List<Double> = emptyList()
+)
+
+data class AuctionActivityLog(
+    val id: String,
+    val timestamp: Long = System.currentTimeMillis(),
+    val title: String,
+    val description: String,
+    val type: String // "BID", "SETTLEMENT", "OUTBID", "START"
+)
+
