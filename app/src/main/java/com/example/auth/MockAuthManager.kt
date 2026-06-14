@@ -24,6 +24,7 @@ class MockAuthManager : AuthManager {
     override suspend fun loginWithApple() { simulateLogin("Apple User") }
     override suspend fun loginWithDiscord() { simulateLogin("Discord Degen") }
     override suspend fun loginWithTelegram() { simulateLogin("TG Whale") }
+    override suspend fun loginWithX() { simulateLogin("X Poster") }
     
     override suspend fun connectWallet(address: String) {
         delay(800)

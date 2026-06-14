@@ -21,7 +21,7 @@ data class HighStakesActivity(
 data class AuthState(
     val isAuthenticated: Boolean = false,
     val authType: String = "GUEST", // "GUEST", "GOOGLE", "0-AUTH", "WEB3"
-    val username: String = "Anonymous",
+    val username: String = "",
     val email: String = "none@domain.com",
     val walletAddress: String? = null
 )

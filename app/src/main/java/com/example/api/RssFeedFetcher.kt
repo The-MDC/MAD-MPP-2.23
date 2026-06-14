@@ -30,8 +30,10 @@ object RssFeedFetcher {
         "https://www.coindesk.com/arc/outboundfeeds/rss/",
         "https://cointelegraph.com/rss",
         "https://search.cnbc.com/rs/search/combined/search.rss",
-        "http://feeds.bbci.co.uk/news/rss.xml",
-        "https://finance.yahoo.com/news/rssindex"
+        "https://feeds.bbci.co.uk/news/rss.xml",
+        "https://finance.yahoo.com/news/rssindex",
+        "https://outlierventures.io/feed/",
+        "https://medium.com/feed/@jamieburke"
     )
 
     data class RssItem(val title: String, val source: String)
@@ -56,6 +58,8 @@ object RssFeedFetcher {
                         host.contains("cnbc") -> "CNBC"
                         host.contains("bbc") -> "BBC"
                         host.contains("yahoo") -> "YahooFinance"
+                        host.contains("outlierventures") -> "Outlier Ventures"
+                        host.contains("medium") -> "Jamie Burke"
                         else -> "Markets"
                     }
 

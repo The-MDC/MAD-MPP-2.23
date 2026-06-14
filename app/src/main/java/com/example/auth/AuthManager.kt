@@ -15,6 +15,7 @@ interface AuthManager {
     suspend fun loginWithApple()
     suspend fun loginWithDiscord()
     suspend fun loginWithTelegram()
+    suspend fun loginWithX()
     suspend fun connectWallet(address: String)
     suspend fun logout()
 }

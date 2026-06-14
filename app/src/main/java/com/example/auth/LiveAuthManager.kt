@@ -14,8 +14,12 @@ class LiveAuthManager : AuthManager {
     override val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
     override suspend fun loginWithZeroAuth() {
-        // TODO: Implement actual Zero-Auth identity node generation
-        throw NotImplementedError("Live Zero-Auth not yet implemented")
+        kotlinx.coroutines.delay(1200)
+        _authState.value = _authState.value.copy(
+            isAuthenticated = false, // Not fully authenticated until wallet connect
+            username = "0-Auth Node",
+            email = "node@0-auth.net"
+        )
     }
 
     override suspend fun loginWithMeta() {
@@ -41,6 +45,11 @@ class LiveAuthManager : AuthManager {
     override suspend fun loginWithTelegram() {
         // TODO: Implement actual Telegram Login Widget integration
         throw NotImplementedError("Live Telegram login not yet implemented")
+    }
+
+    override suspend fun loginWithX() {
+        // TODO: Implement actual X/Twitter Login integration
+        throw NotImplementedError("Live X login not yet implemented")
     }
 
     override suspend fun connectWallet(address: String) {

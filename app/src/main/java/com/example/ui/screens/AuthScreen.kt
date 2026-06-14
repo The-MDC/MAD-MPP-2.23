@@ -73,9 +73,20 @@ fun AuthScreen(authManager: AuthManager, onAuthSuccess: () -> Unit) {
                     fontWeight = FontWeight.Bold
                 )
 
-                SocialButton("⚡ 0-AUTH INSTANT", Icons.Default.FlashOn) {
-                    scope.launch { isAuthenticating = true; authManager.loginWithZeroAuth(); isAuthenticating = false }
+                Button(
+                    onClick = { scope.launch { isAuthenticating = true; authManager.loginWithZeroAuth(); isAuthenticating = false } },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = theme.brandAccent),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(Icons.Default.FlashOn, contentDescription = null, tint = Color.Black)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("⚡ ZERO-AUTH INSTANT NODE", color = Color.Black, fontWeight = FontWeight.Black)
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("OR USE WEB2 IDENTITY", color = theme.textSecondary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+
                 SocialButton("Login with Google", Icons.Default.Email) {
                     scope.launch { isAuthenticating = true; authManager.loginWithGoogle(); isAuthenticating = false }
                 }
@@ -84,6 +95,9 @@ fun AuthScreen(authManager: AuthManager, onAuthSuccess: () -> Unit) {
                 }
                 SocialButton("Login with Meta", Icons.Default.Face) {
                     scope.launch { isAuthenticating = true; authManager.loginWithMeta(); isAuthenticating = false }
+                }
+                SocialButton("Login with X.com", Icons.Default.Share) {
+                    scope.launch { isAuthenticating = true; authManager.loginWithX(); isAuthenticating = false }
                 }
                 SocialButton("Login with Discord", Icons.Default.Chat) {
                     scope.launch { isAuthenticating = true; authManager.loginWithDiscord(); isAuthenticating = false }
