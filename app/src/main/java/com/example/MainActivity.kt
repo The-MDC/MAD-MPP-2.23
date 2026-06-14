@@ -12,7 +12,7 @@ import com.example.viewmodel.GambitViewModel
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        com.example.engine.MadhatrVoice.init(this)
+        // com.example.engine.MadhatrVoice.init(this)
         val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, exception ->
             com.example.diagnostics.ErrorDiagnosticsModule.logException(exception, "GlobalUncaughtExceptionHandler")
@@ -20,10 +20,17 @@ class MainActivity : ComponentActivity() {
         }
 
         enableEdgeToEdge()
+        val appContainer = (application as MADGambitApplication).container
         setContent {
             MyApplicationTheme {
-                val vm: GambitViewModel = viewModel()
-                GambitNavigation(vm)
+                com.example.ui.theme.ProvideGambitTheme(
+                    themeStyle = com.example.ui.theme.ThemeStyle.BORG_GREEN
+                ) {
+                    val vm: GambitViewModel = viewModel(
+                        factory = GambitViewModel.provideFactory(appContainer)
+                    )
+                    GambitNavigation(vm, appContainer.authManager)
+                }
             }
         }
     }

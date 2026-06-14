@@ -53,6 +53,7 @@ enum class ProfileTier(val title: String, val profitShare: String, val color: Co
 @Composable
 fun ProfileScreen(vm: GambitViewModel) {
     val theme = LocalGambitTheme.current
+    val state by vm.state.collectAsState()
     var selectedTier by remember { mutableStateOf(ProfileTier.VIP) }
     var selectedTab by remember { mutableStateOf("OVERVIEW") }
 
@@ -102,7 +103,7 @@ fun ProfileScreen(vm: GambitViewModel) {
         }
 
         when (selectedTab) {
-            "OVERVIEW" -> item { MarketPerformanceOverview(selectedTier) }
+            "OVERVIEW" -> item { MarketPerformanceOverview(selectedTier, state, vm) }
             "NFT GALLERY" -> item {
                 NftGalleryView(vm)
             }
@@ -198,9 +199,162 @@ fun ProfileHeader(currentTier: ProfileTier, onTierChange: (ProfileTier) -> Unit)
 }
 
 @Composable
-fun MarketPerformanceOverview(tier: ProfileTier) {
+fun MarketPerformanceOverview(tier: ProfileTier, state: com.example.model.MarketState, vm: GambitViewModel) {
     val theme = LocalGambitTheme.current
+    
+    // Spring physics configuration for the interactive badge's transition animation
+    var scaleTrigger by remember { mutableStateOf(1f) }
+    var rotateTrigger by remember { mutableStateOf(0f) }
+    var lastConvictions by remember { mutableStateOf(state.totalConvictions) }
+    var lastPredictions by remember { mutableStateOf(state.totalPredictions) }
+
+    LaunchedEffect(state.totalConvictions, state.totalPredictions) {
+        if (state.totalConvictions > lastConvictions || state.totalPredictions > lastPredictions) {
+            lastConvictions = state.totalConvictions
+            lastPredictions = state.totalPredictions
+            // Multi-stage trigger emulation of a bouncy spring animation
+            scaleTrigger = 1.25f
+            rotateTrigger = 12f
+            kotlinx.coroutines.delay(180)
+            scaleTrigger = 0.92f
+            rotateTrigger = -8f
+            kotlinx.coroutines.delay(140)
+            scaleTrigger = 1.05f
+            rotateTrigger = 4f
+            kotlinx.coroutines.delay(100)
+            scaleTrigger = 1.0f
+            rotateTrigger = 0f
+        }
+    }
+
+    val animatedScale by animateFloatAsState(
+        targetValue = scaleTrigger,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioHighBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        )
+    )
+
+    val animatedRotation by animateFloatAsState(
+        targetValue = rotateTrigger,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        )
+    )
+
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        // --- 🏆 DECENTRALIZED RANKINGS & STANDINGS ---
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(Brush.radialGradient(listOf(theme.brandPrimary.copy(alpha = 0.15f), theme.bgCard)))
+                .border(theme.borderWidth, theme.brandPrimary.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
+                .padding(16.dp)
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = "🏆 DECENTRALIZED PLAYER STANDINGS",
+                    color = theme.textPrimary,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Black,
+                    fontFamily = com.example.ui.theme.AllertaStencilFamily
+                )
+                
+                // Aggregated stats grid row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("TOTAL CONVICTIONS", color = theme.textSecondary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Text("${state.totalConvictions}", color = theme.brandSecondary, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                    }
+                    Column {
+                        Text("TOTAL PREDICTIONS", color = theme.textSecondary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Text("${state.totalPredictions}", color = theme.brandAccent, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                    }
+                    Column {
+                        Text("Z-LIAR METER ACCURACY", color = theme.textSecondary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Text("${"%.1f".format(state.zLiarMeterScore)}%", color = com.example.ui.theme.NeonGreen, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                    }
+                }
+                
+                Divider(color = theme.brandPrimary.copy(alpha = 0.15f), thickness = 0.5.dp)
+                
+                // Badges Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Markets Standing Badge (with hover tooltip and spring animation on score change)
+                    HoverTooltip(
+                        text = "🔮 DYNAMIC RESIDUAL FACTORS:\n1. Predictive Drift Confidence: +2.4x\n2. Oracle Convergence Precision: 94.2%\n3. GARCH Variance Residual: 0.12",
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .graphicsLayer {
+                                    scaleX = animatedScale
+                                    scaleY = animatedScale
+                                    rotationZ = animatedRotation
+                                }
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(theme.brandPrimary.copy(alpha = 0.25f))
+                                .border(1.5.dp, theme.brandPrimary, RoundedCornerShape(8.dp))
+                                .padding(vertical = 8.dp, horizontal = 4.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("🔮 MARKETS RANK", color = theme.brandPrimary, fontSize = 8.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text("Maverick #42", color = Color.White, fontSize = 10.5.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                            }
+                        }
+                    }
+
+                    // Social Standing Badge
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(theme.brandSecondary.copy(alpha = 0.2f))
+                            .border(1.dp, theme.brandSecondary.copy(alpha = 0.6f), RoundedCornerShape(8.dp))
+                            .padding(vertical = 8.dp, horizontal = 4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("📣 SOCIAL PROFILE", color = theme.brandSecondary, fontSize = 8.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text("Rumor Monger #88", color = Color.White, fontSize = 10.5.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                        }
+                    }
+
+                    // User Level Badge
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(theme.brandAccent.copy(alpha = 0.2f))
+                            .border(1.dp, theme.brandAccent.copy(alpha = 0.6f), RoundedCornerShape(8.dp))
+                            .padding(vertical = 8.dp, horizontal = 4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("👑 USER LEVEL", color = theme.brandAccent, fontSize = 8.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text("Level 12", color = Color.White, fontSize = 10.5.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                        }
+                    }
+                }
+            }
+        }
+
+        // --- 📊 INDIVIDUAL PLATFORM METRICS ---
         Text("MARKET PERFORMANCE", color = theme.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.Black)
         
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
@@ -230,6 +384,151 @@ fun MarketPerformanceOverview(tier: ProfileTier) {
                     Text("Total Markets: 14", color = theme.textPrimary, fontSize = 14.sp)
                     Text("Total Volume Generated: $1.2M", color = theme.textPrimary, fontSize = 14.sp)
                     Text("Profit Split Earned: ${tier.profitShare}", color = tier.color, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        // --- 🏢 CREATOR COMPANY STARTUP SECTION ---
+        if (tier == ProfileTier.CREATOR || tier == ProfileTier.VIP) {
+            var isEditingCompany by remember { mutableStateOf(false) }
+            var editName by remember { mutableStateOf(state.companyName) }
+            var editWebsite by remember { mutableStateOf(state.startupWebsite) }
+            var editDesc by remember { mutableStateOf(state.companyDescription) }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF0F0619))
+                    .border(1.dp, tier.color.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                    .padding(16.dp)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text("🏢", fontSize = 16.sp)
+                            Text(
+                                text = "CREATOR STARTUP PROFILE",
+                                color = tier.color,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Black,
+                                fontFamily = com.example.ui.theme.ArialNarrowFamily
+                            )
+                        }
+
+                        Button(
+                            onClick = { isEditingCompany = !isEditingCompany },
+                            colors = ButtonDefaults.buttonColors(containerColor = if (isEditingCompany) Color.LightGray else tier.color.copy(alpha=0.25f)),
+                            modifier = Modifier.height(28.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = if (isEditingCompany) "CANCEL" else "EDIT",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isEditingCompany) Color.Black else Color.White
+                            )
+                        }
+                    }
+
+                    if (isEditingCompany) {
+                        OutlinedTextField(
+                            value = editName,
+                            onValueChange = { editName = it },
+                            label = { Text("Company or Startup Name", color = Color.Gray, fontSize = 10.sp) },
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.LightGray,
+                                focusedBorderColor = tier.color,
+                                unfocusedBorderColor = Color.DarkGray
+                            ),
+                            textStyle = TextStyle(fontSize = 12.sp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        OutlinedTextField(
+                            value = editWebsite,
+                            onValueChange = { editWebsite = it },
+                            label = { Text("Startup Website/URL", color = Color.Gray, fontSize = 10.sp) },
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.LightGray,
+                                focusedBorderColor = tier.color,
+                                unfocusedBorderColor = Color.DarkGray
+                            ),
+                            textStyle = TextStyle(fontSize = 12.sp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        OutlinedTextField(
+                            value = editDesc,
+                            onValueChange = { editDesc = it },
+                            label = { Text("Core Mission & Vibe Description", color = Color.Gray, fontSize = 10.sp) },
+                            maxLines = 3,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.LightGray,
+                                focusedBorderColor = tier.color,
+                                unfocusedBorderColor = Color.DarkGray
+                            ),
+                            textStyle = TextStyle(fontSize = 11.sp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Button(
+                            onClick = {
+                                vm.updateCreatorCompanyProfile(editName, editWebsite, editDesc)
+                                isEditingCompany = false
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = tier.color),
+                            modifier = Modifier.fillMaxWidth().height(36.dp)
+                        ) {
+                            Text("SAVE CO-FOUNDER CONFIGURATION", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        }
+                    } else {
+                        // Public visibility credential format details
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(
+                                text = state.companyName.uppercase(),
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = com.example.ui.theme.ArialNarrowFamily
+                            )
+                            
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Filled.Link, contentDescription = "Website", tint = theme.brandSecondary, modifier = Modifier.size(14.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = state.startupWebsite,
+                                    color = theme.brandSecondary,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.clickable { /* external link action */ }
+                                )
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(6.dp))
+                                    .padding(8.dp)
+                            ) {
+                                Text(
+                                    text = state.companyDescription,
+                                    color = Color.LightGray,
+                                    fontSize = 11.sp,
+                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -65,7 +65,7 @@ fun MorphoVaultScreen(vm: GambitViewModel) {
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = theme.bgCard),
+                    colors = CardDefaults.cardColors(containerColor = theme.bgCard.copy(alpha = 0.15f)),
                     shape = RoundedCornerShape(12.dp),
                     border = BorderStroke(theme.borderWidth, theme.borderBrush)
                 ) {

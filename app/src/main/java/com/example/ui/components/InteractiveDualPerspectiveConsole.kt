@@ -79,7 +79,7 @@ fun InteractiveDualPerspectiveConsole() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(theme.bgCard, RoundedCornerShape(12.dp))
+            .background(theme.bgCard.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
             .border(theme.borderWidth, theme.borderBrush, RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {

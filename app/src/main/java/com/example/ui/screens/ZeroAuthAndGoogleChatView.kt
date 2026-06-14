@@ -58,7 +58,7 @@ fun ZeroAuthAndGoogleChatView(vm: GambitViewModel, currentTabName: String) {
         modifier = Modifier
             .fillMaxWidth()
             .border(1.dp, theme.brandPrimary.copy(alpha = 0.5f), RoundedCornerShape(12.dp)),
-        colors = CardDefaults.cardColors(containerColor = theme.bgCard)
+        colors = CardDefaults.cardColors(containerColor = theme.bgCard.copy(alpha = 0.15f))
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             // Header

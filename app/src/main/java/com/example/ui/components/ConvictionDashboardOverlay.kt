@@ -192,7 +192,7 @@ fun ConvictionLeaderboardWidget(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(theme.bgCard.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
+            .background(theme.bgCard.copy(alpha = 0.15f), RoundedCornerShape(16.dp))
             .border(theme.borderWidth, theme.borderBrush, RoundedCornerShape(16.dp))
             .padding(14.dp)
     ) {
@@ -332,7 +332,8 @@ fun ConvictionLeaderboardWidget(
 @Composable
 fun ConvictionDashboardOverlay(
     isVisible: Boolean,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    vm: com.example.viewmodel.GambitViewModel
 ) {
     val theme = LocalGambitTheme.current
     val scope = rememberCoroutineScope()
@@ -403,6 +404,9 @@ fun ConvictionDashboardOverlay(
     var selectedPersona by remember { mutableStateOf(MADGambitPersona.personas.first()) }
     var commentaryText by remember { mutableStateOf("Ready to receive neural intelligence data. Adopt a persona rules above to request a satirical roast of the selected market!") }
     var isCommentaryLoading by remember { mutableStateOf(false) }
+
+    var stakeAmount by remember { mutableStateOf("") }
+    var isConfirmed by remember { mutableStateOf(false) }
 
     // Floating/stacked dynamic toast alerts state for high volatility shifts (>80%)
     var activeAlerts by remember { mutableStateOf<List<VolatilityToastAlert>>(emptyList()) }
@@ -486,6 +490,10 @@ fun ConvictionDashboardOverlay(
                         }
                     }
 
+                    Spacer(Modifier.height(12.dp))
+
+                    TopMarketsAndLiarsDualTicker(vm)
+                    
                     Spacer(Modifier.height(12.dp))
 
                     // 1. Toast Notifications System Banner (Displays alert for volatile market shift > 80%)
@@ -767,7 +775,7 @@ fun ConvictionDashboardOverlay(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 16.dp)
-                                .background(theme.bgDeep.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                                .background(theme.bgDeep.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
                                 .border(1.dp, theme.textSecondary.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
                                 .padding(20.dp),
                             contentAlignment = Alignment.Center
@@ -875,6 +883,81 @@ fun ConvictionDashboardOverlay(
                     }
 
                     Spacer(Modifier.height(16.dp))
+                    
+                    // 3.5 Prediction Stake Form
+                    Text(
+                        "SUBMIT PREDICTION CONVICTION",
+                        color = theme.textPrimary,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = com.example.ui.theme.ArialNarrowFamily
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(theme.bgCard.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                            .border(1.dp, theme.borderBrush, RoundedCornerShape(12.dp))
+                            .padding(16.dp)
+                    ) {
+                        Column {
+                            OutlinedTextField(
+                                value = stakeAmount,
+                                onValueChange = { stakeAmount = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                placeholder = { Text("Enter Stake Amount (\$MADx)", color = theme.textSecondary.copy(alpha = 0.5f), fontSize = 12.sp) },
+                                singleLine = true,
+                                shape = RoundedCornerShape(8.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = NeonGreen,
+                                    unfocusedBorderColor = theme.textSecondary.copy(alpha = 0.2f),
+                                    focusedContainerColor = theme.bgDeep.copy(alpha = 0.4f),
+                                    unfocusedContainerColor = theme.bgDeep.copy(alpha = 0.2f),
+                                    focusedTextColor = theme.textPrimary,
+                                    unfocusedTextColor = theme.textPrimary
+                                )
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                androidx.compose.material3.Switch(
+                                    checked = isConfirmed,
+                                    onCheckedChange = { isConfirmed = it },
+                                    colors = androidx.compose.material3.SwitchDefaults.colors(
+                                        checkedThumbColor = Color.White,
+                                        checkedTrackColor = NeonGreen,
+                                        uncheckedThumbColor = theme.textSecondary,
+                                        uncheckedTrackColor = theme.bgDeep.copy(alpha = 0.5f)
+                                    )
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Text("I confirm this conviction stake", color = theme.textPrimary, fontSize = 12.sp)
+                            }
+                            Spacer(Modifier.height(12.dp))
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isConfirmed && stakeAmount.isNotEmpty()) NeonGreen.copy(alpha = 0.8f) else theme.bgDeep)
+                                    .clickable(enabled = isConfirmed && stakeAmount.isNotEmpty()) {
+                                        stakeAmount = ""
+                                        isConfirmed = false
+                                        // Normally this would trigger vm.submitConviction()
+                                    }
+                                    .padding(vertical = 12.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    "SUBMIT CONVICTION",
+                                    color = if (isConfirmed && stakeAmount.isNotEmpty()) Color.Black else theme.textSecondary,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.height(16.dp))
 
                     // 4. Beautiful custom Volatility Line Chart (Recharts style)
                     RechartsVolatilityLineChart(
@@ -940,7 +1023,7 @@ fun ConvictionDashboardOverlay(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(theme.bgDeep.copy(alpha = 0.3f), RoundedCornerShape(10.dp))
+                            .background(theme.bgDeep.copy(alpha = 0.15f), RoundedCornerShape(10.dp))
                             .border(theme.borderWidth, theme.textSecondary.copy(alpha = 0.1f), RoundedCornerShape(10.dp))
                             .padding(12.dp)
                     ) {
@@ -1025,7 +1108,7 @@ fun ConvictionDashboardOverlay(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(theme.bgCard.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                            .background(theme.bgCard.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
                             .border(theme.borderWidth, theme.borderBrush, RoundedCornerShape(12.dp))
                             .padding(16.dp)
                     ) {
@@ -1054,6 +1137,10 @@ fun ConvictionDashboardOverlay(
                             )
                         }
                     }
+
+                    Spacer(Modifier.height(20.dp))
+                    
+                    RecentEntriesListWidget(vm)
                 }
             }
         }
@@ -1150,7 +1237,7 @@ fun RechartsVolatilityLineChart(
         modifier = modifier
             .fillMaxWidth()
             .height(200.dp)
-            .background(theme.bgCard.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+            .background(theme.bgCard.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
             .border(theme.borderWidth, theme.borderBrush, RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {

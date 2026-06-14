@@ -57,7 +57,7 @@ fun DataHouseScreen(vm: GambitViewModel) {
         Box(
             Modifier
                 .fillMaxWidth()
-                .background(theme.bgCard, RoundedCornerShape(12.dp))
+                .background(theme.bgCard.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
                 .border(theme.borderWidth, theme.borderBrush, RoundedCornerShape(12.dp))
                 .padding(1.dp)
         ) {

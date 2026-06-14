@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontFamily
@@ -30,7 +31,8 @@ fun IntegratedTickerWidget(
     isSatireMode: Boolean,
     telemetry: com.example.model.NeuralTelemetryStats? = null,
     isNeuralOnly: Boolean = false,
-    isClickable: Boolean = true
+    isClickable: Boolean = true,
+    speedMultiplier: Float = 1.0f
 ) {
     val theme = LocalGambitTheme.current
 
@@ -61,6 +63,9 @@ fun IntegratedTickerWidget(
                             "MAD SHIELD: Circuit breaker primed and ready to lock buffers. 📚"
                         )
                     }
+                }
+                if (fetchedSatireItems.isNotEmpty()) {
+                    com.example.api.RssFeedFetcher.lastSatiricalHeadlines = fetchedSatireItems
                 }
             } catch (e: Exception) {
                 android.util.Log.e("SatireTickerWidget", "Error fetching real RSS items", e)
@@ -141,7 +146,10 @@ fun IntegratedTickerWidget(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .glassContainerBackground(baseColor, RoundedCornerShape(4.dp))
+            .padding(top = 0.5.dp, bottom = 0.5.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(baseColor.copy(alpha = 0.3f)) // Exactly 70% transparent base container feed
+            .border(0.6.dp, com.example.ui.theme.GoldFlakeBrush, RoundedCornerShape(4.dp))
             .let {
                 if (isClickable) {
                     it.clickable {
@@ -151,7 +159,7 @@ fun IntegratedTickerWidget(
                     it
                 }
             }
-            .padding(vertical = 4.dp, horizontal = 4.dp)
+            .padding(vertical = 0.dp, horizontal = 4.dp)
             .graphicsLayer {
                 rotationX = 15f
                 rotationY = if (activeChoice == 2) -2f else 2f
@@ -169,7 +177,7 @@ fun IntegratedTickerWidget(
                     .basicMarquee(
                         iterations = Int.MAX_VALUE,
                         animationMode = androidx.compose.foundation.MarqueeAnimationMode.Immediately,
-                        velocity = 45.dp
+                        velocity = (45f * speedMultiplier).dp
                     ),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -186,7 +194,7 @@ fun IntegratedTickerWidget(
                                 it
                             }
                         }
-                        .padding(1.5.dp) // optimized inner padding
+                        .padding(horizontal = 4.dp, vertical = 0.dp)
                 ) {
                     Box(Modifier.matchParentSize().background(getGlassReflectionBrush(baseColor)))
                     Text(
@@ -195,23 +203,28 @@ fun IntegratedTickerWidget(
                         fontSize = 13.5.sp, // optimized for 1.5 pt relative scale
                         fontWeight = FontWeight.Black,
                         fontFamily = com.example.ui.theme.AllertaStencilFamily,
-                        modifier = Modifier.padding(1.5.dp), // 1.5pt padding on font
+                        modifier = Modifier.padding(horizontal = 1.5.dp, vertical = 0.dp),
                         style = TextStyle(shadow = Shadow(baseColor, blurRadius = 8f))
                     )
                 }
                 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                val tickerColors = listOf(com.example.ui.theme.NeonMagenta, com.example.ui.theme.NeonCyan, com.example.ui.theme.BrandGold)
-                displayItems.forEachIndexed { index, item ->
+                displayItems.forEach { item ->
                     Text(
                         text = item,
-                        color = tickerColors[index % tickerColors.size],
+                        color = com.example.ui.theme.BrandEggwhite,
                         fontSize = 15.sp, // optimized for 1.5 pt relative scale
                         fontWeight = FontWeight.Bold,
                         fontFamily = com.example.ui.theme.AllertaStencilFamily,
-                        modifier = Modifier.padding(end = 32.dp, top = 1.5.dp, bottom = 1.5.dp, start = 1.5.dp), // combined 1.5pt padding
-                        style = TextStyle(shadow = Shadow(tickerColors[index % tickerColors.size].copy(alpha=0.5f), blurRadius = 6f))
+                        modifier = Modifier.padding(end = 32.dp, top = 0.dp, bottom = 0.dp, start = 1.5.dp),
+                        style = TextStyle(
+                            shadow = Shadow(
+                                color = Color.Black.copy(alpha = 0.85f),
+                                offset = androidx.compose.ui.geometry.Offset(1f, 1.5f),
+                                blurRadius = 4f
+                            )
+                        )
                     )
                 }
             }

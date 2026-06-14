@@ -206,7 +206,8 @@ fun SeikoClockWidget(vm: com.example.viewmodel.GambitViewModel) {
                     isSatireMode = isFlipMode,
                     telemetry = telemetry,
                     isNeuralOnly = true,
-                    isClickable = false
+                    isClickable = false,
+                    speedMultiplier = 0.9f
                 )
             }
         }

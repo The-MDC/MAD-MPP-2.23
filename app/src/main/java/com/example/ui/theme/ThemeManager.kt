@@ -58,59 +58,61 @@ val themeBorgGreen = GambitThemeSpecs(
     isPopArt = false
 )
 
-// 2. Ultraviolet Void / Pastel Neon (Extremely dark purple background, pastel shades, top shelf gradients, ultramarine to purple to red neons)
+// 2. Neon Void Gambit (Striking neon cyan and neon fuchsia dual frame with deep royal velvet purple space)
 val themeShabbyChicRetro = GambitThemeSpecs(
-    bgDeep = Color(0xFF0A0210), // Extremely dark purple
-    bgCard = Color(0xFF100318),
-    bgPanel = Color(0xFF180524),
-    bgOverlay = Color(0xF20A0210),
-    brandPrimary = Color(0xFFE2B2FF), // Pastel purple
-    brandSecondary = Color(0xFFFF9EBB), // Pastel pink
-    brandAccent = Color(0xFF041EFF), // Ultramarine neon
-    textPrimary = Color(0xFFF9F5FF),
-    textSecondary = Color(0xFFB19DCE),
+    bgDeep = Color(0xFF040209), // Ultimate dark velvet
+    bgCard = Color(0xFF0A0514),  // Deep velvet card accent
+    bgPanel = Color(0xFF120822),
+    bgOverlay = Color(0xEB040209),
+    brandPrimary = Color(0xFF00F0FF), // Ultra-glowing Cyan (Prediction Blue)
+    brandSecondary = Color(0xFFFF007F), // Ultra-glowing Fuchsia (Conviction Pink)
+    brandAccent = Color(0xFFFFD700), // Highlight Gold
+    textPrimary = Color(0xFFFFFDF0), // Gold-brushed white
+    textSecondary = Color(0xFFAFA2C2),
     borderBrush = Brush.linearGradient(
         colors = listOf(
-            Color(0xFF041EFF), // Ultramarine
-            Color(0xFF7A00FF), // Deep Purple
-            Color(0xFFFF0055), // Red Neon
-            Color(0xFFFF9EBB)  // Pastel Red/Pink
+            Color(0xFF00F0FF), // Neon Cyan
+            Color(0xFFFF007F), // Neon Pink
+            Color(0xFFFFD700), // Tabloid Gold
+            Color(0xFF8B00FF), // Neon Purple
+            Color(0xFF00F0FF)  // Neon Cyan
         )
     ),
+    borderWidth = 1.5.dp,
     brushedMetal = Brush.linearGradient(
         colors = listOf(
-            Color(0xFF1B072B), Color(0xFF0D0214), Color(0xFF220A38), Color(0xFF11031A)
+            Color(0xFF150A26), Color(0xFF06010D), Color(0xFF1B0F2E), Color(0xFF090312)
         )
     ),
     isPopArt = false
 )
 
-// 3. Lux Mat Plasma (High street chic luxury golden flake, cutting edge subtle neon, MΛĐ Gambit aesthetic)
+// 3. Lux Mat Plasma (Max-Ultra Luxury Gold Tabloid & Red Carpet Polish with dual neon highlights)
 val themeLuxMatPlasma = GambitThemeSpecs(
-    bgDeep = Color(0xFF000000), // Blacker than black
-    bgCard = Color(0xFF050505), // 
-    bgPanel = Color(0xFF0A0A0A),//
-    bgOverlay = Color(0xF2000000),
-    brandPrimary = Color(0xFFD4AF37), // Metallic Gold
-    brandSecondary = Color(0xFFFFDF00), // Golden Yellow
-    brandAccent = Color(0xFFE6E6FA), // Subtle neon lavender/complimentary luxury accent
-    textPrimary = Color(0xFFF0E6D2), // Gold flake off-white
-    textSecondary = Color(0xFF8B7E66),
-    // ultra-max super fidelity gold flake sheen gradient
+    bgDeep = Color(0xFF030107), // Blackest velvet purple
+    bgCard = Color(0xFF0D0616), // Dark wine burgundy card
+    bgPanel = Color(0xFF150B22),
+    bgOverlay = Color(0xF2030107),
+    brandPrimary = Color(0xFFFFD700), // Pure Tabloid Gold
+    brandSecondary = Color(0xFFFF007F), // Neon Pink
+    brandAccent = Color(0xFF00F0FF), // Neon Cyan
+    textPrimary = Color(0xFFFFFDF0), // Flawless gold-flake white
+    textSecondary = Color(0xFFCBBACD), // Subdued elegance
+    // Red carpet tabloid gold sheen border gradient
     borderBrush = Brush.linearGradient(
         colors = listOf(
-            Color(0xFFB8860B), // Dark Goldenrod
-            Color(0xFFFFD700), // Gold
-            Color(0xFFF8F3D4), // Pale Gold Flake Shine
-            Color(0xFFD4AF37), // Metallic Gold
-            Color(0xFF996515), // Golden Brown
-            Color(0xFFFFDF00)  // Golden Yellow
+            Color(0xFFFFD700), // Tabloid Gold
+            Color(0xFFFF007F), // Glowing Pink Highlight
+            Color(0xFFFFFDF0), // Pure Gold Sheen
+            Color(0xFF00F0FF), // Glowing Cyan Highlight
+            Color(0xFFB8860B), // Burnished Goldenrod
+            Color(0xFFFFD700)  // Gold
         )
     ),
-    borderWidth = 1.2.dp,
+    borderWidth = 1.6.dp,
     brushedMetal = Brush.linearGradient(
         colors = listOf(
-            Color(0xFF1A1A1A), Color(0xFF000000), Color(0xFF141210), Color(0xFF050505), Color(0xFF0A0908)
+            Color(0xFF140727), Color(0xFF06010D), Color(0xFF1D0E35), Color(0xFF050109), Color(0xFF180A2E)
         )
     ),
     isPopArt = false

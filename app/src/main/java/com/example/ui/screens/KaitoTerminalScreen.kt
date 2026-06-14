@@ -147,7 +147,7 @@ fun KaitoTerminalScreen(vm: GambitViewModel) {
 fun MetricBox(label: String, value: String, color: Color, modifier: Modifier = Modifier) {
     Box(
         modifier
-            .background(BgCard, RoundedCornerShape(16.dp))
+            .background(BgCard.copy(alpha = 0.15f), RoundedCornerShape(16.dp))
             .border(1.dp, color.copy(alpha=0.3f), RoundedCornerShape(16.dp))
             .padding(16.dp)
     ) {

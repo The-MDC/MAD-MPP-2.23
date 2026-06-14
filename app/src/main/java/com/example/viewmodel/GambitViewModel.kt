@@ -1,16 +1,32 @@
 package com.example.viewmodel
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.math.GambitMath
 import com.example.model.*
+import com.example.AppContainer
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
-class GambitViewModel(application: Application) : AndroidViewModel(application) {
-    private val database = AppDatabase.getDatabase(application)
-    private val localDao = database.localDataDao()
+class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
+    private val gambitRepository = appContainer.gambitRepository
+    private val localDao = gambitRepository.localDao
+    private val sensoryFeedbackEngine = appContainer.sensoryFeedbackEngine
+    val web3Service = appContainer.web3Service
+    
+    companion object {
+        fun provideFactory(appContainer: AppContainer): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                if (modelClass.isAssignableFrom(GambitViewModel::class.java)) {
+                    return GambitViewModel(appContainer) as T
+                }
+                throw IllegalArgumentException("Unknown ViewModel class")
+            }
+        }
+    }
 
     private val _state = MutableStateFlow(MarketState())
     val state: StateFlow<MarketState> = _state.asStateFlow()
@@ -22,14 +38,27 @@ class GambitViewModel(application: Application) : AndroidViewModel(application) 
         _showProposeModal.value = show
     }
 
-    private var toneGenerator: android.media.ToneGenerator? = null
-
-    init {
-        try {
-            toneGenerator = android.media.ToneGenerator(android.media.AudioManager.STREAM_NOTIFICATION, 100)
-        } catch (e: Exception) {
-            // Ignore if audio service is unavailable
+    fun connectWeb3Wallet() {
+        viewModelScope.launch {
+            sensoryFeedbackEngine.playPositiveFeedback()
+            web3Service.connectWallet("metamask")
         }
+    }
+
+    fun disconnectWeb3Wallet() {
+        viewModelScope.launch {
+            sensoryFeedbackEngine.playErrorFeedback()
+            web3Service.disconnectWallet()
+        }
+    }
+
+    fun syncGlobalAuthState(globalAuth: AuthState) {
+        _state.update { it.copy(authState = globalAuth) }
+    }
+
+    private var toneGenerator: android.media.ToneGenerator? = null
+    // ToneGenerator disabled to avoid AppOps attributionTag not declared errors in Android logger
+    init {
     }
 
     private val scenarios = listOf(
@@ -388,14 +417,8 @@ class GambitViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    fun playFeedbackTone(toneType: Int, durationMs: Int = 80) {
-        viewModelScope.launch(Dispatchers.Default) {
-            try {
-                toneGenerator?.startTone(toneType, durationMs)
-            } catch (e: Exception) {
-                // Ignore
-            }
-        }
+    fun playFeedbackTone(toneType: Int? = null, durationMs: Int = 80) {
+        sensoryFeedbackEngine.playPositiveFeedback()
     }
 
     fun placeInteractivePrediction(
@@ -408,62 +431,87 @@ class GambitViewModel(application: Application) : AndroidViewModel(application) 
         val safeConv = if (convictionLevel.isNaN() || !convictionLevel.isFinite() || convictionLevel < 0.0f) 0.0f else convictionLevel.coerceIn(0.0f, 1.0f)
         if (safeAmt <= 0.0) return
 
-        _state.update { s ->
-            if (s.madxBalance < safeAmt) return@update s
-            
-            val updatedScenarios = s.activeScenarios.map { sc ->
-                if (sc.id == scenarioId) {
-                    val scaleFactor = safeAmt * safeConv * 0.02
-                    val speedChange = if (direction == "YES" || direction == "OVER" || direction == "BUY" || direction == "BUY_TARGET_MET" || direction == "BTC" || direction == "ETH") {
-                        sc.crowdConvictionSpeed + scaleFactor
-                    } else {
-                        sc.crowdConvictionSpeed - scaleFactor
-                    }
-                    val newTwitterRatio = if (direction == "YES" || direction == "OVER" || direction == "BUY" || direction == "BUY_TARGET_MET" || direction == "BTC" || direction == "ETH") {
-                        (sc.sentimentBullishRatio + 0.06).coerceIn(0.01, 0.99)
-                    } else {
-                        (sc.sentimentBullishRatio - 0.06).coerceIn(0.01, 0.99)
-                    }
-                    sc.copy(
-                        crowdConvictionSpeed = if (speedChange.isNaN() || !speedChange.isFinite()) sc.crowdConvictionSpeed else speedChange,
-                        gildedConvictionReserve = sc.gildedConvictionReserve + safeAmt,
-                        sentimentBullishRatio = newTwitterRatio,
-                        socialTwitterImpressions = sc.socialTwitterImpressions + (safeAmt * 100).toLong()
-                    )
-                } else sc
+        viewModelScope.launch {
+            if (_state.value.madxBalance < safeAmt) {
+                sensoryFeedbackEngine.playErrorFeedback()
+                return@launch
             }
 
-            val targetSc = s.activeScenarios.find { it.id == scenarioId }
-            val scenarioName = targetSc?.name ?: "Unknown Scenario"
-            val textDescription = "User executed ${"%.2f".format(safeAmt)} \$MADx position with " +
-                "${"%.0f".format(safeConv * 100)}% conviction score into $direction."
-            
-            val newActivity = HighStakesActivity(
-                id = java.util.UUID.randomUUID().toString(),
-                timestamp = System.currentTimeMillis(),
-                eventName = scenarioName,
-                text = textDescription,
-                amount = safeAmt,
-                speedBoost = safeConv.toDouble() * 3.5,
-                type = "BET"
+            // Simulate immediate Web3/Contract loading state UI here if desired, but we'll go straight for execution.
+            val result = web3Service.signAndExecuteTransaction(
+                contractAddress = "0xMADGambitConvictionEngine", 
+                payload = "{\"id\":\"$scenarioId\",\"dir\":\"$direction\",\"conv\":$safeConv}", 
+                value = safeAmt
             )
 
-            viewModelScope.launch(Dispatchers.Default) {
-                try {
-                    toneGenerator?.startTone(android.media.ToneGenerator.TONE_CDMA_CONFIRM, 120)
-                    delay(150)
-                    toneGenerator?.startTone(android.media.ToneGenerator.TONE_CDMA_HIGH_PBX_SLS, 100)
-                } catch (e: Exception) {}
+            if (!result.success) {
+                sensoryFeedbackEngine.playErrorFeedback()
+                return@launch
             }
 
-            s.copy(
-                madxBalance = (s.madxBalance - safeAmt).coerceAtLeast(0.0),
-                activeScenarios = updatedScenarios,
-                xp = s.xp + (safeAmt * safeConv * 0.25).toFloat(),
-                highStakesFeed = (listOf(newActivity) + s.highStakesFeed).take(15)
-            )
+            // Success, play dopamine hit
+            sensoryFeedbackEngine.playVictoryFeedback()
+
+            _state.update { s ->
+                val updatedScenarios = s.activeScenarios.map { sc ->
+                    if (sc.id == scenarioId) {
+                        val scaleFactor = safeAmt * safeConv * 0.02
+                        val speedChange = if (direction == "YES" || direction == "OVER" || direction == "BUY" || direction == "BUY_TARGET_MET" || direction == "BTC" || direction == "ETH") {
+                            sc.crowdConvictionSpeed + scaleFactor
+                        } else {
+                            sc.crowdConvictionSpeed - scaleFactor
+                        }
+                        val newTwitterRatio = if (direction == "YES" || direction == "OVER" || direction == "BUY" || direction == "BUY_TARGET_MET" || direction == "BTC" || direction == "ETH") {
+                            (sc.sentimentBullishRatio + 0.06).coerceIn(0.01, 0.99)
+                        } else {
+                            (sc.sentimentBullishRatio - 0.06).coerceIn(0.01, 0.99)
+                        }
+                        sc.copy(
+                            crowdConvictionSpeed = if (speedChange.isNaN() || !speedChange.isFinite()) sc.crowdConvictionSpeed else speedChange,
+                            gildedConvictionReserve = sc.gildedConvictionReserve + safeAmt,
+                            sentimentBullishRatio = newTwitterRatio,
+                            socialTwitterImpressions = sc.socialTwitterImpressions + (safeAmt * 100).toLong()
+                        )
+                    } else sc
+                }
+
+                val targetSc = s.activeScenarios.find { it.id == scenarioId }
+                val scenarioName = targetSc?.name ?: "Unknown Scenario"
+                
+                val currentSec = System.currentTimeMillis()
+                val isHot = targetSc?.isHot == true
+                
+                val userFeedbackMsg = if (safeAmt > 1000) {
+                    "WHALE CONVICTION LOGGED! Locked ${safeAmt.toInt()} MADx on $direction with Conviction $safeConv."
+                } else if (safeConv > 0.8f) {
+                    "DEGEN MODE. Max conviction registered on $direction."
+                } else {
+                    "Position deployed on $direction. Waiting on oracles."
+                }
+
+                s.copy(
+                    madxBalance = s.madxBalance - safeAmt,
+                    activeScenarios = updatedScenarios,
+                    eigenTrustLogs = (listOf("tx(${result.transactionHash?.take(6)}...): $userFeedbackMsg") + s.eigenTrustLogs).take(15),
+                    xp = s.xp + (safeAmt * safeConv * 0.1f).toFloat(),
+                    totalPredictions = s.totalPredictions + 1,
+                    totalConvictions = if (safeConv >= 0.5f) s.totalConvictions + 1 else s.totalConvictions,
+                    highStakesFeed = (listOf(
+                        HighStakesActivity(
+                            id = java.util.UUID.randomUUID().toString(),
+                            timestamp = currentSec,
+                            eventName = scenarioName,
+                            text = "You locked ${safeAmt.toInt()} MADx with conviction level ${(safeConv * 100).toInt()}%. tx: ${result.transactionHash}",
+                            amount = safeAmt,
+                            speedBoost = if (isHot) 5.5 else 1.2,
+                            type = "BET"
+                        )
+                    ) + s.highStakesFeed).take(50)
+                )
+            }
         }
     }
+
 
     fun submitMarketplacePrediction(
         economicEvent: String,
@@ -501,7 +549,9 @@ class GambitViewModel(application: Application) : AndroidViewModel(application) 
             s.copy(
                 madxBalance = (s.madxBalance - safeAmt).coerceAtLeast(0.0),
                 xp = s.xp + (safeAmt * safeConf * 0.3).toFloat(),
-                highStakesFeed = (listOf(newActivity) + s.highStakesFeed).take(15)
+                highStakesFeed = (listOf(newActivity) + s.highStakesFeed).take(15),
+                totalPredictions = s.totalPredictions + 1,
+                totalConvictions = if (safeConf >= 0.5f) s.totalConvictions + 1 else s.totalConvictions
             )
         }
     }
@@ -1248,5 +1298,18 @@ class GambitViewModel(application: Application) : AndroidViewModel(application) 
             }
             s.copy(liveAuctions = updated)
         }
+    }
+
+    fun updateCreatorCompanyProfile(name: String, website: String, desc: String) {
+        _state.update { s ->
+            s.copy(
+                companyName = name,
+                startupWebsite = website,
+                companyDescription = desc
+            )
+        }
+        try {
+            toneGenerator?.startTone(android.media.ToneGenerator.TONE_CDMA_CONFIRM, 150)
+        } catch (e: Exception) {}
     }
 }

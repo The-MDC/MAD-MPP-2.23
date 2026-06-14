@@ -189,7 +189,7 @@ fun AdminModuleCard(
         modifier = Modifier
             .fillMaxWidth()
             .alpha(if (isEnabled) 1f else 0.4f)
-            .background(theme.bgCard, RoundedCornerShape(12.dp))
+            .background(theme.bgCard.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
             .border(1.dp, if (isEnabled) theme.borderBrush else androidx.compose.ui.graphics.SolidColor(theme.textSecondary.copy(alpha = 0.2f)), RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {

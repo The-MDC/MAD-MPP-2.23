@@ -20,9 +20,10 @@ data class HighStakesActivity(
 
 data class AuthState(
     val isAuthenticated: Boolean = false,
-    val authType: String = "GUEST", // "GUEST", "GOOGLE", "0-AUTH"
+    val authType: String = "GUEST", // "GUEST", "GOOGLE", "0-AUTH", "WEB3"
     val username: String = "Anonymous",
-    val email: String = "none@domain.com"
+    val email: String = "none@domain.com",
+    val walletAddress: String? = null
 )
 
 data class NeuralTelemetryStats(
@@ -40,6 +41,7 @@ data class MarketState(
     val eigenTrustLogs: List<String> = emptyList(),
     val xp: Float = 0f,
     val madxBalance: Double = 10000.0,
+    val lastWinTimestamp: Long? = null,
     val sentimentPhase: SentimentPhase = SentimentPhase.EUPHORIA,
     val temperature: Float = 1.0f,
     val allocations: List<Double> = emptyList(),
@@ -56,6 +58,12 @@ data class MarketState(
     val currentPerformanceRating: Int = 1000,
     val isTournamentQueueActive: Boolean = false,
     val telemetryStats: NeuralTelemetryStats = NeuralTelemetryStats(),
+    val totalConvictions: Int = 18,
+    val totalPredictions: Int = 34,
+    val zLiarMeterScore: Double = 88.5,
+    val companyName: String = "Degen Ventures LLC",
+    val startupWebsite: String = "degenventures.io",
+    val companyDescription: String = "Predictive arbitrage & high-stakes sentiment hedging syndicates.",
     
     // Liar Meter state
     val liarMeterResult: com.example.engine.AnalysisResult? = null,

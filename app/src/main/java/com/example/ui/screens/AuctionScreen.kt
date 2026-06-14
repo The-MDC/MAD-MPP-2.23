@@ -694,7 +694,7 @@ fun AuctionScreen(vm: GambitViewModel) {
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .background(BgCard, RoundedCornerShape(12.dp))
+                    .background(BgCard.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
                     .border(1.dp, GoldFlakeBrush, RoundedCornerShape(12.dp))
                     .padding(32.dp),
                 contentAlignment = Alignment.Center

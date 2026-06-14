@@ -58,7 +58,7 @@ fun StakingScreen(vm: GambitViewModel) {
         Box(
             Modifier
                 .fillMaxWidth()
-                .background(BgCard, RoundedCornerShape(16.dp))
+                .background(BgCard.copy(alpha = 0.15f), RoundedCornerShape(16.dp))
                 .border(1.dp, GoldFlakeBrush, RoundedCornerShape(16.dp))
                 .padding(24.dp)
         ) {
@@ -107,7 +107,7 @@ fun StakingScreen(vm: GambitViewModel) {
                         onClick = { vm.stakeMadx(stakeInput.toDoubleOrNull() ?: 0.0) },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = BrandGold, disabledContainerColor = BgCard)
+                        colors = ButtonDefaults.buttonColors(containerColor = BrandGold, disabledContainerColor = BgCard.copy(alpha = 0.15f))
                     ) {
                         Text("LOCK & STAKE", color = BgDeep, fontWeight = FontWeight.Black, fontSize = 16.sp, letterSpacing = 1.sp)
                     }

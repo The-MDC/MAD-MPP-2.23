@@ -231,14 +231,18 @@ class GeminiRepository {
             val response = RetrofitClient.service.generateContent(apiKey, request)
             val text = response.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
             if (text != null) {
-                text.split("\n")
+                val results = text.split("\n")
                     .filter { it.isNotBlank() }
                     .map { it.replace(Regex("^[-*•\\d.]+\\s*"), "").trim() }
+                if (results.isNotEmpty()) {
+                    RssFeedFetcher.lastSatiricalHeadlines = results
+                }
+                results
             } else {
                 throw Exception("Empty Gemini response")
             }
         } catch (e: Exception) {
-            if (rssArticles.isNotEmpty()) {
+            val fallback = if (rssArticles.isNotEmpty()) {
                 rssArticles.shuffled().take(4).map { art ->
                     "BREAKING: [${art.source}] ${art.title} - MADHAT'r says: Total madness, pal! 🎩"
                 }
@@ -249,6 +253,8 @@ class GeminiRepository {
                     "BREAKING: BBC - Macro equity indices record historic daily volatility swing. 🌐"
                 )
             }
+            RssFeedFetcher.lastSatiricalHeadlines = fallback
+            fallback
         }
     }
     

@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,9 +40,20 @@ import com.example.viewmodel.GambitViewModel
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.graphics.Brush
 
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GambitNavigation(vm: GambitViewModel) {
+fun GambitNavigation(vm: GambitViewModel, authManager: com.example.auth.AuthManager) {
+    val globalAuthState by authManager.authState.collectAsState()
+    
+    if (!globalAuthState.isAuthenticated) {
+        AuthScreen(authManager = authManager, onAuthSuccess = {
+            // Optional callback, UI reacts implicitly to state 
+            vm.syncGlobalAuthState(globalAuthState)
+        })
+        return
+    }
+
     var currentRoute by remember { mutableStateOf("circus") }
     val state by vm.state.collectAsState()
     val balanceValue = state.madxBalance
@@ -55,21 +67,21 @@ fun GambitNavigation(vm: GambitViewModel) {
                 containerColor = theme.bgDeep,
                 contentWindowInsets = WindowInsets.systemBars,
                 floatingActionButton = {
-                    androidx.compose.material3.FloatingActionButton(
-                        onClick = { vm.toggleAiChat() },
-                        containerColor = Color.Black,
-                        contentColor = Color.Unspecified,
-                        shape = RoundedCornerShape(12.dp),
+                    // Borderless custom character avatar that acts as our chat trigger
+                    Box(
                         modifier = Modifier
-                            .size(60.dp)
-                            .border(1.2.dp, theme.brandSecondary, RoundedCornerShape(12.dp))
+                            .size(72.dp)
+                            .clickable(
+                                onClick = {
+                                    vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 70)
+                                    vm.toggleAiChat()
+                                },
+                                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                                indication = ripple(bounded = false)
+                            ),
+                        contentAlignment = Alignment.Center
                     ) {
-                        androidx.compose.foundation.Image(
-                            painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.mad_logo),
-                            contentDescription = "AI Hub Logo",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Fit
-                        )
+                        com.example.ui.components.MadHatrFloatingAvatar()
                     }
                 },
                 topBar = {
@@ -90,48 +102,16 @@ fun GambitNavigation(vm: GambitViewModel) {
                             },
                         actions = {
                             var isNotificationsOpen by remember { mutableStateOf(false) }
-                            
-                            // PROPOSE MARKET button in top menu when on predictive markets (circus)
-                            if (currentRoute == "circus") {
-                                Button(
-                                    onClick = {
-                                        vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 70)
-                                        vm.setShowProposeModal(true)
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color.White.copy(alpha = 0.08f),
-                                        contentColor = theme.brandSecondary
-                                    ),
-                                    modifier = Modifier
-                                        .padding(end = 8.dp)
-                                        .border(
-                                            BorderStroke(
-                                                1.dp,
-                                                Brush.linearGradient(
-                                                    listOf(
-                                                        Color.White.copy(alpha = 0.3f),
-                                                        Color.White.copy(alpha = 0.05f)
-                                                    )
-                                                )
-                                            ),
-                                            androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
-                                        ),
-                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
-                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                            val web3Connected by vm.web3Service.isConnected.collectAsState()
+
+                            if (web3Connected) {
+                                com.example.ui.components.MadCreditHeaderWidget(vm = vm)
+                            } else {
+                                androidx.compose.material3.TextButton(
+                                    onClick = { vm.connectWeb3Wallet() },
+                                    modifier = Modifier.padding(end = 8.dp)
                                 ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        Text("🔮", fontSize = 12.sp)
-                                        Text(
-                                            "PROPOSE",
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Black,
-                                            fontFamily = com.example.ui.theme.AllertaStencilFamily,
-                                            letterSpacing = 1.sp
-                                        )
-                                    }
+                                    androidx.compose.material3.Text("Connect Web3", color = theme.brandSecondary)
                                 }
                             }
                             
@@ -238,7 +218,8 @@ fun GambitNavigation(vm: GambitViewModel) {
                             isSatireMode = false,
                             telemetry = state.telemetryStats,
                             isNeuralOnly = false,
-                            isClickable = true
+                            isClickable = true,
+                            speedMultiplier = 1.1f
                         )
                     }
                 }
@@ -467,7 +448,8 @@ fun GambitNavigation(vm: GambitViewModel) {
         
         com.example.ui.components.ConvictionDashboardOverlay(
             isVisible = isDashboardOpen,
-            onClose = { isDashboardOpen = false }
+            onClose = { isDashboardOpen = false },
+            vm = vm
         )
     }
 }

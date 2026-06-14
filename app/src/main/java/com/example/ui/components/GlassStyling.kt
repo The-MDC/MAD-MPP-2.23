@@ -101,8 +101,8 @@ fun Modifier.glassContainerBackground(
     baseColor: Color,
     shape: Shape = RoundedCornerShape(12.dp)
 ): Modifier {
-    // Restoring background opacity back to its recent prior state of 35% transparent (65% opaque)
-    val glassBaseColor = baseColor.copy(alpha = 0.65f)
+    // 85% transparent (15% opaque fill color)
+    val glassBaseColor = baseColor.copy(alpha = 0.15f)
     return this
         .clip(shape)
         .background(glassBaseColor)
@@ -135,13 +135,13 @@ fun Modifier.glassContainerBackground(
 
 /**
  * High-fidelity glass effect explicitly crafted for all inner containers.
- * Preserves the premium glass sheen with 35% transparency.
+ * Preserves the premium glass sheen with 85% transparency.
  */
 fun Modifier.innerGlassContainerBackground(
     baseColor: Color,
     shape: Shape = RoundedCornerShape(8.dp)
 ): Modifier {
-    val glassBaseColor = baseColor.copy(alpha = 0.65f) // 35% transparent
+    val glassBaseColor = baseColor.copy(alpha = 0.15f) // 85% transparent
     return this
         .clip(shape)
         .background(glassBaseColor)

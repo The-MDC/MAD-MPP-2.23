@@ -30,7 +30,7 @@ fun ConvictionTrendsChart(trendHistory: List<TrendDataPoint>, modifier: Modifier
         modifier = modifier
             .fillMaxWidth()
             .height(240.dp)
-            .background(theme.bgCard, RoundedCornerShape(12.dp))
+            .background(theme.bgCard.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
             .border(theme.borderWidth, theme.borderBrush, RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {
@@ -112,7 +112,7 @@ fun CalibrationPlotChart(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .height(200.dp)
-            .background(theme.bgCard, RoundedCornerShape(12.dp))
+            .background(theme.bgCard.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
             .border(theme.borderWidth, theme.borderBrush, RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {
@@ -186,7 +186,7 @@ fun BehavioralCycleChart(currentPhase: com.example.model.SentimentPhase? = null,
         modifier = modifier
             .fillMaxWidth()
             .height(200.dp)
-            .background(theme.bgCard, RoundedCornerShape(12.dp))
+            .background(theme.bgCard.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
             .border(theme.borderWidth, theme.borderBrush, RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {
@@ -268,7 +268,7 @@ fun ConvictionDataChart(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .height(220.dp)
-            .background(theme.bgCard, RoundedCornerShape(12.dp))
+            .background(theme.bgCard.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
             .border(theme.borderWidth, theme.borderBrush, RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {
@@ -345,7 +345,7 @@ fun LiquiditySentimentChart(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .height(200.dp)
-            .background(theme.bgCard, RoundedCornerShape(12.dp))
+            .background(theme.bgCard.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
             .border(theme.borderWidth, theme.borderBrush, RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {
@@ -389,7 +389,7 @@ fun AdvancedSentimentSuiteChart(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .height(300.dp)
-            .background(theme.bgCard, RoundedCornerShape(12.dp))
+            .background(theme.bgCard.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
             .border(theme.borderWidth, theme.borderBrush, RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {

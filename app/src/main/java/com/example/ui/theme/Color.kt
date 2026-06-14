@@ -3,29 +3,29 @@ package com.example.ui.theme
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
-val DarkBg = Color(0xFF000000)
-val DarkHeader = Color(0xFF050505)
+val DarkBg = Color(0xFF030107) // Deep velvet purple-black
+val DarkHeader = Color(0xFF0A0214)
 
 // Brand Core - High Street Chic Luxury Golden Flake
-val BrandGold = Color(0xFFD4AF37) // Metallic Gold
-val BrandGoldDark = Color(0xFF996515)
-val BrandGoldGlow = Color(0x3BD4AF37) // Lowered alpha
-val BrandCrimson = Color(0xFF8B0000) // Deep dark red/crimson
-val BrandEggwhite = Color(0xFFF0E6D2) // Gold flake off-white
+val BrandGold = Color(0xFFFFD700) // Highly polished Tabloid Gold
+val BrandGoldDark = Color(0xFFB8860B) // Metallic Dark Goldenrod
+val BrandGoldGlow = Color(0x60FFD700) // Lowered alpha with real gold tint
+val BrandCrimson = Color(0xFFFF003C) // Vibrant Hot Red/Crimson
+val BrandEggwhite = Color(0xFFFFFDF0) // High-contrast warm cream white
 
-// Neon Palette - Subtle neon accents
-val NeonCyan = Color(0xFFE6E6FA) // Replaced with subtle neon lavender for cutting edge chic aesthetic
-val NeonCyanDim = Color(0x10E6E6FA) 
-val NeonMagenta = Color(0xFFC5B358) // Warm gold flake
-val NeonPurple = Color(0xFF1A1A1A) // Extremely dark grey
-val NeonPurpleDim = Color(0x1B1A1A1A) 
-val NeonGreen = Color(0xFF00FF41) // Kept for the borg theme primarily, but subdued in base
+// Neon Palette - High Fidelity Neon Accents from the MAD Gambit images
+val NeonCyan = Color(0xFF00F0FF) // Ultra-glowing neon cyan (Prediction blue)
+val NeonCyanDim = Color(0x2500F0FF) 
+val NeonMagenta = Color(0xFFFF007F) // Ultra-glowing neon pink-fuchsia (Conviction pink)
+val NeonPurple = Color(0xFF8B00FF) // Glowing purple neon (Affliction purple)
+val NeonPurpleDim = Color(0x258B00FF) 
+val NeonGreen = Color(0xFF39FF14) // True hot neon green (Streak / Ticker positive percent)
 
-// Backgrounds
-val BgDeep = Color(0xFF000000)
-val BgCard = Color(0xFF0A0A0A)
-val BgPanel = Color(0xFF141210)
-val BgOverlay = Color(0xDF000000)
+// Backgrounds - Elegant Velvet Dark
+val BgDeep = Color(0xFF030107)
+val BgCard = Color(0xFF0D0616)
+val BgPanel = Color(0xFF150B22)
+val BgOverlay = Color(0xE6030107)
 
 // Rarity Colors
 val RarityCommon = Color(0xFFB0B0B0)

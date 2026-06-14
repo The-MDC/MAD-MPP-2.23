@@ -61,6 +61,7 @@ import com.example.ui.components.innerGlassContainerBackground
 import com.example.ui.components.TopHottestCarousel
 import com.example.ui.components.CustomizableMetricsCarousel
 import com.example.ui.components.DopamineBurstEffect
+import com.example.ui.components.PredictionCommandCentre
 
 import androidx.compose.ui.text.style.TextAlign
 
@@ -106,7 +107,7 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
 
         AlertDialog(
             onDismissRequest = { vm.setShowProposeModal(false) },
-            containerColor = BgCard,
+            containerColor = BgCard.copy(alpha = 0.95f),
             modifier = Modifier
                 .fillMaxWidth()
                 .border(1.dp, NeonCyan.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
@@ -144,6 +145,29 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
                         fontSize = 10.sp,
                         fontFamily = FontFamily.Monospace
                     )
+
+                    // Synchronized Satirical RSS Meme Engine Banner
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(8.dp))
+                            .border(0.5.dp, BrandGold.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                            .padding(8.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically, 
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text("📻 FEED & MEME ENGINE:", color = BrandGold, fontSize = 8.5.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                            Text(
+                                text = com.example.api.RssFeedFetcher.getNextMemeOrHeadline(),
+                                color = Color.White.copy(alpha = 0.85f),
+                                fontSize = 8.5.sp,
+                                fontFamily = FontFamily.Monospace,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
 
                     // 1. Title Input
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -394,7 +418,7 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
                 
         AlertDialog(
             onDismissRequest = { showDailySummary = false },
-            containerColor = BgCard,
+            containerColor = BgCard.copy(alpha = 0.95f),
             title = { Text("MAD NEWS: Daily Summary", color = BrandGold, fontWeight = FontWeight.Black) },
             text = { Text(narrative, color = BrandEggwhite, fontSize = 14.sp) },
             confirmButton = {
@@ -413,7 +437,7 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
                 .background(BgDeep)
                 .verticalScroll(scroll)
                 .padding(0.5.dp), // upgraded container layout metric 0.5
-            verticalArrangement = Arrangement.spacedBy(0.dp)
+            verticalArrangement = Arrangement.spacedBy(0.5.dp)
         ) {
         if (state.isOfflineCache) {
             Box(
@@ -446,8 +470,6 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
         )
 
         MadGambitGameLobbyLobby(vm, equippedCard)
-
-        SatiricalDailyForecastWidget(vm)
         
         LiarMeterMarketsWidget(vm)
         
@@ -988,6 +1010,10 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
                 }
             }
         }
+        
+        Spacer(Modifier.height(16.dp))
+        SatiricalDailyForecastWidget(vm)
+        Spacer(Modifier.height(30.dp))
     }
 }
 }
@@ -1010,7 +1036,7 @@ fun MarketVolatilityGauge(state: com.example.model.MarketState) {
     Box(
         Modifier
             .fillMaxWidth()
-            .background(BgCard.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+            .background(BgCard.copy(alpha = 0.15f), RoundedCornerShape(16.dp))
             .border(1.dp, NeonPurple.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
             .padding(24.dp)
     ) {
@@ -1534,7 +1560,7 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .glassContainerBackground(NeonMagenta, RoundedCornerShape(20.dp))
+            .glassContainerBackground(NeonCyan.copy(alpha=0.1f), RoundedCornerShape(20.dp))
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             // Header
@@ -1551,7 +1577,7 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Black,
                         fontFamily = FontFamily.Monospace,
-                        style = TextStyle(shadow = Shadow(NeonMagenta, blurRadius = 8f))
+                        style = TextStyle(shadow = Shadow(NeonCyan, blurRadius = 8f))
                     )
                 }
                 Box(
@@ -2170,281 +2196,205 @@ fun MadGambitGameLobbyLobby(
         }
     }
     
-    Card(
+    androidx.compose.material3.Card(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(20.dp, RoundedCornerShape(24.dp), spotColor = BrandGold.copy(alpha = 0.25f))
-            .border(1.dp, GoldFlakeBrush, RoundedCornerShape(24.dp)),
-        colors = CardDefaults.cardColors(containerColor = BgCard.copy(alpha = 0.4f))
+            .padding(top = 0.5.dp, bottom = 0.5.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(BgCard.copy(alpha = 0.3f))
+            .border(0.6.dp, GoldFlakeBrush, RoundedCornerShape(4.dp)),
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
-        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            
-            // Main Lobby Heading
+        Column(
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            // Row 1: Title, Clock, Sign Up
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
                     Text(
-                        text = "🃏 MΛĐHΛT's GAMBIT GAME LOBBY",
+                        text = "🃏 GAMBIT LOBBY",
                         color = BrandGold,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Black,
+                        fontSize = 11.5.sp,
+                        fontWeight = FontWeight.ExtraBold,
                         fontFamily = FontFamily.Monospace,
-                        style = TextStyle(shadow = Shadow(BrandGold, blurRadius = 12f))
-                    )
-                    Text(
-                        text = "Level up decks & stake predictions in high-yield arenas",
-                        color = Color.LightGray,
-                        fontSize = 11.sp
-                    )
-                }
-                Text("V1.4", color = Color.Gray, fontSize = 9.sp, fontFamily = FontFamily.Monospace)
-            }
-            
-            HorizontalDivider(color = Color.DarkGray.copy(alpha = 0.4f), thickness = 1.dp)
-            
-            // 💀 MONTHLY CULL TOURNAMENT PORTAL & COUNTDOWN
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFF160A0A))
-                    .border(1.dp, if (isEnrolled) NeonGreen else BrandCrimson, RoundedCornerShape(16.dp))
-                    .padding(16.dp)
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text("🏆", fontSize = 14.sp)
-                            Text(
-                                text = "MONTHLY CULL TOURNAMENT",
-                                color = BrandEggwhite,
-                                fontSize = 11.5.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = FontFamily.Monospace
-                            )
-                        }
-                        
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .clickable {
-                                    isEnrolled = !isEnrolled
-                                    if (isEnrolled) {
-                                        vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 80)
-                                        android.widget.Toast.makeText(context, "🔥 ENROLLED IN MONTHLY CULL TOURNAMENT!", android.widget.Toast.LENGTH_SHORT).show()
-                                    } else {
-                                        vm.playFeedbackTone(android.media.ToneGenerator.TONE_CDMA_PIP, 60)
-                                        android.widget.Toast.makeText(context, "🛡️ WITHDREW FROM CULL TOURNAMENT!", android.widget.Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                                .background(
-                                    (if (isEnrolled) NeonGreen else BrandCrimson).copy(alpha = 0.2f)
-                                )
-                                .border(1.2.dp, if (isEnrolled) NeonGreen else BrandCrimson, RoundedCornerShape(6.dp))
-                                .padding(horizontal = 10.dp, vertical = 5.dp)
-                        ) {
-                            Text(
-                                text = if (isEnrolled) "ENROLLED" else "SIGN UP",
-                                color = if (isEnrolled) NeonGreen else Color.White,
-                                fontSize = 8.5.sp,
-                                fontWeight = FontWeight.Black,
-                                fontFamily = FontFamily.Monospace
-                            )
-                        }
-                    }
-                    
-                    Text(
-                        text = "The ultimate tournament goes live on the last Friday of every month. Top players claim fractional platform basis points!",
-                        color = Color.LightGray,
-                        fontSize = 11.sp,
-                        lineHeight = 15.sp
+                        style = TextStyle(shadow = Shadow(BrandGold.copy(alpha = 0.5f), blurRadius = 8f))
                     )
                     
-                    // Countdown Box
+                    Box(Modifier.width(1.dp).height(12.dp).background(Color.DarkGray))
+
+                    // Countdown Clock (current size)
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.Black.copy(alpha=0.4f), RoundedCornerShape(8.dp))
-                            .border(1.dp, Color.DarkGray.copy(alpha=0.5f), RoundedCornerShape(8.dp))
-                            .padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         CountdownUnit(countdown.days.toString(), "DAYS", BrandGold)
                         CountdownSeparator()
-                        CountdownUnit(String.format("%02d", countdown.hours), "HOURS", BrandGold)
+                        CountdownUnit(String.format("%02d", countdown.hours), "HRS", BrandGold)
                         CountdownSeparator()
                         CountdownUnit(String.format("%02d", countdown.minutes), "MINS", NeonCyan)
                         CountdownSeparator()
                         CountdownUnit(String.format("%02d", countdown.seconds), "SECS", NeonMagenta)
                     }
-                    
-                    // Enrollment Button
-                    Button(
-                        onClick = {
-                            vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 90)
-                            android.widget.Toast.makeText(context, "🎮 Initiating MADHAT's GAMBIT match!", android.widget.Toast.LENGTH_SHORT).show()
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFD4AF37),
-                            contentColor = Color.Black
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(44.dp)
-                            .border(1.dp, Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(8.dp)),
-                        shape = RoundedCornerShape(8.dp)
+                }
+
+                // Sign Up Indicator/Button
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .clickable {
+                            isEnrolled = !isEnrolled
+                            if (isEnrolled) {
+                                vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 80)
+                                android.widget.Toast.makeText(context, "🔥 ENROLLED IN MONTHLY CULL TOURNAMENT!", android.widget.Toast.LENGTH_SHORT).show()
+                            } else {
+                                vm.playFeedbackTone(android.media.ToneGenerator.TONE_CDMA_PIP, 60)
+                                android.widget.Toast.makeText(context, "🛡️ WITHDREW FROM CULL TOURNAMENT!", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        .background((if (isEnrolled) NeonGreen else BrandCrimson).copy(alpha = 0.2f))
+                        .border(0.6.dp, if (isEnrolled) NeonGreen else BrandCrimson, RoundedCornerShape(4.dp))
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = if (isEnrolled) "ENROLLED 🏆" else "SIGN UP 🏆",
+                        color = if (isEnrolled) NeonGreen else Color.White,
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Black,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+            }
+
+            // Row 2: 4 Buttons (same size, same format, emoticon on left, keeping colors)
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 0.5.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Button 1: PLAY MADHAT'S GAMBIT (Yellow)
+                Button(
+                    onClick = {
+                        vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 90)
+                        android.widget.Toast.makeText(context, "🎮 Initiating MADHAT's GAMBIT match!", android.widget.Toast.LENGTH_SHORT).show()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFD4AF37),
+                        contentColor = Color.Black
+                    ),
+                    modifier = Modifier
+                        .weight(1.2f)
+                        .height(28.dp)
+                        .border(0.6.dp, Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(4.dp)),
+                    shape = RoundedCornerShape(4.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 1.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
+                        Text("🎮 ", fontSize = 10.sp)
                         Text(
-                            text = "🎮 PLAY MADHAT'S GAMBIT",
-                            fontSize = 12.sp,
+                            text = "PLAY GAMBIT",
+                            fontSize = 8.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            fontFamily = FontFamily.Monospace
+                            fontFamily = FontFamily.Monospace,
+                            maxLines = 1
                         )
                     }
                 }
-            }
-            
-            // ⚔️ CARDPLAY MODES
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = "⚔️ SELECT CARDPLAY MODE",
-                    color = NeonCyan,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace
-                )
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    LobbyModeItem(
-                        title = "1v1 PVP DUEL",
-                        desc = "Stake MADx, boost Clout yield",
-                        icon = "🛡️",
-                        color = NeonCyan,
-                        onClick = { vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 50) },
-                        modifier = Modifier.weight(1f)
-                    )
-                    
-                    LobbyModeItem(
-                        title = "AI SCANDAL MATCH",
-                        desc = "Simulate news waves vs LLMs",
-                        icon = "🧠",
-                        color = NeonMagenta,
-                        onClick = { vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 50) },
-                        modifier = Modifier.weight(1f)
-                    )
-                    
-                    LobbyModeItem(
-                        title = "SCANDAL BLITZ",
-                        desc = "Wildcard prediction rounds",
-                        icon = "⚡",
-                        color = BrandGold,
-                        onClick = { vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 50) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-            
-            // 🎴 QUICK ACCESS TO ACTIVE DECK CARD
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = "🎴 CURRENT EQUIPPED DECK (QUICK ACCESS)",
-                    color = BrandGold,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace
-                )
-                
-                Box(
+
+                // Button 2: 1v1 PVP DUEL
+                Button(
+                    onClick = { vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 50) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = NeonCyan.copy(alpha = 0.2f),
+                        contentColor = NeonCyan
+                    ),
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.Black.copy(alpha = 0.4f))
-                        .border(1.dp, Color.DarkGray.copy(alpha=0.6f), RoundedCornerShape(12.dp))
-                        .padding(12.dp)
+                        .weight(1f)
+                        .height(28.dp)
+                        .border(0.6.dp, NeonCyan.copy(alpha = 0.4f), RoundedCornerShape(4.dp)),
+                    shape = RoundedCornerShape(4.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 1.dp)
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        // Tiny card face preview
-                        Box(
-                            modifier = Modifier
-                                .size(50.dp, 70.dp)
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(Color(0xFF0F0822))
-                                .border(1.dp, Color(equippedCard.rarity.color), RoundedCornerShape(6.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = when {
-                                    equippedCard.name.contains("MEMBER") -> "👤"
-                                    equippedCard.name.contains("MOST WANTED") -> "🧔"
-                                    equippedCard.name.contains("VISIONARY") -> "🛰️"
-                                    equippedCard.name.contains("CHAD") -> "💪"
-                                    equippedCard.name.contains("MELTDOWN") -> "😭"
-                                    equippedCard.name.contains("FRAUDSTER") -> "👺"
-                                    equippedCard.name.contains("ORACLE") -> "⚖️"
-                                    equippedCard.name.contains("CHAMP") -> "🏋️"
-                                    else -> "🃏"
-                                },
-                                fontSize = 24.sp
-                            )
-                        }
-                        
-                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(
-                                text = equippedCard.name.uppercase(),
-                                color = Color.White,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Black,
-                                fontFamily = FontFamily.Monospace,
-                                maxLines = 1
-                            )
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text(
-                                    text = "Faction: ${equippedCard.faction}",
-                                    color = Color.LightGray,
-                                    fontSize = 9.5.sp
-                                )
-                                Text(
-                                    text = "Rarity: ${equippedCard.rarity.display}",
-                                    color = Color(equippedCard.rarity.color),
-                                    fontSize = 9.5.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                            
-                            // Stats short row
-                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 2.dp)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("⚡", fontSize = 8.sp)
-                                    Spacer(modifier = Modifier.width(2.dp))
-                                    Text("Power: ${equippedCard.powerLevel}", color = Color.White, fontSize = 9.sp, fontFamily = FontFamily.Monospace)
-                                }
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("🧬", fontSize = 8.sp)
-                                    Spacer(modifier = Modifier.width(2.dp))
-                                    Text("Evol: Stage ${equippedCard.evolutionStage}", color = NeonCyan, fontSize = 9.sp, fontFamily = FontFamily.Monospace)
-                                }
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("🛡️", fontSize = 8.sp)
-                                    Spacer(modifier = Modifier.width(2.dp))
-                                    Text("Dur: ${(equippedCard.durability * 100).toInt()}%", color = NeonGreen, fontSize = 9.sp, fontFamily = FontFamily.Monospace)
-                                }
-                            }
-                        }
+                        Text("🛡️ ", fontSize = 10.sp)
+                        Text(
+                            text = "1v1 PVP",
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontFamily = FontFamily.Monospace,
+                            maxLines = 1
+                        )
+                    }
+                }
+
+                // Button 3: AI SCANDAL MATCH
+                Button(
+                    onClick = { vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 50) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = NeonMagenta.copy(alpha = 0.2f),
+                        contentColor = NeonMagenta
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(28.dp)
+                        .border(0.6.dp, NeonMagenta.copy(alpha = 0.4f), RoundedCornerShape(4.dp)),
+                    shape = RoundedCornerShape(4.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 1.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text("🧠 ", fontSize = 10.sp)
+                        Text(
+                            text = "AI SCANDAL",
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontFamily = FontFamily.Monospace,
+                            maxLines = 1
+                        )
+                    }
+                }
+
+                // Button 4: SCANDAL BLITZ
+                Button(
+                    onClick = { vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 50) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BrandGold.copy(alpha = 0.2f),
+                        contentColor = BrandGold
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(28.dp)
+                        .border(0.6.dp, BrandGold.copy(alpha = 0.4f), RoundedCornerShape(4.dp)),
+                    shape = RoundedCornerShape(4.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 1.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text("⚡ ", fontSize = 10.sp)
+                        Text(
+                            text = "BLITZ",
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontFamily = FontFamily.Monospace,
+                            maxLines = 1
+                        )
                     }
                 }
             }
@@ -2509,6 +2459,7 @@ fun SatiricalDailyForecastWidget(vm: GambitViewModel) {
     val state by vm.state.collectAsState()
     val theme = LocalGambitTheme.current
     var isCustomizeExpanded by remember { mutableStateOf(false) }
+    var selectedBubbleIndex by remember { mutableStateOf(0) }
     
     var localWeather by remember(state.forecastWeatherInput) { mutableStateOf(state.forecastWeatherInput) }
     var localAntics by remember(state.forecastAnticsInput) { mutableStateOf(state.forecastAnticsInput) }
@@ -2519,7 +2470,7 @@ fun SatiricalDailyForecastWidget(vm: GambitViewModel) {
             .fillMaxWidth()
             .shadow(12.dp, RoundedCornerShape(16.dp), spotColor = theme.brandPrimary.copy(alpha = 0.2f))
             .border(1.2.dp, theme.borderBrush, RoundedCornerShape(16.dp)),
-        colors = CardDefaults.cardColors(containerColor = theme.bgCard.copy(alpha = 0.7f))
+        colors = CardDefaults.cardColors(containerColor = theme.bgCard.copy(alpha = 0.15f)) // 85% transparent
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             // Header Row
@@ -2578,8 +2529,8 @@ fun SatiricalDailyForecastWidget(vm: GambitViewModel) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
-                    .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(10.dp))
+                    .background(Color.Black.copy(alpha = 0.2f), RoundedCornerShape(10.dp))
+                    .border(1.dp, theme.brandAccent.copy(alpha = 0.15f), RoundedCornerShape(10.dp))
                     .padding(12.dp)
             ) {
                 if (state.isDailyForecastLoading) {
@@ -2604,13 +2555,237 @@ fun SatiricalDailyForecastWidget(vm: GambitViewModel) {
                     }
                 } else {
                     val textToShow = state.dailyForecastText ?: "No forecast active. Type custom variables below to generate your first bulletin!"
-                    Text(
-                        text = textToShow,
-                        color = theme.textPrimary,
-                        fontSize = 11.sp,
-                        lineHeight = 16.sp,
-                        fontFamily = FontFamily.Monospace
-                    )
+                    
+                    // Split text into 3 clean parts for the bubbles
+                    val bubbleColors = listOf(theme.brandAccent, theme.brandSecondary, theme.brandPrimary)
+                    val sentences = remember(textToShow) {
+                        val parts = textToShow.split(Regex("[.!?及：;\n；]+")).map { it.trim() }.filter { it.length > 5 }
+                        listOf(
+                            parts.getOrNull(0)?.let { "WEATHER METRIC: $it." } ?: "🌤️ SYNAPSE SENSOR: Clean micro-climate conditions detected with high probability of trade volume.",
+                            parts.getOrNull(1)?.let { "CULTURAL INTEL: $it." } ?: "🔥 CLOUT CLUSTER: Retail hype cycles are clustering around memetic vaporware trends.",
+                            parts.getOrNull(2)?.let { "SCANDAL TICKER: $it." } ?: "⚡ SYSTEMIC BIAS: Elevated regulatory chatter surrounding standard arbitrage channels."
+                        )
+                    }
+                    
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        // 1. Dials and Sparkline Section (80% of space)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(105.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            // Left: Gauge Dial
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .background(Color.Black.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
+                                    .border(0.5.dp, theme.brandPrimary.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
+                                    .padding(6.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                                    Text(
+                                        text = "COGNITIVE DIAL",
+                                        color = theme.brandPrimary,
+                                        fontSize = 7.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = FontFamily.Monospace
+                                    )
+                                    Spacer(Modifier.height(4.dp))
+                                    
+                                    Box(modifier = Modifier.size(74.dp, 45.dp), contentAlignment = Alignment.Center) {
+                                        val dialColor = theme.brandPrimary
+                                        val accentColor = theme.brandSecondary
+                                        Canvas(modifier = Modifier.fillMaxSize()) {
+                                            val w = size.width
+                                            val h = size.height
+                                            val centerPoint = Offset(w / 2f, h)
+                                            
+                                            // Draw dial background arc
+                                            drawArc(
+                                                color = Color.DarkGray.copy(alpha = 0.35f),
+                                                startAngle = 180f,
+                                                sweepAngle = 180f,
+                                                useCenter = false,
+                                                topLeft = Offset(4f, 4f),
+                                                size = androidx.compose.ui.geometry.Size(w - 8f, h * 2f - 8f),
+                                                style = Stroke(width = 5f, cap = StrokeCap.Round)
+                                            )
+                                            
+                                            // Highlight dial active arc
+                                            drawArc(
+                                                color = dialColor,
+                                                startAngle = 180f,
+                                                sweepAngle = 155f,
+                                                useCenter = false,
+                                                topLeft = Offset(4f, 4f),
+                                                size = androidx.compose.ui.geometry.Size(w - 8f, h * 2f - 8f),
+                                                style = Stroke(width = 5f, cap = StrokeCap.Round)
+                                            )
+                                            
+                                            // Needle pointer
+                                            val angleRad = (180f + 155f) * Math.PI / 180.0
+                                            val needleLen = h - 6f
+                                            val needleEnd = Offset(
+                                                centerPoint.x + (needleLen * kotlin.math.cos(angleRad)).toFloat(),
+                                                centerPoint.y + (needleLen * kotlin.math.sin(angleRad)).toFloat()
+                                            )
+                                            drawLine(
+                                                color = accentColor,
+                                                start = centerPoint,
+                                                end = needleEnd,
+                                                strokeWidth = 3f,
+                                                cap = StrokeCap.Round
+                                            )
+                                            
+                                            // Needle hub
+                                            drawCircle(color = Color.DarkGray, radius = 5f, center = centerPoint)
+                                            drawCircle(color = dialColor, radius = 3f, center = centerPoint)
+                                        }
+                                    }
+                                    Spacer(Modifier.height(3.dp))
+                                    Text(
+                                        text = "BIAS INDEX: 86.4%",
+                                        color = Color.LightGray,
+                                        fontSize = 8.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = FontFamily.Monospace
+                                    )
+                                }
+                            }
+                            
+                            // Right: Sparkline wave
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .background(Color.Black.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
+                                    .border(0.5.dp, theme.brandSecondary.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
+                                    .padding(6.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                                    Text(
+                                        text = "FORECAST WAVE",
+                                        color = theme.brandSecondary,
+                                        fontSize = 7.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = FontFamily.Monospace
+                                    )
+                                    Spacer(Modifier.height(4.dp))
+                                    
+                                    Box(modifier = Modifier.size(76.dp, 45.dp), contentAlignment = Alignment.Center) {
+                                        val sparkColor = theme.brandSecondary
+                                        val nodeColor = theme.brandPrimary
+                                        Canvas(modifier = Modifier.fillMaxSize()) {
+                                            val w = size.width
+                                            val h = size.height
+                                            
+                                            // Grid lines
+                                            drawLine(color = Color.DarkGray.copy(alpha = 0.2f), start = Offset(0f, h * 0.33f), end = Offset(w, h * 0.33f), strokeWidth = 1f)
+                                            drawLine(color = Color.DarkGray.copy(alpha = 0.2f), start = Offset(0f, h * 0.66f), end = Offset(w, h * 0.66f), strokeWidth = 1f)
+                                            
+                                            // Draw wave
+                                            val p1 = Offset(0f, h * 0.7f)
+                                            val p2 = Offset(w * 0.33f, h * 0.2f)
+                                            val p3 = Offset(w * 0.66f, h * 0.5f)
+                                            val p4 = Offset(w, h * 0.15f)
+                                            
+                                            drawLine(color = sparkColor, start = p1, end = p2, strokeWidth = 2.5f, cap = StrokeCap.Round)
+                                            drawLine(color = sparkColor, start = p2, end = p3, strokeWidth = 2.5f, cap = StrokeCap.Round)
+                                            drawLine(color = sparkColor, start = p3, end = p4, strokeWidth = 2.5f, cap = StrokeCap.Round)
+                                            
+                                            drawCircle(color = nodeColor, radius = 3f, center = p1)
+                                            drawCircle(color = nodeColor, radius = 3f, center = p2)
+                                            drawCircle(color = nodeColor, radius = 3f, center = p3)
+                                            drawCircle(color = nodeColor, radius = 3f, center = p4)
+                                        }
+                                    }
+                                    Spacer(Modifier.height(3.dp))
+                                    Text(
+                                        text = "SYNAPSE SPEED: 110%",
+                                        color = Color.LightGray,
+                                        fontSize = 8.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = FontFamily.Monospace
+                                    )
+                                }
+                            }
+                        }
+                        
+                        // 2. Clickable Information Bubbles
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            val bubbleTitles = listOf("🌤️ NODE 1 (BIOME)", "🔥 NODE 2 (CLOUT)", "⚡ NODE 3 (SCANDALS)")
+                            
+                            bubbleTitles.forEachIndexed { idx, title ->
+                                val isSelected = selectedBubbleIndex == idx
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(
+                                            if (isSelected) bubbleColors[idx].copy(alpha = 0.25f)
+                                            else Color.White.copy(alpha = 0.03f)
+                                        )
+                                        .border(
+                                            width = if (isSelected) 1.2.dp else 0.5.dp,
+                                            color = if (isSelected) bubbleColors[idx] else Color.DarkGray,
+                                            shape = RoundedCornerShape(6.dp)
+                                        )
+                                        .clickable {
+                                            selectedBubbleIndex = idx
+                                            vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 40)
+                                        }
+                                        .padding(vertical = 5.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = title,
+                                        color = if (isSelected) bubbleColors[idx] else Color.Gray,
+                                        fontSize = 7.5.sp,
+                                        fontWeight = FontWeight.Black,
+                                        fontFamily = FontFamily.Monospace
+                                    )
+                                }
+                            }
+                        }
+                        
+                        // 3. Compact Glass Console
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+                                .border(0.5.dp, Color.DarkGray, RoundedCornerShape(6.dp))
+                                .padding(8.dp)
+                        ) {
+                            val activeText = sentences.getOrNull(selectedBubbleIndex) ?: "Telemetry parsing error."
+                            Column {
+                                Text(
+                                    text = "TTY1 // ORACLE_DESERIALIZATION_NODE_${selectedBubbleIndex + 1}:",
+                                    color = bubbleColors[selectedBubbleIndex],
+                                    fontSize = 7.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace,
+                                    modifier = Modifier.padding(bottom = 3.dp)
+                                )
+                                Text(
+                                    text = activeText,
+                                    color = theme.textPrimary,
+                                    fontSize = 10.sp,
+                                    lineHeight = 14.sp,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
