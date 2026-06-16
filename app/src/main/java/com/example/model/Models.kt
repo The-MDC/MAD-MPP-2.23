@@ -15,7 +15,9 @@ data class HighStakesActivity(
     val text: String = "",
     val amount: Double = 0.0,
     val speedBoost: Double = 0.0,
-    val type: String = "BET" // BET, LIQUIDATION, MASSIVE_SHIFT, ORACLE_ALERT
+    val type: String = "BET", // BET, LIQUIDATION, MASSIVE_SHIFT, ORACLE_ALERT
+    val scenarioId: String = "",
+    val outcome: String = "YES"
 )
 
 data class AuthState(
@@ -23,7 +25,8 @@ data class AuthState(
     val authType: String = "GUEST", // "GUEST", "GOOGLE", "0-AUTH", "WEB3"
     val username: String = "",
     val email: String = "none@domain.com",
-    val walletAddress: String? = null
+    val walletAddress: String? = null,
+    val isAdmin: Boolean = false
 )
 
 data class NeuralTelemetryStats(
@@ -35,12 +38,22 @@ data class NeuralTelemetryStats(
     val volatilityIndex: Float = 55.4f
 )
 
+data class UserBet(
+    val scenarioId: String,
+    val outcome: String, // "YES", "NO", "OVER", "UNDER", etc.
+    val amount: Double,
+    val hasMadShield: Boolean,
+    val shieldPremiumTier: Float // 0f for 28.8%, 1f for 40%
+)
+
 data class MarketState(
     val activeScenarios: List<Scenario> = emptyList(),
+    val userBets: List<UserBet> = emptyList(),
     val dynamicPackPrice: Double = 100.0,
     val eigenTrustLogs: List<String> = emptyList(),
     val xp: Float = 0f,
     val madxBalance: Double = 10000.0,
+    val stakedMadxBalance: Double = 0.0,
     val lastWinTimestamp: Long? = null,
     val sentimentPhase: SentimentPhase = SentimentPhase.EUPHORIA,
     val temperature: Float = 1.0f,
@@ -49,6 +62,8 @@ data class MarketState(
     val currentTheme: ThemeStyle = ThemeStyle.LUX_MAT_PLASMA,
     val trendHistory: List<TrendDataPoint> = emptyList(),
     val isAiChatOpen: Boolean = false,
+    val activeChatChannel: String = "MADHATR",
+    val channelMessages: Map<String, List<ChatMessageInfo>> = mapOf("MADHATR" to emptyList(), "GLOBAL" to emptyList(), "CONVICTIONS" to emptyList(), "PREDICTIONS" to emptyList(), "LIAR_METER" to emptyList(), "HELP_SUPPORT" to emptyList()),
     val bookmarkedScenarioIds: Set<String> = emptySet(),
     val isOfflineCache: Boolean = false,
     val highStakesFeed: List<HighStakesActivity> = emptyList(),
@@ -81,9 +96,13 @@ data class MarketState(
     // Ai Chat State
     val aiChatMessages: List<ChatMessageInfo> = emptyList(),
     val isAiChatTyping: Boolean = false,
+    val isTrollBoxUnlocked: Boolean = false,
+    val isCopyTradingUnlocked: Boolean = false,
+    val isAutoCopyTradingEnabled: Boolean = false,
     
     // Dopamine Optimizer
     val rewardNotifications: List<RewardNotification> = emptyList(),
+    val dailyBsLevel: Float = 87.4f, // 0 to 100
 
     // Volatility Toasts Tracker
     val volatilityToasts: List<VolatilityAlertToast> = emptyList(),
@@ -119,7 +138,8 @@ data class RewardNotification(
     val id: String,
     val message: String,
     val amount: Double,
-    val fibonacciIndex: Int
+    val fibonacciIndex: Int,
+    val isImportant: Boolean = false
 )
 
 enum class MarketType {

@@ -6,13 +6,15 @@ import com.example.diagnostics.ErrorDiagnosticsModule
 import com.example.diagnostics.ErrorCategory
 
 enum class AssetProtocol {
-    USDC, WETH, WBTC, MADDEX, AERO, MORPHO
+    USDC, USDT, DAI, WETH, WBTC, MADDEX, AERO, MORPHO
 }
 
 object DefiSecurityEngine {
     // 1. Asset Whitelisting
     private val allowedAssets = setOf(
         AssetProtocol.USDC,
+        AssetProtocol.USDT,
+        AssetProtocol.DAI,
         AssetProtocol.WETH,
         AssetProtocol.WBTC,
         AssetProtocol.MADDEX,
@@ -27,6 +29,8 @@ object DefiSecurityEngine {
     // 3. Deposit Limits (Hardcaps for edge cases and whale manipulation)
     private val depositCapsUsd = mapOf(
         AssetProtocol.USDC to 100_000.0,
+        AssetProtocol.USDT to 100_000.0,
+        AssetProtocol.DAI to 100_000.0,
         AssetProtocol.WETH to 50_000.0,
         AssetProtocol.WBTC to 50_000.0,
         AssetProtocol.MADDEX to 10_000.0,
@@ -49,7 +53,34 @@ object DefiSecurityEngine {
         return SimulationResult(expected, gas, 20, true, null)
     }
     
-    // 5. Unscannable Decoy / Honeypot endpoints
+    // 5. Auto-Trigger Circuit Breaker Heuristics
+    fun evaluateHeuristics(
+        marketVolatility: Double,
+        failedSybilChecks: Int,
+        suddenVolumeSpikeUsd: Double,
+        detectedAiPatterns: Int
+    ) {
+        val volatilityTrip = marketVolatility > 90.0 // Extreme GARCH variance
+        val sybilTrip = failedSybilChecks > 10 // Bad Actor / Bot Attack
+        val volumeTrip = suddenVolumeSpikeUsd > 1_000_000.0 // Exploiter attempt
+        val aiTrip = detectedAiPatterns > 5 // AI crawler honeypot frequency
+        
+        if (volatilityTrip || sybilTrip || volumeTrip || aiTrip) {
+            val reason = mutableListOf<String>()
+            if (volatilityTrip) reason.add("Extreme Volatility")
+            if (sybilTrip) reason.add("Sybil/Bot Attack Detected")
+            if (volumeTrip) reason.add("Flash Exploiter Activity")
+            if (aiTrip) reason.add("Malicious AI Automation")
+            
+            _isCircuitBreakerTripped.value = true
+            ErrorDiagnosticsModule.logException(
+                SecurityException("DEFENSIVE MEASURE: Global Circuit Breaker auto-tripped by heuristics. Reasons: ${reason.joinToString(", ")}"),
+                "DefiSecurityEngine"
+            )
+        }
+    }
+
+    // 6. Unscannable Decoy / Honeypot endpoints
     // Generates mathematically plausible, but functionally inert execution paths to confuse automated AI agents or crawlers
     fun generateHoneyPotHash(): String {
         ErrorDiagnosticsModule.logException(

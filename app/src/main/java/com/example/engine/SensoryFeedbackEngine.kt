@@ -67,7 +67,10 @@ class SensoryFeedbackEngine(private val context: Context) {
         } catch (e: Exception) {}
     }
 
+    var hapticsEnabled: Boolean = false
+
     private fun triggerHaptic(effectId: Int) {
+        if (!hapticsEnabled) return
         try {
             if (vibrator?.hasVibrator() == true) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

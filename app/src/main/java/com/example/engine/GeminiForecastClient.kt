@@ -130,6 +130,109 @@ object GeminiForecastClient {
         """.trimIndent()
     }
 
+    suspend fun generateSatiricalMarkets(count: Int): List<com.example.model.Scenario> = withContext(Dispatchers.IO) {
+        val apiKey = BuildConfig.GEMINI_API_KEY
+        if (apiKey.isEmpty() || apiKey == "MY_GEMINI_API_KEY") {
+            return@withContext getMockSatiricalMarketsFallback()
+        }
+
+        val prompt = """
+            Generate $count highly satirical, absurdist economic or pop-culture events that could function as prediction markets (Long/Short).
+            Return a strictly formatted JSON array matching this schema EXACTLY. Do not wrap the JSON inside markdown.
+            
+            Schema of the array elements:
+            {
+              "name": "Short, punchy title (e.g. 'Elon Musk Buys Moon')",
+              "category": "Category like 'Tech', 'Economy', 'Gossip'",
+              "tag": "A short bracketed tag like '[WHALE]'",
+              "yesShares": Double representing initial long conviction (e.g. 1500.0),
+              "noShares": Double representing initial short conviction (e.g. 800.0)
+            }
+        """.trimIndent()
+
+        val requestObj = GenerateContentRequest(
+            contents = listOf(Content(parts = listOf(Part(text = prompt)))),
+            systemInstruction = Content(
+                parts = listOf(
+                    Part(text = "You are MADHAT's algorithmic market-maker, generating hilarious, satirical conviction events that players can bet Long or Short on.")
+                )
+            )
+        )
+
+        try {
+            val jsonStr = json.encodeToString(GenerateContentRequest.serializer(), requestObj)
+            val mediaType = "application/json; charset=utf-8".toMediaType()
+            val requestBody = jsonStr.toRequestBody(mediaType)
+            
+            val request = Request.Builder()
+                .url("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=$apiKey")
+                .post(requestBody)
+                .build()
+
+            okHttpClient.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    return@withContext getMockSatiricalMarketsFallback()
+                }
+                
+                val bodyStr = response.body?.string() ?: return@withContext getMockSatiricalMarketsFallback()
+                val responseObj = json.decodeFromString(GenerateContentResponse.serializer(), bodyStr)
+                val rawText = responseObj.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text ?: ""
+                
+                val cleanedText = rawText.replace("```json", "").replace("```", "").trim()
+                
+                try {
+                    val dtos = json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(SatiricalMarketDto.serializer()), cleanedText)
+                    return@withContext dtos.map { dto ->
+                        com.example.model.Scenario(
+                            id = "ai_" + java.util.UUID.randomUUID().toString().take(6),
+                            name = dto.name,
+                            tag = dto.tag,
+                            crowdConvictionSpeed = (3..8).random().toDouble(),
+                            baseMultiplier = (1..4).random().toDouble(),
+                            category = dto.category,
+                            yesShares = dto.yesShares,
+                            noShares = dto.noShares,
+                            marketType = com.example.model.MarketType.BINARY
+                        )
+                    }
+                } catch (pe: Exception) {
+                    println("JSON Parse Error for Markets: ${pe.localizedMessage}. Raw response: $cleanedText")
+                    return@withContext getMockSatiricalMarketsFallback()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return@withContext getMockSatiricalMarketsFallback()
+        }
+    }
+
+    private fun getMockSatiricalMarketsFallback(): List<com.example.model.Scenario> {
+        return listOf(
+            com.example.model.Scenario(
+                id = "ai_" + java.util.UUID.randomUUID().toString().take(6),
+                name = "CEO Replaces Board with LLM",
+                tag = "[CORP-DRAMA]",
+                crowdConvictionSpeed = 5.5,
+                baseMultiplier = 2.1,
+                category = "Economy",
+                yesShares = 1800.0,
+                noShares = 400.0,
+                marketType = com.example.model.MarketType.BINARY
+            ),
+            com.example.model.Scenario(
+                id = "ai_" + java.util.UUID.randomUUID().toString().take(6),
+                name = "Inflation Index Adjusted to Count Only Avocados",
+                tag = "[FIAT]",
+                crowdConvictionSpeed = 3.2,
+                baseMultiplier = 1.8,
+                category = "Economy",
+                yesShares = 1200.0,
+                noShares = 1500.0,
+                marketType = com.example.model.MarketType.BINARY
+            )
+        )
+    }
+
     suspend fun analyzeEconomicConvictionWithGemini(
         userText: String,
         roastSeverity: Int,
@@ -248,6 +351,15 @@ object GeminiForecastClient {
         )
     }
 }
+
+@Serializable
+data class SatiricalMarketDto(
+    val name: String,
+    val category: String,
+    val tag: String,
+    val yesShares: Double,
+    val noShares: Double
+)
 
 @Serializable
 data class GeminiLiarMeterResult(

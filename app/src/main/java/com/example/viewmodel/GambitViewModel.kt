@@ -45,6 +45,11 @@ class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
         }
     }
 
+    fun switchNetwork(chainId: Int) {
+        web3Service.switchChain(chainId)
+        playFeedbackTone(android.media.ToneGenerator.TONE_CDMA_PIP, 80)
+    }
+
     fun disconnectWeb3Wallet() {
         viewModelScope.launch {
             sensoryFeedbackEngine.playErrorFeedback()
@@ -143,6 +148,12 @@ class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
                     val speedChange = Math.random() * 1.5 - 0.7
                     val newSpeed = (currentStats.networkSpeedGbps + speedChange).coerceIn(90.0, 110.0)
                     
+                    val previousVariance = currentStats.volatilityIndex.toDouble()
+                    val garchVariance = com.example.math.GambitMath.garchUpdate(
+                        omega = 0.5, alpha = 0.15, beta = 0.8,
+                        prevVariance = previousVariance, prevShock = speedChange
+                    ).toFloat()
+                    
                     val attacksDelta = if (Math.random() > 0.8) 1 else 0
                     
                     s.copy(
@@ -152,9 +163,16 @@ class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
                             sybilAttacksDeflected = currentStats.sybilAttacksDeflected + attacksDelta,
                             networkSpeedGbps = newSpeed,
                             dynamicConfidence = newConf,
-                            volatilityIndex = (50f + Math.cos(System.currentTimeMillis() / 20000.0) * 10f).toFloat()
+                            volatilityIndex = garchVariance.coerceIn(10f, 90f)
                         )
-                    )
+                    ).also {
+                        com.example.defi.DefiSecurityEngine.evaluateHeuristics(
+                            marketVolatility = garchVariance.toDouble(),
+                            failedSybilChecks = attacksDelta,
+                            suddenVolumeSpikeUsd = 0.0, // simulated
+                            detectedAiPatterns = 0 // simulated
+                        )
+                    }
                 }
             }
         }
@@ -489,7 +507,10 @@ class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
                     "Position deployed on $direction. Waiting on oracles."
                 }
 
+                val userBetObj = UserBet(scenarioId, direction, safeAmt, false, 0f)
+
                 s.copy(
+                    userBets = s.userBets + userBetObj,
                     madxBalance = s.madxBalance - safeAmt,
                     activeScenarios = updatedScenarios,
                     eigenTrustLogs = (listOf("tx(${result.transactionHash?.take(6)}...): $userFeedbackMsg") + s.eigenTrustLogs).take(15),
@@ -562,21 +583,27 @@ class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
             val allocs = GambitMath.calculateSoftmax(s.activeScenarios.map { it.crowdConvictionSpeed }, safeTau)
             s.copy(temperature = safeTau, allocations = allocs)
         }
+        // EIP-712 Gasless Meta-Transaction simulation
+        writeToBlockchainSimulated("EIP-712 Sign", "ROUTE_ORCHESTRATION", "0x${(1000..9999).random()}...tx", "Temperature \u03C4 shifted to ${"%.2f".format(safeTau)}")
     }
 
     fun recalcAllocations() = setTemperature(_state.value.temperature)
 
-    fun stakeOnScenario(stakeAmount: Double, multiplier: Double) {
-        val safeStake = if (stakeAmount.isNaN() || !stakeAmount.isFinite() || stakeAmount <= 0.0) 0.0 else stakeAmount
+    fun placeUserBet(scenarioId: String, outcome: String, amount: Double, hasMadShield: Boolean, premiumTier: Float) {
+        val safeStake = amount.coerceAtLeast(0.0)
         if (safeStake <= 0.0) return
+        
         _state.update { s ->
-            if (s.madxBalance < safeStake) return@update s
+            // Shield premium computation
+            val shieldPremium = if (hasMadShield) safeStake * (if (premiumTier > 0.5f) 0.04 else 0.02) else 0.0
+            val totalCost = safeStake + shieldPremium
+            
+            if (s.madxBalance < totalCost) return@update s
             
             // DL-LMSR Update
             val volume = safeStake * 1.5 // simulated Volume
             val currentShares = s.activeScenarios.map { it.crowdConvictionSpeed }
             val bLiquidity = 1000.0 // simulated base liquidity
-            
             val dLmsrCost = com.example.math.GambitMath.calculateDLLMSRCost(currentShares, bLiquidity, volume)
             
             // The Furnace (Deflationary Logic)
@@ -585,11 +612,30 @@ class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
             val burnAmount = safeStake * (burnPercent / 100.0)
             
             // TeaBag Risk Engine
-            val riskVariance = 0.55 // simulated variance
+            val riskVariance = s.telemetryStats.volatilityIndex.toDouble() / 100.0
             val premium = com.example.math.GambitMath.calculateTeaBagPremium(safeStake, 0.45, riskVariance)
             
-            val finalDeduction = safeStake + premium + burnAmount
-            s.copy(madxBalance = (s.madxBalance - finalDeduction).coerceAtLeast(0.0))
+            // Adjust final deduction based on DL-LMSR actual cost plus burn/premiums
+            val finalDeduction = totalCost + premium + burnAmount + (dLmsrCost * 0.01) // DL-LMSR cost slippage factor
+            
+            val newUserBet = UserBet(scenarioId, outcome, safeStake, hasMadShield, premiumTier)
+            
+            val newActivity = HighStakesActivity(
+                id = java.util.UUID.randomUUID().toString(),
+                timestamp = System.currentTimeMillis(),
+                eventName = "PREDICTION PLACED",
+                text = "Committed $safeStake MADx to $outcome. ${if (hasMadShield) "🛡️ MAD SHIELD ACTIVE" else ""}",
+                amount = safeStake,
+                type = "BET",
+                scenarioId = scenarioId,
+                outcome = outcome
+            )
+            
+            s.copy(
+                madxBalance = (s.madxBalance - finalDeduction).coerceAtLeast(0.0),
+                userBets = s.userBets + newUserBet,
+                highStakesFeed = (listOf(newActivity) + s.highStakesFeed).take(15)
+            )
         }
     }
 
@@ -598,7 +644,28 @@ class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
         if (safeAmt <= 0.0) return
         _state.update { s ->
             if (s.madxBalance < safeAmt) return@update s
-            s.copy(madxBalance = (s.madxBalance - safeAmt).coerceAtLeast(0.0))
+            
+            // Calculate Fibonacci-based Dopamine Reward for Staking
+            val userCurrentIndex = com.example.math.GambitMath.calculateUserDopamineIndex(
+                evolutionStage = s.ownedCards.maxOfOrNull { it.evolutionStage } ?: 0,
+                xp = s.xp,
+                socialStanding = s.currentPerformanceRating
+            )
+            val fibMultiplier = com.example.math.GambitMath.getFibonacciReward(userCurrentIndex)
+            val dopamineRewardAmt = safeAmt * 0.005 * fibMultiplier // 0.5% base multiplied by Fibonacci index
+            
+            val newNotification = RewardNotification(
+                id = "Staking_${System.currentTimeMillis()}",
+                message = "STAKED! Governance Locked. You've earned a Dopamine Kickback!",
+                amount = dopamineRewardAmt,
+                fibonacciIndex = userCurrentIndex
+            )
+            
+            s.copy(
+                madxBalance = ((s.madxBalance - safeAmt) + dopamineRewardAmt).coerceAtLeast(0.0),
+                stakedMadxBalance = s.stakedMadxBalance + safeAmt,
+                rewardNotifications = s.rewardNotifications + newNotification
+            )
         }
     }
 
@@ -649,32 +716,89 @@ class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
         _state.update { it.copy(isAiChatOpen = !it.isAiChatOpen) }
     }
 
+    fun setChatChannel(channel: String) {
+        _state.update { it.copy(activeChatChannel = channel) }
+    }
+
+    fun toggleAutoCopyTrading() {
+        _state.update { it.copy(isAutoCopyTradingEnabled = !it.isAutoCopyTradingEnabled) }
+    }
+
     fun sendMessageToAi(message: String) {
         val trimmed = message.trim()
         if (trimmed.isEmpty()) return
+        
+        val currentState = _state.value
+        val channel = currentState.activeChatChannel
 
         val userMessage = ChatMessageInfo(isUser = true, sender = "You", text = trimmed)
         
         _state.update { s -> 
+            val updatedMessages = s.channelMessages.toMutableMap()
+            updatedMessages[channel] = (updatedMessages[channel] ?: emptyList()) + userMessage
             s.copy(
-                aiChatMessages = s.aiChatMessages + userMessage,
-                isAiChatTyping = true
+                channelMessages = updatedMessages,
+                isAiChatTyping = if (channel == "MADHATR") true else false,
+                aiChatMessages = updatedMessages["MADHATR"] ?: emptyList() // Fallback
             )
+        }
+        
+        if (channel != "MADHATR") {
+            // Simulate other users responding in troll box
+            viewModelScope.launch {
+                kotlinx.coroutines.delay(1500)
+                val trollResponses = listOf("lmao", "based", "pure copium", "bullish if true", "touch grass", "rug pull incoming")
+                val aiMessage = ChatMessageInfo(isUser = false, sender = "Anon_${(1000..9999).random()}", text = trollResponses.random())
+                _state.update { s ->
+                    val updatedMsgs = s.channelMessages.toMutableMap()
+                    updatedMsgs[channel] = (updatedMsgs[channel] ?: emptyList()) + aiMessage
+                    s.copy(channelMessages = updatedMsgs)
+                }
+                playFeedbackTone(android.media.ToneGenerator.TONE_CDMA_CONFIRM, 50)
+            }
+            return
         }
 
         viewModelScope.launch {
-            val repository = com.example.api.GeminiRepository()
-            val aiResponseText = repository.chatWithPersona(trimmed)
+            var textToSpeak = ""
+            var textToDisplay = ""
             
-            val aiMessage = ChatMessageInfo(isUser = false, sender = "MADHAT'r", text = aiResponseText)
+            if (trimmed.contains("troll box", ignoreCase = true) || trimmed.contains("trollbox", ignoreCase = true) || trimmed.contains("lobby", ignoreCase = true)) {
+                if (!currentState.isTrollBoxUnlocked) {
+                    _state.update { it.copy(isTrollBoxUnlocked = true) }
+                    textToDisplay = "Access granted. I've unlocked the Troll Box channels for you (Global, Convictions, Predictions, Liar Meter, Help). Expect pure chaos."
+                    textToSpeak = "I've unlocked the Troll Box for you. Better put on your helmet!"
+                } else {
+                    textToDisplay = "You already have access to the Troll Box, buddy! Check the tabs."
+                    textToSpeak = "You already have access. Are you blind?"
+                }
+            } else if (trimmed.contains("copy trade", ignoreCase = true) || trimmed.contains("copy trading", ignoreCase = true) || trimmed.contains("copy", ignoreCase = true)) {
+                if (!currentState.isCopyTradingUnlocked) {
+                    _state.update { it.copy(isCopyTradingUnlocked = true) }
+                    textToDisplay = "Access granted. Copy Trading is now unlocked on the High Stakes Feed. Go tail some whales!"
+                    textToSpeak = "Copy trading is activated. Try not to copy a loser."
+                } else {
+                    textToDisplay = "Copy trading is already active. Just hit the button on the High Stakes feed."
+                    textToSpeak = "Copy trading is already running!"
+                }
+            } else {
+                val aiResponseText = appContainer.generativeAIProvider.chatWithPersona(trimmed)
+                textToDisplay = aiResponseText
+                textToSpeak = aiResponseText
+            }
+            
+            val aiMessage = ChatMessageInfo(isUser = false, sender = "MADHAT'r", text = textToDisplay)
             
             _state.update { s -> 
+                val updatedMessages = s.channelMessages.toMutableMap()
+                updatedMessages["MADHATR"] = (updatedMessages["MADHATR"] ?: emptyList()) + aiMessage
                 s.copy(
-                    aiChatMessages = s.aiChatMessages + aiMessage,
+                    channelMessages = updatedMessages,
+                    aiChatMessages = updatedMessages["MADHATR"] ?: emptyList(),
                     isAiChatTyping = false
                 )
             }
-            com.example.engine.MadhatrVoice.speak(aiResponseText)
+            com.example.engine.MadhatrVoice.speak(textToSpeak)
             
             try {
                 toneGenerator?.startTone(android.media.ToneGenerator.TONE_CDMA_CONFIRM, 120)
@@ -785,15 +909,26 @@ class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
                 1.0 / ((1.0 - yesProb).coerceIn(0.1, 0.9))
             }
 
-            val payoutAmount = sc.gildedConvictionReserve * payoutFactor
-            val msg = "Oracle parsed consensus: '${sc.name}' -> '$winningOutcome'. settled at ${"%.2f".format(payoutFactor)}x. Distributing $payoutAmount \$MADx rewards."
+            // Calculate user winnings and shield payouts
+            var totalWinnings = 0.0
+            var totalShieldPayouts = 0.0
+            
+            s.userBets.filter { it.scenarioId == scenarioId }.forEach { bet ->
+                if (bet.outcome == winningOutcome) {
+                    totalWinnings += bet.amount * payoutFactor
+                } else if (bet.hasMadShield) {
+                    totalShieldPayouts += com.example.math.GambitMath.calculateShieldPayout(bet.amount, bet.shieldPremiumTier)
+                }
+            }
+
+            val msg = "Oracle parsed consensus: '${sc.name}' -> '$winningOutcome'. settled at ${"%.2f".format(payoutFactor)}x. Winnings: ${"%.2f".format(totalWinnings)} MADx. Shield payouts: ${"%.2f".format(totalShieldPayouts)} MADx."
 
             val resolutionActivity = HighStakesActivity(
                 id = java.util.UUID.randomUUID().toString(),
                 timestamp = System.currentTimeMillis(),
                 eventName = sc.name,
                 text = msg,
-                amount = payoutAmount,
+                amount = totalWinnings,
                 speedBoost = payoutFactor,
                 type = "LIQUIDATION"
             )
@@ -807,19 +942,38 @@ class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
                 } else it
             }
 
-            val rewardAmt = (50..250).random().toDouble() * payoutFactor.coerceIn(1.0, 5.0)
-
             viewModelScope.launch(Dispatchers.Default) {
                 try {
                     toneGenerator?.startTone(android.media.ToneGenerator.TONE_CDMA_CONFIRM, 250)
                 } catch (e: Exception) {}
             }
 
+            val baseBonus = (50..250).random().toDouble() * payoutFactor.coerceIn(1.0, 5.0)
+            
+            // Apply Expanded Fibonacci variables for deeper reward mechanics
+            val userCurrentIndex = com.example.math.GambitMath.calculateUserDopamineIndex(
+                evolutionStage = s.ownedCards.maxOfOrNull { it.evolutionStage } ?: 0,
+                xp = s.xp,
+                socialStanding = s.currentPerformanceRating
+            )
+            val fibMultiplier = com.example.math.GambitMath.getFibonacciReward(userCurrentIndex)
+            val fibRewardAmt = baseBonus * fibMultiplier
+
+            val finalRewardAmt = totalWinnings + totalShieldPayouts + fibRewardAmt
+
+            val newNotification = RewardNotification(
+                id = "Win_${System.currentTimeMillis()}",
+                message = "ORACLE RESOLUTION! Dopamine Kickback applied (Fib ×$fibMultiplier)",
+                amount = fibRewardAmt,
+                fibonacciIndex = userCurrentIndex
+            )
+
             s.copy(
                 activeScenarios = updatedScenarios,
-                madxBalance = s.madxBalance + rewardAmt,
+                madxBalance = s.madxBalance + finalRewardAmt,
                 xp = s.xp + 50f,
-                highStakesFeed = (listOf(resolutionActivity) + s.highStakesFeed).take(15)
+                highStakesFeed = (listOf(resolutionActivity) + s.highStakesFeed).take(15),
+                rewardNotifications = s.rewardNotifications + newNotification
             )
         }
     }
@@ -830,8 +984,9 @@ class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
             val cardToUpdate = _state.value.ownedCards.find { it.id == cardId } ?: return@launch
             if (cardToUpdate.evolutionStage >= 3) return@launch
             
-            val buzzScore = 75.0 // Hardcoded for simulated Oracle BuzzScore
-            val simulatedEvolution = com.example.engine.EvolutionEngine.attemptEvolution(cardToUpdate, buzzScore)
+            val buzzScore = 75.0 // Handwavy Oracle BuzzScore
+            val volatilityScore = _state.value.telemetryStats.volatilityIndex.toDouble()
+            val simulatedEvolution = com.example.engine.EvolutionEngine.attemptEvolution(cardToUpdate, buzzScore, volatilityScore)
             
             if (simulatedEvolution != null) {
                 // Success
@@ -1022,14 +1177,17 @@ class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
     /** Conditional Login flow */
     fun handleSignIn(authType: String) {
         _state.update { s ->
-            val username = if (authType == "GOOGLE") "NicholasJMcLeod" else "AnonZeroUser"
-            val email = if (authType == "GOOGLE") "NicholasJMcLeod@gmail.com" else "anonymous@zeroauth.node"
+            val isMasterAdmin = authType == "GOOGLE"
+            val username = if (isMasterAdmin) "nick mcleod" else "AnonZeroUser"
+            val email = if (isMasterAdmin) "maddegen@proton.me" else "anonymous@zeroauth.node"
+            // Ensure the user gets master-admin capability if they use Google auth (simulating specific proton auth).
             s.copy(
                 authState = AuthState(
                     isAuthenticated = true,
                     authType = authType,
                     username = username,
-                    email = email
+                    email = email,
+                    isAdmin = isMasterAdmin
                 )
             )
         }
@@ -1182,6 +1340,21 @@ class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
         }
     }
 
+    /** Triggers Gemini to generate satirical market scenarios and appends them to activeScenarios */
+    fun fetchSatiricalMarkets() {
+        viewModelScope.launch {
+            val newMarkets = com.example.engine.GeminiForecastClient.generateSatiricalMarkets(3)
+            if (newMarkets.isNotEmpty()) {
+                _state.update { s ->
+                    val existingAc = s.activeScenarios.toMutableList()
+                    existingAc.addAll(0, newMarkets) // Add to top
+                    s.copy(activeScenarios = existingAc)
+                }
+                playFeedbackTone(android.media.ToneGenerator.TONE_CDMA_KEYPAD_VOLUME_KEY_LITE, 80)
+            }
+        }
+    }
+
     fun analyzeLiarMeterInput(text: String, roastSeverity: Int = 70, memeHumour: Int = 65) {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) return
@@ -1204,7 +1377,17 @@ class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
                 )
 
                 val result = engine.analyzeEventWithGemini(event, roastSeverity, memeHumour)
-                _state.update { it.copy(liarMeterResult = result, isLiarMeterAnalyzing = false) }
+                
+                // Reward player for running an analysis with a small Gambit Credits/MADx drop
+                val reward = 50.0 + (10..50).random()
+                
+                _state.update { 
+                    it.copy(
+                        liarMeterResult = result, 
+                        isLiarMeterAnalyzing = false,
+                        madxBalance = it.madxBalance + reward // Add Gambit Credits
+                    ) 
+                }
 
                 try {
                     toneGenerator?.startTone(android.media.ToneGenerator.TONE_CDMA_CONFIRM, 120)

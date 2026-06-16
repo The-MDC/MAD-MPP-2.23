@@ -19,9 +19,9 @@ This document serves as a comprehensive chat history summary and architectural h
   - Global markets (commodities, currencies, stocks, crypto, digital assets, NFTs, tokenization).
   - Governance, compliance, regulations, and platforms.
   - 90-day rolling history for: headline news, entertainment news, celebrity gossip, and sports.
-  - Live API integrations with **Kaito**, **Dune Analytics**, and **Messari**.
+  - Live API integrations with **Kaito**, **Dune Analytics**, and **Messari**, and **Tableau**.
   - Social media scraping/integration for top 10 influencers across macro and micro categories.
-- **Targeted Satire Focus:** Ensure behavioral guardrails target the Bitcoin ecosystem, Coinbase/Base, Solana, Ton, Ethereum, as well as prediction competitors like Kalshi, Limitless, and PolyMarket.
+- **Targeted Satire Focus:** Ensure behavioral guardrails target the Bitcoin ecosystem, Binance and Coinbase/Base, Solana, Ton, Ethereum, as well as prediction competitors like Kalshi, Limitless, and PolyMarket.
 
 ---
 
@@ -88,7 +88,35 @@ This document serves as a comprehensive chat history summary and architectural h
 
 ---
 
+## 7. The MAD Gambit Master Notebook (v1.7 Architecture)
+Recently synchronized state detailing the chronological evolution and the full architecture blueprint.
+
+**Chronological Evolution**:
+- **Phase 1: MAD Upshot (2023–2024)** — Foundational binary outcome predictions; highlighted lack of engagement in traditional finance/crypto UI.
+- **Phase 2: MADHATs Gambit (2024–2025)** — Card Game Thesis using weekly "Scandal Packs". Fused conviction wagering but lacked deep price discovery/insurance.
+- **Phase 3: MAD Gambit (2025–May 2026)** — Synthesized Affliction Layer (Card Game UX), Conviction Layer (Belief Backing with MAD Shield), and Prediction Layer (Triple-Threat Oracle).
+- **Phase 4: Production Candidate v1.7** — Transition to the unified neuro-economic application. Uses Android Jetpack Compose (native) and Kotlin state orchestration.
+
+**High-Fidelity Presentation Layer (Neuro-Economic Mechanics)**
+- **Dopamine Slider**: Smooth transition from "Blue Chip" to "Max Degen" to execute EIP-712 gasless meta-transactions directly matching system temperature.
+- **Chaos Meter**: Live RPM gauge hooked to GARCH volatility feeds modeling liquidity width.
+- **Dutch Auction Packs**: Satirical NFT packs dropping from 100 to 15 $MADx with physical scale/bounce UI animations.
+
+**Orchestration & Intelligence Layer (Backend AI/ML)**
+- **Prophit Engines**: Models utilizing XGBoost/LightGBM for large-data market pricing/curation and BART/NumPyro (Bayesian) to handle uncertainty mapping and Phi-ratio insurance math.
+- **EigenTrust Sybil Mitigation**: Bot detection swarms feeding visual rejections into the Kaito Sentiment Terminal.
+
+**Mathematical Codex (Smart Contract Economics)**
+- **Multi-Dimensional Conviction Score (Cobb-Douglas)**: Weighs time, capital, and sentiment dynamically.
+- **Dynamic Spot Pricing (DL-LMSR)**: Volume/velocity adjusted bonding curves.
+- **High-Frequency Variance Risk (GARCH(1,1))** & **Asymptotic Golden Ratio (Φ) Reserve Decay** for MAD Shield payouts.
+
+**Corporate Architecture & Tokenomics**
+- **Token**: 888,888,888 Hybrid EVM/SOL fixed supply. Burn mechanism (25% of 1.88% rake), with 40% creator economic share.
+- **Cap-Table**: Class A (68%) including Nicholas McLeod (54.09%, 1x+1 Veto), MADDAO (11.59%, 2x Flat), Marvin Das (2.32%). Class B (32%) for Carlo Fernandes and Britanny Campo. Fiduciary vesting schedules active.
+
 ## Implementation Directives for the AI Agent
 1. **Abstract the LLM:** Create a `GenerativeAIProvider` interface to decouple `GeminiApiService` from the core app UI to satisfy the LLM-swapping requirement.
 2. **Expand RSS Repositories:** Update the data layer to ingest the massive new list of required syndications (Tabloid, Sports, Expanded Influencers).
 3. **Smart Contract Interfaces:** Draft the Kotlin interfaces for the uncollateralized quadratic governance Morpho lending mechanic.
+4. **Implement Master UI Components:** Develop the *Chaos Meter*, *Dopamine Slider*, and simulated *EigenTrust Visual Logs* directly into the primary UI screens utilizing Compose.

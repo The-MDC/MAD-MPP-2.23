@@ -66,18 +66,38 @@ fun StakingScreen(vm: GambitViewModel) {
                 Text("TIER YIELDS (APY) - Boosted x${"%.2f".format(dynamicModifier)}", color = NeonCyan, fontWeight = FontWeight.Black, fontFamily = com.example.ui.theme.ArialNarrowFamily, letterSpacing = 1.sp)
                 Spacer(Modifier.height(16.dp))
                 
-                StakingTierRow("BRONZE", "${"%.1f".format(12.0 * dynamicModifier)}% APY", BrandEggwhite)
-                StakingTierRow("SILVER", "${"%.1f".format(18.0 * dynamicModifier)}% APY", BrandEggwhite)
-                StakingTierRow("GOLD", "${"%.1f".format(25.0 * dynamicModifier)}% APY", BrandGold)
-                StakingTierRow("DIAMOND", "${"%.1f".format(38.0 * dynamicModifier)}% APY", NeonCyan)
-                StakingTierRow("OBSIDIAN", "${"%.1f".format(52.0 * dynamicModifier)}% APY (+ Governance)", NeonPurple)
-                StakingTierRow("MAD TIER", "${"%.1f".format(68.0 * dynamicModifier)}% APY (+ Arbitration)", NeonMagenta)
+                val baseApys = listOf(
+                    "BRONZE" to 12.0,
+                    "SILVER" to 18.0,
+                    "GOLD" to 25.0,
+                    "DIAMOND" to 38.0,
+                    "OBSIDIAN" to 52.0,
+                    "MAD TIER" to 68.0
+                )
+                
+                baseApys.forEach { (name, base) ->
+                    val color = when(name) {
+                        "GOLD" -> BrandGold
+                        "DIAMOND" -> NeonCyan
+                        "OBSIDIAN" -> NeonPurple
+                        "MAD TIER" -> NeonMagenta
+                        else -> BrandEggwhite
+                    }
+                    val suffix = when(name) {
+                        "OBSIDIAN" -> " (+ Governance)"
+                        "MAD TIER" -> " (+ Arbitration)"
+                        else -> ""
+                    }
+                    val yieldAmount = com.example.math.GambitMath.calculateStakingYield(base, state.xp.toDouble() / 100.0) * dynamicModifier
+                    StakingTierRow(name, "${"%.1f".format(yieldAmount)}% APY$suffix", color)
+                }
             }
         }
         
         Spacer(Modifier.height(8.dp))
 
         Text("STAKE MADx", color = NeonCyan, fontWeight = FontWeight.Black, fontFamily = com.example.ui.theme.ArialNarrowFamily, letterSpacing = 1.sp)
+        Text("Current Staked Balance: ${"%.2f".format(state.stakedMadxBalance)} MADx", color = BrandGold, fontSize = 14.sp, fontFamily = com.example.ui.theme.ArialNarrowFamily)
         
         var stakeInput by remember { mutableStateOf("1000") }
         

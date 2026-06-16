@@ -12,24 +12,33 @@ object EvolutionEngine {
      */
     fun attemptEvolution(
         card: SatiricalCard,
-        buzzScore: Double // 0.0 to 100.0 from an Oracle
+        buzzScore: Double, // 0.0 to 100.0 from an Oracle
+        volatilityIndex: Double = 50.0 // from TelemetryStats
     ): SatiricalCard? {
         // SECURITY TIER: Sanitize oracle inputs
-        val safeBuzzScore = buzzScore.coerceIn(5.0, 95.0) // Maintain mathematical house edge, never 100% win or 0% win.
+        val safeBuzzScore = buzzScore.coerceIn(5.0, 95.0) // Maintain mathematical house edge
+        val safeVol = volatilityIndex.coerceIn(10.0, 90.0)
+        
         if (card.evolutionStage >= 3) return card // Hard cap preventing infinite scaling exploits
         
-        val vrfResult = Random.nextDouble(0.0, 100.0)
+        // Dynamic success threshold incorporating Fibonacci & GARCH Volatility Factor
+        val fibReward = com.example.math.GambitMath.getFibonacciReward(card.evolutionStage + 4)
+        val volFactor = 1.0 + ((safeVol - 50.0) / 100.0) // 0.6x to 1.4x modifier
         
-        return if (vrfResult < safeBuzzScore) {
+        val requiredThreshold = (100.0 - safeBuzzScore) * volFactor
+        val vrfResult = Random.nextDouble(0.0, 100.0) + fibReward
+        
+        return if (vrfResult > requiredThreshold) {
             // Success: Mint Tier + 1
             card.copy(
-                powerLevel = kotlin.math.min((card.powerLevel * 1.5).toInt(), 9999), // Strict attribute cap
-                cloutMultiplier = kotlin.math.min(card.cloutMultiplier + 0.5, 5.0),
+                powerLevel = kotlin.math.min((card.powerLevel * 1.5 * volFactor).toInt(), 9999),
+                cloutMultiplier = kotlin.math.min(card.cloutMultiplier + (0.5 * volFactor), 5.0),
                 evolutionStage = kotlin.math.min(card.evolutionStage + 1, 3), // Max stage 3
-                durability = 1.0 // Restore durability
+                durability = 1.0, // Restore durability
+                earnsCount = card.earnsCount + fibReward * 10.0 // Add Dopamine Fibonacci payload
             )
         } else {
-            // Failure: Burn asset
+            // Failure: Burn asset due to high volatility / weak conviction
             null
         }
     }

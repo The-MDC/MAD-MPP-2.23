@@ -23,6 +23,7 @@ import com.example.ui.theme.LocalGambitTheme
 import kotlinx.coroutines.delay
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.draw.drawBehind
 
 import androidx.compose.ui.graphics.graphicsLayer
 
@@ -32,7 +33,8 @@ fun IntegratedTickerWidget(
     telemetry: com.example.model.NeuralTelemetryStats? = null,
     isNeuralOnly: Boolean = false,
     isClickable: Boolean = true,
-    speedMultiplier: Float = 1.0f
+    speedMultiplier: Float = 1.0f,
+    isFullWidth: Boolean = false
 ) {
     val theme = LocalGambitTheme.current
 
@@ -147,9 +149,31 @@ fun IntegratedTickerWidget(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 0.5.dp, bottom = 0.5.dp)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(if (isFullWidth) androidx.compose.ui.graphics.RectangleShape else RoundedCornerShape(4.dp))
             .background(baseColor.copy(alpha = 0.3f)) // Exactly 70% transparent base container feed
-            .border(0.6.dp, com.example.ui.theme.GoldFlakeBrush, RoundedCornerShape(4.dp))
+            .let {
+                if (isFullWidth) {
+                    val brush = com.example.ui.theme.GoldFlakeBrush
+                    it.drawBehind {
+                        val strokeWidth = 0.6.dp.toPx()
+                        val halfStroke = strokeWidth / 2f
+                        drawLine(
+                            brush = brush,
+                            start = androidx.compose.ui.geometry.Offset(0f, halfStroke),
+                            end = androidx.compose.ui.geometry.Offset(size.width, halfStroke),
+                            strokeWidth = strokeWidth
+                        )
+                        drawLine(
+                            brush = brush,
+                            start = androidx.compose.ui.geometry.Offset(0f, size.height - halfStroke),
+                            end = androidx.compose.ui.geometry.Offset(size.width, size.height - halfStroke),
+                            strokeWidth = strokeWidth
+                        )
+                    }
+                } else {
+                    it.border(0.6.dp, com.example.ui.theme.GoldFlakeBrush, RoundedCornerShape(4.dp))
+                }
+            }
             .let {
                 if (isClickable) {
                     it.clickable {

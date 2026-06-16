@@ -33,7 +33,13 @@ object RssFeedFetcher {
         "https://feeds.bbci.co.uk/news/rss.xml",
         "https://finance.yahoo.com/news/rssindex",
         "https://outlierventures.io/feed/",
-        "https://medium.com/feed/@jamieburke"
+        "https://medium.com/feed/@jamieburke",
+        "https://www.tmz.com/rss.xml", // Entertainment
+        "https://www.espn.com/espn/rss/news", // Sports
+        "https://rss.app/feeds/jamieburke_linkedin.xml", // Simulated LinkedIn
+        "https://rss.app/feeds/jamieburke_twitter.xml", // Simulated Twitter
+        "https://rss.app/feeds/influencers_macro.xml", // Simulated Top 10 Macro Influencers
+        "https://rss.app/feeds/influencers_micro.xml" // Simulated Top 12 Micro Influencers
     )
 
     data class RssItem(val title: String, val source: String)
@@ -59,7 +65,13 @@ object RssFeedFetcher {
                         host.contains("bbc") -> "BBC"
                         host.contains("yahoo") -> "YahooFinance"
                         host.contains("outlierventures") -> "Outlier Ventures"
-                        host.contains("medium") -> "Jamie Burke"
+                        host.contains("medium") -> "Jamie Burke (Medium)"
+                        host.contains("tmz") -> "TMZ Tabloid"
+                        host.contains("espn") -> "ESPN Sports"
+                        url.contains("jamieburke_linkedin") -> "Jamie Burke (LinkedIn)"
+                        url.contains("jamieburke_twitter") -> "Jamie Burke (X/Twitter)"
+                        url.contains("influencers_macro") -> "Macro Influencers"
+                        url.contains("influencers_micro") -> "Micro Influencers"
                         else -> "Markets"
                     }
 

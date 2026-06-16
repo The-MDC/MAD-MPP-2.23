@@ -27,9 +27,12 @@ import com.example.defi.DefiSecurityEngine
 fun AerodromeLiquidityScreen(vm: GambitViewModel) {
     val theme = LocalGambitTheme.current
     var maddexAmount by remember { mutableStateOf("500") }
+    var selectedStable by remember { mutableStateOf("USDC") }
     var transactionStatus by remember { mutableStateOf("") }
     var simulationResult by remember { mutableStateOf<DefiSecurityEngine.SimulationResult?>(null) }
     val isCircuitBreakerTripped by DefiSecurityEngine.isCircuitBreakerTripped.collectAsState()
+    
+    val stableOptions = listOf("USDC", "USDT", "DAI")
 
     Column(
         modifier = Modifier
@@ -69,10 +72,27 @@ fun AerodromeLiquidityScreen(vm: GambitViewModel) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Filled.Waves, contentDescription = null, tint = theme.brandSecondary)
                             Spacer(Modifier.width(8.dp))
-                            Text("MADDEX / USDC SLIPPAGE-PROTECTED LP", color = theme.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+                            Text("MADDEX / $selectedStable SLIPPAGE-PROTECTED LP", color = theme.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = com.example.ui.theme.ArialNarrowFamily)
                         }
                         Spacer(Modifier.height(8.dp))
                         Text("Current APR: ~18.5% (Emissions strictly bound)", color = theme.brandPrimary, fontSize = 12.sp, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+                        
+                        Spacer(Modifier.height(16.dp))
+                        
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            stableOptions.forEach { opt ->
+                                Button(
+                                    onClick = { selectedStable = opt },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (selectedStable == opt) theme.brandPrimary else theme.bgCard,
+                                        contentColor = if (selectedStable == opt) theme.bgDeep else theme.textSecondary
+                                    ),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(opt, fontSize = 10.sp, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+                                }
+                            }
+                        }
                         
                         Spacer(Modifier.height(16.dp))
                         
@@ -123,14 +143,20 @@ fun AerodromeLiquidityScreen(vm: GambitViewModel) {
                             }
                             Spacer(Modifier.height(8.dp))
                             if (res.isSafe) {
-                                HoverTooltip(text = "Provisions concentrated liquidity into Aerodrome V3 MADDEX/USDC pools. Strict boundaries and $10k equivalent TVL cap per transaction.") {
+                                HoverTooltip(text = "Provisions concentrated liquidity into Aerodrome V3 MADDEX/$selectedStable pools. Strict boundaries and $10k equivalent TVL cap per transaction.") {
                                     Button(
                                         onClick = {
                                             val amt = maddexAmount.toDoubleOrNull() ?: 0.0
-                                            val isValid = DefiSecurityEngine.validateTransaction(AssetProtocol.MADDEX, amt)
+                                            val assetToValidate = when (selectedStable) {
+                                                "USDT" -> AssetProtocol.USDT
+                                                "DAI" -> AssetProtocol.DAI
+                                                else -> AssetProtocol.USDC
+                                            }
+                                            val isValid = DefiSecurityEngine.validateTransaction(AssetProtocol.MADDEX, amt) &&
+                                                          DefiSecurityEngine.validateTransaction(assetToValidate, amt)
                                             transactionStatus = if (isValid) {
                                                 simulationResult = null
-                                                "[SUCCESS] PROVISIONED ${amt} MADDEX TO V3 CL POOL"
+                                                "[SUCCESS] PROVISIONED ${amt} MADDEX AND $selectedStable TO V3 CL POOL"
                                             } else {
                                                 "[FAILED] BLOCKED BY DEFI SECURITY ENGINE. SEE ADMIN LOGS."
                                             }

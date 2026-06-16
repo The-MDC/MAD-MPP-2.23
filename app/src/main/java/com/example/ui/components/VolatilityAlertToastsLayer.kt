@@ -58,7 +58,7 @@ fun VolatilityAlertPopUp(toast: VolatilityAlertToast, onDismiss: () -> Unit) {
 
     LaunchedEffect(toast.id) {
         isVisible = true
-        delay(4000L) // Toast displays for 4 seconds
+        delay(3000L) // Toast displays for 3 seconds
         isVisible = false
         delay(300) // allow transition to complete
         onDismiss()
@@ -81,7 +81,7 @@ fun VolatilityAlertPopUp(toast: VolatilityAlertToast, onDismiss: () -> Unit) {
                 .fillMaxWidth(0.95f)
                 .widthIn(max = 480.dp)
                 .glassContainerBackground(
-                    baseColor = glowColor.copy(alpha = 0.25f),
+                    baseColor = glowColor.copy(alpha = 0.40f),
                     shape = RoundedCornerShape(16.dp)
                 )
                 .border(1.dp, glowColor.copy(alpha = 0.4f), RoundedCornerShape(16.dp))

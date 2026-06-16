@@ -22,6 +22,7 @@ interface Web3Service {
 
     suspend fun connectWallet(providerType: String): Boolean
     suspend fun disconnectWallet()
+    fun switchChain(chainId: Int)
     suspend fun signAndExecuteTransaction(contractAddress: String, payload: String, value: Double = 0.0): ContractExecutionResult
     suspend fun fetchOnChainBalance(address: String): Double
 }
@@ -30,8 +31,12 @@ class MockWeb3Service : Web3Service {
     private val _isConnected = MutableStateFlow(false)
     override val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
-    private val _currentChainId = MutableStateFlow(8453) // Base Mainnet
+    private val _currentChainId = MutableStateFlow(8453) // 8453 = Base, 42161 = Arbitrum, 1329 = SEI
     override val currentChainId: StateFlow<Int> = _currentChainId.asStateFlow()
+
+    override fun switchChain(chainId: Int) {
+        _currentChainId.value = chainId
+    }
 
     private val _connectedAddress = MutableStateFlow<String?>(null)
     override val connectedAddress: StateFlow<String?> = _connectedAddress.asStateFlow()

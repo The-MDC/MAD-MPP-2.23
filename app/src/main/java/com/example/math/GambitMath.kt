@@ -82,10 +82,11 @@ object GambitMath {
         return PI * safeMult * sqrt(safeStake)
     }
 
-    /** Payout = Base 28.8% Stop-Loss up to Max 40% Cap */
-    fun calculateShieldPayout(stake: Double, isPremium: Boolean = false): Double {
+    /** Payout = Base 28.8% Stop-Loss up to Max 40% Cap via interpolation based on premiumTier (0.0 to 1.0) */
+    fun calculateShieldPayout(stake: Double, premiumTier: Float = 0f): Double {
         val safeStake = if (stake.isNaN() || !stake.isFinite() || stake < 0.0) 0.0 else stake
-        val shieldPercentage = if (isPremium) 0.40 else 0.288
+        val safeTier = premiumTier.coerceIn(0f, 1f).toDouble()
+        val shieldPercentage = 0.288 + safeTier * (0.40 - 0.288)
         return safeStake * shieldPercentage
     }
 

@@ -34,6 +34,8 @@ fun AiChatScreen(vm: GambitViewModel) {
     val state by vm.state.collectAsState()
     var inputText by remember { mutableStateOf("") }
     
+    com.example.ui.components.TrackComponentPerformance(componentName = "AiChatScreen")
+    
     Box(
         Modifier
             .fillMaxSize()
@@ -75,6 +77,53 @@ fun AiChatScreen(vm: GambitViewModel) {
             }
             HorizontalDivider(color = theme.brandSecondary.copy(alpha = 0.15f), thickness = 1.dp)
             
+            // Channels if Troll Box is unlocked
+            if (state.isTrollBoxUnlocked) {
+                androidx.compose.foundation.lazy.LazyRow(
+                    modifier = Modifier.fillMaxWidth().background(Color.Black.copy(alpha = 0.2f)).padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val channels = listOf("MADHATR" to "MADHAT'r", "GLOBAL" to "Global Lobby", "CONVICTIONS" to "Convictions", "PREDICTIONS" to "Predictions", "LIAR_METER" to "Liar Meter", "HELP_SUPPORT" to "Help")
+                    items(channels.size) { index ->
+                        val (id, label) = channels[index]
+                        val isSelected = state.activeChatChannel == id
+                        androidx.compose.material3.FilterChip(
+                            selected = isSelected,
+                            onClick = { vm.setChatChannel(id) },
+                            label = { Text(label, fontSize = 11.sp, fontWeight = FontWeight.Bold) },
+                            colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = theme.brandSecondary.copy(alpha=0.3f),
+                                selectedLabelColor = theme.brandSecondary,
+                                labelColor = theme.textSecondary
+                            ),
+                            border = androidx.compose.material3.FilterChipDefaults.filterChipBorder(enabled = true, selected = isSelected, borderColor = theme.brandSecondary, borderWidth = 1.dp)
+                        )
+                    }
+                }
+                HorizontalDivider(color = theme.brandSecondary.copy(alpha = 0.15f), thickness = 1.dp)
+            }
+            
+            if (state.isCopyTradingUnlocked) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().background(theme.bgCard).padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("Auto-Copy Top Whale (Free Tier)", color = theme.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("Follows node with highest win rate. Upgrade for multi-whale AI agents.", color = theme.brandSecondary, fontSize = 10.sp)
+                    }
+                    Switch(
+                        checked = state.isAutoCopyTradingEnabled,
+                        onCheckedChange = { vm.toggleAutoCopyTrading() },
+                        colors = SwitchDefaults.colors(checkedThumbColor = theme.brandPrimary, checkedTrackColor = theme.brandSecondary.copy(alpha=0.5f))
+                    )
+                }
+                HorizontalDivider(color = theme.brandSecondary.copy(alpha = 0.15f), thickness = 1.dp)
+            }
+
+            val currentMessages = state.channelMessages[state.activeChatChannel] ?: emptyList()
+
             // Active chat
             LazyColumn(
                 modifier = Modifier.weight(1f),
@@ -82,20 +131,24 @@ fun AiChatScreen(vm: GambitViewModel) {
                 reverseLayout = false
             ) {
                 item {
-                    Text("LIVE HUD PLUG-IN", color = theme.brandPrimary, fontSize = 12.sp, fontWeight = FontWeight.Black, fontFamily = com.example.ui.theme.AllertaStencilFamily)
+                    Text(if (state.activeChatChannel == "MADHATR") "LIVE HUD PLUG-IN" else "${state.activeChatChannel} - P2P NETWORK", color = theme.brandPrimary, fontSize = 12.sp, fontWeight = FontWeight.Black, fontFamily = com.example.ui.theme.AllertaStencilFamily)
                     Spacer(Modifier.height(16.dp))
                     
-                    if (state.aiChatMessages.isEmpty()) {
-                        ChatMessage(isUser = false, "MADHAT'r", "Ayyy! Welcome to the MAD Gambit, buddy! The name's MADHAT'r. What's crack'n? I got analytics, I got predictions, and I got enough sarcasm to sink a battle-cruiser. What do ya need?")
+                    if (currentMessages.isEmpty()) {
+                        if (state.activeChatChannel == "MADHATR") {
+                            ChatMessage(isUser = false, "MADHAT'r", "Ayyy! Welcome to the MAD Gambit, buddy! The name's MADHAT'r. What's crack'n? I got analytics, I got predictions, and I got enough sarcasm to sink a battle-cruiser. What do ya need?")
+                        } else {
+                            ChatMessage(isUser = false, "System", "Welcome to ${state.activeChatChannel}. Play nice.")
+                        }
                     }
                 }
                 
-                items(state.aiChatMessages.size) { index ->
-                    val msg = state.aiChatMessages[index]
+                items(currentMessages.size) { index ->
+                    val msg = currentMessages[index]
                     ChatMessage(isUser = msg.isUser, sender = msg.sender, text = msg.text)
                 }
                 
-                if (state.isAiChatTyping) {
+                if (state.isAiChatTyping && state.activeChatChannel == "MADHATR") {
                     item {
                         ChatMessage(isUser = false, "MADHAT'r", "Typin' away, hold your horses...")
                     }
@@ -127,7 +180,13 @@ fun AiChatScreen(vm: GambitViewModel) {
                     value = inputText,
                     onValueChange = { inputText = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Ask the MADHAT'r...", color = theme.textSecondary, fontSize = 14.sp) },
+                    placeholder = { 
+                        Text(
+                            if (state.activeChatChannel == "MADHATR") "Ask the MADHAT'r..." else "Send message to ${state.activeChatChannel}...", 
+                            color = theme.textSecondary, 
+                            fontSize = 14.sp
+                        ) 
+                    },
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = theme.bgDeep,
                         unfocusedContainerColor = theme.bgDeep,
@@ -142,12 +201,16 @@ fun AiChatScreen(vm: GambitViewModel) {
                 Spacer(Modifier.width(8.dp))
                 
                 IconButton(onClick = { 
-                    if (inputText.isNotBlank() && !state.isAiChatTyping) {
+                    if (inputText.isNotBlank() && (!state.isAiChatTyping || state.activeChatChannel != "MADHATR")) {
                         vm.sendMessageToAi(inputText)
                         inputText = ""
                     }
                 }) {
-                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send", tint = if (inputText.isNotBlank() && !state.isAiChatTyping) theme.brandPrimary else theme.textSecondary)
+                    Icon(
+                        Icons.AutoMirrored.Filled.Send, 
+                        contentDescription = "Send", 
+                        tint = if (inputText.isNotBlank() && (!state.isAiChatTyping || state.activeChatChannel != "MADHATR")) theme.brandPrimary else theme.textSecondary
+                    )
                 }
             }
         }

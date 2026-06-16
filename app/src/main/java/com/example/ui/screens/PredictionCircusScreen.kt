@@ -69,6 +69,8 @@ import androidx.compose.ui.text.style.TextAlign
 fun PredictionCircusScreen(vm: GambitViewModel) {
     val state by vm.state.collectAsState()
     val theme = LocalGambitTheme.current
+    com.example.ui.components.TrackComponentPerformance(componentName = "PredictionCircusScreen")
+
     val scroll = rememberScrollState()
     val context = LocalContext.current
     
@@ -475,7 +477,7 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
         
         TopHottestCarousel(state.activeScenarios)
 
-        HighStakesFeedPanel(state.highStakesFeed)
+        HighStakesFeedPanel(vm, state.highStakesFeed)
 
         // Pinned Markets
         if (state.bookmarkedScenarioIds.isNotEmpty()) {
@@ -564,11 +566,11 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
                 }
                 Spacer(Modifier.height(16.dp))
 
-                NeonSlider("Market Temperature (τ)", state.temperature, { vm.setTemperature(it) }, 0.1f..1.0f)
+                com.example.ui.components.DopamineSlider(value = state.temperature, onValueChange = { vm.setTemperature(it) }, valueRange = 0.1f..1.0f)
                 
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "τ LOW = SHARP ALLOCATION | τ HIGH = BROAD DISTRIBUTION", 
+                    "GASLESS EIP-712 META-TRANSACTION ROUTING ENABLED", 
                     color = Color.Gray, 
                     fontSize = 10.5.sp,
                     fontFamily = com.example.ui.theme.ArialNarrowFamily,
@@ -578,13 +580,19 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
         }
         
         Spacer(Modifier.height(8.dp))
-        MarketVolatilityGauge(state)
+        ChaosMeterGauge(state)
+        Spacer(Modifier.height(8.dp))
+        
+        com.example.ui.components.EigenTrustVisualLogs()
         Spacer(Modifier.height(8.dp))
         
         com.example.ui.components.ConvictionTrendsChart(trendHistory = state.trendHistory)
 
         Spacer(Modifier.height(12.dp))
         MarketHeatmapWidget(activeScenarios = state.activeScenarios)
+
+        Spacer(Modifier.height(12.dp))
+        AiMarketDashboardWidget(vm)
 
         Spacer(Modifier.height(12.dp))
         ConvictionMarketplaceWidget(vm)
@@ -1027,9 +1035,9 @@ fun MetricItem(label: String, value: String, valueColor: Color, modifier: Modifi
 }
 
 @Composable
-fun MarketVolatilityGauge(state: com.example.model.MarketState) {
-    val maxAlloc = state.allocations.maxOrNull() ?: 0.0
-    val volatilityScore = ((1.0 - maxAlloc) / 0.8).toFloat().coerceIn(0f, 1f)
+fun ChaosMeterGauge(state: com.example.model.MarketState) {
+    // scale from 10..90 (from volatilityIndex) to 0..1
+    val volatilityScore = ((state.telemetryStats.volatilityIndex - 10f) / 80f).coerceIn(0f, 1f)
     val animatedVol by androidx.compose.animation.core.animateFloatAsState(targetValue = volatilityScore)
     val strokeWidth = 12.dp
 
@@ -1042,8 +1050,8 @@ fun MarketVolatilityGauge(state: com.example.model.MarketState) {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
             Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("🫀 MARKET VOLATILITY INDEX", color = NeonCyan, fontFamily = com.example.ui.theme.ArialNarrowFamily, fontWeight = FontWeight.Bold)
-                Text("${"%.0f".format(animatedVol * 100)}%", color = if (animatedVol > 0.6f) BrandCrimson else NeonGreen, fontFamily = com.example.ui.theme.ArialNarrowFamily, fontWeight = FontWeight.Black)
+                Text("🔥 CHAOS METER (GARCH.v1)", color = NeonPink, fontFamily = com.example.ui.theme.ArialNarrowFamily, fontWeight = FontWeight.Bold)
+                Text("${"%.0f".format(animatedVol * 10000)} RPM", color = if (animatedVol > 0.6f) BrandCrimson else NeonGreen, fontFamily = com.example.ui.theme.ArialNarrowFamily, fontWeight = FontWeight.Black)
             }
             Spacer(Modifier.height(16.dp))
             
@@ -1083,17 +1091,17 @@ fun MarketVolatilityGauge(state: com.example.model.MarketState) {
                         strokeWidth = 3.dp.toPx(),
                         cap = androidx.compose.ui.graphics.StrokeCap.Round
                     )
-                    drawCircle(color = NeonPurple, radius = 8.dp.toPx(), center = androidx.compose.ui.geometry.Offset(size.width / 2f, size.height))
+                    drawCircle(color = NeonPink, radius = 8.dp.toPx(), center = androidx.compose.ui.geometry.Offset(size.width / 2f, size.height))
                 }
             }
             Spacer(Modifier.height(8.dp))
-            Text("Needle intensity dynamically routed via Softmax Allocation deviation.", color = Color.Gray, fontSize = 10.5.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+            Text("Bound directly to the GARCH volatility feed to signal widening liquidity.", color = Color.Gray, fontSize = 10.5.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
         }
     }
 }
 
 @Composable
-fun HighStakesFeedPanel(feed: List<HighStakesActivity>) {
+fun HighStakesFeedPanel(vm: GambitViewModel, feed: List<HighStakesActivity>) {
     val theme = LocalGambitTheme.current
     Card(
         modifier = Modifier
@@ -1147,7 +1155,7 @@ fun HighStakesFeedPanel(feed: List<HighStakesActivity>) {
                     contentPadding = PaddingValues(bottom = 4.dp)
                 ) {
                     items(feed) { item ->
-                        HighStakesFeedCard(item)
+                        HighStakesFeedCard(vm, item)
                     }
                 }
             }
@@ -1156,7 +1164,7 @@ fun HighStakesFeedPanel(feed: List<HighStakesActivity>) {
 }
 
 @Composable
-fun HighStakesFeedCard(item: HighStakesActivity) {
+fun HighStakesFeedCard(vm: GambitViewModel, item: HighStakesActivity) {
     val outlineColor = when (item.type) {
         "LIQUIDATION" -> BrandCrimson
         "MASSIVE_SHIFT" -> BrandGold
@@ -1231,6 +1239,18 @@ fun HighStakesFeedCard(item: HighStakesActivity) {
                             fontFamily = FontFamily.Monospace
                         )
                     }
+                }
+            }
+            if ((item.type == "BET" || item.type == "MASSIVE_SHIFT") && item.scenarioId.isNotEmpty()) {
+                Spacer(Modifier.height(4.dp))
+                androidx.compose.material3.Button(
+                    onClick = { vm.placeUserBet(item.scenarioId, item.outcome, item.amount, false, 0f) },
+                    modifier = Modifier.fillMaxWidth().height(26.dp),
+                    contentPadding = PaddingValues(0.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = outlineColor.copy(alpha=0.2f), contentColor = outlineColor),
+                    shape = RoundedCornerShape(4.dp)
+                ) {
+                    Text("COPY TRADE VIA MDC", fontSize = 9.sp, fontWeight = FontWeight.Black)
                 }
             }
         }
@@ -1605,6 +1625,20 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
                 lineHeight = 15.sp
             )
             
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Daily BS Thermometer
+            Column(modifier = Modifier.fillMaxWidth().background(Color.Black.copy(alpha=0.3f), RoundedCornerShape(8.dp)).padding(12.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text("GLOBAL DAILY B.S. LEVEL", color = theme.brandSecondary, fontSize = 12.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace)
+                    Text("${state.dailyBsLevel}%", color = if (state.dailyBsLevel > 80f) BrandCrimson else NeonCyan, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                }
+                Spacer(Modifier.height(6.dp))
+                Box(modifier = Modifier.fillMaxWidth().height(16.dp).background(Color.DarkGray, RoundedCornerShape(8.dp))) {
+                    Box(modifier = Modifier.fillMaxWidth(state.dailyBsLevel / 100f).height(16.dp).background(if (state.dailyBsLevel > 80f) BrandCrimson else NeonCyan, RoundedCornerShape(8.dp)))
+                }
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             // CATEGORY SELECTOR CHIPS
@@ -2903,6 +2937,98 @@ fun SatiricalDailyForecastWidget(vm: GambitViewModel) {
                             fontWeight = FontWeight.ExtraBold,
                             fontFamily = FontFamily.Monospace
                         )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AiMarketDashboardWidget(vm: GambitViewModel) {
+    val state by vm.state.collectAsState()
+    val theme = LocalGambitTheme.current
+    
+    // Filter to only the AI generated scenarios
+    val aiMarkets = state.activeScenarios.filter { it.id.startsWith("ai_") }
+
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "🤖 NEURAL SATIRICAL MARKETS",
+                color = theme.brandSecondary,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.ExtraBold,
+                fontFamily = FontFamily.Monospace
+            )
+            androidx.compose.material3.TextButton(
+                onClick = { vm.fetchSatiricalMarkets() },
+                enabled = !state.isDailyForecastLoading,
+                colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = theme.brandSecondary)
+            ) {
+                Text("REFRESH_FEED")
+            }
+        }
+        
+        if (aiMarkets.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("No AI Markets Detected. Hit Refresh.", color = theme.textSecondary)
+            }
+        }
+
+        aiMarkets.forEach { scenario ->
+            val total = scenario.yesShares + scenario.noShares
+            val yesProb = if (total > 0) (scenario.yesShares / total * 100) else 50.0
+            val noProb = if (total > 0) (scenario.noShares / total * 100) else 50.0
+            
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp)
+                    .background(theme.bgCard.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                    .border(1.dp, theme.brandSecondary.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                    .padding(16.dp)
+            ) {
+                Column {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(scenario.tag, color = theme.brandSecondary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text(scenario.category, color = theme.textSecondary, fontSize = 10.sp)
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Text(scenario.name, color = theme.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(8.dp))
+                    
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            androidx.compose.material3.Button(
+                                onClick = { vm.placeUserBet(scenario.id, "YES", 50.0, false, 0f) },
+                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = com.example.ui.theme.NeonGreen.copy(alpha = 0.2f), contentColor = com.example.ui.theme.NeonGreen),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, com.example.ui.theme.NeonGreen)
+                            ) {
+                                Text("LONG (Yes)")
+                            }
+                            Text("PROB: ${"%.1f".format(yesProb)}%", color = com.example.ui.theme.NeonGreen, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        }
+
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            androidx.compose.material3.Button(
+                                onClick = { vm.placeUserBet(scenario.id, "NO", 50.0, false, 0f) },
+                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = com.example.ui.theme.BrandCrimson.copy(alpha = 0.2f), contentColor = com.example.ui.theme.BrandCrimson),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, com.example.ui.theme.BrandCrimson)
+                            ) {
+                                Text("SHORT (No)")
+                            }
+                            Text("PROB: ${"%.1f".format(noProb)}%", color = com.example.ui.theme.BrandCrimson, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }

@@ -158,6 +158,10 @@ fun MorphoVaultScreen(vm: GambitViewModel) {
             }
             
             item {
+                UncollateralizedLendingCard(theme, isCircuitBreakerTripped)
+            }
+            
+            item {
                 Text("RISK ASSESSMENT & ISOLATION", color = theme.textSecondary, fontSize = 12.sp, fontFamily = com.example.ui.theme.ArialNarrowFamily, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -174,5 +178,67 @@ fun MorphoVaultScreen(vm: GambitViewModel) {
 fun RiskBadge(label: String, color: Color, theme: com.example.ui.theme.GambitThemeSpecs) {
     Box(Modifier.border(1.dp, color, RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 4.dp).background(color.copy(alpha=0.1f))) {
         Text(label, color = color, fontSize = 10.5.sp, fontFamily = com.example.ui.theme.ArialNarrowFamily, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+fun UncollateralizedLendingCard(theme: com.example.ui.theme.GambitThemeSpecs, isCircuitBreakerTripped: Boolean) {
+    var loanAmount by remember { mutableStateOf("100") }
+    var statusMessage by remember { mutableStateOf("") }
+    val coroutineScope = rememberCoroutineScope()
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = theme.bgDeep.copy(alpha = 0.5f)),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, theme.brandAccent)
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Filled.AccountBalance, contentDescription = null, tint = theme.brandAccent)
+                Spacer(Modifier.width(8.dp))
+                Text("UNCOLLATERALIZED MICRO-LENDING", color = theme.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+            }
+            Spacer(Modifier.height(8.dp))
+            Text("Governed by Quadratic Voting (MDC Community Only)", color = theme.brandAccent, fontSize = 12.sp, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+            
+            Spacer(Modifier.height(16.dp))
+            
+            OutlinedTextField(
+                value = loanAmount,
+                onValueChange = { loanAmount = it },
+                label = { Text("Request Amount (USDC)", color = theme.textSecondary, fontFamily = com.example.ui.theme.ArialNarrowFamily) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = theme.brandAccent,
+                    unfocusedBorderColor = theme.textSecondary.copy(alpha = 0.5f),
+                    focusedTextColor = theme.textPrimary,
+                    unfocusedTextColor = theme.textPrimary
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            Spacer(Modifier.height(16.dp))
+            
+            HoverTooltip(text = "Submits a gasless EIP-712 request for community governance backing.") {
+                Button(
+                    onClick = {
+                        val amt = loanAmount.toDoubleOrNull() ?: 0.0
+                        if (amt > 0) {
+                            statusMessage = "[PENDING] LOAN REQUEST FOR $amt USDC PLACED INTO QUADRATIC GOVERNANCE POOL."
+                        }
+                    },
+                    enabled = !isCircuitBreakerTripped,
+                    colors = ButtonDefaults.buttonColors(containerColor = theme.brandAccent.copy(alpha=0.8f), contentColor = theme.bgDeep),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("REQUEST GOVERNANCE LOAN", fontWeight = FontWeight.Bold, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+                }
+            }
+            
+            if (statusMessage.isNotEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                Text(statusMessage, color = theme.brandPrimary, fontSize = 12.sp, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+            }
+        }
     }
 }

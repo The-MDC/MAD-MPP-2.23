@@ -1,5 +1,6 @@
 package com.example.api
 
+import com.example.engine.GenerativeAIProvider
 import com.example.BuildConfig
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -169,8 +170,8 @@ You are Qwen AI, a sardonic ancient Zen master meditating on market charts and t
     )
 }
 
-class GeminiRepository {
-    suspend fun fetchSatiricalHeadlines(): List<String> = withContext(Dispatchers.IO) {
+class GeminiRepository : GenerativeAIProvider {
+    override suspend fun fetchSatiricalHeadlines(): List<String> = withContext(Dispatchers.IO) {
         val rssArticles = RssFeedFetcher.fetchRealRssArticles()
         val rssSummary = if (rssArticles.isNotEmpty()) {
             rssArticles.shuffled().take(8).joinToString("\n") { "- [${it.source}] ${it.title}" }
@@ -258,7 +259,7 @@ class GeminiRepository {
         }
     }
     
-    suspend fun chatWithPersona(userMessage: String): String = withContext(Dispatchers.IO) {
+    override suspend fun chatWithPersona(userMessage: String): String = withContext(Dispatchers.IO) {
         try {
             val apiKey = BuildConfig.GEMINI_API_KEY
             if (apiKey.isEmpty() || apiKey.contains("YOUR_API_KEY")) {
@@ -287,7 +288,7 @@ class GeminiRepository {
         }
     }
 
-    suspend fun generateCommentaryWithPersona(
+    override suspend fun generateCommentaryWithPersona(
         personaName: String,
         marketName: String,
         conviction: String,

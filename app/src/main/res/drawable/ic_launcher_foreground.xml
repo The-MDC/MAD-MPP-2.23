@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:width="66dp"
-        android:height="66dp"
-        android:drawable="@drawable/mad_logo"
-        android:gravity="center" />
-</layer-list>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108.0"
+    android:viewportHeight="108.0">
+    <path
+        android:fillColor="#FF00E5FF"
+        android:strokeColor="#FFFF007F"
+        android:strokeWidth="1.5"
+        android:pathData="M 30,80 L 15,80 C 15,90 25,100 54,100 C 83,100 93,90 93,80 L 78,80 L 75,30 C 75,10 65,5 54,5 C 43,5 33,10 33,30 Z"/>
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF00"
+        android:strokeWidth="3.0"
+        android:pathData="M 60.1,65 C 60.1,65 59.8,60 59,57.1 C 58.2,54.2 56,52.3 54,51 C 52,49.7 49,49 46,50 C 43,51 40,54 40,58 C 40,62 43,65 47,65 C 50,65 53,62 53.5,60 C 54,58 54.5,56 55.5,55 C 56.5,54 58,54.5 59,56 C 60,57.5 60.1,65 60.1,65 Z M 48,65 L 48,70 L 60,70 L 60,65"/>
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF00E5FF"
+        android:strokeWidth="1.5"
+        android:pathData="M 35,45 C 35,40 37,35 40,32"/>
+</vector>

@@ -23,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.BlendMode
@@ -59,10 +61,12 @@ fun GambitNavigation(vm: GambitViewModel, authManager: com.example.auth.AuthMana
     val balanceValue = state.madxBalance
     var isMenuOpen by remember { mutableStateOf(false) }
     var isDashboardOpen by remember { mutableStateOf(false) }
+    var notificationsEnabled by remember { mutableStateOf(true) }
 
     ProvideGambitTheme(state.currentTheme) {
         val theme = LocalGambitTheme.current
-        Box(Modifier.fillMaxSize()) {
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            val isWideScreen = maxWidth > 800.dp
             Scaffold(
                 containerColor = theme.bgDeep,
                 contentWindowInsets = WindowInsets.systemBars,
@@ -70,7 +74,7 @@ fun GambitNavigation(vm: GambitViewModel, authManager: com.example.auth.AuthMana
                     // Borderless custom character avatar that acts as our chat trigger
                     Box(
                         modifier = Modifier
-                            .size(72.dp)
+                            .size(if (isWideScreen) 84.dp else 72.dp)
                             .clickable(
                                 onClick = {
                                     vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 70)
@@ -94,8 +98,8 @@ fun GambitNavigation(vm: GambitViewModel, authManager: com.example.auth.AuthMana
                                     painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.mad_logo),
                                     contentDescription = "MΛD Gambit Logo",
                                     modifier = Modifier
-                                        .height(40.dp)
-                                        .fillMaxWidth(0.5f), // to have it left aligned but not take up entire top app bar width if unnecessary
+                                        .height(98.dp) // 40dp * 2.45 = 98dp
+                                        .fillMaxWidth(0.8f), 
                                     contentScale = androidx.compose.ui.layout.ContentScale.Fit,
                                     alignment = Alignment.CenterStart
                                 )
@@ -164,17 +168,22 @@ fun GambitNavigation(vm: GambitViewModel, authManager: com.example.auth.AuthMana
                                         .padding(end = 8.dp)
                                         .size(40.dp)
                                         .glassReflection(
-                                            baseColor = theme.brandSecondary,
+                                            baseColor = if (notificationsEnabled) theme.brandSecondary else Color.Gray,
                                             shape = RoundedCornerShape(8.dp)
                                         )
-                                        .clickable { isNotificationsOpen = true },
+                                        .pointerInput(Unit) {
+                                            detectTapGestures(
+                                                onDoubleTap = { notificationsEnabled = !notificationsEnabled },
+                                                onTap = { isNotificationsOpen = true }
+                                            )
+                                        },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Box(Modifier.fillMaxSize().background(getGlassReflectionBrush(theme.brandSecondary)))
+                                    Box(Modifier.fillMaxSize().background(getGlassReflectionBrush(if (notificationsEnabled) theme.brandSecondary else Color.Gray)))
                                     Icon(
                                         Icons.Filled.Notifications, 
                                         contentDescription = "View alerts", 
-                                        modifier = Modifier.size(20.dp).neonIconComposer(isActive = true),
+                                        modifier = Modifier.size(20.dp).neonIconComposer(isActive = notificationsEnabled),
                                         tint = Color.White
                                     )
                                 }
@@ -212,146 +221,217 @@ fun GambitNavigation(vm: GambitViewModel, authManager: com.example.auth.AuthMana
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 14.dp, vertical = 6.dp)
+                            .padding(vertical = 6.dp)
                     ) {
                         com.example.ui.components.IntegratedTickerWidget(
                             isSatireMode = false,
                             telemetry = state.telemetryStats,
                             isNeuralOnly = false,
                             isClickable = true,
-                            speedMultiplier = 1.1f
+                            speedMultiplier = 1.1f,
+                            isFullWidth = true
                         )
                     }
                 }
                 },
                 bottomBar = {
-                    val neonButtonGradient = Brush.linearGradient(
-                        colors = listOf(
-                            Color(0xFF00E5FF), // Subtle Neon Blue
-                            Color(0xFFFF007F), // Subtle Pink
-                            Color(0xFFFF073A), // Subtle Red
-                            Color(0xFF9D00FF)  // Subtle Purple
-                        )
-                    )
-                    val glassHighlight = Brush.verticalGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.35f),
-                            Color.White.copy(alpha = 0.05f),
-                            Color.Transparent
-                        )
-                    )
-                    NavigationBar(
-                        modifier = Modifier
-                            .graphicsLayer {
-                                shadowElevation = 16f
-                                shape = androidx.compose.foundation.shape.RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-                                clip = true
-                            }
-                            .background(theme.brushedMetal)
-                            .border(0.5.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                            .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()),
-                        containerColor = Color.Transparent, // Let the background brush show through
-                        windowInsets = WindowInsets(0) // Render manually via padding to prevent system inset clip bugs
-                    ) {
-                        val items = listOf(
-                            NavItem("circus", "Circus", Icons.Filled.Insights, "Predictive Markets"),
-                            NavItem("shield", "Shield", Icons.Filled.Shield, "Sybil Defense"),
-                            NavItem("auction", "Auction", Icons.Filled.LocalFireDepartment, "Token Auctions"),
-                            NavItem("kaito", "Terminal", Icons.Filled.Terminal, "System Console"),
-                            NavItem("profile", "Gambit 🃏", Icons.Filled.Style, "MADHATS Gambit Cards")
-                        )
-                        items.forEach { item ->
-                            val isSelected = currentRoute == item.route
-
-                            NavigationBarItem(
-                                selected = isSelected,
-                                onClick = { 
-                                    currentRoute = item.route 
-                                    vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 40)
-                                },
-                                icon = {
-                                    val buttonColor = if (isSelected) theme.brandSecondary else Color.Gray.copy(alpha = 0.5f)
-                                    Box(
-                                        modifier = Modifier
-                                            .size(54.dp, 32.dp)
-                                            .glassReflection(
-                                                baseColor = buttonColor,
-                                                shape = RoundedCornerShape(10.dp)
-                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        // Glass Reflection Layer inside the button (subtle sheen matching current button color)
-                                        Box(
-                                            Modifier
-                                                .fillMaxSize()
-                                                .background(getGlassReflectionBrush(buttonColor))
-                                        )
-                                        
-                                        val iconModifier = Modifier
-                                            .size(if (isSelected) 24.dp else 20.dp)
-                                            .neonIconComposer(isSelected)
-
-                                        Icon(
-                                            item.icon, 
-                                            contentDescription = item.label,
-                                            modifier = iconModifier,
-                                            tint = if (isSelected) Color.White else SlateSubduedColor
-                                        )
-                                    }
-                                },
-                                label = { 
-                                    Text(
-                                        item.label, 
-                                        fontSize = 9.sp, 
-                                        fontWeight = FontWeight.Bold, 
-                                        fontFamily = com.example.ui.theme.ArialNarrowFamily,
-                                        color = if (isSelected) Color.White else Color.Gray.copy(alpha = 0.8f)
-                                    ) 
-                                },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = Color.White,
-                                    selectedTextColor = Color.White,
-                                    unselectedIconColor = Color.Gray,
-                                    unselectedTextColor = Color.Gray,
-                                    indicatorColor = Color.Transparent
-                                )
+                    if (!isWideScreen) {
+                        val neonButtonGradient = Brush.linearGradient(
+                            colors = listOf(
+                                Color(0xFF00E5FF), // Subtle Neon Blue
+                                Color(0xFFFF007F), // Subtle Pink
+                                Color(0xFFFF073A), // Subtle Red
+                                Color(0xFF9D00FF)  // Subtle Purple
                             )
+                        )
+                        val glassHighlight = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.35f),
+                                Color.White.copy(alpha = 0.05f),
+                                Color.Transparent
+                            )
+                        )
+                        NavigationBar(
+                            modifier = Modifier
+                                .graphicsLayer {
+                                    shadowElevation = 16f
+                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                                    clip = true
+                                }
+                                .background(theme.brushedMetal)
+                                .border(0.5.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                                .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()),
+                            containerColor = Color.Transparent, // Let the background brush show through
+                            windowInsets = WindowInsets(0) // Render manually via padding to prevent system inset clip bugs
+                        ) {
+                            val items = listOf(
+                                NavItem("circus", "Circus", Icons.Filled.Insights, "Predictive Markets"),
+                                NavItem("shield", "Shield", Icons.Filled.Shield, "Sybil Defense"),
+                                NavItem("auction", "Auction", Icons.Filled.LocalFireDepartment, "Token Auctions"),
+                                NavItem("kaito", "Terminal", Icons.Filled.Terminal, "System Console"),
+                                NavItem("profile", "Gambit 🃏", Icons.Filled.Style, "MADHATS Gambit Cards")
+                            )
+                            items.forEach { item ->
+                                val isSelected = currentRoute == item.route
+    
+                                NavigationBarItem(
+                                    selected = isSelected,
+                                    onClick = { 
+                                        currentRoute = item.route 
+                                        vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 40)
+                                    },
+                                    icon = {
+                                        val buttonColor = if (isSelected) theme.brandSecondary else Color.Gray.copy(alpha = 0.5f)
+                                        Box(
+                                            modifier = Modifier
+                                                .size(54.dp, 32.dp)
+                                                .glassReflection(
+                                                    baseColor = buttonColor,
+                                                    shape = RoundedCornerShape(10.dp)
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            // Glass Reflection Layer inside the button (subtle sheen matching current button color)
+                                            Box(
+                                                Modifier
+                                                    .fillMaxSize()
+                                                    .background(getGlassReflectionBrush(buttonColor))
+                                            )
+                                            
+                                            val iconModifier = Modifier
+                                                .size(if (isSelected) 24.dp else 20.dp)
+                                                .neonIconComposer(isSelected)
+    
+                                            Icon(
+                                                item.icon, 
+                                                contentDescription = item.label,
+                                                modifier = iconModifier,
+                                                tint = if (isSelected) Color.White else SlateSubduedColor
+                                            )
+                                        }
+                                    },
+                                    label = { 
+                                        Text(
+                                            item.label, 
+                                            fontSize = 9.sp, 
+                                            fontWeight = FontWeight.Bold, 
+                                            fontFamily = com.example.ui.theme.ArialNarrowFamily,
+                                            color = if (isSelected) Color.White else Color.Gray.copy(alpha = 0.8f)
+                                        ) 
+                                    },
+                                    colors = NavigationBarItemDefaults.colors(
+                                        selectedIconColor = Color.White,
+                                        selectedTextColor = Color.White,
+                                        unselectedIconColor = Color.Gray,
+                                        unselectedTextColor = Color.Gray,
+                                        indicatorColor = Color.Transparent
+                                    )
+                                )
+                            }
                         }
                     }
                 }
             ) { padding ->
             Box(Modifier.padding(padding).fillMaxSize().background(theme.bgDeep), contentAlignment = Alignment.TopCenter) {
-                Box(Modifier.widthIn(max = 1200.dp).fillMaxSize()) {
-                    // Background themes global effects
-                    if (theme.isPopArt) {
-                        Box(Modifier.fillMaxSize().background(com.example.ui.theme.NeonGridBrush))
-                    } else if (state.currentTheme == com.example.ui.theme.ThemeStyle.BORG_GREEN) {
-                        // High-end black to black-green to green vertical gradient mirroring convictionmarkets.io
-                        Box(Modifier.fillMaxSize().background(
-                            androidx.compose.ui.graphics.Brush.verticalGradient(
-                                listOf(
-                                    Color(0xFF000000), 
-                                    Color(0xFF021B09), 
-                                    Color(0xFF054015)
-                                )
+                Row(Modifier.fillMaxSize()) {
+                    if (isWideScreen) {
+                        NavigationRail(
+                            modifier = Modifier.width(80.dp).fillMaxHeight()
+                                .background(theme.brushedMetal)
+                                .border(0.5.dp, Color.White.copy(alpha = 0.15f)),
+                            containerColor = Color.Transparent,
+                        ) {
+                            val items = listOf(
+                                NavItem("circus", "Circus", Icons.Filled.Insights, "Predictive Markets"),
+                                NavItem("shield", "Shield", Icons.Filled.Shield, "Sybil Defense"),
+                                NavItem("auction", "Auction", Icons.Filled.LocalFireDepartment, "Token Auctions"),
+                                NavItem("kaito", "Terminal", Icons.Filled.Terminal, "System Console"),
+                                NavItem("profile", "Gambit 🃏", Icons.Filled.Style, "MADHATS Gambit Cards")
                             )
-                        ))
+                            Spacer(Modifier.height(16.dp))
+                            items.forEach { item ->
+                                val isSelected = currentRoute == item.route
+                                NavigationRailItem(
+                                    selected = isSelected,
+                                    onClick = { 
+                                        currentRoute = item.route 
+                                        vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 40)
+                                    },
+                                    icon = {
+                                        val buttonColor = if (isSelected) theme.brandSecondary else Color.Gray.copy(alpha = 0.5f)
+                                        Box(
+                                            modifier = Modifier
+                                                .size(48.dp, 48.dp)
+                                                .glassReflection(
+                                                    baseColor = buttonColor,
+                                                    shape = RoundedCornerShape(10.dp)
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Box(Modifier.fillMaxSize().background(getGlassReflectionBrush(buttonColor)))
+                                            Icon(
+                                                item.icon, 
+                                                contentDescription = item.label,
+                                                modifier = Modifier.size(24.dp).neonIconComposer(isSelected),
+                                                tint = if (isSelected) Color.White else SlateSubduedColor
+                                            )
+                                        }
+                                    },
+                                    label = { 
+                                        Text(
+                                            item.label, 
+                                            fontSize = 9.sp, 
+                                            fontWeight = FontWeight.Bold, 
+                                            fontFamily = com.example.ui.theme.ArialNarrowFamily,
+                                            color = if (isSelected) Color.White else Color.Gray.copy(alpha = 0.8f)
+                                        ) 
+                                    },
+                                    colors = NavigationRailItemDefaults.colors(
+                                        selectedIconColor = Color.White,
+                                        selectedTextColor = Color.White,
+                                        unselectedIconColor = Color.Gray,
+                                        unselectedTextColor = Color.Gray,
+                                        indicatorColor = Color.Transparent
+                                    )
+                                )
+                                Spacer(Modifier.height(8.dp))
+                            }
+                        }
                     }
-                    
-                    Box(Modifier.fillMaxSize()) {
-                        when (currentRoute) {
-                        "circus" -> PredictionCircusScreen(vm)
-                        "shield" -> MadShieldScreen(vm)
-                        "auction" -> AuctionScreen(vm)
-                        "kaito" -> KaitoTerminalScreen(vm)
-                        "stake" -> StakingScreen(vm)
-                        "data" -> com.example.ui.screens.DataHouseScreen(vm)
-                        "admin" -> com.example.ui.screens.AdminPanelScreen(vm)
-                        "morpho" -> com.example.ui.screens.MorphoVaultScreen(vm)
-                        "aero" -> com.example.ui.screens.AerodromeLiquidityScreen(vm)
-                        "profile" -> com.example.ui.screens.ProfileScreen(vm)
+                    Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.TopCenter) {
+                        Box(Modifier.widthIn(max = 1200.dp).fillMaxSize()) {
+                            // Background themes global effects
+                            if (theme.isPopArt) {
+                                Box(Modifier.fillMaxSize().background(com.example.ui.theme.NeonGridBrush))
+                            } else if (state.currentTheme == com.example.ui.theme.ThemeStyle.BORG_GREEN) {
+                                // High-end black to black-green to green vertical gradient mirroring convictionmarkets.io
+                                Box(Modifier.fillMaxSize().background(
+                                    androidx.compose.ui.graphics.Brush.verticalGradient(
+                                        listOf(
+                                            Color(0xFF000000), 
+                                            Color(0xFF021B09), 
+                                            Color(0xFF054015)
+                                        )
+                                    )
+                                ))
+                            }
+                            
+                            Box(Modifier.fillMaxSize()) {
+                                when (currentRoute) {
+                                    "circus" -> PredictionCircusScreen(vm)
+                                    "shield" -> MadShieldScreen(vm)
+                                    "auction" -> AuctionScreen(vm)
+                                    "kaito" -> KaitoTerminalScreen(vm)
+                                    "stake" -> StakingScreen(vm)
+                                    "data" -> com.example.ui.screens.DataHouseScreen(vm)
+                                    "admin" -> com.example.ui.screens.AdminPanelScreen(vm)
+                                    "morpho" -> com.example.ui.screens.MorphoVaultScreen(vm)
+                                    "aero" -> com.example.ui.screens.AerodromeLiquidityScreen(vm)
+                                    "profile" -> com.example.ui.screens.ProfileScreen(vm)
+                                }
+                            }
+                        }
                     }
-                }
                 }
             }
         }
@@ -437,12 +517,12 @@ fun GambitNavigation(vm: GambitViewModel, authManager: com.example.auth.AuthMana
         }
         
         // Dopamine Optimizer Layer
-        if (state.rewardNotifications.isNotEmpty()) {
+        if (notificationsEnabled && state.rewardNotifications.isNotEmpty()) {
             com.example.ui.components.DopamineOptimizerNotifications(vm = vm, notifications = state.rewardNotifications)
         }
 
         // Volatility Alerts Overlay
-        if (state.volatilityToasts.isNotEmpty()) {
+        if (notificationsEnabled && state.volatilityToasts.isNotEmpty()) {
             com.example.ui.components.VolatilityAlertToastsLayer(vm = vm, toasts = state.volatilityToasts)
         }
         

@@ -42,9 +42,9 @@ fun MadShieldScreen(vm: GambitViewModel) {
     val isPremiumShield = premiumTier > 0.5f
 
     val stake = stakeText.toDoubleOrNull() ?: 0.0
-    val shieldPercentage = if (isPremiumShield) 0.40 else 0.288
-    val premium = stake * if (isPremiumShield) 0.04 else 0.02
-    val payout = GambitMath.calculateShieldPayout(stake, isPremiumShield)
+    val shieldPercentage = 0.288 + premiumTier * (0.40 - 0.288)
+    val premium = stake * (0.02 + premiumTier * (0.04 - 0.02))
+    val payout = GambitMath.calculateShieldPayout(stake, premiumTier)
 
     Column(
         Modifier
@@ -103,21 +103,21 @@ fun MadShieldScreen(vm: GambitViewModel) {
                 Spacer(Modifier.height(24.dp))
                 
                 Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
-                    Text("Premium (${if(isPremiumShield) "4%" else "2%"}):", color = Color.LightGray, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+                    Text("Premium (${"%.1f".format((0.02 + premiumTier * 0.02) * 100)}%):", color = Color.LightGray, fontFamily = com.example.ui.theme.ArialNarrowFamily)
                     Text("${"%.2f".format(premium)} MADx", color = BrandCrimson, fontFamily = com.example.ui.theme.ArialNarrowFamily, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.height(8.dp))
                 Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
-                    Text("Stop-Loss Return (${if(isPremiumShield) "40%" else "28.8%"}):", color = Color.LightGray, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+                    Text("Stop-Loss Return (${"%.1f".format(shieldPercentage * 100)}%):", color = Color.LightGray, fontFamily = com.example.ui.theme.ArialNarrowFamily)
                     Text("${"%.2f".format(payout)} MADx", color = NeonGreen, 
                          fontFamily = com.example.ui.theme.ArialNarrowFamily, fontWeight = FontWeight.Black, fontSize = 18.sp,
                          style = TextStyle(shadow = Shadow(NeonGreen.copy(alpha=0.5f), blurRadius = 12f)))
                 }
                 
                 Spacer(Modifier.height(32.dp))
-                HoverTooltip(text = "Activates Sybil Defense Module: Deducts the fee from your account to shield against impermanent loss.") {
+                HoverTooltip(text = "Activates Sybil Defense Module: Deducts the fee from your account to globally shield your active conviction.") {
                     GlassKeycapButton(
-                        onClick = { vm.stakeOnScenario(premium, 1.0) }, 
+                        onClick = { vm.placeUserBet("GLOBAL_SHIELD", "SHIELD_OPT_IN", premium, true, premiumTier) }, 
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                         baseColor = NeonPurple,
                         shape = RoundedCornerShape(12.dp),
@@ -140,9 +140,9 @@ fun MadShieldScreen(vm: GambitViewModel) {
         }
 
         Column(Modifier.padding(horizontal = 8.dp)) {
-            Text("Formula: Stop-Loss = Min(S * ${if(isPremiumShield) "40%" else "28.8%"}, S * CollateralRatio)", color = Color.Gray, fontSize = 11.sp, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+            Text("Formula: Stop-Loss = Min(S * ${"%.1f".format(shieldPercentage * 100)}%, S * CollateralRatio)", color = Color.Gray, fontSize = 11.sp, fontFamily = com.example.ui.theme.ArialNarrowFamily)
             Spacer(Modifier.height(4.dp))
-            Text("Maximum asymptotic stop-loss: ${"%.1f".format(payout)} MADx (${if(isPremiumShield) "40%" else "28.8%"} max cap)", color = Color.Gray, fontSize = 11.sp, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+            Text("Maximum asymptotic stop-loss: ${"%.1f".format(payout)} MADx (${"%.1f".format(shieldPercentage * 100)}% max cap)", color = Color.Gray, fontSize = 11.sp, fontFamily = com.example.ui.theme.ArialNarrowFamily)
         }
 
         Spacer(Modifier.height(8.dp))

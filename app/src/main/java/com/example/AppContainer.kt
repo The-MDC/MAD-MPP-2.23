@@ -7,6 +7,9 @@ import com.example.defi.MockWeb3Service
 import com.example.defi.Web3Service
 import com.example.engine.SensoryFeedbackEngine
 
+import com.example.engine.GenerativeAIProvider
+import com.example.api.GeminiRepository
+
 /**
  * AppContainer acts as a simple manual Dependency Injection container.
  * This ensures loose coupling and makes testing/mocking easier without the overhead of Hilt/Dagger.
@@ -16,6 +19,7 @@ interface AppContainer {
     val web3Service: Web3Service
     val sensoryFeedbackEngine: SensoryFeedbackEngine
     val gambitRepository: com.example.model.GambitRepository
+    val generativeAIProvider: GenerativeAIProvider
 }
 
 class DefaultAppContainer(private val applicationContext: Context) : AppContainer {
@@ -32,10 +36,13 @@ class DefaultAppContainer(private val applicationContext: Context) : AppContaine
     override val sensoryFeedbackEngine: SensoryFeedbackEngine by lazy {
         SensoryFeedbackEngine(applicationContext)
     }
+    
+    override val generativeAIProvider: GenerativeAIProvider by lazy {
+        GeminiRepository()
+    }
 
     override val gambitRepository: com.example.model.GambitRepository by lazy {
         val database = com.example.model.AppDatabase.getDatabase(applicationContext)
-        val geminiRepository = com.example.api.GeminiRepository()
-        com.example.model.GambitRepository(database.localDataDao(), geminiRepository)
+        com.example.model.GambitRepository(database.localDataDao(), GeminiRepository())
     }
 }

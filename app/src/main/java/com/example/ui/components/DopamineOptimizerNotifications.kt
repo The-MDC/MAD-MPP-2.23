@@ -32,7 +32,8 @@ fun DopamineOptimizerNotifications(vm: GambitViewModel, notifications: List<Rewa
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.wrapContentSize()
         ) {
-            for (notification in notifications.take(3)) {
+            val importantNotifications = notifications.filter { it.isImportant }
+            for (notification in importantNotifications.take(3)) {
                 RewardPopUp(notification) {
                     vm.dismissRewardNotification(notification.id)
                 }
@@ -51,7 +52,7 @@ fun RewardPopUp(notification: RewardNotification, onDismiss: () -> Unit) {
         // to add a variable ratio dopamine pause before it fades.
         // Base delay is 2500ms, modulated by Fibonacci.
         val factor = Math.min(notification.fibonacciIndex, 5).toLong()
-        val delayMillis = 2500L + (factor * 400L)
+        val delayMillis = 1500L + (factor * 400L)
         delay(delayMillis)
         isVisible = false
         delay(300) // waiting for exit animation
@@ -67,7 +68,7 @@ fun RewardPopUp(notification: RewardNotification, onDismiss: () -> Unit) {
             modifier = Modifier
                 .shadow(24.dp, RoundedCornerShape(12.dp), spotColor = NeonGreen.copy(alpha = 0.6f))
                 .border(1.dp, BrandGold.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                .background(Color(0xFF0F1A15).copy(alpha = 0.95f), RoundedCornerShape(12.dp))
+                .background(Color(0xFF0F1A15), RoundedCornerShape(12.dp))
                 .padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)

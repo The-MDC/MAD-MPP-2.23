@@ -41,7 +41,10 @@ enum class AdminRole {
 @Composable
 fun AdminPanelScreen(vm: GambitViewModel) {
     val theme = LocalGambitTheme.current
-    var currentRole by remember { mutableStateOf(AdminRole.SUPER_ADMIN) }
+    val state by vm.state.collectAsState()
+    var currentRole by remember { 
+        mutableStateOf(if (state.authState.isAdmin) AdminRole.SUPER_ADMIN else AdminRole.ANALYST) 
+    }
 
     Column(
         modifier = Modifier
