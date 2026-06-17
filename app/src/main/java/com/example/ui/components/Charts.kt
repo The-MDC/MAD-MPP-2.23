@@ -106,6 +106,73 @@ fun ConvictionTrendsChart(trendHistory: List<TrendDataPoint>, modifier: Modifier
 }
 
 @Composable
+fun HistoricalConvictionChart(marketId: String, modifier: Modifier = Modifier) {
+    val theme = LocalGambitTheme.current
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(180.dp)
+            .background(theme.bgCard.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+            .border(theme.borderWidth, theme.borderBrush, RoundedCornerShape(12.dp))
+            .padding(16.dp)
+    ) {
+        Column {
+            Text("HISTORICAL CONVICTION FLUCTUATION", color = theme.textPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+            Text("Powered by Recharts Engine (Synthetic)", color = theme.textSecondary, fontSize = 9.sp, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+            Spacer(Modifier.height(12.dp))
+            
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val padding = 12f
+                val width = size.width - padding * 2
+                val height = size.height - padding * 2
+                
+                // Draw grid lines
+                for (i in 0..4) {
+                    val y = padding + height * (i / 4f)
+                    drawLine(theme.textSecondary.copy(alpha = 0.1f), Offset(padding, y), Offset(size.width - padding, y), 1f)
+                }
+
+                // Generate pseudo-random history based on market id
+                val pointsCount = 30
+                val seed = marketId.hashCode()
+                val random = java.util.Random(seed.toLong())
+                
+                var currentVal = 0.5f + (random.nextFloat() * 0.2f - 0.1f)
+                
+                val path = Path()
+                
+                for (i in 0..pointsCount) {
+                    val progress = i / pointsCount.toFloat()
+                    val x = padding + width * progress
+                    
+                    // random walk
+                    currentVal += (random.nextFloat() * 0.1f - 0.05f)
+                    currentVal = currentVal.coerceIn(0.1f, 0.9f)
+                    
+                    val y = padding + height * (1f - currentVal)
+                    
+                    if (i == 0) {
+                        path.moveTo(x, y)
+                    } else {
+                        path.lineTo(x, y)
+                    }
+                }
+
+                drawPath(
+                    path = path,
+                    color = theme.brandSecondary,
+                    style = Stroke(
+                        width = 4f,
+                        cap = StrokeCap.Round,
+                        join = androidx.compose.ui.graphics.StrokeJoin.Round
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun CalibrationPlotChart(modifier: Modifier = Modifier) {
     val theme = LocalGambitTheme.current
     Box(

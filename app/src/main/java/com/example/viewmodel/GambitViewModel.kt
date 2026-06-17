@@ -129,8 +129,35 @@ class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
         startSentimentCycle()
         startTrendSimulation()
         startNeuralTelemetrySimulation()
+        startGambitReportGenerator()
         fetchDailyForecast()
         fetchSentimentFeed()
+    }
+
+    private fun startGambitReportGenerator() {
+        viewModelScope.launch {
+            while (isActive) {
+                _state.update { it.copy(isGambitReportGenerating = true) }
+                
+                // Construct market data context from active scenarios
+                val s = _state.value
+                val contextBuilder = StringBuilder()
+                contextBuilder.append("Total Current Convictions: \${s.totalConvictions}\n")
+                contextBuilder.append("MADx Balance: \${s.madxBalance}\n\n")
+                contextBuilder.append("Hot Markets:\n")
+                s.activeScenarios.take(3).forEach { sc ->
+                    val statusStr = if(sc.sentimentBullishRatio > 0.5) "Bullish" else "Bearish"
+                    contextBuilder.append("- \${sc.name} (\${sc.category}). Conviction Speed: \${sc.crowdConvictionSpeed}. Status: \$statusStr.\n")
+                }
+                
+                val report = com.example.engine.GeminiForecastClient.generateSatiricalGambitReport(contextBuilder.toString())
+                
+                _state.update { it.copy(isGambitReportGenerating = false, gambitReportText = report) }
+                
+                // Wait a few minutes for simulation
+                kotlinx.coroutines.delay(180_000L) 
+            }
+        }
     }
 
     private fun startNeuralTelemetrySimulation() {

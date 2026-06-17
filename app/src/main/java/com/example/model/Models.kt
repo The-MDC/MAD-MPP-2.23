@@ -98,6 +98,10 @@ data class MarketState(
     val isAiChatTyping: Boolean = false,
     val isTrollBoxUnlocked: Boolean = false,
     val isCopyTradingUnlocked: Boolean = false,
+    
+    // Gambit Report State
+    val gambitReportText: String? = null,
+    val isGambitReportGenerating: Boolean = false,
     val isAutoCopyTradingEnabled: Boolean = false,
     
     // Dopamine Optimizer

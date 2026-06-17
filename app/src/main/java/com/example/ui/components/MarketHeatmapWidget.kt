@@ -166,13 +166,24 @@ fun MarketHeatmapWidget(
                 }
             }
 
-            // Expanded interactive detailed inspect panel
+                            // Expanded interactive detailed inspect panel
             AnimatedVisibility(
                 visible = selectedEvent != null,
                 enter = expandVertically() + fadeIn(),
                 exit = shrinkVertically() + fadeOut()
             ) {
                 selectedEvent?.let { sc ->
+                    var geminiSummary by remember { mutableStateOf<String?>(null) }
+                    var isLoading by remember { mutableStateOf(false) }
+
+                    LaunchedEffect(sc.id) {
+                        isLoading = true
+                        geminiSummary = null
+                        val ctx = "Market: \${sc.name}, Category: \${sc.category}, Bullish Ratio: \${(sc.sentimentBullishRatio * 100).toInt()}%, Volatility: \${sc.crowdConvictionSpeed}"
+                        geminiSummary = com.example.engine.GeminiForecastClient.generateSatiricalGambitReport(ctx).take(120) + "..."
+                        isLoading = false
+                    }
+
                     Spacer(Modifier.height(12.dp))
                     Box(
                         modifier = Modifier
@@ -203,12 +214,37 @@ fun MarketHeatmapWidget(
                                 )
                             }
                             Spacer(Modifier.height(6.dp))
+                            val conf = (sc.sentimentBullishRatio * 100).toInt()
+                            val turb = String.format(java.util.Locale.US, "%.1f", abs(sc.crowdConvictionSpeed))
                             Text(
-                                text = "Aesthetic Heatmap Readout: Public alignment is currently operating at ${(sc.sentimentBullishRatio * 100).toInt()}% confidence with a dynamic turbulence factor of ${String.format("%.1f", abs(sc.crowdConvictionSpeed))} units.",
-                                color = theme.textSecondary,
-                                fontSize = 11.sp,
-                                fontFamily = ArialNarrowFamily
+                                    text = "Aesthetic Heatmap Readout: Public alignment is currently operating at \${conf}% confidence with a dynamic turbulence factor of \${turb} units.",
+                                    color = theme.textSecondary,
+                                    fontSize = 11.sp,
+                                    fontFamily = ArialNarrowFamily
+                                )
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = "🧠 NEURAL PREDICTION:",
+                                color = theme.brandPrimary,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
                             )
+                            if (isLoading) {
+                                androidx.compose.material3.CircularProgressIndicator(
+                                    modifier = Modifier.size(14.dp),
+                                    color = theme.brandPrimary,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text(
+                                    text = geminiSummary ?: "Neural networks offline.",
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    fontFamily = ArialNarrowFamily,
+                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                )
+                            }
                         }
                     }
                 }

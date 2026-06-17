@@ -592,6 +592,9 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
         MarketHeatmapWidget(activeScenarios = state.activeScenarios)
 
         Spacer(Modifier.height(12.dp))
+        com.example.ui.components.DeepResearchConsole(vm)
+
+        Spacer(Modifier.height(12.dp))
         AiMarketDashboardWidget(vm)
 
         Spacer(Modifier.height(12.dp))
@@ -931,6 +934,8 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
                         color = NeonGreen,
                         trackColor = NeonPink.copy(alpha = 0.3f)
                     )
+                    Spacer(Modifier.height(16.dp))
+                    com.example.ui.components.HistoricalConvictionChart(marketId = sc.id)
                     Spacer(Modifier.height(16.dp))
                     
                     if (sc.isResolved) {
@@ -1289,8 +1294,12 @@ fun InteractiveConvictionControl(
 ) {
     var selectedDirection by remember { mutableStateOf<String?>(null) }
     var stakeAmount by remember { mutableStateOf(50f) }
-    var convictionLevel by remember { mutableStateOf(0.5f) }
+    var convictionInput by remember { mutableStateOf("50") }
     var triggerExplosion by remember { mutableStateOf(false) }
+
+    val convictionValue = convictionInput.trim().toIntOrNull()
+    val isConvictionValid = convictionValue != null && convictionValue in 1..100
+    val convictionLevel = (convictionValue?.coerceIn(1, 100) ?: 50) / 100f
 
     val pulseScale by animateFloatAsState(
         targetValue = 1f + (convictionLevel * 0.04f),
@@ -1402,7 +1411,7 @@ fun InteractiveConvictionControl(
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "3. CONVICTION MULTIPLIER BOOST",
+                "3. CONVICTION MULTIPLIER BOOST (1-100)",
                 color = Color.Gray,
                 fontSize = 9.5.sp,
                 fontWeight = FontWeight.Bold,
@@ -1417,25 +1426,32 @@ fun InteractiveConvictionControl(
             )
         }
         
-        Slider(
-            value = convictionLevel,
-            onValueChange = { newVal ->
-                val roundedVal = (newVal * 10f).toInt() / 10f
-                if (roundedVal != convictionLevel) {
-                    if (roundedVal >= 0.8f && convictionLevel < 0.8f) {
+        OutlinedTextField(
+            value = convictionInput,
+            onValueChange = { 
+                convictionInput = it
+                val num = it.trim().toIntOrNull()
+                if (num != null && num in 1..100) {
+                    if (num >= 80 && (convictionValue ?: 0) < 80) {
                         triggerExplosion = true
                         vm.playFeedbackTone(android.media.ToneGenerator.TONE_CDMA_HIGH_PBX_SLS, 180)
+                    } else {
+                        vm.playFeedbackTone(android.media.ToneGenerator.TONE_CDMA_PIP, 40)
                     }
-                    convictionLevel = roundedVal
-                    vm.playFeedbackTone(android.media.ToneGenerator.TONE_CDMA_PIP, 40)
                 }
             },
-            valueRange = 0.1f..1.0f,
-            colors = SliderDefaults.colors(
-                thumbColor = NeonPink,
-                activeTrackColor = NeonPink,
-                inactiveTrackColor = Color.DarkGray
-            )
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+            placeholder = { Text("Enter 1-100", color = Color.Gray, fontSize = 11.sp, fontFamily = FontFamily.Monospace) },
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = TextStyle(color = Color.White, fontSize = 12.sp, fontFamily = FontFamily.Monospace),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = NeonPink,
+                unfocusedBorderColor = if(isConvictionValid) Color.DarkGray else NeonPink,
+                cursorColor = NeonPink
+            ),
+            singleLine = true,
+            isError = !isConvictionValid,
+            supportingText = { if (!isConvictionValid) Text("Must be a number from 1 to 100", color = NeonPink, fontSize = 9.sp) }
         )
 
         val projectedRewards = stakeAmount * sc.baseMultiplier * (1.0 + convictionLevel)
@@ -1458,7 +1474,7 @@ fun InteractiveConvictionControl(
             }
         }
 
-        val canConfirm = selectedDirection != null && userBalance >= stakeAmount
+        val canConfirm = selectedDirection != null && isConvictionValid && userBalance >= stakeAmount
         Button(
             onClick = {
                 selectedDirection?.let { dir ->
@@ -1480,6 +1496,8 @@ fun InteractiveConvictionControl(
             Text(
                 text = if (selectedDirection == null) {
                     "SELECT DIRECTION FIRST"
+                } else if (!isConvictionValid) {
+                    "INVALID CONVICTION LEVEL"
                 } else if (userBalance < stakeAmount) {
                     "INSUFFICIENT BALANCE"
                 } else {
@@ -3054,7 +3072,7 @@ fun ConvictionMarketplaceWidget(vm: GambitViewModel) {
     var selectedEventIndex by remember { mutableStateOf(0) }
     var customEventText by remember { mutableStateOf("") }
     var predictedOutcome by remember { mutableStateOf("") }
-    var confidenceLevel by remember { mutableStateOf(0.5f) }
+    var confidenceInput by remember { mutableStateOf("50") }
     var stakeAmount by remember { mutableStateOf(50f) }
     var isSubmittedSuccess by remember { mutableStateOf(false) }
 
@@ -3066,6 +3084,11 @@ fun ConvictionMarketplaceWidget(vm: GambitViewModel) {
     } else {
         eventsList[selectedEventIndex]
     }
+    
+    val confidenceValue = confidenceInput.trim().toIntOrNull()
+    val isConfidenceValid = confidenceValue != null && confidenceValue in 1..100
+    val confidenceLevel = (confidenceValue?.coerceIn(1, 100) ?: 50) / 100f
+
 
     Box(
         modifier = Modifier
@@ -3258,7 +3281,7 @@ fun ConvictionMarketplaceWidget(vm: GambitViewModel) {
                     )
                 }
 
-                // 3. Numeric Confidence Slider
+                // 3. Numeric Confidence Text Input
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     val confidencePercent = (confidenceLevel * 100).toInt()
                     val confidenceLabel = when {
@@ -3280,7 +3303,7 @@ fun ConvictionMarketplaceWidget(vm: GambitViewModel) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "3. NUMERIC CONFIDENCE SLIDER",
+                            "3. CONVICTION LEVEL (1-100)",
                             color = labelColor,
                             fontSize = 9.5.sp,
                             fontWeight = FontWeight.Bold,
@@ -3304,25 +3327,32 @@ fun ConvictionMarketplaceWidget(vm: GambitViewModel) {
                         }
                     }
 
-                    Slider(
-                        value = confidenceLevel,
-                        onValueChange = { newVal ->
-                            val rounded = (newVal * 20f).toInt() / 20f
-                            if (rounded != confidenceLevel) {
-                                if (rounded >= 0.8f && confidenceLevel < 0.8f) {
+                    OutlinedTextField(
+                        value = confidenceInput,
+                        onValueChange = { 
+                            confidenceInput = it 
+                            val num = it.trim().toIntOrNull()
+                            if (num != null && num in 1..100) {
+                                if (num >= 80 && confidenceLevel < 0.8f) {
                                     triggerExplosion = true
                                     vm.playFeedbackTone(android.media.ToneGenerator.TONE_CDMA_HIGH_PBX_SLS, 120)
+                                } else {
+                                    vm.playFeedbackTone(android.media.ToneGenerator.TONE_CDMA_PIP, 40)
                                 }
-                                confidenceLevel = rounded
-                                vm.playFeedbackTone(android.media.ToneGenerator.TONE_CDMA_PIP, 40)
                             }
                         },
-                        valueRange = 0.1f..1.0f,
-                        colors = SliderDefaults.colors(
-                            thumbColor = labelColor,
-                            activeTrackColor = labelColor,
-                            inactiveTrackColor = Color.DarkGray
-                        )
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                        placeholder = { Text("Enter 1-100", color = Color.Gray, fontSize = 11.sp, fontFamily = FontFamily.Monospace) },
+                        modifier = Modifier.fillMaxWidth(),
+                        textStyle = TextStyle(color = Color.White, fontSize = 12.sp, fontFamily = FontFamily.Monospace),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = labelColor,
+                            unfocusedBorderColor = if(isConfidenceValid) Color.DarkGray else com.example.ui.theme.NeonPink,
+                            cursorColor = labelColor
+                        ),
+                        singleLine = true,
+                        isError = !isConfidenceValid,
+                        supportingText = { if (!isConfidenceValid) Text("Must be a number from 1 to 100", color = com.example.ui.theme.NeonPink, fontSize = 9.sp) }
                     )
                 }
 
@@ -3393,7 +3423,7 @@ fun ConvictionMarketplaceWidget(vm: GambitViewModel) {
                 }
 
                 // Submit Action Button
-                val isInputValid = activeEventName.isNotBlank() && predictedOutcome.isNotBlank()
+                val isInputValid = activeEventName.isNotBlank() && predictedOutcome.isNotBlank() && isConfidenceValid
                 val canSubmit = isInputValid && balance >= stakeAmount
 
                 Button(
@@ -3421,7 +3451,7 @@ fun ConvictionMarketplaceWidget(vm: GambitViewModel) {
                 ) {
                     Text(
                         text = if (!isInputValid) {
-                            "FILL OUT PREDICTION"
+                            if (!isConfidenceValid) "INVALID CONVICTION LEVEL" else "FILL OUT PREDICTION"
                         } else if (balance < stakeAmount) {
                             "INSUFFICIENT MADX BALANCE"
                         } else {
