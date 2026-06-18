@@ -284,6 +284,105 @@ object GeminiForecastClient {
         }
     }
 
+    suspend fun generateVolatilityAlert(
+        eventName: String,
+        volScore: Double
+    ): String = withContext(Dispatchers.IO) {
+        val apiKey = BuildConfig.GEMINI_API_KEY
+        val fallbackMsg = when {
+            volScore > 75.0 -> "🔥 VOLATILITY SHIFT: Severe conviction convergence! High-density order flow detected."
+            volScore > 50.0 -> "⚡ STABILITY THRESHOLD BREACHED: Social sentiment volatility spiking above safety levels."
+            else -> "📉 METRIC UPDATE: Direct neural delta speed has exceeded the 30u threshold."
+        }
+        
+        if (apiKey.isEmpty() || apiKey == "MY_GEMINI_API_KEY") {
+            return@withContext fallbackMsg
+        }
+
+        val prompt = """
+            A prediction cluster for the market event '$eventName' has experienced a volatility shift with a score of $volScore/100.
+            Write a 1-sentence satirical, punchy alert (like a toast notification) that informs the user about this. 
+            Keep it under 100 characters. Use MAD Magazine/South Park humor, maybe a hint of a Jersey accent. 
+        """.trimIndent()
+
+        val requestObj = GenerateContentRequest(
+            contents = listOf(Content(parts = listOf(Part(text = prompt)))),
+            systemInstruction = Content(
+                parts = listOf(
+                    Part(text = "You are the MADHAT'r. You give short, cynical, Jersey-accented market updates.")
+                )
+            )
+        )
+
+        try {
+            val jsonStr = json.encodeToString(GenerateContentRequest.serializer(), requestObj)
+            val mediaType = "application/json; charset=utf-8".toMediaType()
+            val requestBody = jsonStr.toRequestBody(mediaType)
+            
+            val request = Request.Builder()
+                .url("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=$apiKey")
+                .post(requestBody)
+                .build()
+
+            okHttpClient.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext fallbackMsg
+                val bodyStr = response.body?.string() ?: return@withContext fallbackMsg
+                val responseObj = json.decodeFromString(GenerateContentResponse.serializer(), bodyStr)
+                responseObj.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text ?: fallbackMsg
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            fallbackMsg
+        }
+    }
+
+    suspend fun generateSatiricalFeedback(
+        actionContext: String
+    ): String = withContext(Dispatchers.IO) {
+        val apiKey = BuildConfig.GEMINI_API_KEY
+        val fallbackMsg = "System logged: $actionContext"
+        
+        if (apiKey.isEmpty() || apiKey == "MY_GEMINI_API_KEY") {
+            return@withContext fallbackMsg
+        }
+
+        val prompt = """
+            The user just performed an action in the app: '$actionContext'.
+            Write a 1-sentence satirical, punchy system notification acknowledging this. 
+            Keep it under 100 characters. Use MAD Magazine/South Park humor, maybe a hint of a Jersey accent.
+        """.trimIndent()
+
+        val requestObj = GenerateContentRequest(
+            contents = listOf(Content(parts = listOf(Part(text = prompt)))),
+            systemInstruction = Content(
+                parts = listOf(
+                    Part(text = "You are the MADHAT'r. You give short, cynical, Jersey-accented app updates.")
+                )
+            )
+        )
+
+        try {
+            val jsonStr = json.encodeToString(GenerateContentRequest.serializer(), requestObj)
+            val mediaType = "application/json; charset=utf-8".toMediaType()
+            val requestBody = jsonStr.toRequestBody(mediaType)
+            
+            val request = Request.Builder()
+                .url("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=$apiKey")
+                .post(requestBody)
+                .build()
+
+            okHttpClient.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext fallbackMsg
+                val bodyStr = response.body?.string() ?: return@withContext fallbackMsg
+                val responseObj = json.decodeFromString(GenerateContentResponse.serializer(), bodyStr)
+                responseObj.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text ?: fallbackMsg
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            fallbackMsg
+        }
+    }
+
     suspend fun analyzeEconomicConvictionWithGemini(
         userText: String,
         roastSeverity: Int,

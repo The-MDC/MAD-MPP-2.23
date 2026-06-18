@@ -82,7 +82,30 @@ class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
             HighStakesActivity("f3", System.currentTimeMillis() - 180000, "BTC EOD Price", "Sovereign Node Node-1190 locked +12,000 \$MADx pool reserve.", 12000.0, 15.0, "MASSIVE_SHIFT"),
             HighStakesActivity("f4", System.currentTimeMillis() - 250000, "Next Major Rug-Pull", "Liar Engine flags 98.7% sentinel anomaly warning threshold.", 0.0, 0.0, "ORACLE_ALERT")
         )
-        _state.update { it.copy(activeScenarios = scenarios, isOfflineCache = true, highStakesFeed = initialFeed) }
+        
+        val initialReports = listOf(
+            com.example.model.GambitReportRecord("r1", System.currentTimeMillis() - 172800000, "The Federal Reserve replaces J-Pow with an AI trained exclusively on /r/WallStreetBets. Market crashes upwards.", "Hyper-Inflation", 0.88f),
+            com.example.model.GambitReportRecord("r2", System.currentTimeMillis() - 345600000, "A top-10 crypto exchange accidentally sends all cold storage funds to a burn address. CEO tweets 'Oopsie doodles'.", "Liquidation cascade", 0.62f),
+            com.example.model.GambitReportRecord("r3", System.currentTimeMillis() - 604800000, "Global supply chain crippled because someone unplugged the wrong router in New Jersey.", "Resolved peacefully", 0.15f)
+        )
+        
+        val initialLeaderboard = (1..150).map { i ->
+            com.example.model.LeaderboardUser(
+                userId = "u\$i",
+                username = listOf("Degen", "Whale", "Nomad", "Oracle", "Sniper", "Ape").random() + "_${(1000..9999).random()}",
+                madxBalance = (5000..500000).random().toDouble(),
+                successfulWagers = (10..500).random(),
+                timeOnPlatformHours = (5..2000).random()
+            )
+        }.sortedByDescending { it.madxBalance }
+
+        _state.update { it.copy(
+            activeScenarios = scenarios, 
+            isOfflineCache = true, 
+            highStakesFeed = initialFeed,
+            historicalGambitReports = initialReports,
+            leaderboardEntries = initialLeaderboard
+        ) }
         
         // Collect DB updates in real-time reactively
         viewModelScope.launch {
@@ -416,35 +439,33 @@ class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
                         (listOf(extraActivity) + s.highStakesFeed).take(15)
                     } else s.highStakesFeed
                     
-                    var newToasts = s.volatilityToasts
-                    if (Math.random() > 0.75) {
-                        val trackingScenarios = s.activeScenarios.filter { s.bookmarkedScenarioIds.contains(it.id) || it.isHot }
-                        val targetSc = if (trackingScenarios.isNotEmpty()) trackingScenarios.random() else s.activeScenarios.randomOrNull()
-                        if (targetSc != null) {
-                            val volScore = 30.0 + (Math.random() * 60.0)
-                            val textAlert = when {
-                                volScore > 75.0 -> "🔥 VOLATILITY SHIFT: Severe conviction convergence! High-density order flow detected."
-                                volScore > 50.0 -> "⚡ STABILITY THRESHOLD BREACHED: Social sentiment volatility spiking above safety levels."
-                                else -> "📉 METRIC UPDATE: Direct neural delta speed has exceeded the 30u threshold."
-                            }
+                    s.copy(
+                        eigenTrustLogs = (listOf(msg) + s.eigenTrustLogs).take(15),
+                        xp = s.xp + 0.04f,
+                        madxBalance = if (isBot) s.madxBalance else s.madxBalance + (Math.random() * 0.5),
+                        highStakesFeed = updatedFeed
+                    )
+                }
+
+                if (Math.random() > 0.75) {
+                    val trackingScenarios = _state.value.activeScenarios.filter { _state.value.bookmarkedScenarioIds.contains(it.id) || it.isHot }
+                    val targetSc = if (trackingScenarios.isNotEmpty()) trackingScenarios.random() else _state.value.activeScenarios.randomOrNull()
+                    if (targetSc != null) {
+                        val volScore = 30.0 + (Math.random() * 60.0)
+                        viewModelScope.launch {
+                            val textAlert = com.example.engine.GeminiForecastClient.generateVolatilityAlert(targetSc.name, volScore)
                             val newToast = com.example.model.VolatilityAlertToast(
                                 id = java.util.UUID.randomUUID().toString(),
                                 eventName = targetSc.name,
                                 volatilityScore = volScore,
                                 text = textAlert
                             )
-                            newToasts = (newToasts + newToast).take(3)
+                            _state.update { s ->
+                                s.copy(volatilityToasts = (listOf(newToast) + s.volatilityToasts).take(3))
+                            }
                             try { toneGenerator?.startTone(android.media.ToneGenerator.TONE_CDMA_PIP, 100) } catch (e: Exception) {}
                         }
                     }
-
-                    s.copy(
-                        eigenTrustLogs = (listOf(msg) + s.eigenTrustLogs).take(15),
-                        xp = s.xp + 0.04f,
-                        madxBalance = if (isBot) s.madxBalance else s.madxBalance + (Math.random() * 0.5),
-                        highStakesFeed = updatedFeed,
-                        volatilityToasts = newToasts
-                    )
                 }
             }
         }
@@ -1189,15 +1210,31 @@ class GambitViewModel(private val appContainer: AppContainer) : ViewModel() {
         }
     }
 
-    fun triggerVolatilityToast(eventName: String, score: Double, text: String) {
-        val newToast = com.example.model.VolatilityAlertToast(
-            id = java.util.UUID.randomUUID().toString(),
-            eventName = eventName,
-            volatilityScore = score,
-            text = text
-        )
-        _state.update { s ->
-            s.copy(volatilityToasts = (s.volatilityToasts + newToast).take(3))
+    fun triggerVolatilityToast(eventName: String, score: Double, text: String, isSatiricalFeedback: Boolean = false) {
+        if (isSatiricalFeedback) {
+            viewModelScope.launch {
+                val finalMsg = com.example.engine.GeminiForecastClient.generateSatiricalFeedback(text)
+                val newToast = com.example.model.VolatilityAlertToast(
+                    id = java.util.UUID.randomUUID().toString(),
+                    eventName = eventName,
+                    volatilityScore = score,
+                    text = finalMsg
+                )
+                _state.update { s ->
+                    s.copy(volatilityToasts = (listOf(newToast) + s.volatilityToasts).take(3))
+                }
+                try { toneGenerator?.startTone(android.media.ToneGenerator.TONE_CDMA_PIP, 100) } catch (e: Exception) {}
+            }
+        } else {
+            val newToast = com.example.model.VolatilityAlertToast(
+                id = java.util.UUID.randomUUID().toString(),
+                eventName = eventName,
+                volatilityScore = score,
+                text = text
+            )
+            _state.update { s ->
+                s.copy(volatilityToasts = (listOf(newToast) + s.volatilityToasts).take(3))
+            }
         }
     }
 

@@ -55,7 +55,6 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ContentCopy
-import android.widget.Toast
 
 data class DashboardMarketInfo(
     val id: String,
@@ -740,7 +739,7 @@ fun ConvictionDashboardOverlay(
                                     try {
                                         val file = java.io.File(context.cacheDir, "gambit_analytics.json")
                                         file.writeText(jsonOutput)
-                                        Toast.makeText(context, "Exported JSON cached to device!", Toast.LENGTH_SHORT).show()
+                                        vm.triggerVolatilityToast("USER ACTION", 50.0, "Exported JSON cached to device!", true)
                                     } catch (e: Exception) {
                                         e.printStackTrace()
                                     }
@@ -1208,7 +1207,7 @@ fun ConvictionDashboardOverlay(
                         onClick = {
                             val annotatedString = androidx.compose.ui.text.AnnotatedString(exportedJsonText)
                             clipboardManager.setText(annotatedString)
-                            Toast.makeText(context, "Copied payload to clipboard!", Toast.LENGTH_SHORT).show()
+                            vm.triggerVolatilityToast("USER ACTION", 50.0, "Copied payload to clipboard!", true)
                         }
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {

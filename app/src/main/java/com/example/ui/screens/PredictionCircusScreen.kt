@@ -94,6 +94,15 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
     }
     
     var showDailySummary by remember { mutableStateOf(false) }
+    var showHistoricalTimeline by remember { mutableStateOf(false) }
+    var showLeaderboard by remember { mutableStateOf(false) }
+    
+    var pendingWagerScenarioId by remember { mutableStateOf<String?>(null) }
+    var pendingWagerDirection by remember { mutableStateOf<String?>(null) }
+    var pendingWagerAmount by remember { mutableStateOf(0.0) }
+    var pendingWagerConviction by remember { mutableStateOf(0.8f) }
+    var pendingWagerScenarioName by remember { mutableStateOf("") }
+    
     val showProposeModal by vm.showProposeModal.collectAsState()
 
     if (showProposeModal) {
@@ -432,6 +441,51 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
         )
     }
 
+    if (showHistoricalTimeline) {
+        androidx.compose.ui.window.Dialog(onDismissRequest = { showHistoricalTimeline = false }) {
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.8f)
+                .background(theme.bgDeep.copy(alpha = 0.95f), RoundedCornerShape(12.dp))
+                .border(1.dp, theme.brandSecondary, RoundedCornerShape(12.dp))
+                .padding(16.dp)) {
+                com.example.ui.components.HistoricalGambitReportsTimeline(reports = state.historicalGambitReports)
+            }
+        }
+    }
+
+    if (showLeaderboard) {
+        androidx.compose.ui.window.Dialog(onDismissRequest = { showLeaderboard = false }) {
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.8f)
+                .background(theme.bgDeep.copy(alpha = 0.95f), RoundedCornerShape(12.dp))
+                .border(1.dp, BrandGold.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+                .padding(16.dp)) {
+                com.example.ui.components.GambitLeaderboard(users = state.leaderboardEntries)
+            }
+        }
+    }
+
+    if (pendingWagerScenarioId != null) {
+        com.example.ui.components.WagerConfirmationDialog(
+            isOpen = true,
+            onConfirm = {
+                vm.placeInteractivePrediction(
+                    pendingWagerScenarioId!!,
+                    pendingWagerDirection!!,
+                    pendingWagerAmount,
+                    pendingWagerConviction
+                )
+                pendingWagerScenarioId = null
+            },
+            onCancel = { pendingWagerScenarioId = null },
+            amount = pendingWagerAmount,
+            scenarioName = pendingWagerScenarioName,
+            outcome = pendingWagerDirection ?: "YES"
+        )
+    }
+
     Box(Modifier.fillMaxSize()) {
         Column(
             Modifier
@@ -519,12 +573,28 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
                             shadow = Shadow(BrandGoldGlow, blurRadius = 24f)
                         )
                     )
-                    OutlinedButton(
-                        onClick = { showDailySummary = true },
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = NeonCyan),
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
-                    ) {
-                        Text("📜 DAILY SUM", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        OutlinedButton(
+                            onClick = { showLeaderboard = true },
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = BrandGold),
+                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text("🏆 LDRBRD", fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        }
+                        OutlinedButton(
+                            onClick = { showHistoricalTimeline = true },
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = NeonPink),
+                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text("⏳ TIMELINE", fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        }
+                        OutlinedButton(
+                            onClick = { showDailySummary = true },
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = NeonCyan),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                        ) {
+                            Text("📜 DAILY SUM", fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
                 
@@ -589,7 +659,18 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
         com.example.ui.components.ConvictionTrendsChart(trendHistory = state.trendHistory)
 
         Spacer(Modifier.height(12.dp))
-        MarketHeatmapWidget(activeScenarios = state.activeScenarios)
+        MarketHeatmapWidget(
+            activeScenarios = state.activeScenarios,
+            madxBalance = state.madxBalance,
+            onWagerPlaced = { scenarioId, dir, amount ->
+                val scName = state.activeScenarios.find { it.id == scenarioId }?.name ?: "Unknown Cluster"
+                pendingWagerScenarioId = scenarioId
+                pendingWagerDirection = dir
+                pendingWagerAmount = amount
+                pendingWagerConviction = 0.8f
+                pendingWagerScenarioName = scName
+            }
+        )
 
         Spacer(Modifier.height(12.dp))
         com.example.ui.components.DeepResearchConsole(vm)
@@ -967,7 +1048,18 @@ fun PredictionCircusScreen(vm: GambitViewModel) {
                             }
                         }
                     } else {
-                        InteractiveConvictionControl(sc, vm, state.madxBalance)
+                        InteractiveConvictionControl(
+                            sc = sc, 
+                            vm = vm, 
+                            userBalance = state.madxBalance,
+                            onWagerInitiated = { scenarioId, dir, amount, conv ->
+                                pendingWagerScenarioId = scenarioId
+                                pendingWagerDirection = dir
+                                pendingWagerAmount = amount
+                                pendingWagerConviction = conv
+                                pendingWagerScenarioName = sc.name
+                            }
+                        )
                         
                         // Settle Oracles Actions
                         Spacer(Modifier.height(16.dp))
@@ -1290,7 +1382,8 @@ fun HighStakesFeedCard(vm: GambitViewModel, item: HighStakesActivity) {
 fun InteractiveConvictionControl(
     sc: Scenario,
     vm: GambitViewModel,
-    userBalance: Double
+    userBalance: Double,
+    onWagerInitiated: (String, String, Double, Float) -> Unit = { id, dir, amt, conv -> vm.placeInteractivePrediction(id, dir, amt, conv) }
 ) {
     var selectedDirection by remember { mutableStateOf<String?>(null) }
     var stakeAmount by remember { mutableStateOf(50f) }
@@ -1478,7 +1571,7 @@ fun InteractiveConvictionControl(
         Button(
             onClick = {
                 selectedDirection?.let { dir ->
-                    vm.placeInteractivePrediction(sc.id, dir, stakeAmount.toDouble(), convictionLevel)
+                    onWagerInitiated(sc.id, dir, stakeAmount.toDouble(), convictionLevel)
                 }
             },
             modifier = Modifier
@@ -2228,7 +2321,8 @@ fun LiarMeterMarketsWidget(vm: GambitViewModel) {
     ExportSummaryDialog(
         isOpen = showExportSummary,
         onClose = { showExportSummary = false },
-        state = state
+        state = state,
+        triggerToast = { msg -> vm.triggerVolatilityToast("USER ACTION", 50.0, msg, true) }
     )
 }
 
@@ -2305,10 +2399,10 @@ fun MadGambitGameLobbyLobby(
                             isEnrolled = !isEnrolled
                             if (isEnrolled) {
                                 vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 80)
-                                android.widget.Toast.makeText(context, "🔥 ENROLLED IN MONTHLY CULL TOURNAMENT!", android.widget.Toast.LENGTH_SHORT).show()
+                                vm.triggerVolatilityToast("USER ACTION", 50.0, "🔥 ENROLLED IN MONTHLY CULL TOURNAMENT!", true)
                             } else {
                                 vm.playFeedbackTone(android.media.ToneGenerator.TONE_CDMA_PIP, 60)
-                                android.widget.Toast.makeText(context, "🛡️ WITHDREW FROM CULL TOURNAMENT!", android.widget.Toast.LENGTH_SHORT).show()
+                                vm.triggerVolatilityToast("USER ACTION", 50.0, "🛡️ WITHDREW FROM CULL TOURNAMENT!", true)
                             }
                         }
                         .background((if (isEnrolled) NeonGreen else BrandCrimson).copy(alpha = 0.2f))
@@ -2335,7 +2429,7 @@ fun MadGambitGameLobbyLobby(
                 Button(
                     onClick = {
                         vm.playFeedbackTone(android.media.ToneGenerator.TONE_PROP_ACK, 90)
-                        android.widget.Toast.makeText(context, "🎮 Initiating MADHAT's GAMBIT match!", android.widget.Toast.LENGTH_SHORT).show()
+                        vm.triggerVolatilityToast("USER ACTION", 50.0, "🎮 Initiating MADHAT's GAMBIT match!", true)
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFD4AF37),

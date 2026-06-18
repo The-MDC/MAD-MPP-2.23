@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,9 +30,13 @@ import com.example.ui.theme.ArialFamily
 import com.example.ui.theme.LocalGambitTheme
 import kotlin.math.abs
 
+import androidx.compose.ui.draw.scale
+
 @Composable
 fun MarketHeatmapWidget(
     activeScenarios: List<Scenario>,
+    madxBalance: Double = 0.0,
+    onWagerPlaced: (String, String, Double) -> Unit = { _, _, _ -> },
     modifier: Modifier = Modifier
 ) {
     val theme = LocalGambitTheme.current
@@ -245,6 +251,41 @@ fun MarketHeatmapWidget(
                                     fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                                 )
                             }
+                            
+                            Spacer(Modifier.height(16.dp))
+                            androidx.compose.material3.Divider(color = theme.brandPrimary.copy(alpha=0.3f))
+                            Spacer(Modifier.height(12.dp))
+                            
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Column {
+                                    Text("GAMBIT TOKEN WALLET", color = theme.textSecondary, fontSize = 9.sp, fontFamily = ArialNarrowFamily)
+                                    Text("\${madxBalance.toInt()} \$MADx", color = com.example.ui.theme.BrandGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+                                var wagerAmount by remember { mutableStateOf("100") }
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    androidx.compose.foundation.text.BasicTextField(
+                                        value = wagerAmount,
+                                        onValueChange = { wagerAmount = it },
+                                        textStyle = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 14.sp),
+                                        modifier = Modifier
+                                            .width(60.dp)
+                                            .background(theme.bgDeep, RoundedCornerShape(4.dp))
+                                            .padding(6.dp)
+                                    )
+                                    androidx.compose.material3.Button(
+                                        onClick = {
+                                            val amt = wagerAmount.toDoubleOrNull() ?: 100.0
+                                            onWagerPlaced(sc.id, "BULL", amt)
+                                        },
+                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = theme.brandPrimary),
+                                        shape = RoundedCornerShape(6.dp),
+                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                        modifier = Modifier.height(32.dp)
+                                    ) {
+                                        Text("WAGER", color = theme.bgDeep, fontSize = 11.sp, fontWeight = FontWeight.Black)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -273,10 +314,12 @@ fun HeatmapGridCell(
     // Volatility thickness representation
     val volatilityMultiplier = (abs(sc.crowdConvictionSpeed) / 10.0).coerceIn(0.1, 1.2)
     val borderGlowAlpha = (pulseAlpha * volatilityMultiplier).toFloat().coerceIn(0.2f, 1.0f)
+    val scaleFactor = 1f + (pulseAlpha * volatilityMultiplier * 0.05f).toFloat()
     
     Box(
         modifier = modifier
             .height(72.dp)
+            .scale(scaleFactor)
             .clip(RoundedCornerShape(12.dp))
             .background(
                 Brush.radialGradient(

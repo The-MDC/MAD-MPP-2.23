@@ -104,6 +104,9 @@ data class MarketState(
     val isGambitReportGenerating: Boolean = false,
     val isAutoCopyTradingEnabled: Boolean = false,
     
+    val historicalGambitReports: List<GambitReportRecord> = emptyList(),
+    val leaderboardEntries: List<LeaderboardUser> = emptyList(),
+    
     // Dopamine Optimizer
     val rewardNotifications: List<RewardNotification> = emptyList(),
     val dailyBsLevel: Float = 87.4f, // 0 to 100

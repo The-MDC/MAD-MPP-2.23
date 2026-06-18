@@ -3,7 +3,6 @@ package com.example.ui.components
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -41,7 +40,8 @@ import com.example.ui.theme.LocalGambitTheme
 fun ExportSummaryDialog(
     isOpen: Boolean,
     onClose: () -> Unit,
-    state: MarketState
+    state: MarketState,
+    triggerToast: (String) -> Unit = {}
 ) {
     if (!isOpen) return
 
@@ -259,7 +259,7 @@ fun ExportSummaryDialog(
                             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                             val clip = ClipData.newPlainText("Verified Conviction Summary", memoText)
                             clipboard.setPrimaryClip(clip)
-                            Toast.makeText(context, "Simplified Report copied to clipboard!", Toast.LENGTH_SHORT).show()
+                            triggerToast("Simplified Report copied to clipboard!")
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = theme.brandPrimary,

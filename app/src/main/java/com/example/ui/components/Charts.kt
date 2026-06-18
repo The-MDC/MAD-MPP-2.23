@@ -22,10 +22,32 @@ import androidx.compose.ui.unit.sp
 import com.example.ui.theme.LocalGambitTheme
 import kotlin.math.sin
 import com.example.model.TrendDataPoint
+import androidx.compose.animation.core.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.scale
 
 @Composable
 fun ConvictionTrendsChart(trendHistory: List<TrendDataPoint>, modifier: Modifier = Modifier) {
     val theme = LocalGambitTheme.current
+    var lastUpdateKey by remember { mutableStateOf(0) }
+    
+    LaunchedEffect(trendHistory) {
+        lastUpdateKey++
+    }
+
+    val floatAnim by animateFloatAsState(targetValue = if (trendHistory.isEmpty()) 0f else 1f, animationSpec = tween(1200))
+    val infiniteTransition = rememberInfiniteTransition()
+    val pulseRadius by infiniteTransition.animateFloat(
+        initialValue = 4f,
+        targetValue = 8f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -70,36 +92,39 @@ fun ConvictionTrendsChart(trendHistory: List<TrendDataPoint>, modifier: Modifier
 
                 trendHistory.forEach { point ->
                     val xProgress = (point.timestamp - minX).toFloat() / timeRange
-                    val x = padding + width * xProgress
                     
-                    val convictionY = padding + height * (1f - (point.convictionScore / 100f))
-                    val volatilityY = padding + height * (1f - (point.volatilityScore / 100f))
+                    if (xProgress <= floatAnim) {
+                        val x = padding + width * xProgress
+                        
+                        val convictionY = padding + height * (1f - (point.convictionScore / 100f))
+                        val volatilityY = padding + height * (1f - (point.volatilityScore / 100f))
 
-                    if (isFirst) {
-                        convictionPath.moveTo(x, convictionY)
-                        volatilityPath.moveTo(x, volatilityY)
-                        isFirst = false
-                    } else {
-                        // Smooth cubic easing could be added here, but linear is fine for realtime
-                        convictionPath.lineTo(x, convictionY)
-                        volatilityPath.lineTo(x, volatilityY)
+                        if (isFirst) {
+                            convictionPath.moveTo(x, convictionY)
+                            volatilityPath.moveTo(x, volatilityY)
+                            isFirst = false
+                        } else {
+                            convictionPath.lineTo(x, convictionY)
+                            volatilityPath.lineTo(x, volatilityY)
+                        }
                     }
                 }
 
                 drawPath(convictionPath, color = theme.brandPrimary, style = Stroke(width = 4f, cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
                 drawPath(volatilityPath, color = theme.brandAccent, style = Stroke(width = 3f, cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round, pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(15f, 10f))))
 
-                // Draw dots at the very end to signify "current"
-                val lastPt = trendHistory.last()
-                val lastX = padding + width
-                val lastConvY = padding + height * (1f - (lastPt.convictionScore / 100f))
-                val lastVolY = padding + height * (1f - (lastPt.volatilityScore / 100f))
+                if (floatAnim >= 0.99f) {
+                    val lastPt = trendHistory.last()
+                    val lastX = padding + width
+                    val lastConvY = padding + height * (1f - (lastPt.convictionScore / 100f))
+                    val lastVolY = padding + height * (1f - (lastPt.volatilityScore / 100f))
 
-                drawCircle(color = theme.brandPrimary, radius = 6f, center = Offset(lastX, lastConvY))
-                drawCircle(color = theme.bgDeep, radius = 3f, center = Offset(lastX, lastConvY))
+                    drawCircle(color = theme.brandPrimary, radius = pulseRadius, center = Offset(lastX, lastConvY))
+                    drawCircle(color = theme.bgDeep, radius = pulseRadius / 2, center = Offset(lastX, lastConvY))
 
-                drawCircle(color = theme.brandAccent, radius = 6f, center = Offset(lastX, lastVolY))
-                drawCircle(color = theme.bgDeep, radius = 3f, center = Offset(lastX, lastVolY))
+                    drawCircle(color = theme.brandAccent, radius = pulseRadius, center = Offset(lastX, lastVolY))
+                    drawCircle(color = theme.bgDeep, radius = pulseRadius / 2, center = Offset(lastX, lastVolY))
+                }
             }
         }
     }
@@ -108,17 +133,44 @@ fun ConvictionTrendsChart(trendHistory: List<TrendDataPoint>, modifier: Modifier
 @Composable
 fun HistoricalConvictionChart(marketId: String, modifier: Modifier = Modifier) {
     val theme = LocalGambitTheme.current
+    var showVolatility by remember { mutableStateOf(false) }
+    
+    // Frame-based animation
+    val infiniteTransition = rememberInfiniteTransition()
+    val pulseAnim by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+    val floatAnim by animateFloatAsState(targetValue = 1f, animationSpec = tween(1500))
+
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(180.dp)
+            .height(280.dp)
             .background(theme.bgCard.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
             .border(theme.borderWidth, theme.borderBrush, RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {
         Column {
-            Text("HISTORICAL CONVICTION FLUCTUATION", color = theme.textPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = com.example.ui.theme.ArialNarrowFamily)
-            Text("Powered by Recharts Engine (Synthetic)", color = theme.textSecondary, fontSize = 9.sp, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Column {
+                    Text("HISTORICAL CONVICTION FLUCTUATION", color = theme.textPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+                    Text("Powered by Recharts Engine (Synthetic)", color = theme.textSecondary, fontSize = 9.sp, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Volatility Overlay", color = theme.brandAccent, fontSize = 9.sp, fontFamily = com.example.ui.theme.ArialNarrowFamily)
+                    Spacer(Modifier.width(4.dp))
+                    androidx.compose.material3.Switch(
+                        checked = showVolatility,
+                        onCheckedChange = { showVolatility = it },
+                        modifier = Modifier.scale(0.6f)
+                    )
+                }
+            }
             Spacer(Modifier.height(12.dp))
             
             Canvas(modifier = Modifier.fillMaxSize()) {
@@ -140,6 +192,7 @@ fun HistoricalConvictionChart(marketId: String, modifier: Modifier = Modifier) {
                 var currentVal = 0.5f + (random.nextFloat() * 0.2f - 0.1f)
                 
                 val path = Path()
+                val volPoints = mutableListOf<Offset>()
                 
                 for (i in 0..pointsCount) {
                     val progress = i / pointsCount.toFloat()
@@ -151,22 +204,40 @@ fun HistoricalConvictionChart(marketId: String, modifier: Modifier = Modifier) {
                     
                     val y = padding + height * (1f - currentVal)
                     
-                    if (i == 0) {
-                        path.moveTo(x, y)
-                    } else {
-                        path.lineTo(x, y)
+                    if (progress <= floatAnim) {
+                        if (i == 0) {
+                            path.moveTo(x, y)
+                        } else {
+                            path.lineTo(x, y)
+                        }
+                    }
+                    
+                    if (random.nextFloat() > 0.8f) { // Volatility marker condition
+                        volPoints.add(Offset(x, y))
                     }
                 }
 
+                val animatedColor = androidx.compose.ui.graphics.lerp(theme.brandSecondary, theme.brandPrimary, pulseAnim)
+
                 drawPath(
                     path = path,
-                    color = theme.brandSecondary,
+                    color = animatedColor,
                     style = Stroke(
                         width = 4f,
                         cap = StrokeCap.Round,
                         join = androidx.compose.ui.graphics.StrokeJoin.Round
                     )
                 )
+                
+                if (showVolatility) {
+                    volPoints.forEach { point ->
+                        if (point.x <= padding + width * floatAnim) {
+                            val markerRadius = 4f + (pulseAnim * 3f)
+                            drawCircle(color = theme.brandAccent, radius = markerRadius, center = point)
+                            drawCircle(color = theme.bgDeep, radius = markerRadius / 2, center = point)
+                        }
+                    }
+                }
             }
         }
     }
