@@ -48,11 +48,11 @@ object DefiSecurityEngine {
         if (!validateTransaction(asset, amountUsd, isSimulation = true)) {
             return SimulationResult(0.0, 0.0, 0, false, "Transaction blocked by Security Engine")
         }
-        val expected = amountUsd * 0.998 // Simulate 0.2% fee/spread
+        val expected = amountUsd * 0.998
         val gas = 1.5 + (Math.random() * 2.0)
         return SimulationResult(expected, gas, 20, true, null)
     }
-    
+
     // 5. Auto-Trigger Circuit Breaker Heuristics
     fun evaluateHeuristics(
         marketVolatility: Double,
@@ -61,17 +61,17 @@ object DefiSecurityEngine {
         detectedAiPatterns: Int
     ) {
         val volatilityTrip = marketVolatility > 90.0 // Extreme GARCH variance
-        val sybilTrip = failedSybilChecks > 10 // Bad Actor / Bot Attack
+        val sybilTrip = failedSybilChecks > 10      // Bad Actor / Bot Attack
         val volumeTrip = suddenVolumeSpikeUsd > 1_000_000.0 // Exploiter attempt
-        val aiTrip = detectedAiPatterns > 5 // AI crawler honeypot frequency
-        
+        val aiTrip = detectedAiPatterns > 5          // AI crawler honeypot frequency
+
         if (volatilityTrip || sybilTrip || volumeTrip || aiTrip) {
             val reason = mutableListOf<String>()
             if (volatilityTrip) reason.add("Extreme Volatility")
             if (sybilTrip) reason.add("Sybil/Bot Attack Detected")
             if (volumeTrip) reason.add("Flash Exploiter Activity")
             if (aiTrip) reason.add("Malicious AI Automation")
-            
+
             _isCircuitBreakerTripped.value = true
             ErrorDiagnosticsModule.logException(
                 SecurityException("DEFENSIVE MEASURE: Global Circuit Breaker auto-tripped by heuristics. Reasons: ${reason.joinToString(", ")}"),
@@ -121,7 +121,7 @@ object DefiSecurityEngine {
             }
             return false
         }
-        
+
         if (amountUsd <= 0.0) {
             if (!isSimulation) {
                 ErrorDiagnosticsModule.logException(
