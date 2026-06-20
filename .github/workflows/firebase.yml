@@ -9,7 +9,7 @@ on:
 
 env:
   JAVA_VERSION: '17'
-  GRADLE_VERSION: '8.11.1'
+  GRADLE_VERSION: '9.3.1'
 
 jobs:
   # ── 1. Build APK ──────────────────────────────────────────────────────────
@@ -42,7 +42,6 @@ jobs:
             echo "google-services.json injected."
           else
             echo "WARNING: GOOGLE_SERVICES_JSON secret not set — build will use placeholder."
-            cp app/google-services.json.template app/google-services.json 2>/dev/null || true
           fi
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
