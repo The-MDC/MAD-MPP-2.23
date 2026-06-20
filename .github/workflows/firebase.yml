@@ -33,7 +33,10 @@ jobs:
           cache-read-only: false
 
       - name: Write .env
-        run: printf 'GEMINI_API_KEY=%s\n' "${{ secrets.GEMINI_API_KEY }}" > .env
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          echo "GEMINI_API_KEY=${GEMINI_API_KEY:-ci_placeholder_key}" > .env
 
       - name: Inject google-services.json
         run: |
