@@ -59,12 +59,12 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
-  # ── 2. Firebase App Distribution (push only, not PRs) ─────────────────────
+  # ── 2. Firebase App Distribution (main branch push only) ─────────────────────
   distribute:
     name: Distribute → Firebase App Distribution
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - name: Download APK
         uses: actions/download-artifact@v4
@@ -89,7 +89,7 @@ jobs:
   hosting:
     name: Deploy → Firebase Hosting
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
 
