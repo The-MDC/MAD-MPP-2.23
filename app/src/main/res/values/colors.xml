@@ -1,10 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <!-- Brand Core -->
+    <color name="bg_deep">#FF030107</color>
+    <color name="dark_header">#FF0A0214</color>
+    <color name="brand_gold">#FFFFD700</color>
+    <color name="brand_gold_dark">#FFB8860B</color>
+    <color name="brand_crimson">#FFFF003C</color>
+    <color name="brand_eggwhite">#FFFFFDF0</color>
+
+    <!-- Neon Palette -->
+    <color name="neon_cyan">#FF00F0FF</color>
+    <color name="neon_magenta">#FFFF007F</color>
+    <color name="neon_purple">#FF8B00FF</color>
+    <color name="neon_green">#FF39FF14</color>
+    <color name="neon_pink_pure">#FFFF00FF</color>
+
+    <!-- Backgrounds -->
+    <color name="bg_card">#FF0D0616</color>
+    <color name="bg_panel">#FF150B22</color>
+
+    <!-- Rarity Tiers -->
+    <color name="rarity_common">#FFB0B0B0</color>
+    <color name="rarity_uncommon">#FFE6E6FA</color>
+    <color name="rarity_rare">#FFC5B358</color>
+    <color name="rarity_epic">#FFB8860B</color>
+    <color name="rarity_legendary">#FFFFDF00</color>
+    <color name="rarity_golden">#FFD4AF37</color>
+    <color name="rarity_mythic">#FFFFFFFF</color>
+
+    <!-- Aliases -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="chaos_red">#FFFF003C</color>
+    <color name="border_glow">#FF6B21A8</color>
 </resources>

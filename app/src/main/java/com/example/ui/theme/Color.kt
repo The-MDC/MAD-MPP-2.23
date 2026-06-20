@@ -6,22 +6,23 @@ import androidx.compose.ui.graphics.Color
 val DarkBg = Color(0xFF030107) // Deep velvet purple-black
 val DarkHeader = Color(0xFF0A0214)
 
-// Brand Core - High Street Chic Luxury Golden Flake
-val BrandGold = Color(0xFFFFD700) // Highly polished Tabloid Gold
-val BrandGoldDark = Color(0xFFB8860B) // Metallic Dark Goldenrod
-val BrandGoldGlow = Color(0x60FFD700) // Lowered alpha with real gold tint
-val BrandCrimson = Color(0xFFFF003C) // Vibrant Hot Red/Crimson
-val BrandEggwhite = Color(0xFFFFFDF0) // High-contrast warm cream white
+// Brand Core
+val BrandGold = Color(0xFFFFD700)
+val BrandGoldDark = Color(0xFFB8860B)
+val BrandGoldGlow = Color(0x60FFD700)
+val BrandCrimson = Color(0xFFFF003C)
+val BrandEggwhite = Color(0xFFFFFDF0)
 
-// Neon Palette - High Fidelity Neon Accents from the MAD Gambit images
-val NeonCyan = Color(0xFF00F0FF) // Ultra-glowing neon cyan (Prediction blue)
-val NeonCyanDim = Color(0x2500F0FF) 
-val NeonMagenta = Color(0xFFFF007F) // Ultra-glowing neon pink-fuchsia (Conviction pink)
-val NeonPurple = Color(0xFF8B00FF) // Glowing purple neon (Affliction purple)
-val NeonPurpleDim = Color(0x258B00FF) 
-val NeonGreen = Color(0xFF39FF14) // True hot neon green (Streak / Ticker positive percent)
+// Neon Palette
+val NeonCyan = Color(0xFF00F0FF)
+val NeonCyanDim = Color(0x2500F0FF)
+val NeonMagenta = Color(0xFFFF007F)
+val NeonPurple = Color(0xFF8B00FF)
+val NeonPurpleDim = Color(0x258B00FF)
+val NeonGreen = Color(0xFF39FF14)
+val NeonPinkPure = Color(0xFFFF00FF) // Canonical embroidery spec: pure neon magenta-pink
 
-// Backgrounds - Elegant Velvet Dark
+// Backgrounds
 val BgDeep = Color(0xFF030107)
 val BgCard = Color(0xFF0D0616)
 val BgPanel = Color(0xFF150B22)
@@ -36,7 +37,7 @@ val RarityLegendary = Color(0xFFFFDF00)
 val RarityGolden = Color(0xFFD4AF37)
 val RarityMythic = Color(0xFFFFFFFF)
 
-// Existing colors (aliased for compatibility if needed, but better to just use new ones where applicable)
+// Aliases
 val NeonPink = NeonMagenta
 val GoldGlow = BrandGold
 val ElegantPurple = NeonPurple
@@ -44,6 +45,7 @@ val ChaosRed = BrandCrimson
 val SurfaceGray = BgCard
 val BorderGlow = Color(0xFF6B21A8)
 
+// Gold Brushes
 val GoldFlakeBrush = Brush.linearGradient(
     colors = listOf(
         Color(0xFFB8860B),
@@ -72,6 +74,44 @@ val SubtleGoldGlowBrush = Brush.radialGradient(
         BrandGold.copy(alpha = 0.2f),
         Color.Transparent
     )
+)
+
+// Rarity Tier Brushes — NFT card frame borders
+val RarityCommonBrush = Brush.linearGradient(
+    listOf(Color(0xFFB0B0B0), Color(0xFFD4D4D4), Color(0xFFB0B0B0))
+)
+val RarityUncommonBrush = Brush.linearGradient(
+    listOf(Color(0xFFE6E6FA), Color(0xFF9B8EC4), Color(0xFFE6E6FA))
+)
+val RarityRareBrush = Brush.linearGradient(
+    listOf(Color(0xFFC5B358), Color(0xFFFFE066), Color(0xFFC5B358))
+)
+val RarityEpicBrush = Brush.linearGradient(
+    listOf(Color(0xFFB8860B), Color(0xFFFFD700), Color(0xFFF8F3D4), Color(0xFFB8860B))
+)
+val RarityLegendaryBrush = Brush.linearGradient(
+    listOf(Color(0xFFFFDF00), Color(0xFFFFFFAA), Color(0xFFFFD700), Color(0xFFB8860B), Color(0xFFFFDF00))
+)
+val RarityGoldenBrush = Brush.linearGradient(
+    listOf(Color(0xFFD4AF37), Color(0xFFFFD700), Color(0xFFF8F3D4), Color(0xFFFF8C00), Color(0xFFD4AF37))
+)
+val RarityMythicBrush = Brush.linearGradient(
+    listOf(Color(0xFFFF00FF), Color(0xFFFFFFFF), Color(0xFF00F0FF), Color(0xFFFF007F), Color(0xFFFFFFFF))
+)
+
+// Chaos Meter — RPM gauge gradient: calm cyan → volatile red
+val ChaosMeterBrush = Brush.horizontalGradient(
+    listOf(Color(0xFF00F0FF), Color(0xFF39FF14), Color(0xFFFFD700), Color(0xFFFF8C00), Color(0xFFFF003C))
+)
+
+// Dopamine Slider — Blue Chip (0f/left) → Max Degen (1f/right)
+val DopamineSliderBrush = Brush.horizontalGradient(
+    listOf(Color(0xFF00F0FF), Color(0xFF8B00FF), Color(0xFFFF007F), Color(0xFFFF003C))
+)
+
+// Streak Fire — visual escalation for streak milestones 3→10+
+val StreakBrush = Brush.linearGradient(
+    listOf(Color(0xFFFFD700), Color(0xFFFF8C00), Color(0xFFFF003C))
 )
 
 val GlowBlue = NeonCyan

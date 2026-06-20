@@ -30,9 +30,28 @@ val ArialFamily = FontFamily(
     Font(googleFont = ArialFont, fontProvider = provider)
 )
 
-// Set of Material typography styles to start with
-val Typography =
-  Typography(
+val Typography = Typography(
+    displayLarge = TextStyle(
+        fontFamily = AllertaStencilFamily,
+        fontWeight = FontWeight.Black,
+        fontSize = 36.sp,
+        lineHeight = 42.sp,
+        letterSpacing = (-1).sp
+    ),
+    headlineLarge = TextStyle(
+        fontFamily = AllertaStencilFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 28.sp,
+        lineHeight = 36.sp,
+        letterSpacing = (-0.5).sp
+    ),
+    headlineMedium = TextStyle(
+        fontFamily = AllertaStencilFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp,
+        lineHeight = 28.sp,
+        letterSpacing = (-0.25).sp
+    ),
     titleLarge = TextStyle(
         fontFamily = AllertaStencilFamily,
         fontWeight = FontWeight.Bold,
@@ -46,6 +65,13 @@ val Typography =
         fontSize = 18.sp,
         lineHeight = 24.sp,
         letterSpacing = (-0.5).sp
+    ),
+    titleSmall = TextStyle(
+        fontFamily = ArialNarrowFamily,
+        fontWeight = FontWeight(600),
+        fontSize = 13.sp,
+        lineHeight = 18.sp,
+        letterSpacing = 0.1.sp
     ),
     bodyLarge = TextStyle(
         fontFamily = ArialNarrowFamily,
@@ -82,6 +108,4 @@ val Typography =
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp,
     )
-  )
-
-
+)
