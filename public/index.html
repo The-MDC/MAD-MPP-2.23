@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MΛĐ Gambit — Beta Access</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Allerta+Stencil&family=Barlow+Condensed:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-deep:        #030107;
+      --bg-card:        #0D0616;
+      --bg-panel:       #150B22;
+      --gold:           #FFD700;
+      --gold-dark:      #B8860B;
+      --neon-cyan:      #00F0FF;
+      --neon-magenta:   #FF00FF;
+      --neon-purple:    #8B00FF;
+      --crimson:        #FF003C;
+      --eggwhite:       #FFFDF0;
+      --border-glow:    #6B21A8;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-deep);
+      color: var(--eggwhite);
+      font-family: 'Barlow Condensed', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    /* ── Scan-line overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,240,255,0.015) 2px,
+        rgba(0,240,255,0.015) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    header {
+      width: 100%;
+      padding: 2rem 2rem 1rem;
+      border-bottom: 1px solid var(--border-glow);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(180deg, rgba(139,0,255,0.08) 0%, transparent 100%);
+    }
+
+    .logo {
+      font-family: 'Allerta Stencil', monospace;
+      font-size: clamp(1.6rem, 5vw, 2.8rem);
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--neon-cyan) 60%, var(--neon-magenta) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: none;
+      line-height: 1;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--bg-deep);
+      background: var(--gold);
+      padding: 0.25rem 0.75rem;
+      clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    }
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 900px;
+      padding: 3rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 3rem;
+    }
+
+    .hero {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .hero h1 {
+      font-family: 'Allerta Stencil', monospace;
+      font-size: clamp(2rem, 8vw, 4rem);
+      line-height: 1.05;
+      color: var(--eggwhite);
+    }
+
+    .hero h1 span { color: var(--gold); }
+
+    .hero p {
+      font-size: 1.15rem;
+      color: rgba(255,253,240,0.65);
+      max-width: 560px;
+      line-height: 1.6;
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 0.5rem;
+    }
+
+    .btn {
+      font-family: 'Allerta Stencil', monospace;
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 0.85rem 2rem;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: filter 0.2s;
+      cursor: pointer;
+      border: none;
+      display: inline-block;
+    }
+
+    .btn:hover { filter: brightness(1.25); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      color: var(--bg-deep);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--neon-cyan);
+      box-shadow: inset 0 0 0 1px var(--neon-cyan);
+    }
+
+    /* ── Stats row ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1px;
+      background: var(--border-glow);
+      border: 1px solid var(--border-glow);
+    }
+
+    .stat {
+      background: var(--bg-card);
+      padding: 1.25rem 1rem;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-family: 'Allerta Stencil', monospace;
+      font-size: 1.9rem;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,253,240,0.45);
+      margin-top: 0.35rem;
+    }
+
+    /* ── Features grid ── */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+
+    .feature-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-glow);
+      padding: 1.25rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent, var(--neon-cyan));
+    }
+
+    .feature-card h3 {
+      font-family: 'Allerta Stencil', monospace;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      color: var(--accent, var(--neon-cyan));
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-card p {
+      font-size: 0.9rem;
+      color: rgba(255,253,240,0.6);
+      line-height: 1.5;
+    }
+
+    /* ── Rarity accent colours ── */
+    .accent-gold    { --accent: var(--gold); }
+    .accent-cyan    { --accent: var(--neon-cyan); }
+    .accent-magenta { --accent: var(--neon-magenta); }
+    .accent-purple  { --accent: var(--neon-purple); }
+    .accent-crimson { --accent: var(--crimson); }
+
+    /* ── Install section ── */
+    .install-box {
+      background: var(--bg-panel);
+      border: 1px solid var(--gold-dark);
+      padding: 2rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .install-box::before {
+      content: 'BETA ACCESS';
+      position: absolute;
+      top: -0.65rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Allerta Stencil', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--gold);
+      background: var(--bg-deep);
+      padding: 0 0.75rem;
+    }
+
+    .install-box h2 {
+      font-family: 'Allerta Stencil', monospace;
+      font-size: 1.4rem;
+      color: var(--gold);
+      margin-bottom: 0.75rem;
+    }
+
+    .install-box p {
+      font-size: 0.95rem;
+      color: rgba(255,253,240,0.6);
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+
+    footer {
+      width: 100%;
+      padding: 1.5rem 2rem;
+      border-top: 1px solid var(--border-glow);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: rgba(255,253,240,0.3);
+      letter-spacing: 0.05em;
+    }
+
+    footer a { color: var(--neon-cyan); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">MΛĐ Gambit</div>
+    <span class="badge">Beta v1.7</span>
+  </header>
+
+  <main>
+
+    <section class="hero">
+      <h1>Economic <span>Entertainment</span><br>Engine</h1>
+      <p>
+        Satirical NFT card gaming fused with conviction markets, Dutch auction packs,
+        and a Jersey-accented AI concierge who pulls no punches.
+        Built on Base L2. Powered by MAD Magazine logic.
+      </p>
+      <div class="cta-row">
+        <a href="https://appdistribution.firebase.google.com/testerapps/REPLACE_WITH_YOUR_APP_ID"
+           class="btn btn-primary">Join Beta — Android APK</a>
+        <a href="https://github.com/MADdegen/MAD-MPP-2.23"
+           class="btn btn-secondary">View Source</a>
+      </div>
+    </section>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value">1.88%</div>
+        <div class="stat-label">Platform Fee</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">28%</div>
+        <div class="stat-label">Community Pool</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">40%</div>
+        <div class="stat-label">Creator Share</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">888M</div>
+        <div class="stat-label">Fixed Token Supply</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">Base</div>
+        <div class="stat-label">L2 Primary Chain</div>
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="feature-card accent-gold">
+        <h3>Dutch Auction Packs</h3>
+        <p>Scandal packs drop from 100 → 15 $MADx with live price-decay animations. No bots. No sniping.</p>
+      </div>
+      <div class="feature-card accent-cyan">
+        <h3>Chaos Meter</h3>
+        <p>Live RPM gauge hooked to GARCH(1,1) volatility feeds. When markets go haywire, the engine knows first.</p>
+      </div>
+      <div class="feature-card accent-magenta">
+        <h3>Dopamine Slider</h3>
+        <p>Blue Chip to Max Degen in one swipe. EIP-712 gasless meta-transactions match your risk temperature.</p>
+      </div>
+      <div class="feature-card accent-purple">
+        <h3>MAD Shield</h3>
+        <p>EigenTrust Sybil mitigation with visual rejection logs via the Kaito Terminal. Bots get the honeypot.</p>
+      </div>
+      <div class="feature-card accent-crimson">
+        <h3>7 Rarity Tiers</h3>
+        <p>Common (88 pts) → Mythic (99,999 pts). Burn 100 cards to evolve. Staking APY scales to 88% at Mythic.</p>
+      </div>
+      <div class="feature-card accent-cyan">
+        <h3>The MADHAT'r</h3>
+        <p>Jersey-accented AI concierge — MAD Magazine meets South Park. Same persona across Gemini, Qwen, Nemotron.</p>
+      </div>
+    </div>
+
+    <div class="install-box">
+      <h2>Get the Beta Build</h2>
+      <p>
+        Invited testers receive an email from Firebase App Distribution with a direct APK install link.
+        No Play Store required. New builds auto-deploy on every push to main.
+      </p>
+      <a href="mailto:nick@madgambit.fun?subject=MAD%20Gambit%20Beta%20Access"
+         class="btn btn-primary">Request Tester Access</a>
+    </div>
+
+  </main>
+
+  <footer>
+    <span>© 2026 The-MDC / MADdegen — All rights reserved.</span>
+    <span>
+      <a href="https://github.com/MADdegen/MAD-MPP-2.23">GitHub</a>
+      &nbsp;·&nbsp;
+      <a href="https://maddegen.github.io/MADHATs-Gambit-Presentation/">Pitch Deck</a>
+      &nbsp;·&nbsp;
+      <a href="mailto:nick@madgambit.fun">nick@madgambit.fun</a>
+    </span>
+  </footer>
+
+</body>
+</html>
