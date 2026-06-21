@@ -2,18 +2,30 @@ package com.example.ui.theme
 
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 
-val DarkBg = Color(0xFF030107) // Deep velvet purple-black
+// ── Deep Tech Indigo Theme (branch additions) ──────────────────────────────
+val DeepSpace = Color(0xFF0B0C1C)
+val DeepSpaceCard = Color(0xFF13152A)
+val DeepSpacePanel = Color(0xFF1B1D3A)
+
+val BrandIndigo = Color(0xFF6B7BFF)
+val BrandPurple = Color(0xFF9D4EDD)
+val BrandPink = Color(0xFFFF4B72)
+val SoftPeriwinkle = Color(0xFFA1A7C2)
+
+// ── Core Background Palette ────────────────────────────────────────────────
+val DarkBg = Color(0xFF030107)     // Deep velvet purple-black
 val DarkHeader = Color(0xFF0A0214)
 
-// Brand Core
+// ── Brand Core ─────────────────────────────────────────────────────────────
 val BrandGold = Color(0xFFFFD700)
 val BrandGoldDark = Color(0xFFB8860B)
 val BrandGoldGlow = Color(0x60FFD700)
 val BrandCrimson = Color(0xFFFF003C)
 val BrandEggwhite = Color(0xFFFFFDF0)
 
-// Neon Palette
+// ── Neon Palette ───────────────────────────────────────────────────────────
 val NeonCyan = Color(0xFF00F0FF)
 val NeonCyanDim = Color(0x2500F0FF)
 val NeonMagenta = Color(0xFFFF007F)
@@ -22,13 +34,13 @@ val NeonPurpleDim = Color(0x258B00FF)
 val NeonGreen = Color(0xFF39FF14)
 val NeonPinkPure = Color(0xFFFF00FF) // Canonical embroidery spec: pure neon magenta-pink
 
-// Backgrounds
+// ── Backgrounds ───────────────────────────────────────────────────────────
 val BgDeep = Color(0xFF030107)
 val BgCard = Color(0xFF0D0616)
 val BgPanel = Color(0xFF150B22)
 val BgOverlay = Color(0xE6030107)
 
-// Rarity Colors
+// ── Rarity Colors ─────────────────────────────────────────────────────────
 val RarityCommon = Color(0xFFB0B0B0)
 val RarityUncommon = Color(0xFFE6E6FA)
 val RarityRare = Color(0xFFC5B358)
@@ -37,7 +49,7 @@ val RarityLegendary = Color(0xFFFFDF00)
 val RarityGolden = Color(0xFFD4AF37)
 val RarityMythic = Color(0xFFFFFFFF)
 
-// Aliases
+// ── Aliases ───────────────────────────────────────────────────────────────
 val NeonPink = NeonMagenta
 val GoldGlow = BrandGold
 val ElegantPurple = NeonPurple
@@ -45,15 +57,16 @@ val ChaosRed = BrandCrimson
 val SurfaceGray = BgCard
 val BorderGlow = Color(0xFF6B21A8)
 
-// Gold Brushes
+// ── Gold Brushes ──────────────────────────────────────────────────────────
+// Ultra max polished linear gradient gold sheen
 val GoldFlakeBrush = Brush.linearGradient(
     colors = listOf(
-        Color(0xFFB8860B),
-        Color(0xFFFFD700),
-        Color(0xFFF8F3D4),
-        Color(0xFFD4AF37),
-        Color(0xFF996515),
-        Color(0xFFFFDF00)
+        Color(0xFFB8860B),  // Dark Goldenrod
+        Color(0xFFFFD700),  // Pure Gold
+        Color(0xFFF8F3D4),  // Near-white gleam
+        Color(0xFFD4AF37),  // Goldenrod
+        Color(0xFF996515),  // Deep gold
+        Color(0xFFFFDF00)   // Golden Yellow
     )
 )
 
@@ -76,7 +89,7 @@ val SubtleGoldGlowBrush = Brush.radialGradient(
     )
 )
 
-// Rarity Tier Brushes — NFT card frame borders
+// ── Rarity Tier Brushes — NFT card frame borders ──────────────────────────
 val RarityCommonBrush = Brush.linearGradient(
     listOf(Color(0xFFB0B0B0), Color(0xFFD4D4D4), Color(0xFFB0B0B0))
 )
@@ -99,17 +112,17 @@ val RarityMythicBrush = Brush.linearGradient(
     listOf(Color(0xFFFF00FF), Color(0xFFFFFFFF), Color(0xFF00F0FF), Color(0xFFFF007F), Color(0xFFFFFFFF))
 )
 
-// Chaos Meter — RPM gauge gradient: calm cyan → volatile red
+// ── Chaos Meter — RPM gauge gradient: calm cyan -> volatile red ────────────
 val ChaosMeterBrush = Brush.horizontalGradient(
     listOf(Color(0xFF00F0FF), Color(0xFF39FF14), Color(0xFFFFD700), Color(0xFFFF8C00), Color(0xFFFF003C))
 )
 
-// Dopamine Slider — Blue Chip (0f/left) → Max Degen (1f/right)
+// ── Dopamine Slider — Blue Chip (0f/left) -> Max Degen (1f/right) ──────────
 val DopamineSliderBrush = Brush.horizontalGradient(
     listOf(Color(0xFF00F0FF), Color(0xFF8B00FF), Color(0xFFFF007F), Color(0xFFFF003C))
 )
 
-// Streak Fire — visual escalation for streak milestones 3→10+
+// ── Streak Fire — visual escalation for streak milestones 3->10+ ──────────
 val StreakBrush = Brush.linearGradient(
     listOf(Color(0xFFFFD700), Color(0xFFFF8C00), Color(0xFFFF003C))
 )

@@ -15,6 +15,7 @@ val provider = GoogleFont.Provider(
     certificates = R.array.com_google_android_gms_fonts_certs
 )
 
+// ── Brand / MAD Gambit font families (from main) ──────────────────────────
 val AllertaStencilFont = GoogleFont("Allerta Stencil")
 val AllertaStencilFamily = FontFamily(
     Font(googleFont = AllertaStencilFont, fontProvider = provider)
@@ -28,6 +29,22 @@ val ArialNarrowFamily = FontFamily(
 val ArialFont = GoogleFont("Arimo") // Excellent direct Google Font clone of Arial
 val ArialFamily = FontFamily(
     Font(googleFont = ArialFont, fontProvider = provider)
+)
+
+// ── Sleek tech families (from branch) ─────────────────────────────────────
+val ComfortaaFont = GoogleFont("Inter") // Inter for sleek look
+val ComfortaaFamily = FontFamily(
+    Font(googleFont = ComfortaaFont, fontProvider = provider)
+)
+
+val OutfitFont = GoogleFont("Inter")
+val OutfitFamily = FontFamily(
+    Font(googleFont = OutfitFont, fontProvider = provider)
+)
+
+val ChakraPetchFont = GoogleFont("Space Grotesk") // Space Grotesk has that tech aesthetic
+val ChakraPetchFamily = FontFamily(
+    Font(googleFont = ChakraPetchFont, fontProvider = provider)
 )
 
 val Typography = Typography(

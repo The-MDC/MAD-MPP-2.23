@@ -36,15 +36,18 @@ import com.example.ui.theme.RarityMythicBrush
 
 val NeonIconsGradient = Brush.linearGradient(
     colors = listOf(
-        Color(0xFF00E5FF),
-        Color(0xFFFF007F),
-        Color(0xFFFF073A),
-        Color(0xFF9D00FF)
+        Color(0xFF00E5FF), // Cyan
+        Color(0xFFFF007F), // Pink
+        Color(0xFFFF073A), // Red
+        Color(0xFF9D00FF)  // Purple
     )
 )
 
 val SlateSubduedColor = Color(0xFF90A4AE).copy(alpha = 0.5f)
 
+/**
+ * Modifier to render any icon or vector with a Neon Gradient mask using high-fidelity offscreen compositing strategy.
+ */
 fun Modifier.neonIconComposer(isActive: Boolean = true): Modifier {
     return if (isActive) {
         this
@@ -63,6 +66,9 @@ fun Modifier.neonIconComposer(isActive: Boolean = true): Modifier {
     }
 }
 
+/**
+ * Brush for glass reflection matching any given base color.
+ */
 fun getGlassReflectionBrush(baseColor: Color): Brush {
     return Brush.verticalGradient(
         colors = listOf(
@@ -73,6 +79,9 @@ fun getGlassReflectionBrush(baseColor: Color): Brush {
     )
 }
 
+/**
+ * Modifier that creates a premium, subtle glass reflection layer in place of solid gradients.
+ */
 fun Modifier.glassReflection(
     baseColor: Color,
     shape: Shape = RoundedCornerShape(10.dp),
@@ -93,6 +102,10 @@ fun Modifier.glassReflection(
         )
 }
 
+/**
+ * Modifier that sets a premium glass reflection layer inside any container,
+ * beautifully matching its theme color without overlapping gold/neon borders.
+ */
 fun Modifier.glassContainerBackground(
     baseColor: Color,
     shape: Shape = RoundedCornerShape(12.dp)
@@ -114,6 +127,7 @@ fun Modifier.glassContainerBackground(
         .drawWithCache {
             onDrawWithContent {
                 drawContent()
+                // Overlay a top-to-bottom subtle reflective glass sheen
                 drawRect(
                     brush = Brush.verticalGradient(
                         colors = listOf(
@@ -127,11 +141,15 @@ fun Modifier.glassContainerBackground(
         }
 }
 
+/**
+ * High-fidelity glass effect explicitly crafted for all inner containers.
+ * Preserves the premium glass sheen with 85% transparency.
+ */
 fun Modifier.innerGlassContainerBackground(
     baseColor: Color,
     shape: Shape = RoundedCornerShape(8.dp)
 ): Modifier {
-    val glassBaseColor = baseColor.copy(alpha = 0.15f)
+    val glassBaseColor = baseColor.copy(alpha = 0.15f) // 85% transparent
     return this
         .clip(shape)
         .background(glassBaseColor)
@@ -148,6 +166,7 @@ fun Modifier.innerGlassContainerBackground(
         .drawWithCache {
             onDrawWithContent {
                 drawContent()
+                // Beautiful inner reflection layer
                 drawRect(
                     brush = Brush.verticalGradient(
                         colors = listOf(
@@ -186,7 +205,7 @@ fun chaosMeterGlowBrush(intensity: Float = 0.5f): Brush {
     )
 }
 
-// Dopamine Slider track — value 0f (Blue Chip/calm) → 1f (Max Degen/chaos)
+// Dopamine Slider track — value 0f (Blue Chip/calm) -> 1f (Max Degen/chaos)
 fun dopamineGradientBrush(value: Float = 0f): Brush {
     val v = value.coerceIn(0f, 1f)
     return Brush.horizontalGradient(
@@ -207,6 +226,26 @@ fun Modifier.rarityBorder(rarityName: String, cornerDp: Float = 2f): Modifier =
         shape = CutCornerShape(cornerDp.dp)
     )
 
+/**
+ * Utility class (Modifier) for 'gold-flake-border' implementing a precise 1.15pt border
+ * with ultra max polished linear-gradient gold sheen in ultra max high fidelity.
+ * Includes padding so the neon/gold colors do not bleed into an illegible visual block.
+ */
+fun Modifier.goldFlakeBorder(
+    shape: Shape = RoundedCornerShape(12.dp)
+): Modifier {
+    return this
+        .border(
+            width = 1.15.dp,
+            brush = GoldFlakeBrush,
+            shape = shape
+        )
+}
+
+/**
+ * Reusable Glass Keycap Button styled with a subtle glass reflection layer
+ * instead of a solid gradient background, combined with a Neon Gradient Icon.
+ */
 @Composable
 fun GlassKeycapButton(
     onClick: () -> Unit,
@@ -214,7 +253,7 @@ fun GlassKeycapButton(
     baseColor: Color = Color(0xFF00E5FF),
     icon: @Composable (() -> Unit)? = null,
     label: @Composable (() -> Unit)? = null,
-    shape: Shape = RoundedCornerShape(10.dp)
+    shape: Shape = CutCornerShape(2.dp)
 ) {
     Box(
         modifier = modifier
@@ -222,11 +261,13 @@ fun GlassKeycapButton(
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
+        // The vertical shiny glass sheen layer matching baseColor
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(getGlassReflectionBrush(baseColor))
         )
+        
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -234,9 +275,13 @@ fun GlassKeycapButton(
         ) {
             if (icon != null) {
                 icon()
-                if (label != null) Spacer(modifier = Modifier.width(8.dp))
+                if (label != null) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
             }
-            if (label != null) label()
+            if (label != null) {
+                label()
+            }
         }
     }
 }

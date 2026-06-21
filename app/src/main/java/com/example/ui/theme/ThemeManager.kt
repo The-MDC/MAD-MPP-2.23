@@ -5,6 +5,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -146,6 +147,23 @@ val themeMADUpshot = GambitThemeSpecs(
     isPopArt        = false
 )
 
+// Minimalist High-Contrast Dark Indigo Theme
+val minimalistThemeSpec = GambitThemeSpecs(
+    bgDeep    = DeepSpace,
+    bgCard    = DeepSpaceCard,
+    bgPanel   = DeepSpacePanel,
+    bgOverlay = DeepSpace.copy(alpha = 0.95f),
+    brandPrimary   = BrandIndigo,
+    brandSecondary = BrandPurple,
+    brandAccent    = BrandPink,
+    textPrimary    = Color(0xFFFFFFFF),
+    textSecondary  = SoftPeriwinkle,
+    borderBrush    = SolidColor(Color(0xFFFFD700)),
+    borderWidth    = 1.dp,
+    brushedMetal   = SolidColor(DeepSpaceCard),
+    isPopArt       = false
+)
+
 val NeonGridBrush = Brush.linearGradient(
     listOf(Color(0xFF00FFFF).copy(alpha = 0.2f), Color(0xFFFF00FF).copy(alpha = 0.2f))
 )
@@ -156,10 +174,10 @@ fun ProvideGambitTheme(
     content: @Composable () -> Unit
 ) {
     val targetSpecs = when (themeStyle) {
-        ThemeStyle.BORG_GREEN       -> themeBorgGreen
+        ThemeStyle.BORG_GREEN        -> themeBorgGreen
         ThemeStyle.SHABBY_CHIC_RETRO -> themeShabbyChicRetro
-        ThemeStyle.LUX_MAT_PLASMA   -> themeLuxMatPlasma
-        ThemeStyle.MAD_UPSHOT       -> themeMADUpshot
+        ThemeStyle.LUX_MAT_PLASMA    -> themeLuxMatPlasma
+        ThemeStyle.MAD_UPSHOT        -> themeMADUpshot
     }
 
     val duration = 650
