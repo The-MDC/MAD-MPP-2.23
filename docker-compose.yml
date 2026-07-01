@@ -1,0 +1,73 @@
+# MAD Gambit — Full Stack Docker Compose
+# ════════════════════════════════════════════════════════════════════
+# Orchestrates all three services for local dev:
+#   frontend    — Next.js app (verify/)          → localhost:3000
+#   ai-backend  — FastAPI + LangChain + Gemini/Gemma (ai-backend/) → localhost:8001
+#   postgres    — Cloud SQL-compatible local Postgres, replaces Supabase
+#
+# Smart contracts (contracts/) are NOT containerized here — Foundry
+# contracts don't run as a service; they compile/test/deploy via
+# `forge` commands directly. See contracts/README.md.
+#
+# Quick start:
+#   cp ai-backend/.env.example ai-backend/.env   # fill in GOOGLE_API_KEY
+#   docker compose up --build
+# ════════════════════════════════════════════════════════════════════
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: madgambit-postgres
+    environment:
+      POSTGRES_USER: madgambit
+      POSTGRES_PASSWORD: madgambit
+      POSTGRES_DB: madgambit
+    ports:
+      - "5432:5432"
+    volumes:
+      - madgambit_pg_data:/var/lib/postgresql/data
+      - ./ai-backend/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U madgambit"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ai-backend:
+    build:
+      context: ./ai-backend
+      dockerfile: Dockerfile
+    container_name: madgambit-ai-backend
+    env_file:
+      - ./ai-backend/.env
+    environment:
+      DATABASE_URL: postgresql://madgambit:madgambit@postgres:5432/madgambit
+      CORS_ORIGINS: http://localhost:3000
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./verify
+      dockerfile: Dockerfile
+    container_name: madgambit-frontend
+    environment:
+      NEXT_PUBLIC_AI_BACKEND_URL: http://localhost:8001
+      NODE_ENV: production
+    ports:
+      - "3000:8080"
+    depends_on:
+      ai-backend:
+        condition: service_healthy
+
+volumes:
+  madgambit_pg_data:
