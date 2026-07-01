@@ -1,4 +1,4 @@
-# MAD Gambit — AI Backend (LangChain + Gemini/Gemma)
+# MAD Gambit — AI Backend (LangChain + Gemini API)
 FROM python:3.12-slim AS base
 WORKDIR /app
 
