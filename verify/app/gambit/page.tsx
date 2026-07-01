@@ -40,6 +40,7 @@ import LiveTicker from "@/components/live-ticker";
 import OVDeckSelector from "@/components/ov-deck-selector";
 import MadhatrConcierge from "@/components/madhatr-concierge";
 import { EigenTrustWidget } from "@/components/virality-eigen";
+import AuthModal from "@/components/auth-modal";
 
 // Tab panels
 import NftSaga from "@/components/nft-saga";
@@ -57,7 +58,7 @@ import {
 } from "@/lib/gambit-game-math";
 import {
   ShieldAlert, Layers, Trophy, Package, Ticket, Cpu,
-  Palette, Crown, Sparkles,
+  Palette, Crown, Sparkles, User, Wallet, LogOut
 } from "lucide-react";
 
 type Tab = "floor" | "saga" | "arena" | "packs" | "portal" | "casino" | "logic";
@@ -77,8 +78,11 @@ function GambitInner() {
   const [skinMenuOpen, setSkinMenuOpen] = useState(false);
   const tokens: SkinTokens        = SKIN_TOKENS[skin];
 
-  const { chaosMeter, vrsFlash, cards } = useGame();
+  const { chaosMeter, vrsFlash, cards, socialAuth, setSocialAuth, walletAuth, setWalletAuth } = useGame();
   const hasGoldenHand = cards.some(c => ["Golden Hand","Mythic"].includes(c.rarity));
+
+  // Modals
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   return (
     <main className="min-h-screen text-neutral-100 relative overflow-hidden pb-16"
@@ -108,7 +112,50 @@ function GambitInner() {
           style={{ background: `${tokens.primary}20` }} />
       )}
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-8">
+      {/* ── TOP AUTH BAR ── */}
+      <div className="relative z-20 flex items-center justify-end p-4 gap-3">
+        {!socialAuth.isAuthenticated ? (
+          <button 
+            onClick={() => setShowAuthModal(true)}
+            className="px-4 py-2 bg-white text-black font-mono text-[10px] uppercase font-bold tracking-widest rounded-lg hover:bg-neutral-200 transition-colors"
+          >
+            Login / Sign Up
+          </button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <div className="px-3 py-1.5 bg-[#05070c] border border-neutral-800 rounded-lg flex items-center gap-2">
+              <User className="w-3.5 h-3.5 text-neutral-400" />
+              <span className="font-mono text-[10px] text-neutral-300">{socialAuth.email}</span>
+            </div>
+            
+            {!walletAuth.isConnected ? (
+              <button 
+                onClick={() => setWalletAuth({ isConnected: true, address: "0xMAD...8888" })}
+                className="px-4 py-1.5 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-[10px] uppercase font-bold tracking-widest rounded-lg hover:bg-cyan-500/20 transition-colors flex items-center gap-1.5"
+              >
+                <Wallet className="w-3.5 h-3.5" /> Connect Wallet
+              </button>
+            ) : (
+              <div className="px-3 py-1.5 bg-cyan-500/10 border border-cyan-500/30 rounded-lg flex items-center gap-2">
+                <Wallet className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="font-mono text-[10px] text-cyan-400 font-bold">{walletAuth.address}</span>
+              </div>
+            )}
+            
+            <button 
+              onClick={() => {
+                setSocialAuth({ isAuthenticated: false, provider: null, email: null });
+                setWalletAuth({ isConnected: false, address: null });
+              }}
+              className="p-1.5 text-neutral-500 hover:text-rose-400 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-2">
 
         {/* HERO HEADER */}
         <header className="text-center mb-4">
@@ -217,7 +264,15 @@ function GambitInner() {
 
       {/* MADHAT'r floating concierge — page-level, persists across every tab.
           Fixed bottom-right, real top-hat logo, GEMINI.md persona. */}
-      <MadhatrConcierge uid="global" />
+      <MadhatrConcierge />
+      
+      {/* ── GLOBAL MODALS ── */}
+      {showAuthModal && (
+        <AuthModal 
+          isOpen={showAuthModal} 
+          onClose={() => setShowAuthModal(false)} 
+        />
+      )}
     </main>
   );
 }

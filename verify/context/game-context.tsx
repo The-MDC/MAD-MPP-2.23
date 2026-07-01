@@ -121,6 +121,12 @@ export interface GameContextType {
   useSaverToken: () => boolean;
   eigenTrustScore: number;           // live EigenTrust (0..100), from virality-eigen
   setEigenTrustScore: (score: number) => void; // written by EigenTrustWidget on each render
+  
+  // Auth (Two-Tier)
+  socialAuth: { isAuthenticated: boolean; provider: string | null; email: string | null };
+  setSocialAuth: React.Dispatch<React.SetStateAction<{ isAuthenticated: boolean; provider: string | null; email: string | null }>>;
+  walletAuth: { isConnected: boolean; address: string | null };
+  setWalletAuth: React.Dispatch<React.SetStateAction<{ isConnected: boolean; address: string | null }>>;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -162,6 +168,16 @@ const OPPONENTS = ["ScandalScraper","TopHatTommy","LunarLiquidity","DegenDiana",
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [cards, setCards]       = useState<NftCard[]>(SEED_CARDS);
   const [eigenTrustScore, setEigenTrustScore] = useState<number>(10); // default 10 (wallet-age only, no social)
+
+  const [socialAuth, setSocialAuth] = useState<{ isAuthenticated: boolean; provider: string | null; email: string | null }>({
+    isAuthenticated: false,
+    provider: null,
+    email: null
+  });
+  const [walletAuth, setWalletAuth] = useState<{ isConnected: boolean; address: string | null }>({
+    isConnected: false,
+    address: null
+  });
 
   const [saverTokens, setSaverTokens] = useState<number>(() => {
     // Replenish to 1 on first load if a week has passed since last replenish
@@ -416,11 +432,13 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     shieldReturnCountdown: getShieldReturnCountdown,
     saverTokens, useSaverToken, xp, addXp, eigenTrustScore, setEigenTrustScore,
     socialAccounts, linkSocialAccount, socialAmplification,
+    socialAuth, setSocialAuth, walletAuth, setWalletAuth,
     platform: PLATFORM,
   }), [cards, addCard, evolveCard, streak, recordPick, vrsFlash, chaosMeter, madCredits,
        adjustCredits, tournamentPool, ladder, userMmr, runPvpMatch, zLiarHistory, runZLiar,
        positions, openPosition, resolvePosition, shieldTogglePosition,
-       socialAccounts, linkSocialAccount, socialAmplification]);
+       socialAccounts, linkSocialAccount, socialAmplification,
+       socialAuth, walletAuth]);
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }

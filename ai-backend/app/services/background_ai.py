@@ -60,16 +60,22 @@ class BackgroundAiService:
         self._using_gemma = bool(settings.gemma_endpoint_url)
 
         if self._using_gemma:
-            # PLACEHOLDER — real Gemma routing wires here once the Vertex AI
-            # Model Garden endpoint (or local Ollama/vLLM container) is live.
-            # ChatGoogleGenerativeAI doesn't natively point at a custom Gemma
-            # endpoint; production swaps this for a direct HTTP client against
-            # gemma_endpoint_url, or langchain-community's VertexAIModelGarden.
-            self._llm = ChatGoogleGenerativeAI(
-                model=settings.gemma_model,
-                google_api_key=settings.google_api_key or None,
-                temperature=0.7,
-            )
+            url = settings.gemma_endpoint_url
+            is_local = any(x in url for x in ["localhost", "127.0.0.1", "host.docker.internal", "11434"])
+            if is_local:
+                from langchain_community.chat_models import ChatOllama
+                model_name = settings.gemma_model if settings.gemma_model else "gemma2:9b"
+                self._llm = ChatOllama(
+                    base_url=url,
+                    model=model_name,
+                    temperature=0.7,
+                )
+            else:
+                self._llm = ChatGoogleGenerativeAI(
+                    model=settings.gemma_model,
+                    google_api_key=settings.google_api_key or None,
+                    temperature=0.7,
+                )
         else:
             # Fallback: Gemini flash, same interface, until Gemma is deployed.
             self._llm = ChatGoogleGenerativeAI(

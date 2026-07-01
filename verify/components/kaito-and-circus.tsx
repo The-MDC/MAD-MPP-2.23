@@ -84,22 +84,29 @@ export function KaitoPriceTicker() {
  * Outcome resolves via resolveScenarioPick() using scene probability.
  */
 
-import { DEFAULT_SCENARIOS, OV_DECKS, OVDeck, resolveScenarioPick, calculateDeltaLimit } from "@/lib/gambit-game-math";
+import { DEFAULT_SCENARIOS, OV_DECKS, OVDeck } from "@/lib/gambit-game-math";
+import { ZapIcon, TrendingUp, TrendingDown } from "lucide-react";
 import { useGame } from "@/context/game-context";
-import { TrendingUp, TrendingDown, Zap as ZapIcon } from "lucide-react";
+import { calculateDeltaLimit, resolveScenarioPick } from "@/lib/gambit-game-math";
+import AuthModal from "./auth-modal";
 
 export function PredictionCircus({ activeDeck }: { activeDeck?: OVDeck }) {
   const deck = activeDeck ?? OV_DECKS[0];
-  const { madCredits, adjustCredits, recordPick } = useGame();
+  const { madCredits, adjustCredits, recordPick, socialAuth } = useGame();
   const [stakes, setStakes] = useState<Record<string, string>>({});
   const [results, setResults] = useState<Record<string, { won: boolean; payout: number; delta: number }>>({});
   const [flash, setFlash] = useState<string | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   function getStake(id: string): number {
     return Math.max(1, parseInt(stakes[id] ?? "100") || 100);
   }
 
   function stake(scenId: string) {
+    if (!socialAuth.isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
     const scenario = DEFAULT_SCENARIOS.find((s) => s.id === scenId);
     if (!scenario) return;
     const amount = getStake(scenId);
@@ -168,12 +175,14 @@ export function PredictionCircus({ activeDeck }: { activeDeck?: OVDeck }) {
                 disabled={madCredits < getStake(sc.id)}
                 className="shrink-0 rounded-lg px-4 py-1.5 font-mono text-[10px] font-black uppercase tracking-wider transition-all disabled:opacity-30 hover:scale-[1.02] flex items-center gap-1"
                 style={{ background: "#c98aff15", border: "1px solid #c98aff55", color: "#c98aff" }}>
-                <ZapIcon className="w-3 h-3" /> Stake
+                <ZapIcon className="w-3 h-3" /> [MOCK] Stake
               </button>
             </div>
           </div>
         );
       })}
+      
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   );
 }

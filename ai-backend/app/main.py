@@ -16,6 +16,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import get_settings
 from app.routes.ai import router as ai_router
+from app.routes.auth import router as auth_router
 
 settings = get_settings()
 
@@ -67,3 +68,4 @@ async def health():
 
 
 app.include_router(ai_router)
+app.include_router(auth_router)

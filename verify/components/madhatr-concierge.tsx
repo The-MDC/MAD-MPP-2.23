@@ -132,6 +132,8 @@ function riskLabel(v: number): string {
   return "MAX DEGEN";
 }
 
+const BACKEND_URL = (process.env.NEXT_PUBLIC_AI_BACKEND_URL || "http://localhost:8001").replace(/\/$/, "");
+
 export default function MadhatrConcierge({ uid = "concierge" }: { uid?: string }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMsg[]>([SEED_MESSAGE]);
@@ -145,28 +147,76 @@ export default function MadhatrConcierge({ uid = "concierge" }: { uid?: string }
     if (open) scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, typing, open]);
 
-  const send = useCallback(() => {
+  const send = useCallback(async () => {
     const text = input.trim();
     if (!text) return;
     setMessages(m => [...m, { id: `u_${Date.now()}`, from: "user", text }]);
     setInput("");
     setTyping(true);
-    setTimeout(() => {
+    
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/v1/concierge/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: text,
+          history: messages,
+          tone,
+          risk,
+          regen_count: 0
+        })
+      });
+      
+      if (!res.ok) throw new Error("Backend error");
+      const data = await res.json();
+      
       setTyping(false);
       setMessages(m => [...m, {
         id: `h_${Date.now()}`, from: "madhatr",
-        text: pickReply(text, tone, risk, 0), regenCount: 0,
+        text: data.reply, regenCount: 0,
       }]);
-    }, 650 + Math.random() * 500);
-  }, [input, tone, risk]);
+    } catch (e) {
+      setTyping(false);
+      setMessages(m => [...m, {
+        id: `e_${Date.now()}`, from: "madhatr",
+        text: "The network is acting up, kid. Give it a minute.", regenCount: 0,
+      }]);
+    }
+  }, [input, tone, risk, messages]);
 
-  const regenerate = useCallback((msgId: string, originalUserText: string) => {
-    setMessages(m => m.map(msg => {
-      if (msg.id !== msgId) return msg;
-      const nextCount = (msg.regenCount ?? 0) + 1;
-      return { ...msg, regenCount: nextCount, text: pickReply(originalUserText, tone, risk, nextCount) };
-    }));
-  }, [tone, risk]);
+  const regenerate = useCallback(async (msgId: string, originalUserText: string) => {
+    const msgIndex = messages.findIndex(x => x.id === msgId);
+    if (msgIndex === -1) return;
+    
+    const msg = messages[msgIndex];
+    const nextCount = (msg.regenCount ?? 0) + 1;
+    setTyping(true);
+    
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/v1/concierge/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: originalUserText,
+          history: messages.slice(0, msgIndex),
+          tone,
+          risk,
+          regen_count: nextCount
+        })
+      });
+      
+      if (!res.ok) throw new Error("Backend error");
+      const data = await res.json();
+      
+      setTyping(false);
+      setMessages(m => m.map(x => {
+        if (x.id !== msgId) return x;
+        return { ...x, regenCount: nextCount, text: data.reply };
+      }));
+    } catch (e) {
+      setTyping(false);
+    }
+  }, [tone, risk, messages]);
 
   return (
     <div style={{ position: "fixed", bottom: "20px", right: "20px", zIndex: 200 }}>

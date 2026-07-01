@@ -59,6 +59,9 @@ class Settings(BaseSettings):
     # ── Rate limiting (per backend-patterns skill) ─────────────────
     rate_limit_per_minute: int = Field(default=30, alias="RATE_LIMIT_PER_MINUTE")
 
+    # ── Auth ───────────────────────────────────────────────────────
+    jwt_secret: str = Field(default="super-secret-default-key-change-in-prod", alias="JWT_SECRET")
+
     class Config:
         env_file = ".env"
         populate_by_name = True

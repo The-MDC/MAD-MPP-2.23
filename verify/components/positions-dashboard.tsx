@@ -13,6 +13,7 @@ import React, { useState, useEffect } from "react";
 import { useGame } from "@/context/game-context";
 import { shieldPhiRatio, garchUpdate, PHI, shieldReturnCountdown } from "@/lib/gambit-game-math";
 import { Shield, ShieldOff, ShieldCheck, TrendingUp, TrendingDown, Clock, Zap, Timer } from "lucide-react";
+import WalletGateway from "./wallet-gateway";
 
 // Rolling σ² for display (same seed as ScandalVelocityMeter)
 function getCurrentSigma(): number {
@@ -58,7 +59,8 @@ export default function PositionsDashboard() {
   }, 0);
 
   return (
-    <div className="rounded-3xl border border-neutral-850 bg-[#05070c]/80 backdrop-blur-md overflow-hidden">
+    <WalletGateway>
+      <div className="rounded-3xl border border-neutral-850 bg-[#05070c]/80 backdrop-blur-md overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-900">
         <div className="flex items-center gap-2.5">
@@ -230,8 +232,9 @@ export default function PositionsDashboard() {
             </div>
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </WalletGateway>
   );
 }
 
