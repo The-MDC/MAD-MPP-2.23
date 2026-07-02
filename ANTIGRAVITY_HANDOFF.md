@@ -78,3 +78,21 @@ docker compose up --build
 3. **The wear/drop-rate tables are final math, already approved by the user** — `RARITY_WEAR_PCT` (2%/2%/10%/11.5%/13%/14.5%/16%) and `RARITY_DROP_WEIGHTS` (568/236/120/60/10/6 per 1000). Port them faithfully into Solidity, don't recompute.
 4. **`GEMINI_SYSTEM_INSTRUCTION` is verbatim from the recovered `GEMINI.md` source file** — do not paraphrase, shorten, or "clean up" its tone. The design law is explicit: the UI is polished, the AI's voice stays raw.
 5. Priority order for finishing the PLACEHOLDER list: auth (money-safety) → `MADShieldVault.sol` + tests → wire concierge to real backend → Gemma endpoint → everything else.
+
+---
+
+## Phase 2 Upgrades & Agent Evolution (The LangGraph Blueprint)
+
+The user has explicitly approved the following **LangGraph state-machine architecture** for the next phase of development. When picking up Phase 2, this is the required architectural path for upgrading the simple bots and scrapers into fully autonomous, reasoning AI agents:
+
+### 1. The "Smart" Agentic Scraper (LangGraph + Gemini 1.5 Pro)
+Replace rigid news scrapers with a multi-node reasoning loop:
+- **Discovery Node**: Pulls raw viral media, tabloids, crypto news, and polymarket headlines.
+- **Reasoning Node (Gemini)**: Reads raw text, extracts core entities, and calculates a highly accurate *Scandal Velocity* and *Z-Liar* score by cross-referencing facts.
+- **Vector Node**: Converts finalized intelligence into vector embeddings and stores them in Postgres (`pgvector`) for the trading bots to access.
+
+### 2. The Evolved Copy-Trading Bot (LangGraph)
+Basic copy-trading bots are vulnerable to front-running and trap-trades. Phase 2 introduces an "Alpha Filter" state machine:
+- **Surveillance Node**: Monitors top-tier Polymarket whales (via the `clob-client`) and specific crypto wallets for sudden movements.
+- **Validation Node (Gemini)**: Queries the Postgres vector database to check if real news supports the trade (e.g., *Is this whale buying "Yes" on a scandal because of insider info, or is it a liquidity trap?*).
+- **Execution Node**: If the trade passes the AI's strict risk-management and semantic verification, it automatically formats and signs the transaction using the CTF exchange smart contracts.
