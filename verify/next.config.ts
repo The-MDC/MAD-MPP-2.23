@@ -13,7 +13,6 @@ const nextConfig = (phase: string): NextConfig => {
     reactStrictMode: true,
     output: "standalone",
     distDir: isDev ? ".next-dev" : ".next",
-    eslint: { ignoreDuringBuilds: true },
     typescript: { ignoreBuildErrors: false },
   };
 };

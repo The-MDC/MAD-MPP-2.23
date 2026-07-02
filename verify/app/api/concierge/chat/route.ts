@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
         }
 
         const llm = new ChatGoogleGenerativeAI({
-            modelName: "gemini-1.5-pro",
+            model: "gemini-flash-latest",
             maxOutputTokens: 300,
             temperature: 0.85,
         });

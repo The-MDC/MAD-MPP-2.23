@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 
         // 2. Generate Satire & Scandal Velocity via Gemini
         const llm = new ChatGoogleGenerativeAI({
-            modelName: "gemini-1.5-pro",
+            model: "gemini-flash-latest",
             temperature: 0.9,
             maxOutputTokens: 500,
         });

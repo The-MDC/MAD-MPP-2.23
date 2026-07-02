@@ -1,13 +1,4 @@
 {
-  "version": 2,
-  "name": "madgambit-frontend",
-  "framework": "nextjs",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -21,12 +12,6 @@
           "value": "nosniff"
         }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/v1/:path*",
-      "destination": "https://api.madgambit.com/api/v1/:path*"
     }
   ]
 }
