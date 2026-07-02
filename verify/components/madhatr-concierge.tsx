@@ -132,7 +132,7 @@ function riskLabel(v: number): string {
   return "MAX DEGEN";
 }
 
-const BACKEND_URL = (process.env.NEXT_PUBLIC_AI_BACKEND_URL || "http://localhost:8001").replace(/\/$/, "");
+const BACKEND_URL = "";
 
 export default function MadhatrConcierge({ uid = "concierge" }: { uid?: string }) {
   const [open, setOpen] = useState(false);
@@ -155,7 +155,7 @@ export default function MadhatrConcierge({ uid = "concierge" }: { uid?: string }
     setTyping(true);
     
     try {
-      const res = await fetch(`${BACKEND_URL}/api/v1/concierge/chat`, {
+      const res = await fetch(`/api/concierge/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -193,7 +193,7 @@ export default function MadhatrConcierge({ uid = "concierge" }: { uid?: string }
     setTyping(true);
     
     try {
-      const res = await fetch(`${BACKEND_URL}/api/v1/concierge/chat`, {
+      const res = await fetch(`/api/concierge/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
