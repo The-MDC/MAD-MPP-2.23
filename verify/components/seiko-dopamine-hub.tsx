@@ -89,6 +89,33 @@ const TILE_LABELS: { id: TileId; label: string; icon: string }[] = [
  * SUB-COMPONENT: Scrolling Ticker Bar
  * Exact from image: single-line dark strip, left = crypto prices, right = MADx/CHAOS
  * ══════════════════════════════════════════════════════════════ */
+/* Market-energy equalizer — audio-visualizer bars beneath the golden ticker. */
+function EqualizerStrip() {
+  const BARS = 44;
+  const [heights, setHeights] = useState<number[]>(() => Array.from({ length: BARS }, () => 0.3 + Math.random() * 0.4));
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = setInterval(() => {
+      setHeights(prev => prev.map((h, i) => {
+        const target = 0.15 + Math.abs(Math.sin(Date.now() / 400 + i * 0.5)) * 0.85;
+        return h + (target - h) * 0.5;
+      }));
+    }, 90);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div style={{ width: "100%", height: "22px", display: "flex", alignItems: "flex-end", justifyContent: "space-between",
+      gap: "1px", padding: "0 10px 3px", background: `${T.bgPanel}cc`, borderBottom: `1px solid ${T.border}`, overflow: "hidden" }}
+      aria-hidden="true">
+      {heights.map((h, i) => {
+        const c = i % 3 === 0 ? T.gold : i % 3 === 1 ? T.cyan : T.pink;
+        return <div key={i} style={{ flex: 1, height: `${Math.max(8, h * 100)}%`, background: `linear-gradient(to top, ${c}22, ${c})`,
+          borderRadius: "1px", boxShadow: `0 0 4px ${c}88`, transition: "height 0.09s linear" }} />;
+      })}
+    </div>
+  );
+}
+
 function TickerBar() {
   const [prices, setPrices] = useState(TICKER_BASE);
   const barRef = useRef<HTMLDivElement>(null);
@@ -517,6 +544,9 @@ export default function SeikoDopamineHub() {
     >
       {/* ── 1. SCROLLING TICKER BAR ────────────────────────── */}
       <TickerBar />
+
+      {/* ── 1b. MARKET-ENERGY EQUALIZER — sits below the golden ticker ── */}
+      <EqualizerStrip />
 
       {/* ── 2. HEADER ROW: title only — instrument cluster gets its own row below ── */}
       <div style={{ padding: "14px 20px 4px", textAlign: "center" }}>
