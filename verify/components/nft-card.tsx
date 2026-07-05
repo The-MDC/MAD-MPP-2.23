@@ -24,6 +24,10 @@ import React from "react";
 import { NftCard as Card, FACTIONS } from "@/context/game-context";
 import { RARITY_TABLE } from "@/lib/gambit-game-math";
 
+/** Default card art — the MAD Gambit brand logo, dynamically shrunk-to-fit
+ *  the art zone (preserveAspectRatio meet). Overridden per-serial by card.artUrl. */
+const CARD_ART_LOGO = "/brand/madhatr-logo.png";
+
 const factionAccent = (f: Card["faction"]) =>
   FACTIONS.find((x) => x.name === f)?.accent ?? "#7cffc7";
 const factionGlyph = (f: Card["faction"]) =>
@@ -121,22 +125,21 @@ export function NftCardView({
           <text x="290" y="44" textAnchor="end" fontFamily="ui-monospace, monospace" fontSize="10" fill={accent} fontWeight="900">{tier.powerScore.toLocaleString()} PWR</text>
         </g>
 
-        {/* character art zone (~center 60%) — PLACEHOLDER procedural portrait */}
+        {/* character art zone (~center 60%) — MAD Gambit logo, shrunk-to-fit.
+            Real per-serial AI-Studio art overrides via card.artUrl when present. */}
         <g>
           <rect x="22" y="64" width="276" height="220" rx="14" fill="#04060b" stroke="#1f2937" strokeWidth="1" />
           <rect x="22" y="64" width="276" height="220" rx="14" fill={`url(#art-${uid})`} />
-          {/* stylized top-hat caricature silhouette (clearly placeholder art) */}
-          <g transform="translate(160,182)" filter={`url(#glow-${uid})`} opacity="0.92">
-            <ellipse cx="0" cy="46" rx="62" ry="16" fill="#05030e" stroke={accent} strokeWidth="2" />
-            <path d="M-46 40 L46 40 L34 -52 L-34 -52 Z" fill="#06030c" stroke={accent} strokeWidth="2.5" />
-            <ellipse cx="0" cy="-52" rx="34" ry="9" fill="#06030c" stroke={accent} strokeWidth="2" />
-            <path d="M-50 30 Q0 36 50 30 L46 44 Q0 50 -46 44 Z" fill={fAccent} opacity="0.85" />
-            <rect x="-14" y="22" width="28" height="16" rx="3" fill="none" stroke="#eab308" strokeWidth="2" />
-            <rect x="-7" y="26" width="14" height="8" fill="#eab308" opacity="0.8" />
-            <circle cx="-16" cy="2" r="6" fill="#ffe2c4" /><circle cx="16" cy="2" r="6" fill="#ffe2c4" />
-            <path d="M-26 18 Q0 30 26 18" stroke={accent} strokeWidth="2.5" fill="none" />
-          </g>
-          <text x="160" y="276" textAnchor="middle" fontFamily="ui-monospace, monospace" fontSize="7.5" fill="#475569" letterSpacing="1.5">◇ ART PLACEHOLDER · DROP AI-STUDIO #{card.serial} ◇</text>
+          {/* clip so the logo never bleeds past the rounded art frame */}
+          <clipPath id={`artclip-${uid}`}><rect x="22" y="64" width="276" height="220" rx="14" /></clipPath>
+          <image
+            href={card.artUrl ?? CARD_ART_LOGO}
+            x="44" y="82" width="232" height="184"
+            preserveAspectRatio="xMidYMid meet"
+            clipPath={`url(#artclip-${uid})`}
+            filter={`url(#glow-${uid})`}
+            opacity="0.98"
+          />
         </g>
 
         {/* card name (lower section) */}

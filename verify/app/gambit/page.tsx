@@ -52,6 +52,7 @@ import LogicLab from "@/components/logic-lab";
 import PackOpening from "@/components/pack-opening";
 import StakingTiersPanel from "@/components/staking-tiers-panel";
 import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
+import BottomNav from "@/components/bottom-nav";
 
 import {
   OVDeck, OV_DECKS, ThemeSkin, SKIN_TOKENS, SkinTokens,
@@ -155,7 +156,7 @@ function GambitInner() {
         )}
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-2">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-2 pb-24 lg:pb-2">
 
         {/* HERO HEADER */}
         <header className="text-center mb-4">
@@ -261,6 +262,10 @@ function GambitInner() {
           </p>
         </footer>
       </div>
+
+      {/* Fixed mobile bottom action bar — additive mobile UX, mirrors the 7 tabs.
+          Desktop (lg+) keeps the shipped top tab bar; this is lg:hidden. */}
+      <BottomNav active={tab} onSelect={setTab} color={tokens.primary} hasGoldenHand={hasGoldenHand} />
 
       {/* MADHAT'r floating concierge — page-level, persists across every tab.
           Fixed bottom-right, real top-hat logo, GEMINI.md persona. */}

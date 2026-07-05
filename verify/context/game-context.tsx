@@ -49,6 +49,7 @@ export interface NftCard {
   edgeMultiplier: number; // 1.0..1.5 edge bonus
   earnsCount: number;    // cumulative lifetime $MADx earned by this card
   canonicalFactionId: string; // on-chain snake_case faction ID
+  artUrl?: string;       // optional real art (AI-Studio, keyed by serial); falls back to brand logo
 }
 
 export interface TournamentEntry {
