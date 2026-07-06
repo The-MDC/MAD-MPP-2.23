@@ -12,7 +12,7 @@
 import React, { useState, useEffect } from "react";
 import { useGame } from "@/context/game-context";
 import { shieldPhiRatio, garchUpdate, PHI, shieldReturnCountdown } from "@/lib/gambit-game-math";
-import { Shield, ShieldOff, ShieldCheck, TrendingUp, TrendingDown, Clock, Zap, Timer } from "lucide-react";
+import { Shield, ShieldOff, ShieldCheck, TrendingUp, TrendingDown, Clock, Zap, Timer, Radar, Brain, Loader2 } from "lucide-react";
 import WalletGateway from "./wallet-gateway";
 
 // Rolling σ² for display (same seed as ScandalVelocityMeter)
@@ -37,6 +37,25 @@ export default function PositionsDashboard() {
   const [sigma2, setSigma2] = useState(getCurrentSigma);
   const [now, setNow] = useState(Date.now()); // ticks every 30s for return countdown
   const [resolving, setResolving] = useState<Record<string, "won" | "lost">>({});
+
+  // AI Whale Surveillance State
+  const [isScanningWhales, setIsScanningWhales] = useState(false);
+  const [whaleTrades, setWhaleTrades] = useState<any[]>([]);
+
+  async function scanWhaleMempool() {
+    setIsScanningWhales(true);
+    try {
+      const res = await fetch('/api/v1/agents/trader', { method: 'POST' });
+      const json = await res.json();
+      if (json.success && json.data?.targetTrade) {
+        setWhaleTrades(prev => [json.data, ...prev].slice(0, 3));
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsScanningWhales(false);
+    }
+  }
 
   useEffect(() => {
     const t = setInterval(() => { setSigma2(getCurrentSigma()); setNow(Date.now()); }, 3000);
@@ -79,6 +98,84 @@ export default function PositionsDashboard() {
       </div>
 
       <div className="p-4 space-y-2.5">
+        {/* Whale AI Surveillance */}
+        <div className="mb-4 p-4 rounded-xl border border-blue-500/30 bg-blue-500/5 shadow-[0_0_20px_rgba(59,130,246,0.05)]">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-blue-400 font-bold flex items-center gap-2">
+                Whale AI Surveillance
+                {isScanningWhales && <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-400" />}
+              </p>
+              <p className="font-mono text-[8px] text-neutral-500 mt-1">Intercepting & validating live Polymarket CTF txns</p>
+            </div>
+            <button 
+              onClick={scanWhaleMempool}
+              disabled={isScanningWhales}
+              className="px-3 py-1.5 rounded-lg border border-blue-500/40 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 font-mono text-[9px] uppercase font-bold tracking-wider transition-all disabled:opacity-50 flex items-center gap-1.5"
+            >
+              <Radar className={`w-3 h-3 ${isScanningWhales ? 'animate-spin' : ''}`} />
+              Scan Mempool
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            {whaleTrades.length === 0 && !isScanningWhales ? (
+              <div className="text-center py-4 border border-dashed border-blue-500/20 rounded-lg">
+                <p className="font-mono text-[9px] text-blue-500/60 uppercase tracking-widest">Mempool Empty</p>
+              </div>
+            ) : null}
+
+            {isScanningWhales && (
+              <div className="animate-pulse flex items-center justify-between p-3 rounded-lg border border-blue-500/20 bg-black/40">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-blue-500/20" />
+                  <div className="space-y-1.5">
+                    <div className="w-32 h-2 bg-blue-500/20 rounded" />
+                    <div className="w-20 h-2 bg-blue-500/10 rounded" />
+                  </div>
+                </div>
+                <div className="w-16 h-4 bg-neutral-800 rounded" />
+              </div>
+            )}
+
+            {whaleTrades.map((trade, idx) => (
+              <div key={idx} className="p-3 rounded-lg border border-neutral-850 bg-[#030508] relative overflow-hidden group">
+                <div className={`absolute left-0 top-0 bottom-0 w-1 ${trade.validationStatus === 'APPROVED' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                <div className="flex items-start justify-between pl-2">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-mono text-[10px] font-bold text-neutral-200">
+                        {trade.targetTrade?.action} {trade.targetTrade?.amountUSDC} USDC on {trade.targetTrade?.outcome}
+                      </span>
+                      <span className={`font-mono text-[8px] px-1.5 py-0.5 rounded border ${
+                        trade.validationStatus === 'APPROVED' 
+                          ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10' 
+                          : 'border-rose-500/30 text-rose-400 bg-rose-500/10'
+                      }`}>
+                        AI {trade.validationStatus}
+                      </span>
+                    </div>
+                    <p className="font-mono text-[9px] text-neutral-500 mb-2 leading-tight">
+                      Mkt: {trade.targetTrade?.marketTitle}
+                    </p>
+                    
+                    {trade.newsContext?.length > 0 && (
+                      <div className="mt-2 pt-2 border-t border-neutral-900">
+                        <p className="font-mono text-[8px] text-neutral-600 mb-1 flex items-center gap-1">
+                          <Brain className="w-2.5 h-2.5" /> Vector DB Context:
+                        </p>
+                        <p className="font-mono text-[8px] italic text-neutral-400 leading-relaxed line-clamp-2">
+                          "{trade.newsContext[0].content}"
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Empty state */}
         {open.length === 0 && closed.length === 0 && (
           <div className="text-center py-10">
@@ -98,8 +195,8 @@ export default function PositionsDashboard() {
           return (
             <div key={pos.id}
               className={`rounded-xl border p-3.5 transition-all duration-500 ${
-                resolveState === "won" ? "animate-resolve-win border-emerald-500/60 bg-emerald-500/5" :
-                resolveState === "lost" ? "animate-resolve-loss border-rose-500/60 bg-rose-500/5" :
+                resolveState === "won" ? "animate-resolve-win border-emerald-500/60 bg-emerald-500/5 shadow-[0_0_15px_rgba(16,185,129,0.15)]" :
+                resolveState === "lost" ? "animate-resolve-loss border-rose-500/60 bg-rose-500/5 shadow-[0_0_15px_rgba(244,63,94,0.15)]" :
                 "border-neutral-850 bg-[#030508]"
               }`}
             >
