@@ -15,17 +15,22 @@ export interface FeedSource {
   id: string;
   name: string;
   url: string;
-  category: "crypto" | "macro" | "news" | "thesis";
+  category: "crypto" | "macro" | "news" | "thesis" | "entertainment" | "satire";
+  trust_score: number;       // 1 to 10
+  satire_flag: boolean;
+  virality_weight: number;   // multiplier
 }
 
 export const FEED_SOURCES: FeedSource[] = [
-  { id: "coindesk",     name: "CoinDesk",         url: "https://www.coindesk.com/arc/outboundfeeds/rss/", category: "crypto" },
-  { id: "cointelegraph",name: "Cointelegraph",    url: "https://cointelegraph.com/rss",                    category: "crypto" },
-  { id: "cnbc",         name: "CNBC",             url: "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114", category: "macro" },
-  { id: "bbc",          name: "BBC",              url: "https://feeds.bbci.co.uk/news/rss.xml",            category: "news" },
-  { id: "yahoo",        name: "Yahoo Finance",    url: "https://finance.yahoo.com/news/rssindex",          category: "macro" },
-  { id: "outlier",      name: "Outlier Ventures", url: "https://outlierventures.io/feed/",                 category: "thesis" },
-  { id: "jamieburke",   name: "Jamie Burke (Medium)", url: "https://medium.com/feed/@jamie247",            category: "thesis" },
+  { id: "reuters",      name: "Global Headlines (Reuters)", url: "https://www.reutersagency.com/feed/?best-regions=global&best-sectors=top-news", category: "news", trust_score: 10, satire_flag: false, virality_weight: 1.0 },
+  { id: "eonline",      name: "Entertainment Headlines (E!)", url: "https://www.eonline.com/syndication/feeds/rssfeeds/topstories.xml", category: "entertainment", trust_score: 7, satire_flag: false, virality_weight: 1.5 },
+  { id: "tmz",          name: "Celebrity News (TMZ)", url: "https://www.tmz.com/rss.xml", category: "entertainment", trust_score: 6, satire_flag: false, virality_weight: 2.0 },
+  { id: "dailymail",    name: "Tabloids (Daily Mail)", url: "https://www.dailymail.co.uk/articles.rss", category: "news", trust_score: 4, satire_flag: false, virality_weight: 2.5 },
+  { id: "coindesk",     name: "Crypto News (CoinDesk)", url: "https://www.coindesk.com/arc/outboundfeeds/rss/", category: "crypto", trust_score: 8, satire_flag: false, virality_weight: 1.2 },
+  { id: "cointelegraph",name: "Crypto News (Cointelegraph)", url: "https://cointelegraph.com/rss", category: "crypto", trust_score: 8, satire_flag: false, virality_weight: 1.2 },
+  { id: "theonion",     name: "The Onion", url: "https://www.theonion.com/rss", category: "satire", trust_score: 1, satire_flag: true, virality_weight: 3.0 },
+  { id: "babylonbee",   name: "The Potato (Babylon Bee)", url: "https://babylonbee.com/feed", category: "satire", trust_score: 1, satire_flag: true, virality_weight: 3.0 },
+  { id: "redditviral",  name: "Social Viral Media (Reddit)", url: "https://www.reddit.com/r/ViralNews/.rss", category: "news", trust_score: 5, satire_flag: false, virality_weight: 2.5 },
 ];
 
 export interface FeedItem {
@@ -34,6 +39,9 @@ export interface FeedItem {
   title: string;
   link: string;
   published: string;
+  trust_score: number;
+  satire_flag: boolean;
+  virality_weight: number;
 }
 
 // Minimal, dependency-free RSS/Atom extraction (titles + links + dates).
@@ -56,6 +64,9 @@ function extractItems(xml: string, source: FeedSource): FeedItem[] {
         title: title.trim(),
         link: (link || "").trim(),
         published: published.trim(),
+        trust_score: source.trust_score,
+        satire_flag: source.satire_flag,
+        virality_weight: source.virality_weight,
       });
     }
   }
