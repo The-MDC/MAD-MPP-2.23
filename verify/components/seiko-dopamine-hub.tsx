@@ -665,10 +665,9 @@ export default function SeikoDopamineHub() {
         </div>
 
         <div style={{
-          display: "flex",
+          display: "grid",
+          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
           gap: "10px",
-          overflowX: "auto",
-          scrollbarWidth: "none",
           paddingBottom: "4px",
         }}>
           {FEATURED_MARKETS.map(m => (
