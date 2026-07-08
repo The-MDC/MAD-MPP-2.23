@@ -54,6 +54,7 @@ import StakingTiersPanel from "@/components/staking-tiers-panel";
 import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
 import BottomNav from "@/components/bottom-nav";
 import DeviceFrame from "@/components/device-frame";
+import StateMachineView from "@/components/state-machine-view";
 
 import {
   OVDeck, OV_DECKS, ThemeSkin, SKIN_TOKENS, SkinTokens,
@@ -254,7 +255,12 @@ function GambitInner() {
           </div>
         )}
         {tab === "casino" && <CasinoPanel />}
-        {tab === "logic"  && <LogicLab activeDeck={activeDeck} />}
+        {tab === "logic"  && (
+          <div className="space-y-4">
+            <StateMachineView />
+            <LogicLab activeDeck={activeDeck} />
+          </div>
+        )}
 
         <footer className="mt-12 text-center space-y-2">
           <p className="font-mono text-[10px] uppercase tracking-widest text-neutral-600">
