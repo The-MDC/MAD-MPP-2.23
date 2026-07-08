@@ -22,7 +22,7 @@
  *  - Skin tokens from SKIN_TOKENS drive all accent colors
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { GameProvider } from "@/context/game-context";
 import { useGame } from "@/context/game-context";
 
@@ -55,6 +55,7 @@ import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
 import BottomNav from "@/components/bottom-nav";
 import DeviceFrame from "@/components/device-frame";
 import StateMachineView from "@/components/state-machine-view";
+import JoyLayer, { celebrate } from "@/components/joy-layer";
 
 import {
   OVDeck, OV_DECKS, ThemeSkin, SKIN_TOKENS, SkinTokens,
@@ -88,6 +89,13 @@ function GambitInner() {
 
   // Modals
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Reward-moment delight — a celebration burst when entering a high-point tab.
+  useEffect(() => {
+    if (tab === "packs" || tab === "casino" || tab === "arena") {
+      celebrate({ intensity: tab === "casino" ? 1.1 : 0.7 });
+    }
+  }, [tab]);
 
   return (
     <main className="min-h-screen text-neutral-100 relative overflow-hidden pb-16"
@@ -271,6 +279,10 @@ function GambitInner() {
           </p>
         </footer>
       </div>
+
+      {/* Reward-moment celebration layer — fires on high-point tabs / wins.
+          Fixed canvas; inside the DeviceFrame transform it stays in the phone. */}
+      <JoyLayer />
 
       {/* Fixed mobile bottom action bar — additive mobile UX, mirrors the 7 tabs.
           Desktop (lg+) keeps the shipped top tab bar; this is lg:hidden. */}
