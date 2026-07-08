@@ -23,6 +23,7 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { GameProvider } from "@/context/game-context";
 import { useGame } from "@/context/game-context";
 
@@ -226,7 +227,15 @@ function GambitInner() {
           <TabBtn active={tab==="logic"}  onClick={() => setTab("logic")}  icon={<Cpu className="w-3.5 h-3.5"/>}        label="Logic"    color={tokens.primary} />
         </nav>
 
-        {/* PANELS */}
+        {/* PANELS — crossfade between tabs for a polished transition */}
+        <AnimatePresence mode="wait">
+        <motion.div
+          key={tab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.22, ease: "easeOut" }}
+        >
 
         {/* ── THE FLOOR ── */}
         {tab === "floor" && (
@@ -269,6 +278,9 @@ function GambitInner() {
             <LogicLab activeDeck={activeDeck} />
           </div>
         )}
+
+        </motion.div>
+        </AnimatePresence>
 
         <footer className="mt-12 text-center space-y-2">
           <p className="font-mono text-[10px] uppercase tracking-widest text-neutral-600">
