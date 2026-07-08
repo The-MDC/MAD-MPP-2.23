@@ -53,6 +53,7 @@ import PackOpening from "@/components/pack-opening";
 import StakingTiersPanel from "@/components/staking-tiers-panel";
 import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
 import BottomNav from "@/components/bottom-nav";
+import DeviceFrame from "@/components/device-frame";
 
 import {
   OVDeck, OV_DECKS, ThemeSkin, SKIN_TOKENS, SkinTokens,
@@ -67,7 +68,9 @@ type Tab = "floor" | "saga" | "arena" | "packs" | "portal" | "casino" | "logic";
 export default function GambitPage() {
   return (
     <GameProvider>
-      <GambitInner />
+      <DeviceFrame>
+        <GambitInner />
+      </DeviceFrame>
     </GameProvider>
   );
 }

@@ -208,3 +208,68 @@ html, body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────
+   DEVICE FRAME — full-bleed mobile → centered tablet → phone-on-workbench
+   Renders children once; responsive shell is CSS-only. See device-frame.tsx.
+───────────────────────────────────────────────────────────────────── */
+.mg-workbench { display: contents; }
+.mg-device { width: 100%; }
+
+/* Mobile: native full-bleed, shift clear of the notch. */
+@media (max-width: 767px) {
+  .mg-device { padding-top: env(safe-area-inset-top); }
+  /* iOS zooms the page when a <16px input is focused — 16px prevents it
+     without disabling pinch-zoom. */
+  input, select, textarea { font-size: 16px; }
+}
+
+/* Tablet: center with comfortable gutters on a dark field. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .mg-workbench {
+    display: block;
+    min-height: 100vh;
+    background: radial-gradient(1200px 800px at 50% -10%, #12121a 0%, #050507 60%);
+    padding: 24px max(16px, env(safe-area-inset-right)) 24px max(16px, env(safe-area-inset-left));
+  }
+  .mg-device {
+    max-width: 680px;
+    margin: 0 auto;
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.8);
+  }
+}
+
+/* Desktop: sleek phone bezel on a dark workbench.
+   transform → .mg-device is the containing block for fixed descendants,
+   so the app's bottom-nav / concierge anchor to the phone. */
+@media (min-width: 1024px) {
+  .mg-workbench {
+    display: flex;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(900px 700px at 50% 0%, #14141d 0%, #0a0a10 45%, #050507 100%);
+    padding: 28px;
+  }
+  .mg-device {
+    position: relative;
+    width: 440px;
+    max-width: 440px;
+    height: min(940px, 94vh);
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    border-radius: 46px;
+    border: 12px solid #0b0b12;
+    box-shadow:
+      0 0 0 2px #2a2a37,
+      0 50px 90px -25px rgba(0, 0, 0, 0.95),
+      inset 0 0 24px rgba(0, 0, 0, 0.6);
+    transform: translateZ(0);
+    isolation: isolate;
+  }
+  .mg-device::-webkit-scrollbar { display: none; }
+}
