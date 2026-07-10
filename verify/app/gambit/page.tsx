@@ -22,7 +22,8 @@
  *  - Skin tokens from SKIN_TOKENS drive all accent colors
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { GameProvider } from "@/context/game-context";
 import { useGame } from "@/context/game-context";
 
@@ -53,6 +54,9 @@ import PackOpening from "@/components/pack-opening";
 import StakingTiersPanel from "@/components/staking-tiers-panel";
 import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
 import BottomNav from "@/components/bottom-nav";
+import DeviceFrame from "@/components/device-frame";
+import StateMachineView from "@/components/state-machine-view";
+import JoyLayer, { celebrate } from "@/components/joy-layer";
 
 import {
   OVDeck, OV_DECKS, ThemeSkin, SKIN_TOKENS, SkinTokens,
@@ -67,7 +71,9 @@ type Tab = "floor" | "saga" | "arena" | "packs" | "portal" | "casino" | "logic";
 export default function GambitPage() {
   return (
     <GameProvider>
-      <GambitInner />
+      <DeviceFrame>
+        <GambitInner />
+      </DeviceFrame>
     </GameProvider>
   );
 }
@@ -84,6 +90,13 @@ function GambitInner() {
 
   // Modals
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Reward-moment delight — a celebration burst when entering a high-point tab.
+  useEffect(() => {
+    if (tab === "packs" || tab === "casino" || tab === "arena") {
+      celebrate({ intensity: tab === "casino" ? 1.1 : 0.7 });
+    }
+  }, [tab]);
 
   return (
     <main className="min-h-screen text-neutral-100 relative overflow-hidden pb-16"
@@ -214,7 +227,15 @@ function GambitInner() {
           <TabBtn active={tab==="logic"}  onClick={() => setTab("logic")}  icon={<Cpu className="w-3.5 h-3.5"/>}        label="Logic"    color={tokens.primary} />
         </nav>
 
-        {/* PANELS */}
+        {/* PANELS — crossfade between tabs for a polished transition */}
+        <AnimatePresence mode="wait">
+        <motion.div
+          key={tab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.22, ease: "easeOut" }}
+        >
 
         {/* ── THE FLOOR ── */}
         {tab === "floor" && (
@@ -251,7 +272,15 @@ function GambitInner() {
           </div>
         )}
         {tab === "casino" && <CasinoPanel />}
-        {tab === "logic"  && <LogicLab activeDeck={activeDeck} />}
+        {tab === "logic"  && (
+          <div className="space-y-4">
+            <StateMachineView />
+            <LogicLab activeDeck={activeDeck} />
+          </div>
+        )}
+
+        </motion.div>
+        </AnimatePresence>
 
         <footer className="mt-12 text-center space-y-2">
           <p className="font-mono text-[10px] uppercase tracking-widest text-neutral-600">
@@ -262,6 +291,10 @@ function GambitInner() {
           </p>
         </footer>
       </div>
+
+      {/* Reward-moment celebration layer — fires on high-point tabs / wins.
+          Fixed canvas; inside the DeviceFrame transform it stays in the phone. */}
+      <JoyLayer />
 
       {/* Fixed mobile bottom action bar — additive mobile UX, mirrors the 7 tabs.
           Desktop (lg+) keeps the shipped top tab bar; this is lg:hidden. */}
