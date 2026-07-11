@@ -34,7 +34,7 @@ export async function GET() {
       rarityTiers: rarityMeta,
       stakingTiers: STAKING_TIERS,
       tokenAddress: "0xb61ae7727579e3781ca0ec4902b6ba21d335fd18",
-      chain: "Arbitrum One",
+      chain: "Arbitrum Nova",
     });
   } catch (e) {
     return NextResponse.json({ error: "Card metadata unavailable" }, { status: 500 });

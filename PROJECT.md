@@ -4,7 +4,7 @@
 - Frontend: Next.js 15, React, Tailwind CSS
 - AI Backend: FastAPI, LangChain, Google Gemini/Gemma models
 - Database: PostgreSQL (Cloud SQL in production, local Docker-compose in development)
-- Smart Contracts: Solidity, Foundry (Arbitrum One deployment)
+- Smart Contracts: Solidity, Foundry (Arbitrum Nova launch · Arbitrum One for MAD Shield vaults)
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |

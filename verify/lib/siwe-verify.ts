@@ -11,13 +11,14 @@
  *   1. signature actually recovers to message.address (siwe.verify)
  *   2. domain binding — message.domain must equal our host
  *   3. nonce is single-use and server-issued (replay protection)
- *   4. chainId must be Arbitrum One (42161) per foundry.toml canon
+ *   4. chainId must be Arbitrum Nova (42170) — launch chain; MAD Shield
+ *      vaults live on Arbitrum One (42161) but sign-in binds to Nova
  *   5. expirationTime / notBefore honored when present
  */
 import { SiweMessage } from "siwe";
 import { randomBytes } from "crypto";
 
-export const EXPECTED_CHAIN_ID = 42161; // Arbitrum One — matches contracts
+export const EXPECTED_CHAIN_ID = 42170; // Arbitrum Nova — launch/gameplay chain
 const NONCE_TTL_MS = 5 * 60 * 1000;
 
 // In-memory nonce store. NOTE: single-instance only — swap for your
@@ -66,7 +67,7 @@ export async function verifySiwe(
 
   // 4. chain binding
   if (siwe.chainId !== EXPECTED_CHAIN_ID)
-    return { ok: false, error: `wrong chain: ${siwe.chainId}, expected ${EXPECTED_CHAIN_ID} (Arbitrum One)` };
+    return { ok: false, error: `wrong chain: ${siwe.chainId}, expected ${EXPECTED_CHAIN_ID} (Arbitrum Nova)` };
 
   // 1 + 5. cryptographic verification (recovers signer, checks time bounds)
   try {

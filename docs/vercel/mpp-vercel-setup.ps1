@@ -12,7 +12,7 @@ Add-Var "GOOGLE_API_KEY" "langchain google-genai concierge"
 Add-Var "AUTH_SECRET" "SIWE session signing 32-byte base64"
 Add-Var "NEXTAUTH_URL" "$PRODURL"
 Add-Var "NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID" "cloud.walletconnect.com"
-Add-Var "NEXT_PUBLIC_CHAIN_ID" "42161 Arbitrum One"
+Add-Var "NEXT_PUBLIC_CHAIN_ID" "42170 Arbitrum Nova"
 Add-Var "ANTHROPIC_API_KEY" "only if Claude fallback wired"
 Write-Host "=== 4. REDEPLOY ==="
 vercel redeploy $ALIAS --scope $TEAM

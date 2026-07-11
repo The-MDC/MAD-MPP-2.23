@@ -15,7 +15,8 @@ remappings = [
 
 [rpc_endpoints]
 # PLACEHOLDER — real endpoints required before deployment (see docs/BACKEND_PLACEHOLDERS.md)
-arbitrum_one = "${ARBITRUM_ONE_RPC_URL}"
+arbitrum_nova = "${ARBITRUM_NOVA_RPC_URL}"  # launch/gameplay chain (42170)
+arbitrum_one = "${ARBITRUM_ONE_RPC_URL}"    # MAD Shield vaults / liquidity (42161)
 arbitrum_sepolia = "${ARBITRUM_SEPOLIA_RPC_URL}"
 
 [etherscan]
