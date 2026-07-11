@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import ConvictionCharts from "@/components/conviction-charts";
+import WhitepaperSheet from "@/components/whitepaper-sheet";
 import { Sparkles, HelpCircle, Shield, Globe, Compass, ExternalLink, RotateCcw } from "lucide-react";
 import { useMpp } from "@/context/mpp-context";
 
@@ -110,7 +111,7 @@ export default function Home() {
             }`}
           >
             <HelpCircle className="w-3.5 h-3.5" />
-            Sandbox Documentation
+            Whitepaper · Product Sheet
           </button>
 
           <span className="text-neutral-800">•</span>
@@ -191,32 +192,8 @@ export default function Home() {
           </div>
         )}
 
-        {/* Dynamic sliding popover helper block */}
-        {showHelper && (
-          <div className={`mt-4 max-w-xl p-6 rounded-xl text-left space-y-3 shadow-xl border transition-all duration-500 ${
-            theme === "neon" 
-              ? "bg-black/90 border-cyan-500 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]" 
-              : "bg-neutral-950/90 border-glow-gold text-neutral-400"
-          }`}>
-            <div className="flex justify-between items-center pb-2 border-b border-neutral-900">
-              <span className={`font-bold font-mono uppercase tracking-wider text-xs ${
-                theme === "neon" ? "text-cyan-400" : "text-yellow-400"
-              }`}>Stochastic Model Guide</span>
-              <button 
-                onClick={() => setShowHelper(false)}
-                className="text-neutral-500 hover:text-neutral-300 text-[10px] font-mono uppercase"
-              >
-                close
-              </button>
-            </div>
-            <p className="text-[11px] leading-relaxed">
-              <strong>Staking conviction half-life voting</strong> relies on decay formulas to represent accrued commitment. Rather than absolute current balance, power accrues over simulated continuous increments (epochs). Raising the multiplier raises the curve capacity, while governance weights govern target triggering heights.
-            </p>
-            <p className="text-[11px] leading-relaxed">
-              Select any of the three active gambits to inject distinct decay constants and base capacities dynamically inside the simulator matrix.
-            </p>
-          </div>
-        )}
+        {/* Abbreviated whitepaper / master product sheet (was the sandbox stub) */}
+        <WhitepaperSheet open={showHelper} onClose={() => setShowHelper(false)} />
 
         <div className="text-[10px] text-neutral-700 font-mono mt-4">
           © 2026 MΛĐ GAMBIT. All simulations calculated securely locally.
