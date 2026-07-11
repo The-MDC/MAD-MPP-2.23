@@ -57,6 +57,7 @@ import BottomNav from "@/components/bottom-nav";
 import DeviceFrame from "@/components/device-frame";
 import MainNav from "@/components/main-nav";
 import FutarchyBoard from "@/components/futarchy-board";
+import MarketFactory from "@/components/market-factory";
 import BayesianDecisionTree from "@/components/decision-tree";
 import { useTheme } from "@/context/theme-context";
 import StateMachineView from "@/components/state-machine-view";
@@ -257,6 +258,7 @@ function GambitInner() {
           <div className="space-y-5">
             <SeikoDopamineHub />
             <ScandalVelocityMeter />
+            <MarketFactory />
             <div className="grid lg:grid-cols-[1.3fr_1fr] gap-5">
               <div className="space-y-5">
                 <PredictionCircus activeDeck={activeDeck} />
