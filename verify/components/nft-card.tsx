@@ -121,7 +121,11 @@ export function NftCardView({
         {/* faction banner (top) */}
         <g>
           <rect x="22" y="22" width="276" height="34" rx="10" fill="#05070c" stroke={activeFAccent} strokeWidth="1.25" opacity="0.95" />
-          <text x="40" y="44" fontFamily="ui-monospace, monospace" fontSize="15" fill={activeFAccent} fontWeight="900">{factionGlyph(card.faction)}</text>
+          {/* faction emblem — gold-leaf-flake sheen with a hint of the faction color,
+              inlaid in the top border (clipped to the banner, no bleed). Faction-tinted
+              glow behind + gold-gradient glyph with a faction-color edge on top. */}
+          <text x="40" y="44.5" fontFamily="ui-monospace, monospace" fontSize="16.5" fill={activeFAccent} fontWeight="900" opacity="0.5" filter={`url(#glow-${uid})`}>{factionGlyph(card.faction)}</text>
+          <text x="40" y="44" fontFamily="ui-monospace, monospace" fontSize="15" fill={`url(#gold-${uid})`} stroke={activeFAccent} strokeWidth="0.4" strokeOpacity="0.7" fontWeight="900">{factionGlyph(card.faction)}</text>
           <text x="62" y="44" fontFamily="ui-monospace, monospace" fontSize="11.5" letterSpacing="1.5" fill={activeFAccent} fontWeight="800">{card.faction.toUpperCase()}</text>
           <text x="290" y="44" textAnchor="end" fontFamily="ui-monospace, monospace" fontSize="10" fill={accent} fontWeight="900">{tier.powerScore.toLocaleString()} PWR</text>
         </g>
@@ -141,6 +145,12 @@ export function NftCardView({
             filter={`url(#glow-${uid})`}
             opacity="0.98"
           />
+          {/* faction color wash — highly transparent, light, faction-identifiable overlay so
+              reused art on lower cards reads as a faction variant. Rarest (holographic) cards
+              skip the wash and show pure, unique art. Clipped to the art frame (no bleed). */}
+          {!holo && (
+            <rect x="22" y="64" width="276" height="220" rx="14" fill={activeFAccent} opacity="0.16" clipPath={`url(#artclip-${uid})`} />
+          )}
         </g>
 
         {/* card name (lower section) */}
