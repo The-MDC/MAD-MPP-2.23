@@ -3987,7 +3987,7 @@ body {
             <div class="mtype-name" style="color:var(--brand-gold)">Dutch Auction Packs</div>
           </div>
         </div>
-        <div class="mtype-desc">Scandal Packs start at $4.88 and rise logarithmically (PRBMath SD59x18). Price(n) = P_base × (1 + 0.5 × ln(1 + n/1000)). Caps at $8.78 at 10K units. FOMO-driven mint mechanics.</div>
+        <div class="mtype-desc">Scandal Packs open at $8.88 and rise along an 8-tier Dutch-auction bonding curve (PRBMath SD59x18) — gradual through the first five tiers to $95.00, then convex to a $296 conviction cap at 10K units. FOMO-driven mint mechanics.</div>
         <div class="mtype-tags">
           <span class="mtype-tag">Log Curve</span><span class="mtype-tag">NFT Mint</span><span class="mtype-tag">Anti-Snipe</span>
         </div>
@@ -6086,7 +6086,7 @@ body {
           <div class="slide-cols">
             <div>
               <div class="slide-layers">
-                <div class="slide-layer gd"><div class="slide-layer-title">Nick McLeod — Founder & CEO · 3× Founder, 1 Exit</div><div class="slide-layer-body">15+ years 0-to-1 startups. E-commerce, Sales, Engagement in Community, Client, CLTV. Advising CEO of AI GPU Compute Kaiser.io. 6 years in Web3, Governance and Content Guardian. Proven ability to scale Digital Assets, Infra, and DeFi products.</div></div>
+                <div class="slide-layer gd"><div class="slide-layer-title">Nick McLeod — Founder & CEO · 3× Founder, 1 Exit</div><div class="slide-layer-body">14+ years 0-to-1 startups. E-commerce, Sales, Engagement in Community, Client, CLTV. Advising CEO of AI GPU Compute Kaiser.io. 6 years in Web3, Governance and Content Guardian. Proven ability to scale Digital Assets, Infra, and DeFi products.</div></div>
                 <div class="slide-layer cy"><div class="slide-layer-title">Carlo Fernandez — Co-Founder & CAIO/CIO · 12 Years Web3</div><div class="slide-layer-body">Operational savant, 15+ years experience Web3. Runs his own IT MSP. Involved with Asimov/Near Protocol audits. Operations & infrastructure and all-around deep generalist specialist.</div></div>
                 <div class="slide-layer mg"><div class="slide-layer-title">Isabella H. — Co-Founder & COO · 10+ Years Distributed Systems</div><div class="slide-layer-body">Lead Venture Deal Flow, Branding, and User Experience. 10 Years Operational Chops.</div></div>
                 <div class="slide-layer gr"><div class="slide-layer-title">Parphul B. — Frontend & Product Lead · 7+ Years Web3 UX/Product</div><div class="slide-layer-body">Former Polygon/DAO Lens/Crisper AI/Layer1 Product Lead. User-led product strategy & viral growth expertise.</div></div>
@@ -6988,26 +6988,26 @@ document.querySelectorAll('.nav-cta, .btn-primary, .btn-outline').forEach(functi
   <div class="container">
     <div class="section-label">Scandal Pack Pricing Engine</div>
     <h2 class="section-title">Dutch Auction <span>Pack Mechanics</span></h2>
-    <p class="section-subtitle">Logarithmic bonding curve discovery — Scandal Packs start at $4.88 and rise with demand. FOMO-optimized. Anti-snipe protected. 888.89M $MADx deflationary burn loop.</p>
+    <p class="section-subtitle">8-tier Dutch-auction bonding curve — Scandal Packs open at $8.88 and rise with demand, gradual through the first five tiers to $95.00, then convex to a $296 conviction cap. FOMO-optimized. Anti-snipe protected. 888.89M $MADx deflationary burn loop.</p>
 
     <div class="dutch-visual ip-shield animate-in d1">
       <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:var(--gap-xl);align-items:center">
         <div>
           <div style="font-family:var(--font-heading);font-size:.8rem;color:var(--brand-gold);letter-spacing:.08em;margin-bottom:var(--gap-md)">BONDING CURVE FORMULA</div>
           <div style="font-family:var(--font-mono);font-size:.8rem;color:var(--neon-cyan);background:rgba(0,217,255,.06);border:1px solid rgba(255,215,0,0.18);border-radius:var(--radius-sm);padding:var(--gap-md);line-height:2;margin-bottom:var(--gap-md)">
-            Price(n) = P_base × (1 + α × ln(1 + n / N_scale))<br>
-            <span style="color:var(--text-muted)">P_base=$4.88 · α=0.5 · N_scale=1,000</span>
+            Price(n) = piecewise bonding curve · 8 published anchor tiers<br>
+            <span style="color:var(--text-muted)">P_floor=$8.88 · gradual→$95.00 (tiers 1–5) · convex→$296 cap · PRBMath SD59x18</span>
           </div>
           <div style="font-size:.84rem;color:var(--text-secondary);line-height:1.7">
             Prices rise predictably as demand increases — early buyers are rewarded, late buyers signal deep conviction. Each pack contains 5 cards. Rare+ guaranteed in Scandal Pack tier.
           </div>
           <div style="margin-top:var(--gap-md);display:flex;gap:var(--gap-md);flex-wrap:wrap">
             <div class="glass" style="padding:var(--gap-md);text-align:center;flex:1;min-width:100px">
-              <div style="font-family:var(--font-heading);font-size:1.1rem;color:var(--brand-gold)">$4.88</div>
+              <div style="font-family:var(--font-heading);font-size:1.1rem;color:var(--brand-gold)">$8.88</div>
               <div style="font-family:var(--font-mono);font-size:.58rem;color:var(--text-muted);margin-top:4px">Floor Price</div>
             </div>
             <div class="glass" style="padding:var(--gap-md);text-align:center;flex:1;min-width:100px">
-              <div style="font-family:var(--font-heading);font-size:1.1rem;color:var(--neon-cyan)">$8.78</div>
+              <div style="font-family:var(--font-heading);font-size:1.1rem;color:var(--neon-cyan)">$296</div>
               <div style="font-family:var(--font-mono);font-size:.58rem;color:var(--text-muted);margin-top:4px">10K Pack Cap</div>
             </div>
             <div class="glass" style="padding:var(--gap-md);text-align:center;flex:1;min-width:100px">
@@ -7032,48 +7032,54 @@ document.querySelectorAll('.nav-cta, .btn-primary, .btn-outline').forEach(functi
             <!-- Grid -->
             <line x1="40" y1="10" x2="40" y2="180" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
             <line x1="40" y1="180" x2="370" y2="180" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
-            <line x1="40" y1="140" x2="370" y2="140" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="4,4"/>
-            <line x1="40" y1="100" x2="370" y2="100" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="4,4"/>
-            <line x1="40" y1="60" x2="370" y2="60" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="4,4"/>
+            <line x1="40" y1="132" x2="370" y2="132" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="4,4"/>
+            <line x1="40" y1="69" x2="370" y2="69" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="4,4"/>
+            <line x1="40" y1="24" x2="370" y2="24" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="4,4"/>
             <!-- Y labels -->
-            <text x="32" y="184" text-anchor="end" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">$4.88</text>
-            <text x="32" y="144" text-anchor="end" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">$6.00</text>
-            <text x="32" y="104" text-anchor="end" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">$7.32</text>
-            <text x="32" y="64"  text-anchor="end" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">$8.30</text>
+            <text x="32" y="184" text-anchor="end" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">$8.88</text>
+            <text x="32" y="136" text-anchor="end" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">$95</text>
+            <text x="32" y="73"  text-anchor="end" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">$208</text>
+            <text x="32" y="27"  text-anchor="end" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">$296</text>
             <!-- X labels -->
             <text x="40"  y="192" text-anchor="middle" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">0</text>
-            <text x="106" y="192" text-anchor="middle" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">100</text>
-            <text x="172" y="192" text-anchor="middle" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">500</text>
-            <text x="238" y="192" text-anchor="middle" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">1K</text>
-            <text x="304" y="192" text-anchor="middle" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">5K</text>
+            <text x="87"  y="192" text-anchor="middle" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">100</text>
+            <text x="134" y="192" text-anchor="middle" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">500</text>
+            <text x="181" y="192" text-anchor="middle" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">1K</text>
+            <text x="229" y="192" text-anchor="middle" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">2.5K</text>
+            <text x="276" y="192" text-anchor="middle" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">5K</text>
+            <text x="323" y="192" text-anchor="middle" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">7.5K</text>
             <text x="370" y="192" text-anchor="middle" font-family="monospace" font-size="9" fill="rgba(255,255,255,.35)">10K</text>
             <!-- Curve fill area -->
-            <path d="M40,180 C80,176 106,148 172,133 S238,117 304,79 S340,63 370,56 L370,180 Z"
+            <path d="M40,180 L87,169 L134,155 L181,143 L229,132 L276,100 L323,69 L370,20 L370,180 Z"
               fill="url(#areaGrad)"/>
-            <!-- Curve line -->
-            <path d="M40,180 C80,176 106,148 172,133 S238,117 304,79 S340,63 370,56"
-              fill="none" stroke="url(#curveGrad)" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- Curve line (8 anchor tiers: gradual → convex) -->
+            <path d="M40,180 L87,169 L134,155 L181,143 L229,132 L276,100 L323,69 L370,20"
+              fill="none" stroke="url(#curveGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
             <!-- Data points -->
             <circle cx="40"  cy="180" r="4" fill="#FFD700"/>
-            <circle cx="106" cy="148" r="4" fill="#FFD700"/>
-            <circle cx="172" cy="133" r="4" fill="#FFD700"/>
-            <circle cx="238" cy="117" r="4" fill="#FF8C00"/>
-            <circle cx="304" cy="79"  r="4" fill="#FF8C00"/>
-            <circle cx="370" cy="56"  r="4" fill="#FF6600"/>
+            <circle cx="87"  cy="169" r="4" fill="#FFD700"/>
+            <circle cx="134" cy="155" r="4" fill="#FFD700"/>
+            <circle cx="181" cy="143" r="4" fill="#FFD700"/>
+            <circle cx="229" cy="132" r="4" fill="#FFD700"/>
+            <circle cx="276" cy="100" r="4" fill="#FF8C00"/>
+            <circle cx="323" cy="69"  r="4" fill="#FF8C00"/>
+            <circle cx="370" cy="20"  r="4" fill="#FF6600"/>
             <!-- Early bird label -->
-            <rect x="42" y="164" width="64" height="14" rx="3" fill="rgba(255,215,0,.12)"/>
-            <text x="74" y="174" text-anchor="middle" font-family="monospace" font-size="8" fill="#FFD700" font-weight="700">EARLY BIRD</text>
+            <rect x="44" y="164" width="64" height="14" rx="3" fill="rgba(255,215,0,.12)"/>
+            <text x="76" y="174" text-anchor="middle" font-family="monospace" font-size="8" fill="#FFD700" font-weight="700">EARLY BIRD</text>
           </svg>
         </div>
       </div>
 
       <div class="dutch-price-tiers" style="margin-top:var(--gap-xl)">
-        <div class="dutch-tier"><div class="dutch-tier-price">$4.88</div><div class="dutch-tier-vol">Pack #0</div><div style="font-family:var(--font-mono);font-size:.55rem;color:var(--neon-green)">Floor</div></div>
-        <div class="dutch-tier"><div class="dutch-tier-price">$6.00</div><div class="dutch-tier-vol">Pack #100</div></div>
-        <div class="dutch-tier"><div class="dutch-tier-price">$6.78</div><div class="dutch-tier-vol">Pack #500</div></div>
-        <div class="dutch-tier"><div class="dutch-tier-price">$7.32</div><div class="dutch-tier-vol">Pack #1,000</div></div>
-        <div class="dutch-tier"><div class="dutch-tier-price">$8.30</div><div class="dutch-tier-vol">Pack #5,000</div></div>
-        <div class="dutch-tier"><div class="dutch-tier-price">$8.78</div><div class="dutch-tier-vol">Pack #10,000</div><div style="font-family:var(--font-mono);font-size:.55rem;color:var(--brand-crimson)">Cap</div></div>
+        <div class="dutch-tier"><div class="dutch-tier-price">$8.88</div><div class="dutch-tier-vol">Pack #0</div><div style="font-family:var(--font-mono);font-size:.55rem;color:var(--neon-green)">Floor</div></div>
+        <div class="dutch-tier"><div class="dutch-tier-price">$28.88</div><div class="dutch-tier-vol">Pack #100</div></div>
+        <div class="dutch-tier"><div class="dutch-tier-price">$52.88</div><div class="dutch-tier-vol">Pack #500</div></div>
+        <div class="dutch-tier"><div class="dutch-tier-price">$74.88</div><div class="dutch-tier-vol">Pack #1,000</div></div>
+        <div class="dutch-tier"><div class="dutch-tier-price">$95.00</div><div class="dutch-tier-vol">Pack #2,500</div><div style="font-family:var(--font-mono);font-size:.55rem;color:var(--brand-gold)">Gradual</div></div>
+        <div class="dutch-tier"><div class="dutch-tier-price">$152.00</div><div class="dutch-tier-vol">Pack #5,000</div></div>
+        <div class="dutch-tier"><div class="dutch-tier-price">$208.00</div><div class="dutch-tier-vol">Pack #7,500</div></div>
+        <div class="dutch-tier"><div class="dutch-tier-price">$296.00</div><div class="dutch-tier-vol">Pack #10,000</div><div style="font-family:var(--font-mono);font-size:.55rem;color:var(--brand-crimson)">Cap</div></div>
       </div>
     </div>
 
@@ -7486,7 +7492,7 @@ document.querySelectorAll('.nav-cta, .btn-primary, .btn-outline').forEach(functi
       <div class="economy-card">
         <div class="economy-title">⚙️ GAME PLAY LOOP</div>
         <div class="economy-flow ip-shield">
-          <div class="econ-flow-row"><span class="econ-flow-icon">📦</span>Mint Scandal Pack (Dutch Auction $4.88–$8.78)</div>
+          <div class="econ-flow-row"><span class="econ-flow-icon">📦</span>Mint Scandal Pack (Dutch Auction $8.88–$296)</div>
           <div style="padding-left:32px;color:var(--neon-cyan);font-size:1.1rem">↓</div>
           <div class="econ-flow-row"><span class="econ-flow-icon">🃏</span>Receive 5 cards · at least 1 guaranteed Rare+</div>
           <div style="padding-left:32px;color:var(--neon-cyan);font-size:1.1rem">↓</div>

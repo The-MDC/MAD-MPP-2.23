@@ -1252,6 +1252,52 @@ export function generateCard(index: number, seed: number, guaranteeUncommonPlus 
   };
 }
 
+/* ====================================================================
+ * 4b. SCANDAL PACK — DUTCH-AUCTION BONDING CURVE  (8 published tiers)
+ * --------------------------------------------------------------------
+ * Source: MATH_AND_FORMULAS_REFERENCE.md §Scandal-Pack Pricing.
+ * The premium, USD-denominated "Scandal Pack" mint. Distinct from
+ * PLATFORM.CARD_PACK_COST (the flat 4.88-MADx basic card pack).
+ *
+ * Published as 8 anchor tiers along the 0..10,000 mint serial. Tiers
+ * 1–5 ramp gradually to $95.00 (early-conviction zone); tiers 6–8
+ * steepen ($152 → $208 → $296) as scarcity binds. Price between
+ * anchors is monotone piecewise-linear in serial n, matching the
+ * on-chain PRBMath SD59x18 step function (2-dp, no fractional cents).
+ * ==================================================================== */
+export const SCANDAL_PACK_TIERS = [
+  { serial: 0,      price: 8.88   }, // floor
+  { serial: 100,    price: 28.88  },
+  { serial: 500,    price: 52.88  },
+  { serial: 1_000,  price: 74.88  },
+  { serial: 2_500,  price: 95.00  }, // end of gradual zone
+  { serial: 5_000,  price: 152.00 },
+  { serial: 7_500,  price: 208.00 },
+  { serial: 10_000, price: 296.00 }, // conviction cap
+] as const;
+
+export const SCANDAL_PACK_FLOOR = SCANDAL_PACK_TIERS[0].price;                        // $8.88
+export const SCANDAL_PACK_CAP = SCANDAL_PACK_TIERS[SCANDAL_PACK_TIERS.length - 1].price; // $296.00
+
+/** Scandal-Pack price (USD) at mint serial n, clamped to [floor, cap].
+ *  Piecewise-linear bonding curve through the 8 published anchor tiers. */
+export function scandalPackPrice(serial: number): number {
+  const t = SCANDAL_PACK_TIERS;
+  if (serial <= t[0].serial) return t[0].price;
+  const last = t[t.length - 1];
+  if (serial >= last.serial) return last.price;
+  for (let i = 1; i < t.length; i++) {
+    if (serial <= t[i].serial) {
+      const lo = t[i - 1];
+      const hi = t[i];
+      const frac = (serial - lo.serial) / (hi.serial - lo.serial);
+      const p = lo.price + frac * (hi.price - lo.price);
+      return Math.round(p * 100) / 100; // 2-dp, SD59x18-safe
+    }
+  }
+  return last.price;
+}
+
 /** Open a pack: 5 cards, slot 0 guaranteed Uncommon+.
  *  Uses (userNonce × packNumber) as seed so every pack is unique per user. */
 export interface PackOpenResult {
