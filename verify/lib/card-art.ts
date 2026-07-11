@@ -19,7 +19,7 @@
  */
 
 // Auto-maintained by scripts/gen-card-art.mjs — do not edit by hand.
-export const CARD_ART_COUNT = 13;
+export const CARD_ART_COUNT = 25;
 
 /** Resolve a card serial to its tiled real-art URL, or undefined when no
  *  art is present (caller then uses the brand-logo fallback). Deterministic
