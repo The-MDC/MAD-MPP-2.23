@@ -55,11 +55,16 @@ import StakingTiersPanel from "@/components/staking-tiers-panel";
 import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
 import BottomNav from "@/components/bottom-nav";
 import DeviceFrame from "@/components/device-frame";
+import MainNav from "@/components/main-nav";
+import FutarchyBoard from "@/components/futarchy-board";
+import MarketFactory from "@/components/market-factory";
+import BayesianDecisionTree from "@/components/decision-tree";
+import { useTheme } from "@/context/theme-context";
 import StateMachineView from "@/components/state-machine-view";
 import JoyLayer, { celebrate } from "@/components/joy-layer";
 
 import {
-  OVDeck, OV_DECKS, ThemeSkin, SKIN_TOKENS, SkinTokens,
+  OVDeck, OV_DECKS, SKIN_TOKENS, SkinTokens,
 } from "@/lib/gambit-game-math";
 import {
   ShieldAlert, Layers, Trophy, Package, Ticket, Cpu,
@@ -67,6 +72,15 @@ import {
 } from "lucide-react";
 
 type Tab = "floor" | "saga" | "arena" | "packs" | "portal" | "casino" | "logic";
+
+// Demo Bayesian evidence chain for the Logic tab's decision tree (thematic).
+const DECISION_NODES = [
+  { evidence: "Scandal velocity σ² spike (GARCH)", oldPrior: 0.42, newPosterior: 0.61, shift: 0.19, action: "WEAK_BUY" as const },
+  { evidence: "Z-Liar sentiment flips truth→liar",  oldPrior: 0.61, newPosterior: 0.38, shift: -0.23, action: "WEAK_SELL" as const },
+  { evidence: "Whale conviction stake detected",     oldPrior: 0.38, newPosterior: 0.72, shift: 0.34, action: "STRONG_BUY" as const },
+  { evidence: "RSS wire corroboration (7 feeds)",    oldPrior: 0.72, newPosterior: 0.78, shift: 0.06, action: "HOLD" as const },
+  { evidence: "Oracle cascade divergence",           oldPrior: 0.78, newPosterior: 0.55, shift: -0.23, action: "STRONG_SELL" as const },
+];
 
 export default function GambitPage() {
   return (
@@ -81,9 +95,8 @@ export default function GambitPage() {
 function GambitInner() {
   const [tab, setTab]             = useState<Tab>("floor");
   const [activeDeck, setActiveDeck] = useState<OVDeck>(OV_DECKS[0]);
-  const [skin, setSkin]           = useState<ThemeSkin>("HolographicGoldLaser");
+  const { skin, setSkin, tokens } = useTheme(); // global theme — shared app-wide
   const [skinMenuOpen, setSkinMenuOpen] = useState(false);
-  const tokens: SkinTokens        = SKIN_TOKENS[skin];
 
   const { chaosMeter, vrsFlash, cards, socialAuth, setSocialAuth, walletAuth, setWalletAuth } = useGame();
   const hasGoldenHand = cards.some(c => ["Golden Hand","Mythic"].includes(c.rarity));
@@ -180,6 +193,9 @@ function GambitInner() {
           <Trinity />
         </header>
 
+        {/* HAMBURGER MENU — docked inside the phone; global theme button lives here */}
+        <MainNav active={tab} onSelect={setTab} hasGoldenHand={hasGoldenHand} />
+
         {/* KAITO TICKER */}
         <div className="mb-2"><KaitoPriceTicker /></div>
 
@@ -242,6 +258,7 @@ function GambitInner() {
           <div className="space-y-5">
             <SeikoDopamineHub />
             <ScandalVelocityMeter />
+            <MarketFactory />
             <div className="grid lg:grid-cols-[1.3fr_1fr] gap-5">
               <div className="space-y-5">
                 <PredictionCircus activeDeck={activeDeck} />
@@ -275,6 +292,8 @@ function GambitInner() {
         {tab === "logic"  && (
           <div className="space-y-4">
             <StateMachineView />
+            <FutarchyBoard />
+            <BayesianDecisionTree nodes={DECISION_NODES} />
             <LogicLab activeDeck={activeDeck} />
           </div>
         )}

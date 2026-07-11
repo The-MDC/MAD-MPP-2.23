@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { WorkspaceProvider } from "@/context/workspace-context";
 import { MppProvider } from "@/context/mpp-context";
+import { ThemeProvider } from "@/context/theme-context";
 
 export const metadata: Metadata = {
   title: "Mad Gambit Conviction Workspace",
@@ -25,12 +26,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased bg-[#030303] text-neutral-100 min-h-screen">
-        <WorkspaceProvider>
-          <MppProvider>
-            {children}
-          </MppProvider>
-        </WorkspaceProvider>
+      <body className="font-sans antialiased text-neutral-100 min-h-screen" style={{ backgroundColor: "var(--mg-bg, #030303)" }}>
+        <ThemeProvider>
+          <WorkspaceProvider>
+            <MppProvider>
+              {children}
+            </MppProvider>
+          </WorkspaceProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
