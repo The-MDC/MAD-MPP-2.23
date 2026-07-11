@@ -23,6 +23,7 @@
 import React from "react";
 import { NftCard as Card, FACTIONS } from "@/context/game-context";
 import { RARITY_TABLE } from "@/lib/gambit-game-math";
+import { cardArtUrl } from "@/lib/card-art";
 
 /** Default card art — the MAD Gambit brand logo, dynamically shrunk-to-fit
  *  the art zone (preserveAspectRatio meet). Overridden per-serial by card.artUrl. */
@@ -133,7 +134,7 @@ export function NftCardView({
           {/* clip so the logo never bleeds past the rounded art frame */}
           <clipPath id={`artclip-${uid}`}><rect x="22" y="64" width="276" height="220" rx="14" /></clipPath>
           <image
-            href={card.artUrl ?? CARD_ART_LOGO}
+            href={card.artUrl ?? cardArtUrl(card.serial) ?? CARD_ART_LOGO}
             x="44" y="82" width="232" height="184"
             preserveAspectRatio="xMidYMid meet"
             clipPath={`url(#artclip-${uid})`}
