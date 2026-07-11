@@ -94,6 +94,25 @@ Prize distribution: 40% / 20% / 12% / 5% / 5% / 2% / 2% / 2% / 2% / 2% (ranks 1-
 
 ---
 
+## Scandal Pack — Dutch-Auction Bonding Curve (8 Tiers) — `SCANDAL_PACK_TIERS`
+
+Premium USD-denominated mint, distinct from the flat 4.88-MADx basic card pack (`CARD_PACK_COST`). Price is a monotone piecewise-linear bonding curve through 8 published anchors along the 0–10,000 mint serial: tiers 1–5 ramp gradually to $95.00, tiers 6–8 steepen to a $296 conviction cap. Function: `scandalPackPrice(serial)`.
+
+| Tier | Mint Serial | Price (USD) | Zone |
+|---|---|---|---|
+| 1 | 0 | $8.88 | Floor |
+| 2 | 100 | $28.88 | Gradual |
+| 3 | 500 | $52.88 | Gradual |
+| 4 | 1,000 | $74.88 | Gradual |
+| 5 | 2,500 | $95.00 | Gradual (ceiling) |
+| 6 | 5,000 | $152.00 | Convex |
+| 7 | 7,500 | $208.00 | Convex |
+| 8 | 10,000 | $296.00 | Conviction Cap |
+
+Each pack contains 5 cards, slot 0 guaranteed Uncommon+. On-chain step function uses PRBMath SD59x18 (2-dp, no fractional cents). Platform rake 1.88% per mint.
+
+---
+
 ## Known Code Mismatches (from docx §12)
 
 | File | Issue | Status |
@@ -106,6 +125,7 @@ Prize distribution: 40% / 20% / 12% / 5% / 5% / 2% / 2% / 2% / 2% / 2% (ranks 1-
 | Tournament route | Was using `mmrDelta` (single value) | ✅ FIXED → `calculateTournamentScores` |
 | Prize table | Now uses canonical BPS table | ✅ FIXED |
 | Pack opening | Was missing entirely | ✅ FIXED → `openCardPack()` + API route |
+| Scandal Pack pricing | Deck showed flat/log $4.88–$8.78 | ✅ FIXED → 8-tier `SCANDAL_PACK_TIERS` + `scandalPackPrice()` ($8.88–$296) |
 | Staking tiers | Were undocumented | ✅ ADDED → `STAKING_TIERS` |
 | EigenTrust → Whale gate | Trust score decorative | ⬜ PENDING Stage 11 |
 | Roast/meme share | Step 6 of Affliction loop | ⬜ PENDING Stage 6 |
