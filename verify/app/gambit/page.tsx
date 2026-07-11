@@ -55,11 +55,13 @@ import StakingTiersPanel from "@/components/staking-tiers-panel";
 import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
 import BottomNav from "@/components/bottom-nav";
 import DeviceFrame from "@/components/device-frame";
+import MainNav from "@/components/main-nav";
+import { useTheme } from "@/context/theme-context";
 import StateMachineView from "@/components/state-machine-view";
 import JoyLayer, { celebrate } from "@/components/joy-layer";
 
 import {
-  OVDeck, OV_DECKS, ThemeSkin, SKIN_TOKENS, SkinTokens,
+  OVDeck, OV_DECKS, SKIN_TOKENS, SkinTokens,
 } from "@/lib/gambit-game-math";
 import {
   ShieldAlert, Layers, Trophy, Package, Ticket, Cpu,
@@ -81,9 +83,8 @@ export default function GambitPage() {
 function GambitInner() {
   const [tab, setTab]             = useState<Tab>("floor");
   const [activeDeck, setActiveDeck] = useState<OVDeck>(OV_DECKS[0]);
-  const [skin, setSkin]           = useState<ThemeSkin>("HolographicGoldLaser");
+  const { skin, setSkin, tokens } = useTheme(); // global theme — shared app-wide
   const [skinMenuOpen, setSkinMenuOpen] = useState(false);
-  const tokens: SkinTokens        = SKIN_TOKENS[skin];
 
   const { chaosMeter, vrsFlash, cards, socialAuth, setSocialAuth, walletAuth, setWalletAuth } = useGame();
   const hasGoldenHand = cards.some(c => ["Golden Hand","Mythic"].includes(c.rarity));
@@ -179,6 +180,9 @@ function GambitInner() {
           </p>
           <Trinity />
         </header>
+
+        {/* HAMBURGER MENU — docked inside the phone; global theme button lives here */}
+        <MainNav active={tab} onSelect={setTab} hasGoldenHand={hasGoldenHand} />
 
         {/* KAITO TICKER */}
         <div className="mb-2"><KaitoPriceTicker /></div>
