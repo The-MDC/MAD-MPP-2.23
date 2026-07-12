@@ -8,7 +8,7 @@
  */
 
 import React from "react";
-import { Brain, Target } from "lucide-react";
+import { Brain, Target, Gavel } from "lucide-react";
 import { INK } from "@/lib/gambit-design-tokens";
 import Carousel from "@/components/carousel";
 
@@ -75,11 +75,41 @@ function Rail({ title, icon, color, data, kind }: { title: string; icon: React.R
   );
 }
 
+const DUTCH = [
+  { id: "d1", name: "Scandal Pack Drop", price: 42, floor: 10 },
+  { id: "d2", name: "Golden Genesis NFT", price: 88, floor: 25 },
+  { id: "d3", name: "Founder's Golden Ticket", price: 128, floor: 40 },
+  { id: "d4", name: "Mythic Vault Key", price: 64, floor: 15 },
+];
+
+function DutchCard({ d }: { d: (typeof DUTCH)[number] }) {
+  return (
+    <div className="w-[180px] rounded-xl border p-3" style={{ borderColor: INK.borderGold, background: INK.bgCard }}>
+      <p className="font-sans text-[11px] font-semibold mb-2" style={{ color: INK.white, minHeight: 30 }}>{d.name}</p>
+      <div className="flex items-baseline gap-1">
+        <span className="font-mono text-[18px] font-black" style={{ color: INK.gold }}>{d.price}</span>
+        <span className="font-mono text-[9px]" style={{ color: INK.muted }}>$MADx ↓</span>
+      </div>
+      <p className="font-mono text-[8px] uppercase mb-2" style={{ color: INK.muted }}>floor {d.floor} · −5 / 5s</p>
+      <button type="button" className="w-full py-1.5 rounded-lg font-mono text-[9px] font-bold uppercase tracking-wider active:scale-95 transition-transform" style={{ background: INK.gold, color: "#05070c" }}>Claim</button>
+    </div>
+  );
+}
+
 export default function MarketRails() {
   return (
     <div className="space-y-4">
       <Rail title="Conviction Markets" icon={<Brain className="w-4 h-4" />} color={INK.cyan} data={CONVICTION} kind="conviction" />
       <Rail title="Prediction Markets" icon={<Target className="w-4 h-4" />} color={INK.gold} data={PREDICTION} kind="prediction" />
+      <div className="rounded-2xl border p-4" style={{ borderColor: INK.border, background: "rgba(8,10,18,0.55)" }}>
+        <div className="flex items-center gap-2 mb-3">
+          <Gavel className="w-4 h-4" style={{ color: INK.gold }} />
+          <h3 className="font-mono text-[12px] font-bold uppercase tracking-widest" style={{ color: INK.white }}>Dutch Auctions</h3>
+        </div>
+        <Carousel ariaLabel="Dutch auctions">
+          {DUTCH.map((d) => <DutchCard key={d.id} d={d} />)}
+        </Carousel>
+      </div>
     </div>
   );
 }
