@@ -128,7 +128,32 @@ export default function JoyLayer() {
       else { raf.current = undefined; ctx.clearRect(0, 0, W, H); }
     };
 
-    const onCelebrate = (e: Event) => spawn((e as CustomEvent<CelebrateDetail>).detail || {});
+    // satirical sound layer — Wonka sparkle + a cheeky boing on every celebration
+    let ac: AudioContext | null = null;
+    const jingle = (intensity: number) => {
+      try {
+        const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        ac = ac || new AC();
+        if (ac.state === "suspended") ac.resume();
+        const t = ac.currentTime, out = ac.createGain(); out.gain.value = Math.min(0.8, 0.4 + intensity * 0.3); out.connect(ac.destination);
+        // ascending sparkle bells
+        [784, 988, 1319].forEach((f, i) => {
+          const o = ac!.createOscillator(); o.type = "triangle"; o.frequency.value = f;
+          const g = ac!.createGain(); const s = t + i * 0.06;
+          g.gain.setValueAtTime(0, s); g.gain.linearRampToValueAtTime(0.2, s + 0.02); g.gain.exponentialRampToValueAtTime(0.001, s + 0.25);
+          o.connect(g).connect(out); o.start(s); o.stop(s + 0.28);
+        });
+        // cheeky little boing
+        const b = ac.createOscillator(); b.type = "square"; b.frequency.setValueAtTime(220, t + 0.2); b.frequency.exponentialRampToValueAtTime(90, t + 0.34);
+        const bg = ac.createGain(); bg.gain.setValueAtTime(0.18, t + 0.2); bg.gain.exponentialRampToValueAtTime(0.001, t + 0.36);
+        b.connect(bg).connect(out); b.start(t + 0.2); b.stop(t + 0.38);
+      } catch { /* silent */ }
+    };
+    const onCelebrate = (e: Event) => {
+      const d = (e as CustomEvent<CelebrateDetail>).detail || {};
+      spawn(d);
+      jingle(Math.max(0.2, Math.min(1.4, d.intensity ?? 0.8)));
+    };
     window.addEventListener("madgambit:celebrate", onCelebrate);
 
     return () => {
