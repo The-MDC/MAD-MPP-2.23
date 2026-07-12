@@ -17,33 +17,34 @@ import React, { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   Menu, X, Palette, FileText, LayoutDashboard, BarChart3, ShieldCheck, LineChart, Trophy,
-  User, Wallet, Store, ArrowLeftRight, Ticket, Settings as SettingsIcon, Percent, LifeBuoy, BookOpen,
+  User, Wallet, Store, ArrowLeftRight, Ticket, Settings as SettingsIcon, Percent, LifeBuoy, BookOpen, Gauge,
 } from "lucide-react";
 import { INK } from "@/lib/gambit-design-tokens";
 import type { GambitTab } from "@/components/bottom-nav";
 import { useTheme } from "@/context/theme-context";
 
-type Item = { label: string; icon: React.ReactNode; tab?: GambitTab; soon?: boolean };
+type Item = { label: string; icon: React.ReactNode; tab?: GambitTab; href?: string; soon?: boolean };
 
 // LOGO menu — platform dashboards only
 const DASHBOARDS: Item[] = [
   { label: "Markets",       icon: <BarChart3 className="w-4 h-4" />,   tab: "floor" },
+  { label: "Z-Liar Meter",  icon: <Gauge className="w-4 h-4" />,       tab: "floor" },
   { label: "Staking",       icon: <Ticket className="w-4 h-4" />,      tab: "portal" },
   { label: "Stop Loss 40%", icon: <Percent className="w-4 h-4" />,     tab: "floor" },
   { label: "Reports",       icon: <FileText className="w-4 h-4" />,    tab: "logic" },
   { label: "Analytics",     icon: <LineChart className="w-4 h-4" />,   tab: "logic" },
   { label: "Leaderboard",   icon: <Trophy className="w-4 h-4" />,      tab: "arena" },
-  { label: "Admin",         icon: <ShieldCheck className="w-4 h-4" />, soon: true },
+  { label: "Admin",         icon: <ShieldCheck className="w-4 h-4" />, tab: "logic" },
 ];
 
 // HAMBURGER — personal / account
 const ACCOUNT: Item[] = [
-  { label: "Profile",              icon: <User className="w-5 h-5" />,          soon: true },
-  { label: "Wallet",               icon: <Wallet className="w-5 h-5" />,         soon: true },
+  { label: "Profile",              icon: <User className="w-5 h-5" />,          tab: "portal" },
+  { label: "Wallet",               icon: <Wallet className="w-5 h-5" />,         tab: "portal" },
   { label: "Personal Marketplace", icon: <Store className="w-5 h-5" />,          tab: "saga" },
-  { label: "P2P Market",           icon: <ArrowLeftRight className="w-5 h-5" />, soon: true },
-  { label: "Support",              icon: <LifeBuoy className="w-5 h-5" />,       soon: true },
-  { label: "Knowledge Base",       icon: <BookOpen className="w-5 h-5" />,       soon: true },
+  { label: "P2P Market",           icon: <ArrowLeftRight className="w-5 h-5" />, tab: "saga" },
+  { label: "Support",              icon: <LifeBuoy className="w-5 h-5" />,       href: "/pitch/index.html" },
+  { label: "Knowledge Base",       icon: <BookOpen className="w-5 h-5" />,       href: "/pitch/index.html" },
 ];
 
 export default function MainNav({
@@ -75,7 +76,7 @@ export default function MainNav({
   }, []);
 
   const pick = useCallback((it: Item, close: () => void) => {
-    if (it.soon) return;
+    if (it.href) { if (typeof window !== "undefined") window.open(it.href, "_blank", "noopener"); close(); return; }
     if (it.tab) onSelect(it.tab);
     close();
   }, [onSelect]);
