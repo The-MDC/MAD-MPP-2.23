@@ -44,12 +44,15 @@ export default function MainNav({
 
   return (
     <>
-      {/* hamburger — docked top-left inside the phone */}
+      {/* official logo — top-left inside the phone */}
+      <img src="/brand/madhatr-logo.png" alt="MAD Gambit" className="absolute top-2.5 left-3 z-40 h-8 w-auto pointer-events-none" />
+
+      {/* hamburger with all links — top-right inside the phone */}
       <button
         onClick={() => setOpen(true)}
         aria-label="Open menu"
         aria-expanded={open}
-        className="absolute top-3 left-3 z-40 grid place-items-center w-9 h-9 rounded-xl transition-transform active:scale-90"
+        className="absolute top-3 right-3 z-40 grid place-items-center w-9 h-9 rounded-xl transition-transform active:scale-90"
         style={{ background: INK.bgPanel, border: `1px solid ${INK.borderGold}`, color: accent }}
       >
         <Menu className="w-5 h-5" />
