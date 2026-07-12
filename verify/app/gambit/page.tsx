@@ -37,6 +37,7 @@ import PositionsDashboard from "@/components/positions-dashboard";
 import SwapInterface from "@/components/swap-interface";
 import ZLiarSection from "@/components/zliar-section";
 import GameLobby from "@/components/game-lobby";
+import PackShop from "@/components/pack-shop";
 import DopamineEngine from "@/components/dopamine-engine";
 import LiveTicker from "@/components/live-ticker";
 import OVDeckSelector from "@/components/ov-deck-selector";
@@ -280,6 +281,7 @@ function GambitInner() {
         {tab === "arena"  && <TournamentArena />}
         {tab === "packs"  && (
           <div className="space-y-4">
+            <PackShop />
             <PackOpening />
             <DutchAuctionPanel />
           </div>
