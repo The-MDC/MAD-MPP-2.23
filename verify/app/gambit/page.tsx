@@ -36,6 +36,7 @@ import { KaitoPriceTicker, PredictionCircus } from "@/components/kaito-and-circu
 import PositionsDashboard from "@/components/positions-dashboard";
 import SwapInterface from "@/components/swap-interface";
 import ZLiarSection from "@/components/zliar-section";
+import GameLobby from "@/components/game-lobby";
 import DopamineEngine from "@/components/dopamine-engine";
 import LiveTicker from "@/components/live-ticker";
 import OVDeckSelector from "@/components/ov-deck-selector";
@@ -271,6 +272,7 @@ function GambitInner() {
               </div>
             </div>
             <ZLiarSection />
+            <GameLobby />
           </div>
         )}
 
