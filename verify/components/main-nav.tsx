@@ -18,6 +18,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   Menu, X, Palette, FileText, LayoutDashboard, BarChart3, ShieldCheck, LineChart, Trophy,
   User, Wallet, Store, ArrowLeftRight, Ticket, Settings as SettingsIcon, Percent, LifeBuoy, BookOpen, Gauge,
+  Layers, Swords, Gavel,
 } from "lucide-react";
 import { INK } from "@/lib/gambit-design-tokens";
 import type { GambitTab } from "@/components/bottom-nav";
@@ -27,6 +28,9 @@ type Item = { label: string; icon: React.ReactNode; tab?: GambitTab; href?: stri
 
 // LOGO menu — platform dashboards only
 const DASHBOARDS: Item[] = [
+  { label: "Saga",          icon: <Layers className="w-4 h-4" />,      tab: "saga" },
+  { label: "Tournament",    icon: <Swords className="w-4 h-4" />,      tab: "arena" },
+  { label: "Dutch Auctions",icon: <Gavel className="w-4 h-4" />,       tab: "packs" },
   { label: "Markets",       icon: <BarChart3 className="w-4 h-4" />,   tab: "floor" },
   { label: "Z-Liar Meter",  icon: <Gauge className="w-4 h-4" />,       tab: "floor" },
   { label: "Staking",       icon: <Ticket className="w-4 h-4" />,      tab: "portal" },
@@ -100,7 +104,7 @@ export default function MainNav({
               <motion.div
                 initial={{ opacity: 0, y: -6, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.96 }}
                 transition={{ duration: reduce ? 0 : 0.16 }}
-                className="absolute left-0 mt-1 z-50 w-52 rounded-2xl border p-2 shadow-2xl"
+                className="absolute left-0 mt-1 z-50 w-52 max-h-[72vh] overflow-y-auto rounded-2xl border p-2 shadow-2xl"
                 style={{ background: INK.bgDeep, borderColor: INK.borderGold }}
                 role="menu" aria-label="Platform dashboards"
               >

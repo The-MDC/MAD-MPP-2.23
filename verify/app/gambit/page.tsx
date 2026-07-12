@@ -35,7 +35,7 @@ import ScandalVelocityMeter from "@/components/scandal-velocity-meter";
 import { KaitoPriceTicker, PredictionCircus } from "@/components/kaito-and-circus";
 import PositionsDashboard from "@/components/positions-dashboard";
 import SwapInterface from "@/components/swap-interface";
-import ZLiarMeter from "@/components/zliar-meter";
+import ZLiarSection from "@/components/zliar-section";
 import DopamineEngine from "@/components/dopamine-engine";
 import LiveTicker from "@/components/live-ticker";
 import OVDeckSelector from "@/components/ov-deck-selector";
@@ -270,7 +270,7 @@ function GambitInner() {
                 <DopamineEngine />
               </div>
             </div>
-            <ZLiarMeter />
+            <ZLiarSection />
           </div>
         )}
 
