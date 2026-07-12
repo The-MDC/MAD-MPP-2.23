@@ -59,3 +59,25 @@ npm run build
 # Run code quality linter
 npm run lint
 ```
+
+---
+
+## Game Lobby — Production Plugin Requirements
+
+The **Game Lobby** (`components/game-lobby.tsx`) ships **client-side** (localStorage +
+in-session images) so the demo works with zero infra. To go **fully live / multi-user**,
+provision these plugins and wire the client to `app/api/v1/lobby/route.ts` (already written,
+DB-ready, 16-day expiry + image-only validation):
+
+| Need | Plugin / service | Notes |
+|---|---|---|
+| **Persistence** | Postgres via `DATABASE_URL` | Run the schema in `app/api/v1/lobby/route.ts` header. `pg` already a dep. |
+| **Realtime** (live chat push) | Supabase Realtime **or** Pusher/Ably (WebSockets) | Client currently polls/loads; swap to a channel subscription per room. |
+| **Image/GIF storage** | Supabase Storage **or** S3/R2 + CDN | Upload returns a URL; route enforces image-only (`png/jpg/gif/webp`). No docs/video. |
+| **Identity** (real usernames) | SIWE / social auth (`auth-modal`) | Replace the auto `Degen#nnnn` handle with the signed-in identity. |
+| **Moderation** | OpenAI/Perspective moderation API + image scan | Gate `POST` before insert (marked `PLACEHOLDER` in the route). |
+| **Rate limiting** | Upstash Redis / Vercel KV | Per-user/IP throttle on `POST` (marked `PLACEHOLDER`). |
+| **16-day hard delete** | `pg_cron` (or a Vercel Cron) | `DELETE FROM lobby_messages WHERE created_at < now() - interval '16 days';` Reads already filter by 16d. |
+
+**Env:** `DATABASE_URL`, plus the chosen realtime/storage keys. Until set, the route returns
+`503` and the client stays on its local fallback — nothing breaks.
