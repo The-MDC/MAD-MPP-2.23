@@ -38,6 +38,8 @@ import SwapInterface from "@/components/swap-interface";
 import ZLiarSection from "@/components/zliar-section";
 import GameLobby from "@/components/game-lobby";
 import PackShop from "@/components/pack-shop";
+import TopMarketsRail from "@/components/top-markets-rail";
+import MarketRails from "@/components/market-rails";
 import DopamineEngine from "@/components/dopamine-engine";
 import LiveTicker from "@/components/live-ticker";
 import OVDeckSelector from "@/components/ov-deck-selector";
@@ -259,6 +261,9 @@ function GambitInner() {
         {tab === "floor" && (
           <div className="space-y-5">
             <SeikoDopamineHub />
+            <TopMarketsRail />
+            <ZLiarSection />
+            <MarketRails />
             <ScandalVelocityMeter />
             <MarketFactory />
             <div className="grid lg:grid-cols-[1.3fr_1fr] gap-5">
@@ -272,7 +277,6 @@ function GambitInner() {
                 <DopamineEngine />
               </div>
             </div>
-            <ZLiarSection />
             <GameLobby />
           </div>
         )}
