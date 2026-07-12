@@ -92,9 +92,13 @@ export default function PackShop() {
       {/* RIPPED! flash */}
       <AnimatePresence>
         {ripped && (
-          <motion.div initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.2 }}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.3, rotate: -12 }}
+            animate={{ opacity: 1, scale: [0.3, 1.35, 0.92, 1.12, 1], rotate: [-12, 8, -5, 3, 0] }}
+            exit={{ opacity: 0, scale: 1.4, rotate: 6 }}
+            transition={{ duration: 0.7, ease: "easeOut", times: [0, 0.4, 0.6, 0.8, 1] }}
             className="absolute inset-0 z-30 grid place-items-center pointer-events-none">
-            <span className="font-black text-2xl tracking-widest" style={{ color: INK.gold, textShadow: `0 0 20px ${INK.gold}` }}>RIPPED! {ripped}</span>
+            <span className="font-black text-2xl tracking-widest" style={{ color: INK.gold, textShadow: `0 0 20px ${INK.gold}`, fontFamily: "Georgia, serif" }}>🎩 RIPPED! {ripped}</span>
           </motion.div>
         )}
       </AnimatePresence>
