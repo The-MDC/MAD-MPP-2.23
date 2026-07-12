@@ -73,7 +73,7 @@ docker compose up --build
 
 ## Explicit Instructions for the Agent Picking This Up
 
-1. **Don't re-architect what's here.** The stack decisions (Arbitrum Nova launch with Arbitrum One for vaults — founder decision 2026-07-10, no Supabase, LangChain+Gemini/Gemma, Postgres via Cloud SQL) were made deliberately this session, with the user correcting course once already. Build on top of them.
+1. **Don't re-architect what's here.** The stack decisions (Arbitrum Nova launch with Arbitrum One for vaults — founder decision 2026-07-10, LangChain+Gemini/Gemma, Postgres via Cloud SQL — no third-party BaaS) were made deliberately this session, with the user correcting course once already. Build on top of them.
 2. **Canonical numbers are locked** — 1.88% platform fee, 28.8% community share, 40% creator share, $1.24M–$2.48M seed raise, MAD Gambit LLC as the legal entity. Don't drift these while implementing.
 3. **The wear/drop-rate tables are final math, already approved by the user** — `RARITY_WEAR_PCT` (2%/2%/10%/11.5%/13%/14.5%/16%) and `RARITY_DROP_WEIGHTS` (568/236/120/60/10/6 per 1000). Port them faithfully into Solidity, don't recompute.
 4. **`GEMINI_SYSTEM_INSTRUCTION` is verbatim from the recovered `GEMINI.md` source file** — do not paraphrase, shorten, or "clean up" its tone. The design law is explicit: the UI is polished, the AI's voice stays raw.

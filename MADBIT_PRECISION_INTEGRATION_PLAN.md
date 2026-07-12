@@ -60,7 +60,7 @@ Every placeholder is functional-now (simulated/local) and demo-safe. Order = aut
 1. **SIWE signature verification** 🔨 — wire `siwe` verify + server nonce into `auth-modal`/`wallet-gateway`. Pre-money-critical; gate before any real-value path.
 2. **CARD_ART_PIPELINE** 🎨 — §C.
 3. **WALLET_NFT_READ** 🅿️ — ERC-1155/721 balances via `EVM_RPC_URL` + Alchemy AA-SDK.
-4. **PROFILE_DB** 🔨 — Supabase/Postgres behind `DATABASE_URL`; schema per `docs/mpp-backend-architecture.md §3`.
+4. **PROFILE_DB** 🔨 — Postgres behind `DATABASE_URL`; schema per `docs/mpp-backend-architecture.md §3`.
 5. **TRI_AGENT_LLM** 🔨 — persona routing (Host Core → Sentinel/Strategist/Decay) per `AGENTS.md`; `GEMINI_API_KEY` server-side. Depends on Phase-1 redeploy.
 6. **ORACLE** 🅿️ — Chainlink VRF/price feeds + News API.
 7. **PVP_MATCHMAKING** 🅿️ — MMR-band pairing (Elomatic math already real).

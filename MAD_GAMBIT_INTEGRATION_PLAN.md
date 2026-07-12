@@ -78,7 +78,7 @@ The folder was crawled completely. Disposition of every item that matters:
 Order matters: auth before anything that moves value.
 
 1. **SIWE signature verification** — wire `siwe` verify into `auth-modal.tsx` flow + a server-side nonce route. A bare wallet address is currently trusted with no signature check. Blocks any real-money path; do it before staking/contracts work.
-2. **PROFILE_DB** — replace in-memory/localStorage profiles with Postgres (Supabase is already in the stack) behind `DATABASE_URL`; schema per `verify/docs/mpp-backend-architecture.md §3`. This makes streaks, MMR, and collections real across devices.
+2. **PROFILE_DB** — replace in-memory/localStorage profiles with Postgres behind `DATABASE_URL`; schema per `verify/docs/mpp-backend-architecture.md §3`. This makes streaks, MMR, and collections real across devices.
 3. **TRI_AGENT_LLM** — the zliar/concierge/satire routes work after Phase 1; upgrade to persona routing (Host Core → Sentinel/Strategist/Decay) per the agent brief. Keep `GEMINI_API_KEY` server-side only.
 4. **ORACLE + PVP_MATCHMAKING + SAGA_FEED + FEED_EXPANSION** — in that order, each per the BACKEND_PLACEHOLDERS spec. Elomatic math is already real; only pairing and persistence are simulated.
 5. **`MADStaking.sol`** — the TS `STAKING_TIERS` math has no on-chain counterpart. Write it + Foundry tests, plus first tests for `MADCard1155/721`. Apply the security-review skill before any contract merge (project rule).
