@@ -11,7 +11,7 @@
  */
 import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Menu, X, ShieldAlert, Layers, Trophy, Package, Ticket, Crown, Cpu, Palette, FileText } from "lucide-react";
+import { Menu, X, ShieldAlert, Layers, Trophy, Package, Ticket, Crown, Cpu, Palette, FileText, Gauge } from "lucide-react";
 import { INK } from "@/lib/gambit-design-tokens";
 import type { GambitTab } from "@/components/bottom-nav";
 import { useTheme } from "@/context/theme-context";
@@ -117,6 +117,15 @@ export default function MainNav({
                 >
                   <span style={{ color: INK.muted }}><FileText className="w-5 h-5" /></span>
                   <span className="text-sm font-semibold tracking-wide">Whitepaper · Data Room</span>
+                </a>
+
+                <a
+                  href="/workbench"
+                  className="w-full flex items-center gap-3 px-5 py-3 text-left transition-colors"
+                  style={{ color: INK.white }}
+                >
+                  <span style={{ color: INK.muted }}><Gauge className="w-5 h-5" /></span>
+                  <span className="text-sm font-semibold tracking-wide">Workbench · Telemetry</span>
                 </a>
               </div>
 
