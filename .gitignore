@@ -1,0 +1,10 @@
+# Local env files — never commit real values
+.env
+.env.local
+.env*.local
+
+# Vercel CLI link/artifacts
+.vercel/.env*
+
+# OS noise
+.DS_Store
