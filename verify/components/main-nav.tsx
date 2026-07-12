@@ -17,7 +17,7 @@ import React, { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   Menu, X, Palette, FileText, LayoutDashboard, BarChart3, ShieldCheck, LineChart, Trophy,
-  User, Wallet, Store, ArrowLeftRight, Ticket, Settings as SettingsIcon,
+  User, Wallet, Store, ArrowLeftRight, Ticket, Settings as SettingsIcon, Percent, LifeBuoy, BookOpen,
 } from "lucide-react";
 import { INK } from "@/lib/gambit-design-tokens";
 import type { GambitTab } from "@/components/bottom-nav";
@@ -27,11 +27,13 @@ type Item = { label: string; icon: React.ReactNode; tab?: GambitTab; soon?: bool
 
 // LOGO menu — platform dashboards only
 const DASHBOARDS: Item[] = [
-  { label: "Markets",     icon: <BarChart3 className="w-4 h-4" />,      tab: "floor" },
-  { label: "Reports",     icon: <FileText className="w-4 h-4" />,       tab: "logic" },
-  { label: "Analytics",   icon: <LineChart className="w-4 h-4" />,      tab: "logic" },
-  { label: "Leaderboard", icon: <Trophy className="w-4 h-4" />,         tab: "arena" },
-  { label: "Admin",       icon: <ShieldCheck className="w-4 h-4" />,    soon: true },
+  { label: "Markets",       icon: <BarChart3 className="w-4 h-4" />,   tab: "floor" },
+  { label: "Staking",       icon: <Ticket className="w-4 h-4" />,      tab: "portal" },
+  { label: "Stop Loss 40%", icon: <Percent className="w-4 h-4" />,     tab: "floor" },
+  { label: "Reports",       icon: <FileText className="w-4 h-4" />,    tab: "logic" },
+  { label: "Analytics",     icon: <LineChart className="w-4 h-4" />,   tab: "logic" },
+  { label: "Leaderboard",   icon: <Trophy className="w-4 h-4" />,      tab: "arena" },
+  { label: "Admin",         icon: <ShieldCheck className="w-4 h-4" />, soon: true },
 ];
 
 // HAMBURGER — personal / account
@@ -40,7 +42,8 @@ const ACCOUNT: Item[] = [
   { label: "Wallet",               icon: <Wallet className="w-5 h-5" />,         soon: true },
   { label: "Personal Marketplace", icon: <Store className="w-5 h-5" />,          tab: "saga" },
   { label: "P2P Market",           icon: <ArrowLeftRight className="w-5 h-5" />, soon: true },
-  { label: "Staking",              icon: <Ticket className="w-5 h-5" />,         tab: "portal" },
+  { label: "Support",              icon: <LifeBuoy className="w-5 h-5" />,       soon: true },
+  { label: "Knowledge Base",       icon: <BookOpen className="w-5 h-5" />,       soon: true },
 ];
 
 export default function MainNav({
