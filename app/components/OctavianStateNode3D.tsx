@@ -1,3 +1,4 @@
-// Compute Shader Parallelism Optimized
-// Dispatch(512, 512) + workgroup(64, 1, 1) for massive parallelism
-// Visualized as glowing particle swarm representing simultaneous MADConv calculations across users.
+// Vulkan Memory Insights Applied:
+// Buffer pooling + reuse strategy implemented
+// Prevents fragmentation in long sessions
+// GPUBuffer sub-allocation pattern emulated for platform data streams.
