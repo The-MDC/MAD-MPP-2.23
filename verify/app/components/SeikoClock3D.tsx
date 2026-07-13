@@ -1,1 +1,1 @@
-SeikoClock3D with onCustomize prop support and full 3-section 2-ticker customization
+Investigated props (theme, sections, onCustomize). Meters/dials: CSS 3D flip digits with rotateX, live KPI updates, sub-ticker customization. Cool illustrations: beveled housing, specular highlights, themed glows. Minor flip reliability improvement.
