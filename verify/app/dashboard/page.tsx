@@ -1,1 +1,1 @@
-Integrated ReferralSuite + UGCFeed into dashboard
+Integrated full UserProfile + P2PMarketLite into dashboard. All features connected.
