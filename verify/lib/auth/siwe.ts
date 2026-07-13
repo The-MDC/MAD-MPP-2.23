@@ -1,1 +1,1 @@
-SIWE utilities
+SIWE authentication
