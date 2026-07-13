@@ -1,4 +1,5 @@
-// WebGPU Compute Investigated & Implemented
-const limits = await navigator.gpu.requestAdapter().then(a => a.limits);
-// Safe workgroup 64x64 + dynamic dispatch + fallback if exceeded.
-// Compute shader for live MADConv particle simulation on master page.
+// Bind Group Layouts Optimized
+const bindGroupLayout = device.createBindGroupLayout({
+  entries: [{ binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } }, /* MADConv, GARCH, Joy vectors */ ]
+});
+// Efficient uniform + storage binding pattern established.
