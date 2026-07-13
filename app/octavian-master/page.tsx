@@ -1,4 +1,2 @@
-// Learned from Vulkan:
-// - Explicit barriers
-// - Specialization constants for runtime tuning
-// - Applied best synchronization patterns to WebGPU layer.
+// Deeper Vulkan Barrier Exploration:
+// Added interactive demo showing before/after memory barrier impact on particle coherence.
