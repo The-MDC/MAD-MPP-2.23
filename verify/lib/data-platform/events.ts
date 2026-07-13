@@ -1,1 +1,1 @@
-file_content from events.ts
+Updated events service with DB
