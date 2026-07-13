@@ -1,1 +1,1 @@
-Lite P2P Market with multi-chain asset listing and trading modal
+// Added prominent Gasless Toggle • Powered by ERC-4337 Session Keys + Paymaster • Multi-chain asset selector
