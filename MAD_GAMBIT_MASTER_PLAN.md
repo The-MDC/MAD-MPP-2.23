@@ -52,7 +52,7 @@ The cross-session summaries carried figures that conflict with the canonical Dri
 
 - **Fee splits (BPS):** platform **1.88%** (188 BPS); creator **40%** (4000 BPS *of the fee*); community **28.8%** (2880 BPS *of the fee*); MAD Shield insurance recovery **28.8%**, premium **2–4%** of bet.
 - **Chain (as built):** **Arbitrum Nova** (launch, chain id `42170`) + **Arbitrum One** (MAD Shield vaults) — per `PROJECT.md`/`foundry.toml`. The decks' "Base L2 / HyperEVM" is aspirational; deck-consistency task = make docs match code (Arbitrum).
-- **Seed ask — OPEN, needs Nick's sign-off:** handoffs/`CLAUDE.md` say **$1–2M**; the deck-corrected figure is **$1.24M–$2.48M @ $12M pre**. Do not treat either as settled until reconciled (`MAD_GAMBIT_INTEGRATION_PLAN.md §6.5`).
+- **Seed ask — SETTLED (Nick, 2026-07-13):** **$1.24M–$2.48M @ $12M pre**. Supersedes the older $1–2M in some cross-session handoffs. No root `CLAUDE.md` exists in-repo to change; all in-repo docs already carry this figure.
 - **Other canon:** $MADx supply **888,888,888**; VRS Fibonacci `[5,8,13,21,34]`, loss-aversion **2.5×**; streaks 3→1.3× / 5→1.8×+pack / 7→2.4×+Savage / 10+→3.2×+HAT-Trick; tournament 8-tier 40/20/12/5/5/2…; evolution burn C→U 100 / U→R 250 / R→E 500 / E→L 1000 cards.
 
 ---

@@ -21,7 +21,7 @@
 | SIWE | `siwe` in package.json; no signature verification wired. Pre-money blocker |
 | Contracts | `MADCard1155/721.sol`, `MADShieldVault.sol` exist. `MADStaking.sol` missing. Card contracts have 0 tests |
 
-**Canonical numbers (locked):** fee **1.88%** · community **28.8%** · creator **40%** · $MADx supply **888,888,888** · seed **$1.24M–$2.48M @ $12M pre** (deck-corrected figure; root `CLAUDE.md` still shows $1–2M — reconcile in Phase 6).
+**Canonical numbers (locked):** fee **1.88%** · community **28.8%** · creator **40%** · $MADx supply **888,888,888** · seed **$1.24M–$2.48M @ $12M pre** (signed off by Nick 2026-07-13; supersedes the older $1–2M figure — no root `CLAUDE.md` exists in-repo).
 
 ---
 
@@ -91,7 +91,7 @@ Order matters: auth before anything that moves value.
 2. **Presentation repo — push the 1.88% revert.** `index.html` has 12 instances of 1.888% at HEAD; the revert was decided but never landed. Also apply the 7 consistency fixes already itemized: Y3 revenue (one number, everywhere), the 2 remaining $1M–$2M seed spots (incl. "THE ASK" slide 15/15), team roster vs. LLC filing, chain table vs. `foundry.toml` (Arbitrum One is what's built — make docs match code), one pack-pricing formula (shipped code says flat 4.88 — deck must match or code must change, pick one), Golden Ticket 2,488 vs 888, founder tenure (pick one of 14/15/16+).
 3. **`ov-pitch-deck.html` — patch, never delete** (OV talks live): strip the AI-Studio editor chrome, align the ask/valuation to canonical, and decide deliberately whether the cap-table figures stay public.
 4. **Domains/Pro:** stays parked per your call — Hobby-plan commercial exposure exists regardless of domains. When ready: Pro upgrade → both domains on `mpp2.23` → `middleware.ts` host routing (`madgambit.io` → hub, `madgambit.fun` → marketing surface per Website Scope doc). Confirm `madgambit.io` ownership first (still unanswered).
-5. **Reconcile `CLAUDE.md` seed figure** ($1–2M → $1.24M–$2.48M) once you explicitly approve — it's a locked canonical requiring sign-off.
+5. **Seed figure — RECONCILED (Nick, 2026-07-13):** canonical is **$1.24M–$2.48M @ $12M pre**. No root `CLAUDE.md` exists in-repo; all in-repo docs already carry this figure. Remaining $1–2M mentions are deck/stale-PDF consistency items (presentation repo, §6.2).
 
 ## Phase 7 — Design-brief alignment (Shaheryar) — mapping, not rebuilding
 
