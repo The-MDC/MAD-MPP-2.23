@@ -1,1 +1,4 @@
-Added WebGPU Toggle '⚡ God Mode' for max performance Octavian visualization.
+// Learned from Vulkan:
+// - Explicit barriers
+// - Specialization constants for runtime tuning
+// - Applied best synchronization patterns to WebGPU layer.
