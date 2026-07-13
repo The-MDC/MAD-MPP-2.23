@@ -1,1 +1,1 @@
-Updated dashboard with combined dials, menu, tight spacing, platform stats
+Hub page updated: SeikoClock3D via ParallaxHero, dials fully wired with state for 3-ticker customization + 2 mini feeds per dial, rich KPIs flowing

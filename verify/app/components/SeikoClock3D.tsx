@@ -1,1 +1,1 @@
-Full SeikoClock3D content as created (ultra 3D flip clock with 3 sections, 2 tickers each, rich KPIs, customization hooks)
+SeikoClock3D with onCustomize prop support and full 3-section 2-ticker customization

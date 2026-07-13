@@ -1,1 +1,1 @@
-Advanced parallax hero
+Updated with integrated SeikoClock3D as hero centerpiece, onCustomize wired

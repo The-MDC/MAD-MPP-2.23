@@ -1,1 +1,1 @@
-Updated with tickerOptions, activeTicker, onTickerChange, mini tickers, perf props for 3D customization and WebGL context
+Enhanced with tickerOptions, activeTicker, onTickerChange, mini tickers, performance props
