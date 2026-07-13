@@ -1,1 +1,1 @@
-Hub page updated: SeikoClock3D via ParallaxHero, dials fully wired with state for 3-ticker customization + 2 mini feeds per dial, rich KPIs flowing
+Added dynamic import for DopamineDial3D to fix potential SSR/hydration build issues on Vercel

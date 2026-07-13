@@ -1,1 +1,1 @@
-Cleaned duplicate import. Confirmed integration of SeikoClock3D and wired dials.
+Added dynamic import for DopamineDial3D to prevent production build/runtime issues
