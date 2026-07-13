@@ -1,1 +1,1 @@
-Deployment checklist
+Deployment checklist and Vercel script

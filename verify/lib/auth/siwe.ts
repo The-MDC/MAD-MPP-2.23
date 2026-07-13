@@ -1,1 +1,1 @@
-SIWE + Session management
+SIWE utilities
