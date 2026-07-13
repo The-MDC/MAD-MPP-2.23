@@ -1,1 +1,1 @@
-// Added prominent Gasless Toggle • Powered by ERC-4337 Session Keys + Paymaster • Multi-chain asset selector
+// Enhanced with all behavioral nudges: suggested price, decoy deals, live counters, scarcity badges, post-resolution regret messages + Replay buttons

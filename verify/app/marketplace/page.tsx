@@ -1,1 +1,1 @@
-// New Universal Cross-Chain Marketplace - Supports All Chains + All Digital Assets + Gasless P2P Toggle
+// Added Anchoring, Decoy Effect, Social Proof, Scarcity, Regret Minimization across P2P listings and markets
