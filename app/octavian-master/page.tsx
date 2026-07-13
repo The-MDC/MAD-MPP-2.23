@@ -1,1 +1,1 @@
-export default function MasterOctavian(){ return <div>Master Octavian Live • Fixed 404</div>; }
+'use client'; import dynamic from 'next/dynamic'; const OctavianMesh = dynamic(() => import('@/components/OctavianStateNode3D'), { ssr: false }); // Fixed SSR for 3D
