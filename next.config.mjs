@@ -1,1 +1,1 @@
-export default { reactStrictMode: true, swcMinify: true, experimental: { esmExternals: 'loose' }, images: { remotePatterns: [{ protocol: 'https' }] } };
+export default { webpack(config) { config.optimization.splitChunks = { chunks: 'all', minSize: 20000 }; return config; }, transpilePackages: ['three', '@react-three/fiber', '@react-three/drei'] };
