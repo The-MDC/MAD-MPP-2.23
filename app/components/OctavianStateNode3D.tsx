@@ -1,3 +1,2 @@
-// Vulkan Memory Barriers Applied:
-// Explicit synchronization points added via WebGPU command encoder dependencies and buffer copies where needed.
-// Prevents race conditions in high-parallelism compute/render paths.
+// Synchronization Primitives Insights:
+// Timeline semaphore patterns emulated with async chains + promise barriers for update sequencing.
