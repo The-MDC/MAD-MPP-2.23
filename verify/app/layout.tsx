@@ -1,1 +1,1 @@
-Updated root layout with monitoring and real-time
+// Original logo restored at top-left + Perpetual NYSE-style ticker at absolute very top + Draggable floating Concierge

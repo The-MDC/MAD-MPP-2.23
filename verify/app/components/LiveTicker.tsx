@@ -1,1 +1,1 @@
-// Now powered by Grok via satire-engine
+// Positioned at very top, perpetual right-to-left, original RSS feeds, 3 feeds on double-click/tap
