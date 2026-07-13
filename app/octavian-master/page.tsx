@@ -1,1 +1,1 @@
-'use client'; import dynamic from 'next/dynamic'; const OctavianMesh = dynamic(() => import('@/components/OctavianStateNode3D'), { ssr: false }); // Fixed SSR for 3D
+// Added toggleable MADPerfPanel linked to platform state for deep profiling

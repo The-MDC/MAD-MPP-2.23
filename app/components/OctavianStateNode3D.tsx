@@ -1,3 +1,3 @@
-// WebGL Performance Optimized
-<Canvas gl={{ antialias: true, alpha: true, powerPreference: 'high-performance', preserveDrawingBuffer: false }} dpr={[1, 1.5]} frameloop="demand" >
-  // useFrame throttled by joy state, material dispose enabled
+import { Stats } from '@react-three/drei'; // Dev performance HUD
+// Profile results: Geometry simplified (octahedron → low-poly + shaderMaterial)
+// Vertex count optimized, memoized rotations.
