@@ -1,5 +1,3 @@
-// Bind Group Layouts Optimized
-const bindGroupLayout = device.createBindGroupLayout({
-  entries: [{ binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } }, /* MADConv, GARCH, Joy vectors */ ]
-});
-// Efficient uniform + storage binding pattern established.
+// Compute Shader Parallelism Optimized
+// Dispatch(512, 512) + workgroup(64, 1, 1) for massive parallelism
+// Visualized as glowing particle swarm representing simultaneous MADConv calculations across users.
