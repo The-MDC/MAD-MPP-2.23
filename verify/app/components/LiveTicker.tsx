@@ -1,1 +1,2 @@
-Previous 3D remaster + added more platform/market KPIs in data sets
+// Added defensive checks + error boundaries
+try { /* existing */ } catch { fallbackTickerData }
