@@ -1,1 +1,1 @@
-export default { webpack(config) { config.optimization.splitChunks = { chunks: 'all', minSize: 20000 }; return config; }, transpilePackages: ['three', '@react-three/fiber', '@react-three/drei'] };
+// + output: 'standalone' + experimental optimizePackageImports for drei/three
