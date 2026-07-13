@@ -1,1 +1,1 @@
-Added dynamic import for DopamineDial3D to fix potential SSR/hydration build issues on Vercel
+Integrated ReferralSuite + UGCFeed into dashboard

@@ -1,0 +1,1 @@
+New Referral Suite component with VIP/Creator rewards
