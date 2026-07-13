@@ -1,1 +1,1 @@
-// Added toggleable MADPerfPanel linked to platform state for deep profiling
+Added WebGPU Toggle '⚡ God Mode' for max performance Octavian visualization.
