@@ -1,0 +1,1 @@
+// Behavioral Economics Layer: Anchoring, Decoy Effect, Social Proof, Scarcity, Regret Minimization
