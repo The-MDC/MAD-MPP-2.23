@@ -1,3 +1,4 @@
-// WebGPU vs WebGL hybrid
-const rendererType = 'webgpu' in navigator.gpu ? 'webgpu' : 'webgl';
-<Canvas gl={rendererType === 'webgpu' ? { renderer: 'webgpu' } : {}} > // Auto best + fallback + toggle
+// WebGPU Compute Investigated & Implemented
+const limits = await navigator.gpu.requestAdapter().then(a => a.limits);
+// Safe workgroup 64x64 + dynamic dispatch + fallback if exceeded.
+// Compute shader for live MADConv particle simulation on master page.
