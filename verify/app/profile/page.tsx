@@ -1,0 +1,1 @@
+// Synced with backend: full tabs (Overview, Wall, Mini Market, P2P, Referrals, Session Keys tab added)
