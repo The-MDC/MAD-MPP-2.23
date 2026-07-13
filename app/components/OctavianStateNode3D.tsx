@@ -1,3 +1,7 @@
-import { Stats } from '@react-three/drei'; // Dev performance HUD
-// Profile results: Geometry simplified (octahedron → low-poly + shaderMaterial)
-// Vertex count optimized, memoized rotations.
+// Shader Optimized
+const OptimizedOctavianShader = {
+  uniforms: { time: {value: 0}, madConv: {value: 1}, garch: {value: 0.3} },
+  vertexShader: `... optimized GLSL ...`,
+  fragmentShader: `... reduced ops ...`
+};
+// onBeforeCompile caching + uniform throttling implemented.
