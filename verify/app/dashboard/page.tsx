@@ -1,1 +1,1 @@
-Main dashboard page
+Updated main dashboard with Agent Signals
