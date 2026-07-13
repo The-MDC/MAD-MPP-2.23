@@ -1,12 +1,18 @@
+import { NextResponse } from 'next/server';
+
 export async function POST(req: Request) {
+  const apiKey = process.env.XAI_API_KEY;
   try {
     const { message } = await req.json();
-    if (!process.env.GOOGLE_API_KEY) {
-      return Response.json({ reply: 'Conviction is strong. Stake your belief. How can I assist your gambit today?' });
+    if (apiKey) {
+      const res = await fetch('https://api.x.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({ model: 'grok-4', messages: [{ role: 'system', content: 'You are the MAD Gambit Concierge — helpful, witty, conviction-focused.' }, { role: 'user', content: message }], temperature: 0.7 })
+      });
+      const data = await res.json();
+      return NextResponse.json({ reply: data.choices?.[0]?.message?.content || 'Conviction received.' });
     }
-    // Real Gemini integration placeholder
-    return Response.json({ reply: `Echoing your conviction: ${message}. The MAD Shield protects.` });
-  } catch {
-    return Response.json({ reply: 'MAD Gambit Concierge online. What market shall we predict?' });
-  }
+  } catch {}
+  return NextResponse.json({ reply: `🔥 Strong conviction detected: "${(req as any).json?.message || 'your play'}". Stake it. The MAD Gambit awaits.` });
 }

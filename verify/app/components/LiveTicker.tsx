@@ -1,2 +1,1 @@
-// Added defensive checks + error boundaries
-try { /* existing */ } catch { fallbackTickerData }
+// Now powered by Grok via satire-engine
