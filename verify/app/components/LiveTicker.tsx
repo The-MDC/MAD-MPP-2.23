@@ -1,1 +1,1 @@
-Final Triple-Mode Ticker
+Enhanced ticker with taller numbers and more stats

@@ -1,0 +1,1 @@
+Real logo component

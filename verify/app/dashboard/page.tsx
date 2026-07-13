@@ -1,1 +1,1 @@
-Updated main dashboard with Agent Signals
+Updated dashboard with combined dials, menu, tight spacing, platform stats
