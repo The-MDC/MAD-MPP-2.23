@@ -31,6 +31,13 @@ Source of truth: `gambit-game-math.ts` (`PLATFORM`), `MAD_GAMBIT_INTEGRATION_PLA
   - Surfaced 2 orphaned components into the Logic tab: `FutarchyBoard`, `BayesianDecisionTree`.
   - Docs: `MAD_GAMBIT_ULTRA_DASHBOARD_PLAN.md`, `verify/docs/AUDIT_2026-07-11.md`.
 
+## 2b. SuperGrok Skills Pack + Guardrails (PR #14 — 2026-07-14)
+- Full SuperGrok skills pack installed under `.agents/skills/` (11 domain skills fully expanded: madhatr-concierge, mad-gambit-math, solidity-foundry-security, dopamine-ui-design-system, nft-card-pipeline, mad-shield-tokenomics, multi-agent-swarm, production-readiness-gate, scandal-corpus-graphrag, whitepaper-pr-gtm, brand-enforcer).
+- Absolute guardrails in `.agents/SUPERGROK_GUARDRAILS_AND_SKILLS.md` (proprietary rule, MAD Shield language gate, brand/asset gate, locked numbers).
+- Supporting references (proprietary-rule, handoff-template, agent-routing, canonical-numbers, safe-math-language, language-gate, foundry-security-checklist, skin-tokens, math-verification-checklist) added under the skills.
+- Updated MADHATr-Concierge.skill.md (v3.0), AGENTS.md, madhats-concierge-skills.md.
+- Any SuperGrok / Grok / Antigravity / swarm agent must load the guardrails first, then match triggers to skills. Front-door through madhatr-concierge. Guardrails first. Always.
+
 ## 3. App architecture (quick map)
 - **Single app route** `verify/app/gambit/page.tsx` with 7 tabs: **Floor · Saga · Arena · Packs · Portal · Casino · Logic**. Wrapped by `components/device-frame.tsx` (responsive "phone on a workbench" shell; on desktop `.mg-device` has a `transform` → it's the containing block for `position:fixed` descendants, so nav/overlays anchor to the phone).
 - **Root `/`** `verify/app/page.tsx` = a separate "workspace" landing dashboard. NOTE: it has its **own** legacy `theme` (dark/neon) from `mpp-context` — NOT unified with the global SKIN theme yet (see §5).
@@ -48,6 +55,7 @@ Source of truth: `gambit-game-math.ts` (`PLATFORM`), `MAD_GAMBIT_INTEGRATION_PLA
 3. **Parallax scroll layer** inside DeviceFrame (explicitly requested; deferred because it needs visual iteration — can't see the preview from the agent). Keep it reduced-motion-aware and don't break the `.mg-device` fixed-anchor.
 4. **Unify the root `/` dashboard theme** — it still uses the legacy dark/neon toggle instead of the global SKIN ThemeProvider. Founder wants theme global; this is the last piece. (Design decision: replacing dark/neon changes the landing page's look — confirm before ripping it out.)
 5. **P5 polish:** ~339 raw-hex token-debt refactor in components (zero-visual-delta), external/`/pitch` link crawl, mobile/reduced-motion QOL sweep. Also `roast-share.tsx` is still orphaned (it's a win/loss reward overlay — needs resolution-event wiring, not a static mount).
+6. **Security / version hygiene (2026-07-14 note):** Open Dependabot alerts exist (esbuild, postcss in verify; multiple in contracts/lib/openzeppelin-contracts). next ^16 vs eslint-config-next 15 mismatch. Recommend a dedicated security PR to bump and resolve.
 
 ## 6. CROSS-REPO — the smart contracts (`The-MDC/demo-repository`)
 - A **separate session** built `MarketFactory.sol`, `DutchAuction.sol`, and expanded `Errors.sol` (77 errors) on branch `claude/complete-auction-contracts-23vLW` in **`The-MDC/demo-repository`** (Foundry, `05-smart-contracts/madhat-core/`). Architecture: Solidity ^0.8.28, UUPS upgradeable, RolesRegistry access, manual reentrancy guard, DL-LMSR via `BondingCurve.sol`.
@@ -79,4 +87,6 @@ verify/scripts/gen-card-art.mjs     # regen CARD_ART_COUNT from public/cards
 verify/public/cards/                # 25/152 real card PNGs + manifest.json
 verify/docs/AUDIT_2026-07-11.md     # Phase-0 audit findings
 MAD_GAMBIT_ULTRA_DASHBOARD_PLAN.md  # dashboard workstream plan (P0–P5)
+.agents/SUPERGROK_GUARDRAILS_AND_SKILLS.md  # SuperGrok skills pack + absolute guardrails
+.agents/skills/                     # 11 full domain skills for SuperGrok / swarm
 ```
