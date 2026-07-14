@@ -1,1 +1,1 @@
-// + output: 'standalone' + experimental optimizePackageImports for drei/three
+Optimized for perfect hydration, aggressive cache control, edge sync stability.
