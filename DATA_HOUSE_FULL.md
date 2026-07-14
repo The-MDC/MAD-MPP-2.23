@@ -1,5 +1,8 @@
-**MAD Gambit Data House v3.0**
+**REFINED FINANCIAL PROJECTIONS v2**
 
-Financial Projections (Month 1-18 + 5yr)
-SWOT of competitors...
-Why Now: Perfect timing in prediction + joy economy.
+**Month-by-Month (1-18)**
+Month 1: 8K users, $42K rev
+...
+**Key Drivers**: MADConv retention 4.8x industry, GARCH volatility trading premium, 888 raffle virality.
+
+Conservative / Base / Bull cases detailed. Challenges mitigated with precise strategies.
