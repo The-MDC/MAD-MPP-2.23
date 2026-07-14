@@ -1,11 +1,11 @@
 # SuperGrok Skills for MAD Gambit
 
-**Installed 2026-07-14** by SuperGrok skill-creator session.
+**Installed & fully expanded 2026-07-14** by SuperGrok skill-creator session.
 
 ## Absolute Guardrails
 See [../SUPERGROK_GUARDRAILS_AND_SKILLS.md](../SUPERGROK_GUARDRAILS_AND_SKILLS.md) for the non-overridable proprietary rule, language gate, brand gate, and locked canonical numbers.
 
-## Skills (full SKILL.md present for P0s; others reference the live SuperGrok user skills + this pack)
+## Skills (all SKILL.md fully expanded)
 
 ### P0 (Critical)
 - [madhatr-concierge](madhatr-concierge/SKILL.md) — Primary orchestrator + IP protector
@@ -13,18 +13,18 @@ See [../SUPERGROK_GUARDRAILS_AND_SKILLS.md](../SUPERGROK_GUARDRAILS_AND_SKILLS.m
 - [solidity-foundry-security](solidity-foundry-security/SKILL.md) — Contract audits, Foundry, fuzz
 
 ### P1
-- dopamine-ui-design-system — SKIN_TOKENS, DeviceFrame, no raw hex, original logo
-- nft-card-pipeline — Card art serial tiling, rarity holograms, gen-card-art
-- mad-shield-tokenomics — Opt-in loss mitigation language + economics (never "insurance")
+- [dopamine-ui-design-system](dopamine-ui-design-system/SKILL.md) — SKIN_TOKENS, DeviceFrame, no raw hex, original logo
+- [nft-card-pipeline](nft-card-pipeline/SKILL.md) — Card art serial tiling, rarity holograms, gen-card-art
+- [mad-shield-tokenomics](mad-shield-tokenomics/SKILL.md) — Opt-in loss mitigation language + economics (never "insurance")
 
 ### P2
-- multi-agent-swarm — .agents/ handoff, briefing, progress, routing
-- production-readiness-gate — Vercel, SIWE, tsc, forge, screenshot-diff, deploy checklist
-- scandal-corpus-graphrag — GDELT/GossipCop/GraphRAG, Z-Liar, satire engine
+- [multi-agent-swarm](multi-agent-swarm/SKILL.md) — .agents/ handoff, briefing, progress, routing
+- [production-readiness-gate](production-readiness-gate/SKILL.md) — Vercel, SIWE, tsc, forge, screenshot-diff, deploy checklist
+- [scandal-corpus-graphrag](scandal-corpus-graphrag/SKILL.md) — GDELT/GossipCop/GraphRAG, Z-Liar, satire engine
 
 ### P3
-- whitepaper-pr-gtm — Institutional whitepaper, pitch, GTM, DataHouse, concise tone
-- brand-enforcer — Original assets only, neon satire, MADG VENTURES lock
+- [whitepaper-pr-gtm](whitepaper-pr-gtm/SKILL.md) — Institutional whitepaper, pitch, GTM, DataHouse, concise tone
+- [brand-enforcer](brand-enforcer/SKILL.md) — Original assets only, neon satire, MADG VENTURES lock
 
 ## How SuperGrok Loads Them
 1. Read SUPERGROK_GUARDRAILS_AND_SKILLS.md first.
