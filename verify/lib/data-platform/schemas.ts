@@ -1,1 +1,2 @@
-file_content from schemas.ts
+// Updated with tag validation
+export * from '../tags'; // or integrate
