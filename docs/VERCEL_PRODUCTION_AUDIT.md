@@ -9,10 +9,18 @@ things that still block a green build (which require content only you can supply
 
 ## TL;DR
 
-The real Next.js application source is **missing** — 47 files in `verify/` contain a
-one-line description instead of code (they were committed as prose, never as real
-source). No Vercel setting or config change can produce a green build until those
-files hold real code. Everything that *can* be fixed deterministically has been.
+`main` (the Vercel production branch) has **48 placeholder files** in `verify/` —
+one-line descriptions committed as prose instead of code. No Vercel setting can
+produce a green build while `main` is in this state.
+
+> **UPDATE (source recovered):** The real, complete app is **not** lost. It lives
+> on unmerged branches — `claude/mad-mpp-ci-cd-fixes-r0f76v` (identical to
+> `claude/mad-gambit-integration-plan-nbbqg8`) has **82 real files, 0
+> placeholders**, valid configs, and compatible ESLint. `main` was overwritten
+> with placeholders on 2026-07-15 by "push all workflow items" commits. Recovery =
+> restore `verify/` from that branch, keep `main`'s 3 genuinely-newer real files
+> (`SeamlessWalletOnboarding.tsx`, `lib/data-platform/schemas.ts`, `lib/tags.ts`),
+> and drop the ~41 hollow routes that never had real content on any branch.
 
 ## Both Vercel projects deploy the SAME repo
 
