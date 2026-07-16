@@ -1,1 +1,0 @@
-Added Vercel Edge Middleware with security headers and www redirect

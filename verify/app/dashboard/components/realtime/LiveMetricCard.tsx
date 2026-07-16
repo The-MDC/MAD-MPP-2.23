@@ -1,1 +1,0 @@
-Live updating metric card

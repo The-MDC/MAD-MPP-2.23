@@ -1,1 +1,40 @@
-// Original logo restored at top-left + Perpetual NYSE-style ticker at absolute very top + Draggable floating Concierge
+import React from "react";
+import type { Metadata, Viewport } from "next";
+import "./globals.css";
+import { WorkspaceProvider } from "@/context/workspace-context";
+import { MppProvider } from "@/context/mpp-context";
+import { ThemeProvider } from "@/context/theme-context";
+
+export const metadata: Metadata = {
+  title: "Mad Gambit Conviction Workspace",
+  description: "High-fidelity neon quantitative workspace with custom mathematical models.",
+};
+
+// viewport-fit=cover is REQUIRED for env(safe-area-inset-*) to return real
+// values on iOS. Pinch-zoom is left enabled (no maximum-scale/user-scalable)
+// — disabling it is a WCAG 1.4.4 failure and iOS Safari ignores it anyway.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body className="font-sans antialiased text-neutral-100 min-h-screen" style={{ backgroundColor: "var(--mg-bg, #030303)" }}>
+        <ThemeProvider>
+          <WorkspaceProvider>
+            <MppProvider>
+              {children}
+            </MppProvider>
+          </WorkspaceProvider>
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}

@@ -1,1 +1,0 @@
-// Made fully floating, draggable with framer-motion, resizable, snap positions, always-on-top feel
