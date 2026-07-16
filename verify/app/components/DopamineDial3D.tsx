@@ -1,1 +1,0 @@
-Explored and confirmed internals: React Three Fiber Canvas with torus rings, Phong materials, Html overlays for customizable tickers. Added performance comments.

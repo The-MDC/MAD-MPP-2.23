@@ -1,1 +1,0 @@
-Updated events service with DB
