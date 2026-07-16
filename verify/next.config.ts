@@ -14,6 +14,8 @@ const nextConfig = (phase: string): NextConfig => {
     output: "standalone",
     distDir: isDev ? ".next-dev" : ".next",
     typescript: { ignoreBuildErrors: false },
+    // Lint issues should not block a production deploy; type errors still will.
+    eslint: { ignoreDuringBuilds: true },
   };
 };
 

@@ -1,1 +1,0 @@
-Added transpilePackages and webpack config for React Three Fiber stability on Vercel
