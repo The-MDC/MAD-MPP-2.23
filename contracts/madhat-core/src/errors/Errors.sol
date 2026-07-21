@@ -54,7 +54,7 @@ library Errors {
     error InsufficientInsurancePool();
     error TransferFailed();
     error InvalidParameter();
-}
+
     // DutchAuction errors
     error AuctionNotActive();
     error AuctionExpired();
@@ -72,3 +72,4 @@ library Errors {
     error TooManyOutcomes();
     error EndTimeTooSoon();
     error EndTimeTooFar();
+}
