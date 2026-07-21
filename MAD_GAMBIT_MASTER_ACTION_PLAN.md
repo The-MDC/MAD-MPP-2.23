@@ -27,7 +27,7 @@ Collate the MAD Gambit AI-session history into a **chronological progression**, 
 | $MADx supply | **888,888,888** fixed (EVM/SOL hybrid) | MAD Upshot's "$MAD 1 B ERC-20" is retired |
 | Seed ask | **$1.24M–$2.48M @ $12M pre** | `CLAUDE.md` stale ($1–2M); deck partly stale |
 | Y3 gross revenue | **pick ONE** | Deck has $154.5M / $121.4M / $86–154M |
-| Golden Genesis Founders NFT | **888** | "2,488" is an error |
+| Golden Genesis Founders NFT | **2,488** | (∑n:tangled Founders NFT = 888 — distinct product) |
 | Card rarity | Common 88 → Mythic **99,999 (1-of-1)** | 7 tiers (see Part E) |
 | MAD Shield recovery | **28.8%** (premium 2–4% of bet) | — |
 | Primary chain | **Arbitrum Nova `42170`** + One `42161` + Sepolia `421614` | `foundry.toml` + SIWE bind Nova; "Base L2" skill note is **wrong** |
@@ -125,7 +125,7 @@ Most already in TS (`calculateConviction` Cobb-Douglas, `garchUpdate`, `zLiarMet
 ## PART F — Step-by-Step Coding Action Plan (phased)
 
 ### Phase 0 — Reconciliation & hygiene *(first; near-zero risk)*
-Fix `CLAUDE.md` seed → `$1.24M–$2.48M`; fix chain skill note → Nova; pick ONE Y3 figure everywhere. Deck (`madhats-gambit.html`): `1.888%→1.88%`, normalize branding, remove phantom co-founders, single Y3, "2,488"→888 — **patch OV decks, don't delete**. Rewrite `verify/.env.example`. Decide `mad-gambit-core` (recommend archive).
+Fix `CLAUDE.md` seed → `$1.24M–$2.48M`; fix chain skill note → Nova; pick ONE Y3 figure everywhere. Deck (`madhats-gambit.html`): `1.888%→1.88%`, normalize branding, remove phantom co-founders, single Y3, "888"→2,488 (MAD Gambit Golden Genesis Founders NFT) — **patch OV decks, don't delete**. Rewrite `verify/.env.example`. Decide `mad-gambit-core` (recommend archive).
 - **DoD:** every canonical number identical across repo + deck + skills; `.env.example` matches code; no fabricated team.
 
 ### Phase 1 — Outlier Ventures demo polish
@@ -256,7 +256,7 @@ Arbitrum One → HyperEVM → other EVMs → Solana. Per-chain configs, bridge, 
 - **LTV $1,440 / CAC $20–50, 750K DAU Y3, 94%-positive Monte Carlo** (Feb OV brief). `DATA_HOUSE_FULL` = month-by-month 1–18 teaser (Month 1 = 8K users / $42K), Conservative/Base/Bull; drivers = MADConv retention 4.8× industry + GARCH premium + 888-raffle virality. Reissue the OV PDF's stale `$1M–$2M` ask → `$1.24M–$2.48M`.
 
 ### J-K — Suppress (never reintroduce)
-$MAD 1B ERC-20 (→ $MADx 888,888,888) · Golden Ticket 2,488 (→ 888) · Y3 $121.4M / $86–154M (→ $154.5M) · creator fee 42% (→ 40%) · phantom co-founders Isabella H./Parphul B. · **Supabase** / Base-as-primary / the XAI+NextAuth env set · "dopamine / VRS / novelty-seeking" neuroscience framing in any external doc.
+$MAD 1B ERC-20 (→ $MADx 888,888,888) · 888-as-MAD-Gambit-founders (→ 2,488; 888 = ∑n:tangled only) · Y3 $121.4M / $86–154M (→ $154.5M) · creator fee 42% (→ 40%) · phantom co-founders Isabella H./Parphul B. · **Supabase** / Base-as-primary / the XAI+NextAuth env set · "dopamine / VRS / novelty-seeking" neuroscience framing in any external doc.
 
 ---
 
@@ -285,4 +285,4 @@ Pulled the P1/P2 value from `The-MDC/demo-repository` into this repo. The wider 
 11. **`MADDEXToken` (100M supply)** is a **distinct legacy token** — do NOT merge into $MADx (888,888,888).
 12. **Canonical-source decision:** `contracts/madhat-core` kept as a separate Foundry project (not merged into `contracts/src`) pending your call on which is canonical.
 
-**⚠️ Number to confirm (contradiction):** the pulled `CANONICAL_NUMBERS.md` states **Golden Ticket 2,488 = MAD Gambit** (distinct from **888 = ∑n:tangled Founders NFT**) — this **contradicts** the "888" now in the deck (PR #3) and this plan's suppress-list. Confirm which number belongs on the MAD Gambit deck before it's locked.
+**✅ Resolved (founder-confirmed 2026-07-21):** the MAD Gambit **Golden Genesis Founders NFT = 2,488** (∑n:tangled Founders NFT = 888 is a distinct product). Deck corrected in PR #3; this plan + suppress-list updated to match.
