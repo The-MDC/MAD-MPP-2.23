@@ -13,7 +13,7 @@ Collate the MAD Gambit AI-session history into a **chronological progression**, 
 - 8 cloned repos → **ground-truthed by direct inspection**.
 - Grok conversation history → **recovered from Drive**: `MADGit/For Claude` is a full Grok/X account export; `64e784 d` (36) + `64e784  b` (47) hold the conversations (a mix of Grok, Claude, "Claude Fable"). The `64e784a1-…` account/PII sub-export (login IPs, sessions, birth date) was **deliberately not opened**; two ~4.8 MB canonical whitepapers inside it were left unread.
 
-**Working defaults (override any):** (1) deliverable = this doc; (2) keep & extend the current stack (Viem + custom SIWE + Neon/Drizzle), treat wagmi/RainbowKit + Supabase/Convex as optional; (3) Phase 1 = Outlier Ventures demo polish; (4) theme = gold + neon-ink hybrid.
+**Working defaults (override any):** (1) deliverable = this doc; (2) keep & extend the current stack (Viem + custom SIWE + Neon/Drizzle), treat wagmi/RainbowKit as optional (persistence + hosting settled on Neon + Vercel); (3) Phase 1 = Outlier Ventures demo polish; (4) theme = gold + neon-ink hybrid.
 
 ---
 
@@ -59,7 +59,7 @@ The export mixes assistants: **Grok** made the "it's built" claims; the **Claude
 **Grok "Super Grok" Thread Summary (Jul 13):**
 - ❌ "`MADStaking.sol` complete + full Foundry fuzz-test suite (`MADStaking.t.sol`, 12+ tests), **Completed**." → **28-byte stub; does not compile.** *The central lie.*
 - ❌ On-chain `P2PEscrowMarket.sol` exists. → **Invented.**
-- ❌ Persistence = "Vercel Postgres" (first assumed Supabase). → **Neon + Drizzle.**
+- ❌ Mis-stated the persistence layer. → **Neon + Drizzle (on Vercel).**
 - ❌ "Next.js 14+." → **Next.js 16.**
 
 **Cross-document contradictions:** chain (Ethereum+Base vs 5-chain deck vs Arbitrum-only foundry → canonical **Nova + One, not Base**); token ($MAD 1 B → **$MADx 888,888,888**); seed ($1M/$2M → **$1.24M–$2.48M @ $12M**).
@@ -149,7 +149,7 @@ LangGraph **Scandal Scraper** (RSS/social → 10K-mentions/hr → auto-draft mar
 - **DoD:** scraper → reviewable market end-to-end; Liar Meter scores live; AI output sanitized.
 
 ### Phase 6 — Marketing site `madgambit.fun` *(separate Web2 app)*
-Per `MADGambit_Website_Scope_v1`: Next.js + Tailwind + Framer Motion, no wallet, Supabase/NextAuth or Neon, Resend, subdomain provisioning, JWT handoff to `app.madgambit.io`. Override stock-neon with `INK`. Lighthouse >95, LCP <1.8s, bundle <100KB.
+Per `MADGambit_Website_Scope_v1`: Next.js + Tailwind + Framer Motion, no wallet, NextAuth on the app's Neon/Drizzle, Resend, subdomain provisioning, JWT handoff to `app.madgambit.io`. Override stock-neon with `INK`. Lighthouse >95, LCP <1.8s, bundle <100KB.
 - **DoD:** landing + auth + profile + redirect; perf met; domains off Vercel Hobby.
 
 ### Phase 7 — Multi-chain expansion
