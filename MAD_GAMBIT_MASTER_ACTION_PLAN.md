@@ -178,9 +178,81 @@ Arbitrum One → HyperEVM → other EVMs → Solana. Per-chain configs, bridge, 
 - **Demo gate (P1):** `/gambit` matches mockups mobile+desktop; ticker 3-mode; concierge answers; deck reconciled.
 - **Testnet gate (P3):** contracts on Nova Sepolia; frontend reads live addresses; no unsigned-value trust at auth boundary.
 
-## PART I — Open decisions (non-blocking)
+## PART I — Locked decisions
 
-- The single **Y3 revenue** figure to standardize on.
-- Is the **binary** market type out (CIRO non-binary only)?
-- `mad-gambit-core`: archive vs populate.
-- Add wagmi/RainbowKit in Phase 1 (wallet UX) or defer.
+- **Stack (canonical):** GitHub + Vercel + Neon (Postgres + Drizzle) + custom SIWE. **Supabase is not in the stack.**
+- **Y3 revenue → $154.5M** headline ($121.4M kept only as a labeled conservative base case).
+- **Markets → non-binary only** (Continuous DL-LMSR + Over/Under); binary is out.
+- **Chain → Arbitrum Nova (42170) launch/gameplay · One (42161) Shield vaults + $MADx · Sepolia (421614) testnet; HyperEVM then all EVMs planned.**
+- **`mad-gambit-core` → archive** (monolith stays in `MAD-MPP-2.23`).
+- **wagmi/RainbowKit → defer** in favor of the Two-Tier Auth path (Part J-C); keep viem + SIWE through Phase 1.
+- **Team → Nick McLeod (Founder/CEO) · Carlo Fernandez (Co-Founder/COO) · Zena Shah (Co-Founder, Head of Economics & Governance).**
+
+---
+
+## PART J — Build detail ingested from the prior audit + plan docs
+
+*Merged from `MAD_GAMBIT_MASTER_PLAN`, `MADBIT_PRECISION_INTEGRATION_PLAN`, `MAD_GAMBIT_INTEGRATION_PLAN`, the `ULTRA_DASHBOARD`/`PHONE_LAYOUT` execution plans, `ANTIGRAVITY_HANDOFF`, `SESSION_HANDOFF`, `docs/VERCEL_PRODUCTION_AUDIT`, and the "MAD-MPP production review" Drive thread. The empty root `*_ARCHITECTURE/DEPLOYMENT/READINESS.md` stubs are captured here.*
+
+### J0 — Critical reconciliation flags (resolve BEFORE building)
+1. **`main`-overwrite incident (2026-07-15):** `main` was overwritten with ~48 placeholder files; the real 82-file app was recovered from `claude/mad-mpp-ci-cd-fixes-r0f76v`, keeping 3 newer files (`SeamlessWalletOnboarding.tsx`, `lib/data-platform/schemas.ts`, `lib/tags.ts`). Part C reflects the **post-recovery** `verify/`. Confirm the working branch descends from the recovery, not the placeholder push.
+2. **AI-provider fork:** mainline = **Gemini** (`GOOGLE_API_KEY`, `gemini-flash-latest`, `@langchain/google-genai`) + **SIWE**. The placeholder branch carried **Grok xAI** (`XAI_API_KEY`) + **NextAuth/GitHub-OAuth** — the divergent variant (and the source of the stale `.env.example` cruft), not the target.
+3. **Contracts live in a *different* repo:** `The-MDC/demo-repository` — see J-D.
+
+### J-A — Reconciliation (Phase 0)
+- **Tracked backlog "8 BACKEND_PLACEHOLDERS":** `TRI_AGENT_LLM · CARD_ART_PIPELINE · WALLET_NFT_READ · PROFILE_DB · PVP_MATCHMAKING · ORACLE · SAGA_FEED · FEED_EXPANSION` (+ SIWE enforcement + `MADStaking.sol`+tests). Version into `verify/docs/`.
+- **Deck = remaining itemized fixes** (team/Y3 already done in PR #3): remaining `$1M–$2M` incl. **"THE ASK" slide 15/15**; one pack-pricing formula; founder tenure (pick 14/15/16+); fee `1.888%→1.88%` = **22 instances** across `index.html`+`madhats-gambit.html` (has derived `0.7552%` → careful multi-number pass).
+- **OV deck (`ov-pitch-deck.html`): patch, never delete** — strip AI-Studio editor chrome; correct the buried **$2.888M/30%-equity (~$6.7M pre)** pitch + public cap table (McLeod 54.09% Class A / 65.3% voting, 32% Class B, 11.59% to DAO) to canonical.
+- Canonical deck URL = `the-mdc.github.io/MADHATs-Gambit-Presentation/` (`maddegen.github.io` is stale).
+
+### J-B — Demo polish / UI (Phase 1)
+- **Build `carousel.tsx` primitive FIRST**, reuse ×4 (props `children/gap/snap/peek`, INK edge-fade, `aria-roledescription="carousel"`, reduced-motion→wrap).
+- **Phone render order:** `LiveTicker → MainNav → SeikoHub(hero) → ZLiarSection → PackShop → MarketRails`. `pack-shop` uses `use-rip-sound.ts` (Web Audio rip synth — no binary asset).
+- **Ticker triple-mode wiring:** Mode1 stocks/commodities (extend `KaitoPriceTicker`) · Mode2 RSS satire (`/api/v1/feeds`→`/api/satire-engine`, depends on redeploy) · Mode3 platform stats; double-tap cycles, `localStorage`-persisted, **marquee swaps content mid-scroll (never stops)**, reduced-motion→static.
+- **Design-token refactor, worst-first:** `nft-card.tsx` (56 hex) → `positions-dashboard` (9) → `staking-tiers-panel` (9) → `tournament-arena` (8) → `casino-panel` (7) → remaining 21; ≈**339 raw-hex** total; screenshot-diff for byte-identical output; enables seasonal skins via `SKIN_TOKENS`.
+- Parallax layer inside `DeviceFrame` (GPU transforms only; don't break `.mg-device` containing block); `joy-layer.celebrate()` + `navigator.vibrate` on reward beats; wire `roast-share.tsx` to resolution events.
+
+### J-C — Security & Two-Tier Auth (Phase 2)
+- **Two-Tier Auth (already prototyped):** Tier 1 social sign-in (Google/Apple/Telegram/Discord/Meta/Email) via `auth-modal.tsx` with smart interception on gated actions; Tier 2 `wallet-gateway.tsx` gates finance — `positions-dashboard` blurs P&L behind "Vault Locked" until wallet linked. **Rule: email/social first, wallet only to bet/earn.** Production path: **Privy.io** (embedded wallets + social) or NextAuth+RainbowKit.
+- **Auth contracts:** `GET /api/v1/auth/nonce`→nonce; `POST /api/v1/auth/verify {message,signature}`→`{JWT, walletAddress}`.
+- **PROFILE_DB:** 6-table Postgres schema, `migrations/001_initial_schema.sql` (shield state machine + card-wear fields); spec at `verify/docs/mpp-backend-architecture.md §3`.
+- **Revoke the exposed `ghp_…` PAT** (reissue fine-grained); clear Dependabot alerts (esbuild/postcss in `verify`, OZ in `contracts/lib`); fix `next ^16` vs `eslint-config-next 15` mismatch.
+
+### J-D — Smart contracts (Phase 3) — biggest gap
+- **MarketFactory/DutchAuction stack was built in `The-MDC/demo-repository`** (NOT this repo): Foundry at `05-smart-contracts/madhat-core/`, branch `claude/complete-auction-contracts-23vLW`. Solidity **^0.8.28, UUPS upgradeable, RolesRegistry access control, manual reentrancy guard, DL-LMSR via `BondingCurve.sol`, `Errors.sol` (77 errors)**. ⚠️ Files were **"staged but not committed"** → **first action: verify they're on the remote branch** (may be lost to an ephemeral container). Referenced-but-absent: `EvolutionEngine.sol`, `GambitAMM.sol`.
+- `MADShieldVault.sol` = **verbatim TS→Solidity port** of `createShieldOptIn`/`requestShieldUnstake`/`calculateShieldPayoutFull` from `lib/gambit-game-math.ts` (done).
+- **`MADStaking.sol` implements the canonical per-tier clout/APY table** (Part E) — **NOT** the MPP-2.0 `1.0 + Clout/200` formula; "no printing" of yield.
+- `foundry.toml` needs `${ARBITRUM_ONE_RPC_URL}`, `${ARBISCAN_API_KEY}`; add DutchAuction+MarketFactory to `DeployCoreContracts.s.sol`.
+
+### J-E — 5-Stream engine (Phase 4)
+- **Y3 = $154.5M on $3.6B–$4.2B volume; stream split 51/31/12/6 = fees / NFT / staking / shield.**
+- `market-factory.tsx` frontend already exists (The Floor tab; 6 categories, DL-LMSR pricing, creation-fee→treasury, 40% creator) — wire to deployed addresses.
+
+### J-F — AI / agents (Phase 5)
+- **LangGraph blueprint (founder-approved):** **Scandal Scraper** — Discovery Node (tabloids/crypto/Polymarket) → Reasoning Node (Gemini: entities + Scandal Velocity + Z-Liar) → **Vector Node → Postgres `pgvector`**. **Copy-Trading "Alpha Filter"** — Surveillance (Polymarket whales via **`clob-client`**) → Validation (query `pgvector`: does real news support the trade?) → Execution (sign via **CTF exchange contracts**).
+- **MADHATr routing:** Host Core → Sentinel/Strategist/Decay via `AGENTS.md`; `GEMINI_SYSTEM_INSTRUCTION` is **verbatim from `GEMINI.md` — do not paraphrase**; Gemma-first for background (satirize/Z-Liar), Gemini fallback.
+- **SuperGrok skills pack (in-repo, PR #14):** `.agents/skills/` — 11 skills (madhatr-concierge, mad-gambit-math, solidity-foundry-security, dopamine-ui-design-system, nft-card-pipeline, mad-shield-tokenomics, multi-agent-swarm, production-readiness-gate, scandal-corpus-graphrag, whitepaper-pr-gtm, brand-enforcer) + `SUPERGROK_GUARDRAILS_AND_SKILLS.md`.
+
+### J-G — Data platform & product surfaces (Phase 5)
+- **Files:** `lib/data-platform/{cdp,events,information-market,schemas,types}.ts`; routes `data/events`, `information-market/create`, `marketplace/assets`, `referrals/track`, `session-keys`; realtime `lib/realtime/{RealtimeProvider.tsx,useRealTimeMarket.ts}` + `api/realtime/ws`; panels `InformationMarketsPanel`, `UserIntelligencePanel` (CDP), `AgentSignalsPanel`, `LiveMetricCard`.
+- **Product surfaces (on the divergent branch — confirm survival):** VIP Lounge (`app/vip`), Creator Hub (`app/creator`, Grok-assisted market form), UGC feed, P2P market+escrow UI (`P2PMarket*.tsx`) + **Behavioral Economics layer** (`P2PBehavioralEnhancements.tsx` — anchoring/decoy/social-proof/scarcity/regret), Referral Suite, Session Key Manager, `SeamlessWalletOnboarding.tsx`.
+- **Telemetry surface:** `state-machine-view.tsx` (SCRAPER/TRADER graphs) + `gambit-instrument-cluster.tsx` (Z-Liar/Conviction/Scandal σ²), live/SIMULATED badges, from hamburger + Logic tab.
+
+### J-H — Deployment / Ops (fills the empty stubs)
+- **Vercel:** project **`mpp2.23`** · id **`prj_4IdDBNaVoeUWutoEGbCc2zyzYpc7`** · org **`team_TgoOJAiilwZ3I3LPyD2FcNZm`** · **Root Directory = `verify`** · `next.config.ts` `output:"standalone"` · region `iad1`. **Two projects exist** (`mad-mpp-2.23` + `mad-gambit-ui`) — pick one, pause the other.
+- **Env vars (mainline):** `GOOGLE_API_KEY` (NOT `GEMINI_API_KEY`), `AUTH_SECRET`, `NEXTAUTH_URL`, `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`, `NEXT_PUBLIC_CHAIN_ID=42170`, `DATABASE_URL`; `ANTHROPIC_API_KEY` optional. Keep `FIREBASE_*`/`GOOGLE_SERVICES_JSON` (Android) OUT of Vercel. Automate via `docs/vercel/mpp-vercel-setup.ps1`.
+- **Dashboard-only actions (API can't set):** Root Directory→`verify`; **clear the `cd verify && npm ci` install-command override** (caused `ERESOLVE`); framework-default build/output. The deploy-pipeline failure was a **stray Deployment Check gate (now removed)**, not build/env.
+- **Green gate = the Vercel preview build** (`node_modules` isn't installed in web sessions → `tsc`/`next build` can't run locally). Branch discipline: fresh branch off `main` → draft PR → preview validates → merge; never push `main`.
+- **Vercel Hobby/commercial risk** (LLC + raise) sits under the live app; **$20/mo Pro before any investor surface**; domains stay off Vercel.
+
+### J-I — Math canon additions (extend Part E)
+- **`RARITY_WEAR_PCT` = 2/2/10/11.5/13/14.5/16%** (per-tier durability loss); **`RARITY_DROP_WEIGHTS` = 568/236/120/60/10/6 per 1000**. Port to Solidity verbatim.
+- **VRS Fibonacci [5,8,13,21,34]; loss-aversion 2.5×** (keep mechanic, scrub wording). **Evolution burn: C→U 100 / U→R 250 / R→E 500 / E→L 1000.**
+- **Pack-pricing 3-way divergence is a real bug:** deck `4.88×(1+0.5·ln(1+n/1000))` cap $8.78 vs Drive Dutch `0.5→0.05 ETH` vs shipped flat `4.88`; also `SCANDAL_PACK_TIERS`/`scandalPackPrice()` (8-tier bonding curve, PR #5). Pick one; make code+deck+contract match.
+- Preserve in the canon: `splitFee()` (1.88%/40%/25%-burn), `shieldPhiRatio`, `calculateDeltaLimit`, `SKIN_TOKENS` (HolographicGoldLaser/CyberOnyx/QuantumCobalt), `OV_DECKS`, Elomatic MMR (PvP), `calculateEigenTrustScore`. Shield defences: **Bayesian Anomaly Detection + Commit-Reveal Oracle + stress tests.**
+
+### J-J — Financials
+- **LTV $1,440 / CAC $20–50, 750K DAU Y3, 94%-positive Monte Carlo** (Feb OV brief). `DATA_HOUSE_FULL` = month-by-month 1–18 teaser (Month 1 = 8K users / $42K), Conservative/Base/Bull; drivers = MADConv retention 4.8× industry + GARCH premium + 888-raffle virality. Reissue the OV PDF's stale `$1M–$2M` ask → `$1.24M–$2.48M`.
+
+### J-K — Suppress (never reintroduce)
+$MAD 1B ERC-20 (→ $MADx 888,888,888) · Golden Ticket 2,488 (→ 888) · Y3 $121.4M / $86–154M (→ $154.5M) · creator fee 42% (→ 40%) · phantom co-founders Isabella H./Parphul B. · **Supabase** / Base-as-primary / the XAI+NextAuth env set · "dopamine / VRS / novelty-seeking" neuroscience framing in any external doc.
