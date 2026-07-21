@@ -27,7 +27,7 @@ Collate the MAD Gambit AI-session history into a **chronological progression**, 
 | $MADx supply | **888,888,888** fixed (EVM/SOL hybrid) | MAD Upshot's "$MAD 1 B ERC-20" is retired |
 | Seed ask | **$1.24M–$2.48M @ $12M pre** | `CLAUDE.md` stale ($1–2M); deck partly stale |
 | Y3 gross revenue | **pick ONE** | Deck has $154.5M / $121.4M / $86–154M |
-| Golden Genesis Founders NFT | **2,488** | (∑n:tangled Founders NFT = 888 — distinct product) |
+| Golden Genesis Founders NFT | **2,488** | (the old "888" was a different product's number) |
 | Card rarity | Common 88 → Mythic **99,999 (1-of-1)** | 7 tiers (see Part E) |
 | MAD Shield recovery | **28.8%** (premium 2–4% of bet) | — |
 | Primary chain | **Arbitrum Nova `42170`** + One `42161` + Sepolia `421614` | `foundry.toml` + SIWE bind Nova; "Base L2" skill note is **wrong** |
@@ -256,7 +256,7 @@ Arbitrum One → HyperEVM → other EVMs → Solana. Per-chain configs, bridge, 
 - **LTV $1,440 / CAC $20–50, 750K DAU Y3, 94%-positive Monte Carlo** (Feb OV brief). `DATA_HOUSE_FULL` = month-by-month 1–18 teaser (Month 1 = 8K users / $42K), Conservative/Base/Bull; drivers = MADConv retention 4.8× industry + GARCH premium + 888-raffle virality. Reissue the OV PDF's stale `$1M–$2M` ask → `$1.24M–$2.48M`.
 
 ### J-K — Suppress (never reintroduce)
-$MAD 1B ERC-20 (→ $MADx 888,888,888) · 888-as-MAD-Gambit-founders (→ 2,488; 888 = ∑n:tangled only) · Y3 $121.4M / $86–154M (→ $154.5M) · creator fee 42% (→ 40%) · phantom co-founders Isabella H./Parphul B. · **Supabase** / Base-as-primary / the XAI+NextAuth env set · "dopamine / VRS / novelty-seeking" neuroscience framing in any external doc.
+$MAD 1B ERC-20 (→ $MADx 888,888,888) · 888-as-MAD-Gambit-founders (→ 2,488) · Y3 $121.4M / $86–154M (→ $154.5M) · creator fee 42% (→ 40%) · phantom co-founders Isabella H./Parphul B. · **Supabase** / Base-as-primary / the XAI+NextAuth env set · "dopamine / VRS / novelty-seeking" neuroscience framing in any external doc.
 
 ---
 
@@ -266,7 +266,7 @@ Pulled the P1/P2 value from `The-MDC/demo-repository` into this repo. The wider 
 
 **Pulled in:**
 - **`contracts/madhat-core/`** — 16 Solidity contracts (`src/`), 6 Foundry tests, `DeployCoreContracts.s.sol`, `foundry.toml`, `remappings.txt`, ABIs, `DEPLOYED_ADDRESSES.md`, refactor/security docs. Highlights: `staking/StakingPool.sol` (fills the empty `MADStaking` stub), `prediction/game.sol` (pooled prediction market), `prediction/BondingCurve.sol` (DL-LMSR), `tokens/MADxToken.sol` (**$MADx — was absent from `contracts/src/`**), `insurance/RiskOracle.sol` (GARCH Shield premiums), `treasury/{Madhat,Community}Treasury.sol`, `registries/{roles,assets}.sol`, `errors/Errors.sol`.
-- **`docs/imported/`** — specs (`MADHATS_DATABASE_SCHEMA` 839L, `MADHATS_API_SPECIFICATION` 890L, game/NFT/tokenomics specs, EVM-Arbitrum guide), whitepaper v1.8, business/VC docs, `CANONICAL_NUMBERS.md`, pitch, and the **ecosystem scopes** (MDC circular economy, ∑n:tangled Marketplace+, MADDAO, MADforge Labs).
+- **`docs/imported/`** — specs (`MADHATS_DATABASE_SCHEMA` 839L, `MADHATS_API_SPECIFICATION` 890L, game/NFT/tokenomics specs, EVM-Arbitrum guide), whitepaper v1.8, business/VC docs, `CANONICAL_NUMBERS.md`, pitch, and the MAD Gambit stream scopes (MADDAO, MADforge Labs). *(A separate MDC marketplace product + the MDC-ecosystem map were removed — they belong in The-MDC, not MAD Gambit.)*
 - **`verify/public/brand/`** — official logo set.
 
 **Safe fixes applied on pull:** `game.sol PLATFORM_FEE 25→188` (0.25% → canonical 1.88%); **Supabase fully stripped** from `MADHATS_DATABASE_SCHEMA.md` → Neon/Drizzle + Pusher/Ably.
@@ -285,4 +285,4 @@ Pulled the P1/P2 value from `The-MDC/demo-repository` into this repo. The wider 
 11. **`MADDEXToken` (100M supply)** is a **distinct legacy token** — do NOT merge into $MADx (888,888,888).
 12. **Canonical-source decision:** `contracts/madhat-core` kept as a separate Foundry project (not merged into `contracts/src`) pending your call on which is canonical.
 
-**✅ Resolved (founder-confirmed 2026-07-21):** the MAD Gambit **Golden Genesis Founders NFT = 2,488** (∑n:tangled Founders NFT = 888 is a distinct product). Deck corrected in PR #3; this plan + suppress-list updated to match.
+**✅ Resolved (founder-confirmed 2026-07-21):** the MAD Gambit **Golden Genesis Founders NFT = 2,488**. Deck corrected in PR #3; plan + suppress-list updated to match.

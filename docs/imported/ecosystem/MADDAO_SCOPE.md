@@ -51,7 +51,7 @@ Community-led governance that ensures all MDC products serve their participants.
 The MADDAO governs or advises on:
 1. Fee structure changes across all MDC products
 2. MAD Shield (MAD Gambit) pool parameters — payout %, eligibility
-3. En:tangled launchpad curation standards
+3. MoonPad launchpad curation standards
 4. MADforge Labs grant allocations
 5. Reserve spending (all products)
 6. New market/product category approvals
@@ -65,9 +65,9 @@ The MADDAO governs or advises on:
 | Source | Product |
 |---|---|
 | 30% of MAD Gambit 1.88% platform fee | MAD Gambit (Community Rewards portion) |
-| Trading fees allocation | ∑n:tangled Marketplace+ |
+| Trading fees allocation | Marketplace+ (MAD Gambit) |
 | Casino profit-share portion | MĐC Casino (Golden Hands) |
-| Micro-lending fees allocation | En:tangled |
+| Micro-lending fees allocation | Marketplace+ (MAD Gambit) |
 | MADforge project revenue share | MADforge Labs |
 
 ---

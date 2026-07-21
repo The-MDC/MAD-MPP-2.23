@@ -1,5 +1,5 @@
 # MΛĐforge Labs — Product Scope & Outline
-> Compiled: April 5, 2026 | Sources: GDrive MADdApp.MVP docs (Oct–Nov 2025), WhitePaper v1.8, Tokenomics_Revenue Notion export, Circular Economy infographic (Oct 2025), En:tangled DEV Scope (Mar 2025)
+> Compiled: April 5, 2026 | Sources: GDrive MADdApp.MVP docs (Oct–Nov 2025), WhitePaper v1.8, Tokenomics_Revenue Notion export, Circular Economy infographic (Oct 2025)
 > For ecosystem context: see `00-mdc-ecosystem/MDC_CIRCULAR_ECONOMY.md`
 
 ---
@@ -11,7 +11,7 @@
 **Tagline:** *"Your Scrappy Web3 Tech Studio — Bringing Vision to Life"*  
 **Status:** Active — standalone MDC product. Spec built out Oct–Nov 2025. Full scope doc in Google Drive (too large to fetch — [link](https://docs.google.com/document/d/1QUdBFvD9dEsjuGLyclMQ36D_aclfgeEeJK7NMZLi5VA/edit)).  
 **Copyright:** © 2025 MΛĐɖegens Community, the MΛĐforge, & MΛĐdApp.mvp  
-**Ecosystem position:** Standalone MDC product — peer to MAD Gambit, ∑n:tangled Marketplace+, and MADDAO.
+**Ecosystem position:** MDC product — peer to MAD Gambit and MADDAO.
 
 ---
 
@@ -101,7 +101,7 @@ Referenced in the whitepaper as: *"MADforge Labs Quadratic MoonPad: Launchpad fo
 ### Distribution Pipeline
 
 ```
-MADforge Incubator → Project ready → MoonPad IDO → ∑n:tangled Marketplace listing
+MADforge Incubator → Project ready → MoonPad IDO
                                                    ↓
                                            MADDAO treasury receives fee %
 ```
