@@ -257,3 +257,32 @@ Arbitrum One → HyperEVM → other EVMs → Solana. Per-chain configs, bridge, 
 
 ### J-K — Suppress (never reintroduce)
 $MAD 1B ERC-20 (→ $MADx 888,888,888) · Golden Ticket 2,488 (→ 888) · Y3 $121.4M / $86–154M (→ $154.5M) · creator fee 42% (→ 40%) · phantom co-founders Isabella H./Parphul B. · **Supabase** / Base-as-primary / the XAI+NextAuth env set · "dopamine / VRS / novelty-seeking" neuroscience framing in any external doc.
+
+---
+
+## PART K — demo-repository consolidation (v2.24 pull, 2026-07-21)
+
+Pulled the P1/P2 value from `The-MDC/demo-repository` into this repo. The wider MDC monorepo stays on GitHub as source of record (only the local clone was removed). **None of the pulled contracts compile yet — this is a raw pull + safe canonical fixes; the checklist below is the integration work.**
+
+**Pulled in:**
+- **`contracts/madhat-core/`** — 16 Solidity contracts (`src/`), 6 Foundry tests, `DeployCoreContracts.s.sol`, `foundry.toml`, `remappings.txt`, ABIs, `DEPLOYED_ADDRESSES.md`, refactor/security docs. Highlights: `staking/StakingPool.sol` (fills the empty `MADStaking` stub), `prediction/game.sol` (pooled prediction market), `prediction/BondingCurve.sol` (DL-LMSR), `tokens/MADxToken.sol` (**$MADx — was absent from `contracts/src/`**), `insurance/RiskOracle.sol` (GARCH Shield premiums), `treasury/{Madhat,Community}Treasury.sol`, `registries/{roles,assets}.sol`, `errors/Errors.sol`.
+- **`docs/imported/`** — specs (`MADHATS_DATABASE_SCHEMA` 839L, `MADHATS_API_SPECIFICATION` 890L, game/NFT/tokenomics specs, EVM-Arbitrum guide), whitepaper v1.8, business/VC docs, `CANONICAL_NUMBERS.md`, pitch, and the **ecosystem scopes** (MDC circular economy, ∑n:tangled Marketplace+, MADDAO, MADforge Labs).
+- **`verify/public/brand/`** — official logo set.
+
+**Safe fixes applied on pull:** `game.sol PLATFORM_FEE 25→188` (0.25% → canonical 1.88%); **Supabase fully stripped** from `MADHATS_DATABASE_SCHEMA.md` → Neon/Drizzle + Pusher/Ably.
+
+**Reconciliation checklist (before `contracts/madhat-core` compiles + integrates):**
+1. **Deps:** `forge install` OZ-upgradeable + `abdk-libraries-solidity` + `chainlink-brownie-contracts`; wire `remappings.txt` (app foundry only has `openzeppelin-contracts` + `forge-std`).
+2. **Pragma:** `^0.8.28` (madhat-core) vs `0.8.24` (app `contracts/src`) — pick one.
+3. **`Errors.sol` bug:** the DutchAuction/MarketFactory error set is declared **outside** the `library {}` brace → breaks `Errors.X` refs; move inside.
+4. **Naming:** `Madhat*` → `MAD*` (MadhatCard, MadhatTreasury) to match app convention.
+5. **StakingPool:** staking token `MADDEX` → **$MADx**; confirm APY tiers = canonical **8.8 / 18.8 / 28.8 / 68%**.
+6. **$MADx address:** `0xb61ae7727579e3781ca0ec4902b6ba21d335fd18` (Arbitrum One, per `DEPLOYED_ADDRESSES.md`) is canonical; the `0x6972…` comment in `MADxToken.sol` is wrong.
+7. **`game.sol`:** switch `transfer()` → `safeTransfer()` (audit-flagged); fee fix confirmed.
+8. **Rebuild the lost `MarketFactory` + `DutchAuction`** on `BondingCurve.sol` (`Errors.sol` already carries their error types; `evm-implementation-guide-arbitrum.md` + `README_REFACTORING.md` are the blueprints).
+9. **API spec** uses `JWT + Wallet` → reconcile to the app's **SIWE**.
+10. **DB schema** → convert to Drizzle schema + `migrations/` (Supabase already stripped).
+11. **`MADDEXToken` (100M supply)** is a **distinct legacy token** — do NOT merge into $MADx (888,888,888).
+12. **Canonical-source decision:** `contracts/madhat-core` kept as a separate Foundry project (not merged into `contracts/src`) pending your call on which is canonical.
+
+**⚠️ Number to confirm (contradiction):** the pulled `CANONICAL_NUMBERS.md` states **Golden Ticket 2,488 = MAD Gambit** (distinct from **888 = ∑n:tangled Founders NFT**) — this **contradicts** the "888" now in the deck (PR #3) and this plan's suppress-list. Confirm which number belongs on the MAD Gambit deck before it's locked.
