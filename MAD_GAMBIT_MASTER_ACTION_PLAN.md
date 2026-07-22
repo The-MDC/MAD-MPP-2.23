@@ -13,7 +13,7 @@ Collate the MAD Gambit AI-session history into a **chronological progression**, 
 - 8 cloned repos → **ground-truthed by direct inspection**.
 - Grok conversation history → **recovered from Drive**: `MADGit/For Claude` is a full Grok/X account export; `64e784 d` (36) + `64e784  b` (47) hold the conversations (a mix of Grok, Claude, "Claude Fable"). The `64e784a1-…` account/PII sub-export (login IPs, sessions, birth date) was **deliberately not opened**; two ~4.8 MB canonical whitepapers inside it were left unread.
 
-**Working defaults (override any):** (1) deliverable = this doc; (2) keep & extend the current stack (Viem + custom SIWE + Neon/Drizzle), treat wagmi/RainbowKit as optional (persistence + hosting settled on Neon + Vercel); (3) Phase 1 = Outlier Ventures demo polish; (4) theme = gold + neon-ink hybrid.
+**Working defaults (override any):** (1) deliverable = this doc; (2) keep & extend the current stack (Viem + custom SIWE + Neon via raw `pg`), treat wagmi/RainbowKit as optional and Drizzle as deferred (persistence + hosting settled on Neon + Vercel); (3) Phase 1 = Outlier Ventures demo polish; (4) theme = gold + neon-ink hybrid.
 
 ---
 
@@ -59,7 +59,7 @@ The export mixes assistants: **Grok** made the "it's built" claims; the **Claude
 **Grok "Super Grok" Thread Summary (Jul 13):**
 - ❌ "`MADStaking.sol` complete + full Foundry fuzz-test suite (`MADStaking.t.sol`, 12+ tests), **Completed**." → **28-byte stub; does not compile.** *The central lie.*
 - ❌ On-chain `P2PEscrowMarket.sol` exists. → **Invented.**
-- ❌ Mis-stated the persistence layer. → **Neon + Drizzle (on Vercel).**
+- ❌ Mis-stated the persistence layer. → **Neon Postgres on Vercel (raw `pg` for now; Drizzle deferred).**
 - ❌ "Next.js 14+." → **Next.js 16.**
 
 **Cross-document contradictions:** chain (Ethereum+Base vs 5-chain deck vs Arbitrum-only foundry → canonical **Nova + One, not Base**); token ($MAD 1 B → **$MADx 888,888,888**); seed ($1M/$2M → **$1.24M–$2.48M @ $12M**).
@@ -78,7 +78,7 @@ App in **`verify/`** (root `next.config.mjs` broken stub; second `/app/` `octavi
 
 - **Stack:** Next.js `16.2.9` · React `19.2.1` · App Router · Tailwind v4 · npm.
 - **Web3:** `viem` + `siwe`. No wagmi/RainbowKit/ethers.
-- **DB:** Neon Postgres + `drizzle-orm` + `pgvector`.
+- **DB:** Neon Postgres via `pg` (node-postgres) + `pgvector`. *(`drizzle-orm` is installed but unused — Drizzle deferred.)*
 - **AI:** `@langchain/google-genai` (`gemini-flash-latest`) + `langgraph`. Also three/r3f, recharts, rss-parser, redux-toolkit, framer-motion.
 - **Routes:** `/`, `/gambit` (7-tab: floor/saga/arena/packs/portal/casino/logic), `/workbench`. API: `concierge/chat`, `satire-engine`, `v1/auth/{nonce,verify}`, `v1/agents/{scraper,trader}`, `v1/cards[/open-pack]`, `v1/feeds`, `v1/lobby`, `v1/madhatr/zliar`, `v1/mpp/{profiles,simulate}`, `v1/tournament/match`.
 - **Math (`verify/lib/`):** `gambit-game-math.ts` (canonical constants confirmed), `mpp-math.ts`, `gambit-design-tokens.ts` (INK/GOLD_CHISEL). `bayesian-logic.ts` **missing**.
@@ -101,7 +101,7 @@ App in **`verify/`** (root `next.config.mjs` broken stub; second `/app/` `octavi
 | UGC (anyone creates a market, 40% creator) | Partial | `market-factory`; needs `MarketFactory.sol` |
 | RSS + scrapers → MEME Headlines Engine (MAD Mag / South Park) | ✅ v1 | `satire-engine`, `rss-feeds.ts`, `v1/agents/scraper` → full Scandal Scraper AI |
 | MADHATr Agent Swarm (Sentinel/Strategist/Decay/Concierge/Challenger) | Partial | `madhatr-concierge`; build other tiers |
-| Data platform (Information Market + Warehouse + CDP) | Partial | Postgres + Drizzle; formalize `data-platform/` |
+| Data platform (Information Market + Warehouse + CDP) | Partial | Postgres (raw `pg`); formalize `data-platform/` |
 | MAD Shield (28.8% recovery) | ✅ | `MADShieldVault.sol`, `shieldPhiRatio()` |
 | Golden Hand Casino | UI only | `casino-panel`; needs Chainlink VRF contract |
 | MADFORGE MoonPad (launchpad + quadratic funding) | Not started | new workstream |
@@ -149,7 +149,7 @@ LangGraph **Scandal Scraper** (RSS/social → 10K-mentions/hr → auto-draft mar
 - **DoD:** scraper → reviewable market end-to-end; Liar Meter scores live; AI output sanitized.
 
 ### Phase 6 — Marketing site `madgambit.fun` *(separate Web2 app)*
-Per `MADGambit_Website_Scope_v1`: Next.js + Tailwind + Framer Motion, no wallet, NextAuth on the app's Neon/Drizzle, Resend, subdomain provisioning, JWT handoff to `app.madgambit.io`. Override stock-neon with `INK`. Lighthouse >95, LCP <1.8s, bundle <100KB.
+Per `MADGambit_Website_Scope_v1`: Next.js + Tailwind + Framer Motion, no wallet, NextAuth on the app's Neon, Resend, subdomain provisioning, JWT handoff to `app.madgambit.io`. Override stock-neon with `INK`. Lighthouse >95, LCP <1.8s, bundle <100KB.
 - **DoD:** landing + auth + profile + redirect; perf met; domains off Vercel Hobby.
 
 ### Phase 7 — Multi-chain expansion
@@ -164,7 +164,7 @@ Arbitrum One → HyperEVM → other EVMs → Solana. Per-chain configs, bridge, 
 |---|---|---|
 | Frontend UI/UX (flip-clock, hub, marketing site) | v0 by Vercel + Claude (+ Lovable optional) | Opus 4.8 |
 | Web3 + smart contracts | Cursor / Claude Code | Opus 4.8 / Sonnet 5 |
-| Backend (Drizzle, API routes, indexing) | Claude Code (Replit/Bolt scaffolds) | Sonnet 5 / Fable-5 |
+| Backend (API routes, SQL, indexing) | Claude Code (Replit/Bolt scaffolds) | Sonnet 5 / Fable-5 |
 | AI agents (scraper, LangGraph swarm, oracle) | Claude Code + `mad-gambit-ai-agents` skill | Opus 4.8 |
 | Deck / investor materials | Claude Code + `investor-materials` skill | Opus 4.8 |
 
@@ -180,7 +180,7 @@ Arbitrum One → HyperEVM → other EVMs → Solana. Per-chain configs, bridge, 
 
 ## PART I — Locked decisions
 
-- **Stack (canonical):** GitHub + Vercel + Neon (Postgres + Drizzle) + custom SIWE. **Supabase is not in the stack.**
+- **Stack (canonical):** GitHub + Vercel + Neon (Postgres, raw `pg` for now — Drizzle deferred) + custom SIWE. **Supabase is not in the stack.**
 - **Y3 revenue → $154.5M** headline ($121.4M kept only as a labeled conservative base case).
 - **Markets → non-binary only** (Continuous DL-LMSR + Over/Under); binary is out.
 - **Chain → Arbitrum Nova (42170) launch/gameplay · One (42161) Shield vaults + $MADx · Sepolia (421614) testnet; HyperEVM then all EVMs planned.**
@@ -269,7 +269,7 @@ Pulled the P1/P2 value from `The-MDC/demo-repository` into this repo. The wider 
 - **`docs/imported/`** — specs (`MADHATS_DATABASE_SCHEMA` 839L, `MADHATS_API_SPECIFICATION` 890L, game/NFT/tokenomics specs, EVM-Arbitrum guide), whitepaper v1.8, business/VC docs, `CANONICAL_NUMBERS.md`, pitch, and the MAD Gambit stream scopes (MADDAO, MADforge Labs). *(A separate MDC marketplace product + the MDC-ecosystem map were removed — they belong in The-MDC, not MAD Gambit.)*
 - **`verify/public/brand/`** — official logo set.
 
-**Safe fixes applied on pull:** `game.sol PLATFORM_FEE 25→188` (0.25% → canonical 1.88%); **Supabase fully stripped** from `MADHATS_DATABASE_SCHEMA.md` → Neon/Drizzle + Pusher/Ably.
+**Safe fixes applied on pull:** `game.sol PLATFORM_FEE 25→188` (0.25% → canonical 1.88%); **Supabase fully stripped** from `MADHATS_DATABASE_SCHEMA.md` → Neon + Pusher/Ably.
 
 **Reconciliation checklist (before `contracts/madhat-core` compiles + integrates):**
 1. **Deps:** `forge install` OZ-upgradeable + `abdk-libraries-solidity` + `chainlink-brownie-contracts`; wire `remappings.txt` (app foundry only has `openzeppelin-contracts` + `forge-std`).
@@ -281,7 +281,7 @@ Pulled the P1/P2 value from `The-MDC/demo-repository` into this repo. The wider 
 7. **`game.sol`:** switch `transfer()` → `safeTransfer()` (audit-flagged); fee fix confirmed.
 8. **Rebuild the lost `MarketFactory` + `DutchAuction`** on `BondingCurve.sol` (`Errors.sol` already carries their error types; `evm-implementation-guide-arbitrum.md` + `README_REFACTORING.md` are the blueprints).
 9. **API spec** uses `JWT + Wallet` → reconcile to the app's **SIWE**.
-10. **DB schema** → convert to Drizzle schema + `migrations/` (Supabase already stripped).
+10. **DB schema** → raw SQL against Neon for now (Drizzle deferred); Supabase already stripped.
 11. **`MADDEXToken` (100M supply)** is a **distinct legacy token** — do NOT merge into $MADx (888,888,888).
 12. **Canonical-source decision:** `contracts/madhat-core` kept as a separate Foundry project (not merged into `contracts/src`) pending your call on which is canonical.
 
