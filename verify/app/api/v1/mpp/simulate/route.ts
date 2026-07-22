@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
     const data = generateStochasticSeries(b);
     return NextResponse.json({ success: true, data });
   } catch (e: any) {
-    return NextResponse.json({ success: false, error: e.message }, { status: 400 });
+    console.error("mpp/simulate error:", e);
+    return NextResponse.json({ success: false, error: "Simulation failed" }, { status: 400 });
   }
 }
