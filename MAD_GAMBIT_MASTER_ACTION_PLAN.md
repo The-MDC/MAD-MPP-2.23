@@ -406,3 +406,24 @@ Surface the **already-coded** MAD Shield engine as a live product surface — th
 | **P-5** | GATED (later) | wire to `MADShieldVault.sol` for real `$MADx` premium charge + recovery payout | Phase-3 testnet; `security-review` skill; no unsigned-value trust at the boundary |
 
 **This session builds P-1…P-4** (safe, additive, no real value). **P-5 stays gated** behind the Phase-3 contract work. Verification: `tsc` + `placeholder-guard` green; canonical 28.8/40/60 + 2–4% unchanged; `/dashboard` gains a working Shield calculator alongside Analytics + Revenue panels.
+
+---
+
+## PART Q — Card lifecycle surface (built 2026-07-23)
+
+Second **O-1** engine surfaced (after Shield). Pack **generation** already existed (`openCardPack` → `/api/v1/cards/open-pack`); this closes the **post-acquisition** lifecycle — **own → wear → evolve** — which was entirely unsurfaced. Additive on `/dashboard`, degrade-to-demo, no value movement.
+
+**Naming note (answers a founder question):** `contracts/madhat-core/` is the **platform-core** contract set (prediction market, staking, treasury, tokens — *and* `tokens/MadhatCard.sol`), not "the card game," and **"MADHAT" is neither the platform nor the card-game name** — it is legacy branding on that demo-repository set, slated for `Madhat* → MAD*` rename (Part K item 4). The card game is one module within it.
+
+| Slice | Layer | What | State |
+|---|---|---|---|
+| **Q-1** | Neon | `sql/0003_cards.sql` → `cards` ledger; `lib/cards.ts` (insert/list, typed mappers) | ✅ |
+| **Q-2** | back (DB) | `/api/v1/cards/collect` (persist to wallet; rate-limited; demo echo) + `/api/v1/cards/collection/[wallet]` (read; demo-empty) | ✅ |
+| **Q-3** | back (pure) | `/api/v1/cards/wear` — `calculateUsageWear`/`applyUsageWear` (2–16%/use, floored at 0) | ✅ |
+| **Q-4** | back (pure) | `/api/v1/cards/evolve` — burn-ladder requirements (`nextEvolution`) + VRF **simulate** (`attemptEvolution`, non-authoritative) | ✅ |
+| **Q-5** | front | `components/card-lifecycle-panel.tsx` (rarity selector · durability/wear calculator · evolution ladder + VRF simulate) → `/dashboard` | ✅ |
+| **Q-6** | GATED | on-chain `MAD Card` mint + real burn-ladder + Chainlink-VRF evolution | Phase 3 |
+
+Canonical unchanged: wear **2/2/10/11.5/13/14.5/16%** (`RARITY_WEAR_PCT`); burn ladder **C→U 100/100 · U→R 250/200 · R→E 500/500 · E→L 1000/2500**; VRF stage cap **3**, oracle clamp **[5,95]/[10,90]** (the house-edge security boundary — never remove).
+
+**O-1 surface progress:** Shield ✅ (Part P) · Card lifecycle ✅ (Part Q) · next: staking-yield clout → governance math → pack pricing.
