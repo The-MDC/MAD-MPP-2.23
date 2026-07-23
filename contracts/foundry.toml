@@ -5,7 +5,10 @@ libs = ["lib"]
 optimizer = true
 optimizer_runs = 200
 solc_version = "0.8.24"
-via_ir = false
+# IR pipeline required: MADShieldVault.t.sol destructures the multi-field position
+# getter, which overflows the stack under the legacy codegen ("Stack too deep").
+# viaIR + optimizer is the compiler-recommended fix and Foundry's production default.
+via_ir = true
 fs_permissions = [{ access = "read", path = "./" }]
 
 remappings = [
