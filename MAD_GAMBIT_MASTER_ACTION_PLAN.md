@@ -602,3 +602,26 @@ A large Grok transcript was reviewed — 14-agent "SuperGrok swarm", RL for agen
 - **`mad-mpp-2.24` / `mad-gambit-ui`** — out of scope (founder directive; 2.23 is canonical — Part R-A / S-D).
 - **Pixel "carbon copy" of images `mBxhU`/`Wv5rT`/`3fsbU`** — those images are **not in this session**; claiming fidelity to source files I can't see would be fabrication. The dual-theme + dopamine-carousel *concepts* stay queued as **INK-native** work (Part S-C), not an image mirror.
 - **The transcript's repeated "100% / pushed / deployed / live link"** — the fabricated-completion pattern (Part B2). Countermeasure holds: every claim in this repo carries a **commit SHA + green CI check + a pasted DB-smoke log**.
+
+---
+
+## PART X — Master-math coverage audit + surfacing (2026-07-23)
+
+Grounded audit (grep, not assertion): **every deep-master-math concept is DEFINED in the repo.** A tail was **lib-only** (defined but not wired to a product) — now surfaced as real routes.
+
+**Defined ✓** (canonical libs `gambit-game-math.ts` · `mpp-math.ts` · `bayesian-conviction.ts` · `gdelt.ts` · `card-evolution.ts`): MADConv (`calculateConviction`) · GARCH (`garchUpdate`, `garch_amp`) + EGARCH/CGARCH · Liar (`zLiarMeter` + LieImpact) · Bayesian / log-odds / hybrid-MADConv / tree / VOI / edge / Brier / Log · Kelly · `splitFee` · Furnace burn · staking (`STAKING_TIERS`, `calculateStakingYield`) · full Shield engine · evolution score · GCAM scandal + Perp trigger · governance (`quadraticMatch`, `calculateGovernanceThreshold`) · EigenTrust · pack pricing (`scandalPackPrice`, `getAuctionPrice`) · rarity · streaks / Fibonacci · virality / behavioral decay.
+
+**Surfaced THIS pass** (were lib-only → now live pure-calculator routes):
+| Master math | Route |
+|---|---|
+| `quadraticMatch` + `calculateGovernanceThreshold` | `POST /api/v1/governance` |
+| `scandalPackPrice` + `getAuctionPrice` + `SCANDAL_PACK_TIERS` | `POST /api/v1/packs/price` |
+| `brierScore` + `logScore` (proper scoring) | `POST /api/v1/bayesian/score` |
+| `egarchLogVar` + `cgarchUpdate` (GARCH extensions) | `POST /api/v1/bayesian/garch` |
+| `calculateStakingYield` (clout boost `1+clout/200`) | `POST /api/v1/staking/yield` |
+
+**Already surfaced (prior parts):** Shield (P) · card lifecycle/wear/evolution-preview (Q) · 5-stream revenue via `splitFee`+furnace (Phase 4) · GDELT scandal velocity/Perp (S) · Bayesian update/tree/VOI (T) · card evolution score (V) · markets/bets (W) · MADConv/GARCH/Liar/EigenTrust/rarity/streak/DL-LMSR/Kelly (in `/gambit`, `/workbench`, cards + agents routes).
+
+**Still lib-only (deliberately deferred):** `viralityScore` · `getFibonacciReward` · behavioral decay (`temporalDecay`/`stochasticDecay`/`lossAversionWeight`) · `calculateUserDopamineIndex` — these are **inputs to the joy/dopamine layer** (Part T-B's queued `joy-engineering.ts`), not standalone calculators; they surface when that panel lands.
+
+**Verdict:** every master-math concept is in the codebase; all standalone calculators (governance, pack pricing, proper scoring, GARCH extensions, clout-staking) are now live routes. The only unsurfaced remainder is the dopamine-layer input set, queued with the joy panel.
