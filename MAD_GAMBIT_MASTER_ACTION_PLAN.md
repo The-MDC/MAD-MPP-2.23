@@ -534,3 +534,24 @@ The **Unified Comprehensive Handoff** (Master Maths v2.24.1, Parts A–C) asked 
 ### T-C — Compliance / canon guards (carry forward)
 - **"MAD Shield = loss mitigation, never insurance"** and **no on-chain gambling framing** (Part B2). The joy/variable-reward layer stays **conviction-modulated + positive-EV + user-controlled** — never pure chance.
 - Proprietary-IP rule from the handoff (don't expose exact MADConv/GARCH coefficients in external materials) already matches the MADHAT'r Concierge guardrail; keep formulas server-side.
+
+---
+
+## PART U — Making the database REAL (migration runner + CI-proven live DB, 2026-07-23)
+
+**Founder callout (valid, acted on):** routes degraded-to-demo, but **nothing applied the schema** — so the backend was *permanently* in demo mode: a facade, not a live DB. Root causes found: (1) **no migration runner** — `verify/sql/*.sql` were never executed by anything; (2) `neon-pr-branch.yml` created an **empty** ephemeral branch and never migrated it (the `db_url` output was discarded); (3) `DATABASE_URL` was wired into **no** build/deploy step.
+
+**Fixed — the DB is now provisioned + exercised end-to-end:**
+| Piece | What |
+|---|---|
+| `verify/scripts/migrate.mjs` | Idempotent runner — applies every `sql/*.sql` in order, tracked in a `_migrations` table (safe re-runs). `npm run migrate`. |
+| `verify/scripts/db-smoke.mjs` | **Live write+read** across `events_stream`, `shield_positions`, `cards`, `celebrity_whitelist`, `gdelt_signals`, `market_intelligence` — transaction rolled back. `npm run db:smoke`. |
+| `neon-pr-branch.yml` (+steps) | Every PR now **applies the schema to the fresh Neon branch and smoke-tests real read/write**. A green Neon job = the live Postgres path works, not just the demo fallback. |
+| `db-migrate.yml` (new) | Applies migrations to **production** Neon on merge-to-`main` + manual dispatch (guarded on the `DATABASE_URL` secret; idempotent). |
+
+**Still founder-action (Vercel dashboard / GitHub secrets — cannot be set via tools):**
+1. **Set `DATABASE_URL`** (prod Neon connection string) in **Vercel → `mad-mpp-2.23` → Settings → Env → Production** (so the deployed app talks to the DB) **and** as a **GitHub repo secret** (so `db-migrate.yml` provisions prod on merge). Until then prod stays demo — **by configuration, not by bug**.
+2. Set **`GOOGLE_API_KEY`** (embeddings + concierge) + **`SESSION_SECRET`** (R-B) the same way.
+3. `NEON_PROJECT_ID` var + `NEON_API_KEY` secret already exist (the PR-branch job uses them).
+
+**Net:** once `DATABASE_URL` is set, every table the routes read/write actually exists (auto-migrated on deploy), CI proves the live path green on each PR, and "degrade to demo" becomes a true fallback instead of the permanent state. **This is the difference between an MVP facade and a real, connected backend.**

@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "node .next/standalone/server.js",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "migrate": "node scripts/migrate.mjs",
+    "db:smoke": "node scripts/db-smoke.mjs"
   },
   "dependencies": {
     "@langchain/community": "^1.1.29",

@@ -42,6 +42,29 @@ jobs:
           branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
           expires_at: ${{ env.EXPIRES_AT }}
+
+      # ── Prove the DB is real: apply the schema to the fresh branch and
+      #    write+read every core table. A green here means the backend's live
+      #    Postgres path works — not just the degrade-to-demo fallback.
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install deps (verify/)
+        working-directory: verify
+        run: npm ci
+      - name: Apply migrations to the Neon branch
+        working-directory: verify
+        env:
+          DATABASE_URL: ${{ steps.create_neon_branch.outputs.db_url }}
+        run: npm run migrate
+      - name: Live DB smoke (write+read every table, rolled back)
+        working-directory: verify
+        env:
+          DATABASE_URL: ${{ steps.create_neon_branch.outputs.db_url }}
+        run: npm run db:smoke
   delete_neon_branch:
     name: Delete Neon Branch
     needs: setup
