@@ -427,3 +427,41 @@ Second **O-1** engine surfaced (after Shield). Pack **generation** already exist
 Canonical unchanged: wear **2/2/10/11.5/13/14.5/16%** (`RARITY_WEAR_PCT`); burn ladder **C→U 100/100 · U→R 250/200 · R→E 500/500 · E→L 1000/2500**; VRF stage cap **3**, oracle clamp **[5,95]/[10,90]** (the house-edge security boundary — never remove).
 
 **O-1 surface progress:** Shield ✅ (Part P) · Card lifecycle ✅ (Part Q) · next: staking-yield clout → governance math → pack pricing.
+
+---
+
+## PART R — Grok "full thread handoff" synthesis (2026-07-23)
+
+A Grok-authored *"zero-omit"* thread handoff (`MAD_GAMBIT_FULL_THREAD_HANDOFF_2026-07-23.md`) was ingested. Per the **Part B2 / Part G** discipline (*Grok fabricates completion*), every "pushed + redeployed green / fully live" claim was **byte-checked against this repo** before incorporation. Net: **one verified, actionable item** (Vercel domain), an **env-list correction**, a **number-drift to suppress**, and a large body of **fabricated claims recorded to distrust — not as done.**
+
+### R-A — GROUNDED + VERIFIED: the real `madgambit.fun` 404 cause (ACTIONABLE)
+Confirmed via **Vercel MCP** (team `madgambit` `team_TgoOJAiilwZ3I3LPyD2FcNZm`, 2026-07-23):
+- **`madgambit.fun` / `www.madgambit.fun` is attached to NEITHER project** → *this* is the `DEPLOYMENT_NOT_FOUND` / 404. (`mad-mpp-2.23` domains = `mad-mpp-223[-git-main]-madgambit.vercel.app` only; `mad-gambit-2.24` domains = `mad-gambit-224*.vercel.app` only.)
+- **`mad-gambit-2.24`** (`prj_TEVVoLDuzpx7YmPkJhcs67t3lLtR`): latest production deploy = **ERROR** ("No Next.js version detected" = Root Directory ≠ `verify`); Node 24.x.
+- **`mad-mpp-2.23`** (`prj_XJ1OqBGYZMrg5eqJAZQQLnt1GYC9`): the **healthy** project (production `mad-mpp-223-madgambit.vercel.app`); Node 22.x.
+- **Fix — dashboard-only (cannot be set via API/tools):** on **`mad-mpp-2.23`** → Domains → add `madgambit.fun` + `www.madgambit.fun`; confirm Root Directory = `verify`; add Production env (R-B); promote the latest **READY** production deploy. *(Or fix 2.24's Root Directory=`verify` first — but 2.23 is already healthy, so point the domain there.)* Extends **J-H**.
+
+### R-B — Env-var reconciliation (CORRECTS Grok's port list; ground truth = `verify/.env.example`)
+Grok's list **omitted the required `SESSION_SECRET`** (without it sign-in verifies but issues **no session cookie — fails closed**) and invented extras. Canonical Production set:
+- **Required:** `GOOGLE_API_KEY` (Gemini — code reads this, *not* `GEMINI_API_KEY`) · **`SESSION_SECRET`** (HMAC session signing — Grok missed this) · `EVM_RPC_URL` · `EVM_RPC_URL_NOVA`.
+- **Optional (degrade gracefully):** `ALCHEMY_API_KEY` · `CHAINLINK_VRF_KEY` · `NEWS_API_KEY` · `DATABASE_URL` (Neon) · `CARD_ART_CDN` · `NODE_ENV=production`.
+- Grok's `NEXT_PUBLIC_APP_URL` / `NEXT_TELEMETRY_DISABLED` = harmless, not required; `PORT=8080` is Cloud-Run-only (ignore on Vercel). **Supersedes the stale J-H line 246 list** (`AUTH_SECRET`/`NEXTAUTH_URL`/`WALLETCONNECT` are NOT in the real `.env.example`).
+
+### R-C — Number drift → SUPPRESS (add to J-K)
+Grok repeatedly stated **"MAD Shield 28.88% baseline."** Canon = **28.8%** (`SHIELD_RECOVERY_PCT = 0.288`). The `28.88` in `gambit-game-math.ts:1270` is a **scandal-pack price** ($28.88 @ serial 100) that Grok conflated. **Suppress "28.88% Shield" → 28.8%.** (Grok's "40% tier for creators/most-active" ≈ our Shielded-dial 40% ceiling + Whale 60% — already coded, **Part P**.)
+
+### R-D — FABRICATED-completion claims (distrust; extends Part B2 — NOT in the build)
+Byte-checked — **not real** in the repo despite "pushed + redeployed green (v2.32→v2.34)":
+- **Vector search:** claimed "HNSW + IVF-PQ + residual PQ + scalar quantization + DiskANN hybrid, Chroma+Weaviate, sub-5ms." **Reality:** one `verify/scripts/init-vector-db.ts` creating a single **pgvector HNSW** index; `chromadb`/`weaviate-client`/`hnswlib-node` are only optional **langchain lockfile peers**, unused. No IVF-PQ/residual-PQ/DiskANN code (FAISS terms pgvector doesn't implement).
+- **Orchestration:** "CrewAI + AutoGen + LangGraph crew, Grok+Claude multi-agent" → **zero CrewAI/AutoGen** in code or deps; only `@langchain/langgraph` is real; the concierge is a **single Gemini** route.
+- **Perf:** "WASM Wasmtime SIMD / WASI P3 / WebGPU / Vulkan / OpenTelemetry" → **none in app code** (only WASM hits = Tailwind's `oxide-wasm32-wasi` build tool).
+- **"vercel.json rewrites + 404 fallback"** → real `vercel.json` carries only **security headers**, no rewrites.
+- **Contracts:** Grok listed `MarketFactory`/`DutchAuction` as present → **LOST** (J-D line 224).
+- **Enforcement:** placeholder-guard + Part N-C Foundry CI. *Grok "vX.Y green" = unverified until byte-checked.*
+
+### R-E — Real product concepts to log (flags — verify/decide, NOT built)
+- **Auto-graduation to Creator at $150K gross market volume** + Creator badge. **Not built** (the in-repo 150K is a **DAU** projection, not a volume gate). Fold into UGC/MarketFactory (Part D / J-E) if approved.
+- **Octavian 3D interactive mesh nodes** (global + per-dashboard + central Master page). Basis exists (`three`/react-three-fiber + orphaned `app/octavian-master/page.tsx`) but the global-state version is aspirational → build or archive the orphan.
+- **Daily/weekly raffle** (pick 1–888) — thematic, not built.
+- **Role tiers** Visitor/User/Creator/VIP-Creator/Whale — aligns with Two-Tier Auth (J-C) + Whale Shield tier (Part P).
+- **"MAD Shield = loss mitigation, never insurance"** — already canon (Part B2 compliance flag). ✓
