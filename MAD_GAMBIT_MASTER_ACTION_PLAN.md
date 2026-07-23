@@ -625,3 +625,23 @@ Grounded audit (grep, not assertion): **every deep-master-math concept is DEFINE
 **Still lib-only (deliberately deferred):** `viralityScore` · `getFibonacciReward` · behavioral decay (`temporalDecay`/`stochasticDecay`/`lossAversionWeight`) · `calculateUserDopamineIndex` — these are **inputs to the joy/dopamine layer** (Part T-B's queued `joy-engineering.ts`), not standalone calculators; they surface when that panel lands.
 
 **Verdict:** every master-math concept is in the codebase; all standalone calculators (governance, pack pricing, proper scoring, GARCH extensions, clout-staking) are now live routes. The only unsurfaced remainder is the dopamine-layer input set, queued with the joy panel.
+
+---
+
+## PART Y — Dopamine UI + dual-theme + activity ledger (built 2026-07-23)
+
+Nuanced the reviewed UI concepts **for our stack** — INK-native, wired to real data, additive (default look unchanged). **Not** an image "pixel carbon-copy" (the source images aren't in this session — claiming fidelity to them would be fabrication); this is honest, on-brand, real-data product.
+
+### Y-A — SHIPPED (CI-green)
+| Concept (from transcript) | Nuanced build | Files |
+|---|---|---|
+| Dopamine metrics carousel | Live pulse from **real** markets/bets/gdelt/events — Active Bets · **Chaos Meter** (GCAM scandal velocity) · Markets · 24h Vol · hot scandal; 15s refresh | `/api/v1/dopamine/metrics` · `components/dopamine-metrics-carousel.tsx` |
+| ReflexionVisualizer | Honest nuance: **Activity Ledger** — real decision/action timeline from `audit_log` (NOT a fake AI-swarm monitor) | `/api/v1/audit` · `components/reflexion-visualizer.tsx` |
+| Dual-theme (Gilded ↔ Neon Noir) in hamburger | `SKINS` token sets + `SkinProvider` (localStorage) + hamburger toggle in the dashboard shell | `lib/skins.ts` · `components/skin-provider.tsx` · `components/dashboard-shell.tsx` |
+
+All on `/dashboard`, degrade-to-demo, reduced-motion-safe.
+
+### Y-B — Honest scope (what's real vs progressive)
+- **Dual-theme default = Neon Noir = the current INK look → zero regression.** Gilded is opt-in via the hamburger. The switch reskins the **dashboard shell + skin-aware surfaces** (carousel, activity ledger) today; **per-panel reskin of the older INK panels is progressive** (they still render Neon-Noir until threaded through `useSkin`) — flagged, not claimed as complete.
+- **Global-hamburger integration** into the locked `/gambit` main-nav is deferred; the toggle lives in the additive `/dashboard` shell to avoid regressing the locked layout.
+- Chaos Meter = `round(avg(scandal_velocity)·20)` over 24h `gdelt_signals`.
