@@ -645,3 +645,14 @@ All on `/dashboard`, degrade-to-demo, reduced-motion-safe.
 - **Dual-theme default = Neon Noir = the current INK look → zero regression.** Gilded is opt-in via the hamburger. The switch reskins the **dashboard shell + skin-aware surfaces** (carousel, activity ledger) today; **per-panel reskin of the older INK panels is progressive** (they still render Neon-Noir until threaded through `useSkin`) — flagged, not claimed as complete.
 - **Global-hamburger integration** into the locked `/gambit` main-nav is deferred; the toggle lives in the additive `/dashboard` shell to avoid regressing the locked layout.
 - Chaos Meter = `round(avg(scandal_velocity)·20)` over 24h `gdelt_signals`.
+
+### Y-C — Per-panel dual-theme threading COMPLETE (closes the Y-B "progressive" flag, 2026-07-23)
+Y-B flagged the older INK panels as *not yet* skin-aware. Now closed: threaded `useSkin()` through **all 7** remaining dashboard panels so the Gilded ↔ Neon Noir toggle reskins the **entire** dashboard, not just the shell + pulse surfaces.
+
+| Panel | Change |
+|---|---|
+| `analytics-dashboard` · `markets-panel` · `card-lifecycle-panel` · `card-stats-display` · `shield-panel` · `revenue-streams-panel` · `bayesian-panel` | `INK.*` inline-style tokens → `skin.*` via `useSkin()`; module-scope color maps (`TIER_META`, `STATUS_COLOR`, `LEVEL_COLOR`) moved inside their components so the hook is in scope |
+
+- **Token model:** added one semantic token — `positive` — to the `Skin` type (was the only INK color, `INK.green`, with no skin equivalent). `neonNoir.positive = #00ff88` (= `INK.green`); `gilded.positive = #6fbf7f` (jade that reads positive on velvet).
+- **Zero-regression proof (by construction):** `useSkin()` falls back to `neonNoir`, whose tokens are byte-identical to `INK`; default render is pixel-identical to before. Rarity-specific accents (`RARITY_TABLE[r].accent`) left theme-independent by design.
+- **Verified:** `grep` confirms **0** remaining `INK.*` references in the 7 panels; all `skin.*` tokens used are a strict subset of the `Skin` interface fields. Gate = `tsc --noEmit` (green — see commit CI).

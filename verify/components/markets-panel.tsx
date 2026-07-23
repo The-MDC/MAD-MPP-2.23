@@ -4,10 +4,11 @@
  * MAD Gambit — Markets Panel (Part W)
  * The real prediction-market surface: lists markets from /api/v1/markets, lets
  * you spin up a new one, and shows YES/NO odds + volume. Live against Neon when
- * configured; clean empty state otherwise. INK design system (no external assets).
+ * configured; clean empty state otherwise. Skin-aware design system (no external assets).
  */
 import React, { useEffect, useState } from "react";
-import { INK, INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
+import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
+import { useSkin } from "@/components/skin-provider";
 
 interface Mkt {
   id: string;
@@ -22,6 +23,7 @@ interface Mkt {
 const usd = (n: number) => `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 
 export default function MarketsPanel() {
+  const { skin } = useSkin();
   const [markets, setMarkets] = useState<Mkt[] | null>(null);
   const [title, setTitle] = useState("");
   const [busy, setBusy] = useState(false);
@@ -58,12 +60,12 @@ export default function MarketsPanel() {
   };
 
   return (
-    <div style={{ background: INK.bgPanel, border: `1px solid ${INK.border}`, borderRadius: 16, padding: 18, fontFamily: INSTRUMENT_FONT, color: INK.white }}>
+    <div style={{ background: skin.panel, border: `1px solid ${skin.border}`, borderRadius: 16, padding: 18, fontFamily: INSTRUMENT_FONT, color: skin.text }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 }}>
-        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: INK.gold, textTransform: "uppercase" }}>
+        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: skin.gold, textTransform: "uppercase" }}>
           Prediction Markets
         </div>
-        <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "2px 6px", borderRadius: 4, color: INK.muted, background: `${INK.muted}18`, border: `1px solid ${INK.muted}40` }}>
+        <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "2px 6px", borderRadius: 4, color: skin.muted, background: `${skin.muted}18`, border: `1px solid ${skin.muted}40` }}>
           {markets ? `${markets.length} live` : "…"}
         </span>
       </div>
@@ -75,41 +77,41 @@ export default function MarketsPanel() {
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && create()}
           placeholder="Will X happen by …?"
-          style={{ flex: 1, background: INK.bgCard, border: `1px solid ${INK.border}`, borderRadius: 8, padding: "8px 10px", color: INK.white, fontFamily: INSTRUMENT_FONT, fontSize: 11 }}
+          style={{ flex: 1, background: skin.card, border: `1px solid ${skin.border}`, borderRadius: 8, padding: "8px 10px", color: skin.text, fontFamily: INSTRUMENT_FONT, fontSize: 11 }}
         />
-        <button onClick={create} disabled={busy} style={{ padding: "8px 12px", borderRadius: 8, cursor: busy ? "default" : "pointer", fontSize: 9, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: INK.white, background: `${INK.green}18`, border: `1px solid ${INK.green}`, fontFamily: INSTRUMENT_FONT, opacity: busy ? 0.6 : 1 }}>
+        <button onClick={create} disabled={busy} style={{ padding: "8px 12px", borderRadius: 8, cursor: busy ? "default" : "pointer", fontSize: 9, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: skin.text, background: `${skin.positive}18`, border: `1px solid ${skin.positive}`, fontFamily: INSTRUMENT_FONT, opacity: busy ? 0.6 : 1 }}>
           {busy ? "…" : "Create"}
         </button>
       </div>
-      {note && <div style={{ fontSize: 8, color: INK.muted, marginBottom: 10 }}>{note}</div>}
+      {note && <div style={{ fontSize: 8, color: skin.muted, marginBottom: 10 }}>{note}</div>}
 
       {markets !== null && markets.length === 0 && (
-        <div style={{ fontSize: 9, color: INK.muted }}>No markets yet — create the first one above.</div>
+        <div style={{ fontSize: 9, color: skin.muted }}>No markets yet — create the first one above.</div>
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {(markets ?? []).map((m) => (
-          <div key={m.id} style={{ background: INK.bgCard, border: `1px solid ${INK.border}`, borderRadius: 10, padding: "10px 12px" }}>
+          <div key={m.id} style={{ background: skin.card, border: `1px solid ${skin.border}`, borderRadius: 10, padding: "10px 12px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <span style={{ fontSize: 10, fontWeight: 900, color: INK.white }}>{m.title}</span>
-              <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: m.status === "open" ? INK.green : INK.muted }}>{m.status}</span>
+              <span style={{ fontSize: 10, fontWeight: 900, color: skin.text }}>{m.title}</span>
+              <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: m.status === "open" ? skin.positive : skin.muted }}>{m.status}</span>
             </div>
             <div style={{ display: "flex", gap: 6 }}>
-              <div style={{ flex: 1, textAlign: "center", padding: "6px 0", borderRadius: 6, background: `${INK.green}14`, border: `1px solid ${INK.green}40` }}>
-                <div style={{ fontSize: 13, fontWeight: 900, color: INK.green }}>{m.yesOdds.toFixed(2)}×</div>
-                <div style={{ fontSize: 7, color: INK.muted, textTransform: "uppercase", letterSpacing: 1 }}>Yes</div>
+              <div style={{ flex: 1, textAlign: "center", padding: "6px 0", borderRadius: 6, background: `${skin.positive}14`, border: `1px solid ${skin.positive}40` }}>
+                <div style={{ fontSize: 13, fontWeight: 900, color: skin.positive }}>{m.yesOdds.toFixed(2)}×</div>
+                <div style={{ fontSize: 7, color: skin.muted, textTransform: "uppercase", letterSpacing: 1 }}>Yes</div>
               </div>
-              <div style={{ flex: 1, textAlign: "center", padding: "6px 0", borderRadius: 6, background: `${INK.pink}14`, border: `1px solid ${INK.pink}40` }}>
-                <div style={{ fontSize: 13, fontWeight: 900, color: INK.pink }}>{m.noOdds.toFixed(2)}×</div>
-                <div style={{ fontSize: 7, color: INK.muted, textTransform: "uppercase", letterSpacing: 1 }}>No</div>
+              <div style={{ flex: 1, textAlign: "center", padding: "6px 0", borderRadius: 6, background: `${skin.accent2}14`, border: `1px solid ${skin.accent2}40` }}>
+                <div style={{ fontSize: 13, fontWeight: 900, color: skin.accent2 }}>{m.noOdds.toFixed(2)}×</div>
+                <div style={{ fontSize: 7, color: skin.muted, textTransform: "uppercase", letterSpacing: 1 }}>No</div>
               </div>
             </div>
-            <div style={{ fontSize: 7, color: INK.muted, marginTop: 6, textAlign: "right" }}>vol {usd(m.volume)} · {m.category}</div>
+            <div style={{ fontSize: 7, color: skin.muted, marginTop: 6, textAlign: "right" }}>vol {usd(m.volume)} · {m.category}</div>
           </div>
         ))}
       </div>
 
-      <div style={{ fontSize: 7, color: INK.muted, marginTop: 12, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 7, color: skin.muted, marginTop: 12, lineHeight: 1.5 }}>
         Live against Neon when configured. Betting settles on-chain (Phase 3) — POST /api/v1/bets records the wager.
       </div>
     </div>

@@ -5,11 +5,12 @@
  * Surfaces the canonical MAD Shield loss-protection engine as a live product
  * surface: three recovery tiers (Standard 28.8% / Shielded up to 40% / Whale
  * 60%) with a premium + payout calculator. Read-only preview — no value moves
- * (the on-chain vault is the Phase-3 gated slice). Token-driven (INK); hits
+ * (the on-chain vault is the Phase-3 gated slice). Skin-aware (neonNoir=INK); hits
  * POST /api/v1/shield/quote and always renders (calculator needs no DB).
  */
 import React, { useEffect, useMemo, useState } from "react";
-import { INK, INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
+import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
+import { useSkin } from "@/components/skin-provider";
 
 type Tier = "standard" | "shielded" | "whale";
 
@@ -27,13 +28,13 @@ interface Quote {
 const usd = (n: number) => `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
 
-const TIER_META: Record<Tier, { label: string; color: string; blurb: string }> = {
-  standard: { label: "Standard", color: INK.cyan, blurb: "28.8% recovery · flat" },
-  shielded: { label: "Shielded", color: INK.gold, blurb: "28.8 → 40% · premium dial" },
-  whale: { label: "Whale / Partner", color: INK.pink, blurb: "60% · trust-gated" },
-};
-
 export default function ShieldPanel() {
+  const { skin } = useSkin();
+  const TIER_META: Record<Tier, { label: string; color: string; blurb: string }> = {
+    standard: { label: "Standard", color: skin.accent, blurb: "28.8% recovery · flat" },
+    shielded: { label: "Shielded", color: skin.gold, blurb: "28.8 → 40% · premium dial" },
+    whale: { label: "Whale / Partner", color: skin.accent2, blurb: "60% · trust-gated" },
+  };
   const [stake, setStake] = useState(1000);
   const [tier, setTier] = useState<Tier>("shielded");
   const [premiumTier, setPremiumTier] = useState(0.5);
@@ -88,32 +89,32 @@ export default function ShieldPanel() {
     fontWeight: 900,
     letterSpacing: 1,
     textTransform: "uppercase",
-    color: active ? INK.white : INK.muted,
-    background: active ? `${color}22` : INK.bgCard,
-    border: `1px solid ${active ? color : INK.border}`,
+    color: active ? skin.text : skin.muted,
+    background: active ? `${color}22` : skin.card,
+    border: `1px solid ${active ? color : skin.border}`,
     transition: "all .15s ease",
   });
 
   const result: [string, string, string][] = [
-    ["Premium (2–4%)", quote ? usd(quote.premium) : "—", INK.pink],
-    ["Recovery payout", quote ? usd(quote.payout) : "—", INK.green],
-    ["Effective rate", quote ? pct(quote.effectivePct) : "—", INK.gold],
-    ["Return window", quote ? `${quote.returnWindowHours}h` : "—", INK.cyan],
+    ["Premium (2–4%)", quote ? usd(quote.premium) : "—", skin.accent2],
+    ["Recovery payout", quote ? usd(quote.payout) : "—", skin.positive],
+    ["Effective rate", quote ? pct(quote.effectivePct) : "—", skin.gold],
+    ["Return window", quote ? `${quote.returnWindowHours}h` : "—", skin.accent],
   ];
 
   return (
     <div
       style={{
-        background: INK.bgPanel,
-        border: `1px solid ${INK.border}`,
+        background: skin.panel,
+        border: `1px solid ${skin.border}`,
         borderRadius: 16,
         padding: 18,
         fontFamily: INSTRUMENT_FONT,
-        color: INK.white,
+        color: skin.text,
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 }}>
-        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: INK.gold, textTransform: "uppercase" }}>
+        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: skin.gold, textTransform: "uppercase" }}>
           MAD Shield · Loss Protection
         </div>
         <span
@@ -124,9 +125,9 @@ export default function ShieldPanel() {
             textTransform: "uppercase",
             padding: "2px 6px",
             borderRadius: 4,
-            color: INK.muted,
-            background: `${INK.muted}18`,
-            border: `1px solid ${INK.muted}40`,
+            color: skin.muted,
+            background: `${skin.muted}18`,
+            border: `1px solid ${skin.muted}40`,
           }}
         >
           {loading ? "…" : "preview"}
@@ -144,8 +145,8 @@ export default function ShieldPanel() {
               onClick={() => setTier(t)}
               style={{
                 textAlign: "left",
-                background: active ? `${m.color}18` : INK.bgCard,
-                border: `1px solid ${active ? m.color : INK.border}`,
+                background: active ? `${m.color}18` : skin.card,
+                border: `1px solid ${active ? m.color : skin.border}`,
                 borderRadius: 10,
                 padding: "10px 12px",
                 cursor: "pointer",
@@ -155,14 +156,14 @@ export default function ShieldPanel() {
               <div style={{ fontSize: 10, fontWeight: 900, color: m.color, textTransform: "uppercase", letterSpacing: 1 }}>
                 {m.label}
               </div>
-              <div style={{ fontSize: 8, color: INK.muted, marginTop: 4 }}>{m.blurb}</div>
+              <div style={{ fontSize: 8, color: skin.muted, marginTop: 4 }}>{m.blurb}</div>
             </button>
           );
         })}
       </div>
 
       {/* Stake input */}
-      <label style={{ display: "block", fontSize: 8, color: INK.muted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>
+      <label style={{ display: "block", fontSize: 8, color: skin.muted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>
         Stake ($MADx)
       </label>
       <input
@@ -173,11 +174,11 @@ export default function ShieldPanel() {
         style={{
           width: "100%",
           boxSizing: "border-box",
-          background: INK.bgCard,
-          border: `1px solid ${INK.border}`,
+          background: skin.card,
+          border: `1px solid ${skin.border}`,
           borderRadius: 8,
           padding: "8px 10px",
-          color: INK.white,
+          color: skin.text,
           fontFamily: INSTRUMENT_FONT,
           fontSize: 14,
           fontWeight: 900,
@@ -188,9 +189,9 @@ export default function ShieldPanel() {
       {/* Shielded dial */}
       {tier === "shielded" && (
         <div style={{ marginBottom: 12 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, color: INK.muted, textTransform: "uppercase", letterSpacing: 1 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, color: skin.muted, textTransform: "uppercase", letterSpacing: 1 }}>
             <span>Premium dial</span>
-            <span style={{ color: INK.gold }}>{pct(0.288 + premiumTier * (0.4 - 0.288))} recovery</span>
+            <span style={{ color: skin.gold }}>{pct(0.288 + premiumTier * (0.4 - 0.288))} recovery</span>
           </div>
           <input
             type="range"
@@ -199,7 +200,7 @@ export default function ShieldPanel() {
             step={0.05}
             value={premiumTier}
             onChange={(e) => setPremiumTier(Number(e.target.value))}
-            style={{ width: "100%", accentColor: INK.gold }}
+            style={{ width: "100%", accentColor: skin.gold }}
           />
         </div>
       )}
@@ -208,7 +209,7 @@ export default function ShieldPanel() {
       {tier === "whale" && (
         <button
           onClick={() => setRequestWhaleTier((v) => !v)}
-          style={chipStyle(requestWhaleTier, INK.pink)}
+          style={chipStyle(requestWhaleTier, skin.accent2)}
         >
           {requestWhaleTier ? "Whale tier requested" : "Request whale tier (gated)"}
         </button>
@@ -217,21 +218,21 @@ export default function ShieldPanel() {
       {/* Results */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0,1fr))", gap: 8, marginTop: 14 }}>
         {result.map(([label, val, color]) => (
-          <div key={label} style={{ background: INK.bgCard, border: `1px solid ${INK.border}`, borderRadius: 10, padding: "10px 12px" }}>
+          <div key={label} style={{ background: skin.card, border: `1px solid ${skin.border}`, borderRadius: 10, padding: "10px 12px" }}>
             <div style={{ fontSize: 18, fontWeight: 900, color }}>{val}</div>
-            <div style={{ fontSize: 8, color: INK.muted, textTransform: "uppercase", letterSpacing: 1 }}>{label}</div>
+            <div style={{ fontSize: 8, color: skin.muted, textTransform: "uppercase", letterSpacing: 1 }}>{label}</div>
           </div>
         ))}
       </div>
 
       {quote && quote.requestedTier === "whale" && !quote.whaleEligible && (
-        <div style={{ fontSize: 8, color: INK.muted, marginTop: 10 }}>
+        <div style={{ fontSize: 8, color: skin.muted, marginTop: 10 }}>
           Whale tier requires sustained trust (≥250k lifetime volume · ≥90d age · ≥85 trust · ≥1 Golden Hand).
           Falling back to <span style={{ color: TIER_META[quote.appliedTier].color }}>{TIER_META[quote.appliedTier].label}</span>.
         </div>
       )}
 
-      <div style={{ fontSize: 7, color: INK.muted, marginTop: 12, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 7, color: skin.muted, marginTop: 12, lineHeight: 1.5 }}>
         Preview only — no funds move. On-chain premium + recovery settle via MADShieldVault (Phase 3).
       </div>
     </div>

@@ -20,6 +20,7 @@ export interface Skin {
   accent: string;
   accent2: string;
   gold: string;
+  positive: string;
 }
 
 export const SKINS: Record<SkinName, Skin> = {
@@ -36,6 +37,7 @@ export const SKINS: Record<SkinName, Skin> = {
     accent: "#00e5ff",
     accent2: "#ff007f",
     gold: "#ffd700",
+    positive: "#00ff88",
   },
   // Gilded Pop-Baroque — velvet + gold leaf.
   gilded: {
@@ -50,6 +52,7 @@ export const SKINS: Record<SkinName, Skin> = {
     accent: "#ffd700",
     accent2: "#b8860b",
     gold: "#ffe27a",
+    positive: "#6fbf7f",
   },
 };
 

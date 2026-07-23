@@ -8,7 +8,8 @@
  * burns / VRF settle on-chain, Phase-3 gated). Hits /api/v1/cards/{wear,evolve}.
  */
 import React, { useEffect, useState } from "react";
-import { INK, INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
+import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
+import { useSkin } from "@/components/skin-provider";
 import { RARITY_ORDER, RARITY_TABLE, type Rarity } from "@/lib/gambit-game-math";
 
 interface WearResult {
@@ -36,6 +37,7 @@ interface VrfResult {
 const pct = (n: number) => `${Math.round(n * 100)}%`;
 
 export default function CardLifecyclePanel() {
+  const { skin } = useSkin();
   const [rarity, setRarity] = useState<Rarity>("Rare");
   const [durability, setDurability] = useState(1);
   const [uses, setUses] = useState(5);
@@ -106,24 +108,24 @@ export default function CardLifecyclePanel() {
   };
 
   const accent = RARITY_TABLE[rarity].accent;
-  const durColor = durability > 0.5 ? INK.green : durability > 0.2 ? INK.gold : INK.pink;
+  const durColor = durability > 0.5 ? skin.positive : durability > 0.2 ? skin.gold : skin.accent2;
 
   return (
     <div
       style={{
-        background: INK.bgPanel,
-        border: `1px solid ${INK.border}`,
+        background: skin.panel,
+        border: `1px solid ${skin.border}`,
         borderRadius: 16,
         padding: 18,
         fontFamily: INSTRUMENT_FONT,
-        color: INK.white,
+        color: skin.text,
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 }}>
-        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: INK.gold, textTransform: "uppercase" }}>
+        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: skin.gold, textTransform: "uppercase" }}>
           Card Lifecycle · Wear + Evolution
         </div>
-        <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "2px 6px", borderRadius: 4, color: INK.muted, background: `${INK.muted}18`, border: `1px solid ${INK.muted}40` }}>
+        <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "2px 6px", borderRadius: 4, color: skin.muted, background: `${skin.muted}18`, border: `1px solid ${skin.muted}40` }}>
           preview
         </span>
       </div>
@@ -146,9 +148,9 @@ export default function CardLifecyclePanel() {
                 fontWeight: 900,
                 letterSpacing: 0.5,
                 textTransform: "uppercase",
-                color: active ? INK.white : INK.muted,
-                background: active ? `${a}22` : INK.bgCard,
-                border: `1px solid ${active ? a : INK.border}`,
+                color: active ? skin.text : skin.muted,
+                background: active ? `${a}22` : skin.card,
+                border: `1px solid ${active ? a : skin.border}`,
                 fontFamily: INSTRUMENT_FONT,
               }}
             >
@@ -159,41 +161,41 @@ export default function CardLifecyclePanel() {
       </div>
 
       {/* Durability bar */}
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, color: INK.muted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, color: skin.muted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
         <span>Durability</span>
         <span style={{ color: durColor }}>{pct(durability)}</span>
       </div>
-      <div style={{ height: 8, borderRadius: 4, background: INK.bgCard, border: `1px solid ${INK.border}`, overflow: "hidden", marginBottom: 8 }}>
+      <div style={{ height: 8, borderRadius: 4, background: skin.card, border: `1px solid ${skin.border}`, overflow: "hidden", marginBottom: 8 }}>
         <div style={{ width: `${durability * 100}%`, height: "100%", background: durColor, transition: "width .2s ease" }} />
       </div>
       <input type="range" min={0} max={1} step={0.05} value={durability} onChange={(e) => setDurability(Number(e.target.value))} style={{ width: "100%", accentColor: accent, marginBottom: 12 }} />
 
       {/* Uses slider */}
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, color: INK.muted, textTransform: "uppercase", letterSpacing: 1 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, color: skin.muted, textTransform: "uppercase", letterSpacing: 1 }}>
         <span>Uses to simulate</span>
-        <span style={{ color: INK.cyan }}>{uses}×</span>
+        <span style={{ color: skin.accent }}>{uses}×</span>
       </div>
-      <input type="range" min={1} max={20} step={1} value={uses} onChange={(e) => setUses(Number(e.target.value))} style={{ width: "100%", accentColor: INK.cyan, marginBottom: 14 }} />
+      <input type="range" min={1} max={20} step={1} value={uses} onChange={(e) => setUses(Number(e.target.value))} style={{ width: "100%", accentColor: skin.accent, marginBottom: 14 }} />
 
       {/* Wear result */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 8, marginBottom: 16 }}>
         {([
-          ["Wear / use", wear ? wear.wearPct : "—", INK.pink],
-          ["After " + uses + "×", wear ? pct(wear.newDurability) : "—", INK.gold],
-          ["Uses left", wear ? String(wear.usesUntilWorn) : "—", INK.cyan],
+          ["Wear / use", wear ? wear.wearPct : "—", skin.accent2],
+          ["After " + uses + "×", wear ? pct(wear.newDurability) : "—", skin.gold],
+          ["Uses left", wear ? String(wear.usesUntilWorn) : "—", skin.accent],
         ] as [string, string, string][]).map(([label, val, color]) => (
-          <div key={label} style={{ background: INK.bgCard, border: `1px solid ${INK.border}`, borderRadius: 10, padding: "10px 12px" }}>
+          <div key={label} style={{ background: skin.card, border: `1px solid ${skin.border}`, borderRadius: 10, padding: "10px 12px" }}>
             <div style={{ fontSize: 16, fontWeight: 900, color }}>{val}</div>
-            <div style={{ fontSize: 7, color: INK.muted, textTransform: "uppercase", letterSpacing: 1 }}>{label}</div>
+            <div style={{ fontSize: 7, color: skin.muted, textTransform: "uppercase", letterSpacing: 1 }}>{label}</div>
           </div>
         ))}
       </div>
 
       {/* Evolution */}
-      <div style={{ fontSize: 8, color: INK.muted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>
+      <div style={{ fontSize: 8, color: skin.muted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>
         Evolution
       </div>
-      <div style={{ fontSize: 9, color: INK.white, marginBottom: 10 }}>
+      <div style={{ fontSize: 9, color: skin.text, marginBottom: 10 }}>
         {ladder ? ladder.note : "…"}
       </div>
 
@@ -209,9 +211,9 @@ export default function CardLifecyclePanel() {
           fontWeight: 900,
           letterSpacing: 1,
           textTransform: "uppercase",
-          color: INK.white,
-          background: `${INK.cyan}18`,
-          border: `1px solid ${INK.cyan}`,
+          color: skin.text,
+          background: `${skin.accent}18`,
+          border: `1px solid ${skin.accent}`,
           fontFamily: INSTRUMENT_FONT,
           opacity: rolling ? 0.6 : 1,
         }}
@@ -225,17 +227,17 @@ export default function CardLifecyclePanel() {
             marginTop: 10,
             padding: "8px 10px",
             borderRadius: 8,
-            background: vrf.result.success ? `${INK.green}14` : `${INK.pink}14`,
-            border: `1px solid ${vrf.result.success ? INK.green : INK.pink}40`,
+            background: vrf.result.success ? `${skin.positive}14` : `${skin.accent2}14`,
+            border: `1px solid ${vrf.result.success ? skin.positive : skin.accent2}40`,
             fontSize: 9,
-            color: vrf.result.success ? INK.green : INK.pink,
+            color: vrf.result.success ? skin.positive : skin.accent2,
           }}
         >
           {vrf.note}
         </div>
       )}
 
-      <div style={{ fontSize: 7, color: INK.muted, marginTop: 12, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 7, color: skin.muted, marginTop: 12, lineHeight: 1.5 }}>
         Preview only — no card is destroyed. Real burns + VRF settle on-chain (Phase 3).
       </div>
     </div>
