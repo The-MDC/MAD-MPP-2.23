@@ -13,8 +13,11 @@ interface Proposal {
   failPrice: number;
 }
 
+// NOTE: Governance may only tune soft parameters (e.g. the MAD Shield premium
+// band). The platform fee (1.88%), creator share (40%), and community share
+// (28.8%) are canonical constants — never expose them as governable proposals.
 const MOCK_PROPOSALS: Proposal[] = [
-  { id: "P-42", title: "Increase Creator Fee to 42%", description: "Adjust the global creator fee from 40% to 42% to incentivize high-quality market resolution.", passProbability: 0.68, passPrice: 0.72, failPrice: 0.28 },
+  { id: "P-42", title: "Widen MAD Shield Premium Band", description: "Adjust the optional MAD Shield premium range from 2–4% to 2–5% to deepen the loss-mitigation pool during high-volatility sagas.", passProbability: 0.68, passPrice: 0.72, failPrice: 0.28 },
   { id: "P-43", title: "Implement Lunar Volatility", description: "Peg the LMSR alpha to the real-time lunar cycle, increasing liquidity requirements during Full Moons.", passProbability: 0.35, passPrice: 0.38, failPrice: 0.62 },
 ];
 
