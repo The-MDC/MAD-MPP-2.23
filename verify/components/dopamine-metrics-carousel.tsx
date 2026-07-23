@@ -15,6 +15,7 @@ interface Metrics {
   openBets: number;
   volume24h: number;
   chaos: number;
+  momentum: number;
   events24h: number;
   topScandals: { headline: string; perp: number }[];
   source: string;
@@ -81,6 +82,9 @@ export default function DopamineMetricsCarousel() {
           <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: chaosColor }}>Chaos Meter</div>
           <div style={{ fontSize: 8, color: skin.muted, marginTop: 3, maxWidth: 190 }}>
             24h scandal velocity across the GCAM signal feed.
+          </div>
+          <div style={{ fontSize: 8, color: skin.muted, marginTop: 4 }}>
+            ▲ Momentum <span style={{ color: skin.gold, fontWeight: 900 }}>{m ? m.momentum : "—"}</span> · recency-weighted
           </div>
         </div>
       </div>

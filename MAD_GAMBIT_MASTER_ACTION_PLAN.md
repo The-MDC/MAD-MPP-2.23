@@ -656,3 +656,20 @@ Y-B flagged the older INK panels as *not yet* skin-aware. Now closed: threaded `
 - **Token model:** added one semantic token — `positive` — to the `Skin` type (was the only INK color, `INK.green`, with no skin equivalent). `neonNoir.positive = #00ff88` (= `INK.green`); `gilded.positive = #6fbf7f` (jade that reads positive on velvet).
 - **Zero-regression proof (by construction):** `useSkin()` falls back to `neonNoir`, whose tokens are byte-identical to `INK`; default render is pixel-identical to before. Rarity-specific accents (`RARITY_TABLE[r].accent`) left theme-independent by design.
 - **Verified:** `grep` confirms **0** remaining `INK.*` references in the 7 panels; all `skin.*` tokens used are a strict subset of the `Skin` interface fields. Gate = `tsc --noEmit` (green — see commit CI).
+
+## PART Z — Joy Engineering: last dopamine-layer math surfaced (built 2026-07-23)
+
+Closes the lib-only tail the Part X audit flagged (virality / Fibonacci rewards / attention decay). **Composed — not re-derived** — the existing pure primitives into one honest surface, and wired a real signal into the live pulse.
+
+### Z-A — SHIPPED
+| Piece | What | Files |
+|---|---|---|
+| `lib/joy-engineering.ts` | Composes `viralityIndex` · `attentionDecay` · `temporalDecay` · Fibonacci reward curve (`getFibonacciReward ∘ calculateUserDopamineIndex`) into `computeJoyState` + `rewardForTenure` + `momentumIndex` | `verify/lib/joy-engineering.ts` |
+| `/api/v1/joy/state` | Pure POST calculator surfacing the full composition (reachable/testable) | `verify/app/api/v1/joy/state/route.ts` |
+| Live momentum | Real recency-weighted momentum from the 48h `gdelt_signals` window (companion to the flat 24h Chaos mean) added to `/api/v1/dopamine/metrics` + a carousel readout | `.../dopamine/metrics/route.ts` · `dopamine-metrics-carousel.tsx` |
+
+### Z-B — Honest scope + compliance
+- **Composition, not fabrication:** every value is a deterministic function of the *existing* pure primitives; no new hidden mechanic invented.
+- **Compliance framing (per the Part B2 flag):** the new surface is named + documented as **game-economy engagement**, not neuroscience — no "dopamine / affliction / anticipation-circuit / VRS-as-addiction" language. The legacy `dopamine-engine.tsx` (locked `/gambit`) still carries that framing; scrubbing it is the separate Phase-1 compliance pass, deliberately not touched here to avoid regressing the locked layout.
+- **Momentum ≠ Chaos:** Chaos = flat 24h mean × 20; Momentum = exp-recency-weighted mean × 20 over 48h — genuinely different math, so the two can diverge.
+- **Proof:** `tsc --noEmit` green; the `gdelt_signals` read path is already DB-smoke-proven on every PR.
