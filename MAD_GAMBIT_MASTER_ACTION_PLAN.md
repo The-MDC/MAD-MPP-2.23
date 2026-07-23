@@ -50,6 +50,8 @@ Collate the MAD Gambit AI-session history into a **chronological progression**, 
 
 **Stage 5 — parallel deliverables (Jul 10–13).** "Claude Fable" shipped `beta.html` (Jul 10). Grok's Thread Summary (Jul 13) declared staking + dashboards complete (false — Part B2). Agents in play: Antigravity, Fable, Claude, Grok. Deck at `the-mdc.github.io/MADHATs-Gambit-Presentation/`; domains kept off Vercel (Hobby ToS). HEAD `2308d09` on `claude/mad-gambit-enhancement-timeline-zdnx47`.
 
+**Stage 6 — post-consolidation iterative build (Jul 21–23).** PR #20 consolidated the parallel threads onto green `main` (`d60f24f`→`cd7f02d`); Phases 0–3 landed (reconciliation · flip-clock/tokens · signed-session + durable-Neon-nonce + rate-limits · test-backed `MADStaking` + staking API/UI). The **v2 branches were then audited and found to be a stub scaffold** (13–263-byte prose placeholders — the fabricated-completion pattern the guard now blocks), so the "v2 surface" is a *blueprint*, not code (`docs/V2_BUILD_PLAN.md`). Iterative build resumed against it: **Phase 4** 5-stream revenue engine (`splitFee` model + API + panel), then **V1** Data Platform (events / CDP / aggregates on Neon), then **V2** Analytics Dashboard (`/dashboard`). (Ledger: Part M.)
+
 ---
 
 ## PART B2 — Grok / AI Hallucination Log (distrust & verify)
@@ -314,3 +316,19 @@ Merged the parallel `mad-gambit-vercel-audit-ocof1b` thread into this one per it
 - **Do NOT re-merge to `main` unilaterally** — mark PR #20 ready for the founder's call; then the 2.24 propagation + its manual Vercel settings.
 
 **This session's Phase 1–3 (already on the branch):** flip-clock + token adoption (Phase 1) · signed-session + durable-Neon-nonce + rate-limits (Phase 2) · staking API/UI atop the test-backed contract (Phase 3). All type-check green in CI.
+
+---
+
+## PART M — Build progress ledger (iterative; PR #22)
+
+Executed as small, verifiable slices — each one **real code** (the placeholder-guard forbids stubs), CI-gated (`tsc` · guard · `next build`), **additive** to the locked `/gambit` layout, on **Vercel + Neon** (raw `pg`; Drizzle deferred; realtime via **SSE**, never WebSockets on serverless). Full v2 slice spec: `docs/V2_BUILD_PLAN.md`.
+
+| Slice | State | Front | Back | Neon |
+|---|---|---|---|---|
+| **Phase 4 — 5-Stream Revenue Engine** | ✅ built | `revenue-streams-panel` | `/api/v1/revenue` | — (`splitFee` + Furnace) |
+| **V1 — Data Platform** | ✅ built | — | `/api/v1/data/{events,cdp/[wallet]}` · `/api/v1/cron/rollup` · `lib/data-platform/{types,events,cdp}` | `sql/0001_data_platform.sql` → `events_stream`, `cdp_profiles`, `agg_platform_hourly`, `agg_user_daily` |
+| **V2 — Analytics Dashboard** | ✅ built | `analytics-dashboard` · `/dashboard` route | `/api/v1/analytics/{summary,user/[wallet]}` | reads V1 tables |
+| **V3 — Realtime (SSE)** | planned | live tiles | `/api/v1/realtime/stream` | tails `events_stream` |
+| **V4–V8** | planned | — | — | see `docs/V2_BUILD_PLAN.md` |
+
+**Evolutionary discipline:** V1 is the backbone (V2/V3/V4 read it); every route **degrades to a clean demo/empty state** when `DATABASE_URL` or a migration is absent, so the build and the demo never break before the SQL is applied. Migrations ship as committed SQL under `verify/sql/`, validated against the ephemeral Neon PR branch.
