@@ -1,10 +1,11 @@
 import AnalyticsDashboard from "@/components/analytics-dashboard";
 import RevenueStreamsPanel from "@/components/revenue-streams-panel";
+import ShieldPanel from "@/components/shield-panel";
 import { INK } from "@/lib/gambit-design-tokens";
 
 export const metadata = {
   title: "MAD Gambit — Dashboard",
-  description: "Platform analytics + 5-stream revenue engine",
+  description: "Platform analytics + 5-stream revenue engine + MAD Shield",
 };
 
 /**
@@ -27,6 +28,7 @@ export default function DashboardPage() {
       >
         <AnalyticsDashboard />
         <RevenueStreamsPanel />
+        <ShieldPanel />
       </div>
     </main>
   );
