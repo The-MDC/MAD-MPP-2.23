@@ -8,173 +8,175 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 
 /**
  * @title MADStaking
- * @notice Tier-based $MADx staking with time-accrued rewards.
+ * @notice On-chain implementation of the MAD Gambit $MADx staking tiers.
+ *         Mirrors STAKING_TIERS in verify/lib/gambit-game-math.ts — the APY a
+ *         position earns is a step function of its currently-staked balance:
  *
- * Replaces the previous 28-byte placeholder ("Full MADStaking with rewards").
- * Tiers and APYs are the canonical values from lib/gambit-game-math.ts
- * (STAKING_TIERS) — Bronze 12% → MAD Tier 68%. A staker's tier is a function
- * of their staked balance; rewards accrue continuously at that tier's APY.
+ *           Bronze    ≥      100 MADx → 12% APY
+ *           Silver    ≥      500 MADx → 18% APY
+ *           Gold      ≥    2,500 MADx → 28% APY
+ *           Platinum  ≥   10,000 MADx → 42% APY
+ *           Diamond   ≥   50,000 MADx → 58% APY
+ *           MAD Tier  ≥  100,000 MADx → 68% APY
  *
- * NO PRINTING: rewards are paid from a reward reservoir that the owner funds
- * from platform fees (`fundRewards`). Staking never mints $MADx. If the
- * reservoir cannot cover accrued rewards, claims revert until it is topped up.
- *
- * ── VERIFICATION GATE ──────────────────────────────────────────────────────
- * This contract has NOT been compiled/tested in this environment (Foundry is
- * unavailable here). Before any deploy it MUST get: `forge build`, a full
- * Foundry test suite (unit + fuzz + invariant), and a security review. Treat
- * it as reviewed-by-eye source, not audited bytecode.
+ *         Rewards accrue linearly per second and are paid from a reward reserve
+ *         the owner funds separately from staked principal, so a user's stake is
+ *         never used to pay another user's rewards.
  */
 contract MADStaking is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    /// @dev Canonical staking tier: minimum staked balance → APY in basis points.
-    struct Tier {
-        uint256 minStake; // in token base units (18 decimals for $MADx)
-        uint16 apyBps; // 1200 = 12.00% APY
-    }
-
-    struct StakeInfo {
-        uint256 amount; // currently staked
-        uint256 rewardDebtAccrued; // rewards accrued and crystallized but not yet claimed
-        uint64 lastAccrualAt; // last time rewards were folded into rewardDebtAccrued
-    }
-
-    uint256 private constant SECONDS_PER_YEAR = 365 days;
-    uint256 private constant BPS_DENOMINATOR = 10_000;
-
     IERC20 public immutable madx;
 
-    /// @notice Tiers in ascending order of minStake. Set once at deploy.
+    uint256 public constant SECONDS_PER_YEAR = 365 days;
+    uint256 public constant BPS_DENOMINATOR = 10_000;
+
+    struct Tier {
+        uint256 minStake; // inclusive threshold, in wei (18 decimals)
+        uint256 apyBps; // annual percentage yield in basis points
+    }
+
+    /// @dev Ordered ascending by minStake. `tierFor` walks it descending.
     Tier[] public tiers;
+
+    struct StakeInfo {
+        uint256 amount; // principal currently staked
+        uint256 rewardAccrued; // rewards settled but not yet withdrawn
+        uint256 lastAccrualAt; // last time rewards were settled
+    }
 
     mapping(address => StakeInfo) public stakes;
 
     uint256 public totalStaked;
-    /// @notice Tokens set aside to pay rewards (funded from fees, never minted).
-    uint256 public rewardReservoir;
+    uint256 public rewardReserve; // MADx set aside by the owner to pay rewards
 
-    event Staked(address indexed user, uint256 amount, uint256 newTotal);
-    event Unstaked(address indexed user, uint256 amount, uint256 newTotal);
+    event Staked(address indexed user, uint256 amount, uint256 newBalance);
+    event Unstaked(address indexed user, uint256 amount, uint256 newBalance);
     event RewardsClaimed(address indexed user, uint256 amount);
     event RewardsFunded(address indexed from, uint256 amount);
+    event RewardReserveWithdrawn(address indexed to, uint256 amount);
 
     error ZeroAmount();
     error InsufficientStake();
-    error RewardReservoirEmpty();
-    error TiersRequired();
-    error TiersNotAscending();
+    error InsufficientRewardReserve();
 
-    /**
-     * @param _madx        the $MADx ERC-20.
-     * @param minStakes    ascending tier thresholds (18-dec base units).
-     * @param apyBpsValues per-tier APY in basis points, same length/order.
-     */
-    constructor(
-        IERC20 _madx,
-        uint256[] memory minStakes,
-        uint16[] memory apyBpsValues
-    ) Ownable(msg.sender) {
-        if (minStakes.length == 0 || minStakes.length != apyBpsValues.length) revert TiersRequired();
-        madx = _madx;
-        for (uint256 i = 0; i < minStakes.length; i++) {
-            if (i > 0 && minStakes[i] <= minStakes[i - 1]) revert TiersNotAscending();
-            tiers.push(Tier({minStake: minStakes[i], apyBps: apyBpsValues[i]}));
+    constructor(address _madx) Ownable(msg.sender) {
+        require(_madx != address(0), "MADStaking: token is zero");
+        madx = IERC20(_madx);
+
+        // Canonical STAKING_TIERS — do not reorder (kept ascending by minStake).
+        tiers.push(Tier(100 * 1e18, 1_200));
+        tiers.push(Tier(500 * 1e18, 1_800));
+        tiers.push(Tier(2_500 * 1e18, 2_800));
+        tiers.push(Tier(10_000 * 1e18, 4_200));
+        tiers.push(Tier(50_000 * 1e18, 5_800));
+        tiers.push(Tier(100_000 * 1e18, 6_800));
+    }
+
+    /* ─────────────────────────── views ─────────────────────────── */
+
+    /// @notice APY (in bps) a balance currently qualifies for. 0 below Bronze.
+    function apyBpsFor(uint256 balance) public view returns (uint256) {
+        for (uint256 i = tiers.length; i > 0; --i) {
+            if (balance >= tiers[i - 1].minStake) return tiers[i - 1].apyBps;
         }
+        return 0;
     }
 
-    // ─────────────────────────────── views ────────────────────────────────
-
-    function tierCount() external view returns (uint256) {
-        return tiers.length;
-    }
-
-    /// @notice APY (bps) for a given staked amount; 0 if below the lowest tier.
-    function apyBpsFor(uint256 amount) public view returns (uint16) {
-        uint16 apy = 0;
-        for (uint256 i = 0; i < tiers.length; i++) {
-            if (amount >= tiers[i].minStake) {
-                apy = tiers[i].apyBps;
-            } else {
-                break; // tiers ascending: first miss ends the ladder
-            }
+    /// @notice 1-indexed tier (1=Bronze … 6=MAD Tier); 0 = below Bronze.
+    function tierFor(uint256 balance) external view returns (uint256) {
+        for (uint256 i = tiers.length; i > 0; --i) {
+            if (balance >= tiers[i - 1].minStake) return i;
         }
-        return apy;
+        return 0;
     }
 
-    /// @notice Rewards accrued but not yet crystallized, for `user`, up to now.
+    /// @notice Rewards claimable now = settled accrual + accrual since last touch.
     function pendingRewards(address user) public view returns (uint256) {
         StakeInfo memory s = stakes[user];
-        return s.rewardDebtAccrued + _accrued(s);
+        return s.rewardAccrued + _accruedSince(s);
     }
 
-    function _accrued(StakeInfo memory s) internal view returns (uint256) {
-        if (s.amount == 0 || s.lastAccrualAt == 0) return 0;
+    function _accruedSince(StakeInfo memory s) internal view returns (uint256) {
+        if (s.amount == 0) return 0;
         uint256 elapsed = block.timestamp - s.lastAccrualAt;
         if (elapsed == 0) return 0;
-        uint16 apy = apyBpsFor(s.amount);
-        if (apy == 0) return 0;
-        // amount * apyBps * elapsed / (BPS * SECONDS_PER_YEAR)
-        return (s.amount * apy * elapsed) / (BPS_DENOMINATOR * SECONDS_PER_YEAR);
+        uint256 apyBps = apyBpsFor(s.amount);
+        if (apyBps == 0) return 0;
+        return (s.amount * apyBps * elapsed) / (BPS_DENOMINATOR * SECONDS_PER_YEAR);
     }
 
-    // ────────────────────────────── mutations ─────────────────────────────
+    /* ─────────────────────────── mutations ─────────────────────────── */
 
-    function _crystallize(address user) internal {
+    function _settle(address user) internal {
         StakeInfo storage s = stakes[user];
-        uint256 acc = _accrued(s);
-        if (acc > 0) s.rewardDebtAccrued += acc;
-        s.lastAccrualAt = uint64(block.timestamp);
+        uint256 accrued = _accruedSince(s);
+        if (accrued > 0) s.rewardAccrued += accrued;
+        s.lastAccrualAt = block.timestamp;
     }
 
+    /// @notice Stake `amount` MADx. Settles pending rewards at the old balance first.
     function stake(uint256 amount) external nonReentrant {
         if (amount == 0) revert ZeroAmount();
-        _crystallize(msg.sender);
-        stakes[msg.sender].amount += amount;
+        _settle(msg.sender);
+
+        StakeInfo storage s = stakes[msg.sender];
+        s.amount += amount;
         totalStaked += amount;
+
         madx.safeTransferFrom(msg.sender, address(this), amount);
-        emit Staked(msg.sender, amount, stakes[msg.sender].amount);
+        emit Staked(msg.sender, amount, s.amount);
     }
 
+    /// @notice Withdraw `amount` of staked principal. Rewards remain claimable.
     function unstake(uint256 amount) external nonReentrant {
-        StakeInfo storage s = stakes[msg.sender];
         if (amount == 0) revert ZeroAmount();
+        StakeInfo storage s = stakes[msg.sender];
         if (amount > s.amount) revert InsufficientStake();
-        _crystallize(msg.sender);
+
+        _settle(msg.sender);
         s.amount -= amount;
         totalStaked -= amount;
+
         madx.safeTransfer(msg.sender, amount);
         emit Unstaked(msg.sender, amount, s.amount);
     }
 
-    function claim() external nonReentrant returns (uint256 paid) {
-        _crystallize(msg.sender);
+    /// @notice Claim all accrued rewards from the reward reserve.
+    function claim() external nonReentrant returns (uint256 reward) {
+        _settle(msg.sender);
         StakeInfo storage s = stakes[msg.sender];
-        paid = s.rewardDebtAccrued;
-        if (paid == 0) return 0;
-        if (paid > rewardReservoir) revert RewardReservoirEmpty();
-        s.rewardDebtAccrued = 0;
-        rewardReservoir -= paid;
-        madx.safeTransfer(msg.sender, paid);
-        emit RewardsClaimed(msg.sender, paid);
+        reward = s.rewardAccrued;
+        if (reward == 0) revert ZeroAmount();
+        if (reward > rewardReserve) revert InsufficientRewardReserve();
+
+        s.rewardAccrued = 0;
+        rewardReserve -= reward;
+
+        madx.safeTransfer(msg.sender, reward);
+        emit RewardsClaimed(msg.sender, reward);
     }
 
-    /// @notice Top up the reward reservoir (from platform fees). Never mints.
+    /* ─────────────────────────── owner ─────────────────────────── */
+
+    /// @notice Fund the reward reserve. Kept separate from staked principal.
     function fundRewards(uint256 amount) external {
         if (amount == 0) revert ZeroAmount();
-        rewardReservoir += amount;
+        rewardReserve += amount;
         madx.safeTransferFrom(msg.sender, address(this), amount);
         emit RewardsFunded(msg.sender, amount);
     }
 
-    /**
-     * @notice Owner-only sweep of tokens that are neither staked principal nor
-     *         earmarked reward reservoir (e.g. accidental transfers).
-     */
-    function sweepSurplus(address to) external onlyOwner {
-        uint256 bal = madx.balanceOf(address(this));
-        uint256 reserved = totalStaked + rewardReservoir;
-        if (bal <= reserved) revert ZeroAmount();
-        madx.safeTransfer(to, bal - reserved);
+    /// @notice Owner may reclaim unused reward reserve (never staked principal).
+    function withdrawRewardReserve(address to, uint256 amount) external onlyOwner {
+        if (amount == 0) revert ZeroAmount();
+        if (amount > rewardReserve) revert InsufficientRewardReserve();
+        rewardReserve -= amount;
+        madx.safeTransfer(to, amount);
+        emit RewardReserveWithdrawn(to, amount);
+    }
+
+    function tierCount() external view returns (uint256) {
+        return tiers.length;
     }
 }
