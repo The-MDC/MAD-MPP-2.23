@@ -174,7 +174,7 @@ Arbitrum One → HyperEVM → other EVMs → Solana. Per-chain configs, bridge, 
 
 ## PART H — Verification & Definition of Done
 
-- **Per PR:** `npm build` + `tsc` clean · `forge test` green for touched contracts · `security-review` on auth/value/contract changes · canonical-number grep · no new stock-neon literals.
+- **Per PR (CI-enforced):** `placeholder-guard.yml` (no prose-stub source — real code required) · `tsc --noEmit` clean · `forge test` green for touched contracts · `security-review` on auth/value/contract changes · canonical-number grep · no new stock-neon literals.
 - **Demo gate (P1):** `/gambit` matches mockups mobile+desktop; ticker 3-mode; concierge answers; deck reconciled.
 - **Testnet gate (P3):** contracts on Nova Sepolia; frontend reads live addresses; no unsigned-value trust at auth boundary.
 
@@ -286,3 +286,31 @@ Pulled the P1/P2 value from `The-MDC/demo-repository` into this repo. The wider 
 12. **Canonical-source decision:** `contracts/madhat-core` kept as a separate Foundry project (not merged into `contracts/src`) pending your call on which is canonical.
 
 **✅ Resolved (founder-confirmed 2026-07-21):** the MAD Gambit **Golden Genesis Founders NFT = 2,488**. Deck corrected in PR #3; plan + suppress-list updated to match.
+
+---
+
+## PART L — Consolidation with the vercel-audit thread (2026-07-23)
+
+Merged the parallel `mad-gambit-vercel-audit-ocof1b` thread into this one per its handoff, ending the two-agent fragmentation. **One effort is now canonical.**
+
+**Current ground truth:** `main` = **`d60f24f`**, **production GREEN** → https://mad-mpp-223-madgambit.vercel.app. Build root `verify/`, Next 16 + Turbopack, Node 22.x. Vercel team **`madgambit`**; project `mad-mpp-2.23` = `prj_XJ1OqBGYZMrg5eqJAZQQLnt1GYC9`. **Preview/branch deploys are skipped by an Ignored Build Step — only `main` builds production** (this is why every feature-branch commit shows Vercel "Ignored" — a policy skip, not a failure).
+
+**PR #20 reconciled onto `main`** (merge `43347ab`) — brought in from the audit thread's merged PRs #17/#19/#21:
+- **`.github/workflows/placeholder-guard.yml`** — CI tripwire: fails if any `verify/**` TS/TSX lacks code tokens, any `contracts/{src,test}/*.sol` lacks a pragma, or a known placeholder phrase appears. **Operationalizes the Part G anti-hallucination rule** — the guard against the prose-stub regression that once overwrote the app (48 one-line "descriptions" instead of code).
+- **`contracts/test/MADStaking.t.sol`** — real Foundry suite (tier boundaries · 1-yr accrual · claim-from-reserve · unstake-keeps-rewards). *The concrete rebuttal to Grok's "MADStaking done with 12 fuzz tests" lie — real tests now exist.*
+- **futarchy-board fee-lock fix** — the "raise creator fee to 42%" demo proposal is gone; canonical fee/creator/community are never governable.
+
+**MADStaking.sol resolution — kept `main`'s version** (not this branch's `b1655c5`), reversing the handoff's default on the merits: main's is **test-backed** (co-designed with the suite above) and **hardcodes the canonical tiers in-constructor** (deploy-safe). This branch's staking **API (`/api/v1/staking`) + panel projection** are contract-agnostic (mirror `STAKING_TIERS`) and are retained.
+
+**Design law (carry everywhere):** *maintain the Vercel design/layout unequivocally* — every change is correctness/wiring or purely additive; **no visual regressions**. Hex→token refactors swap only a literal that **exactly equals** a token value.
+
+**`mad-mpp-2.24`** is the **`mad-mpp-2.24` branch of `MADdegen/mad-gambit-ui`** (not a repo). After PR #20 lands on `main`, re-propagate the reconciled `verify/` there. Its Vercel project `mad-gambit-2.24` (`prj_TEVVoLDuzpx7YmPkJhcs67t3lLtR`) needs **manual** settings (no API): Root Directory = `verify`, Production Branch = `mad-mpp-2.24`, Node 22.x, install-override OFF; env **values** live in the founder's Drive file (never printed) — keys are in `verify/.env.example`.
+
+**Audit reference:** `docs/VERCEL_PRODUCTION_AUDIT.md` (+ published artifact) — byte-level debunk of the SuperGrok "everything is complete" claim. Same lesson as Part B2, now CI-enforced: **Grok output is unverified until byte-checked.**
+
+**Remaining gaps (small; after PR #20 lands):**
+- **Hex→token sweep, zero visual change:** `nft-card.tsx` (~48 raw hex), `positions-dashboard`, `staking-tiers-panel`, `tournament-arena`, `casino-panel` → import `INK`/`GOLD_CHISEL_STOPS`, swapping only literals that exactly equal a token.
+- `lib/bayesian-logic.ts` — named in old docs, referenced nowhere; optional.
+- **Do NOT re-merge to `main` unilaterally** — mark PR #20 ready for the founder's call; then the 2.24 propagation + its manual Vercel settings.
+
+**This session's Phase 1–3 (already on the branch):** flip-clock + token adoption (Phase 1) · signed-session + durable-Neon-nonce + rate-limits (Phase 2) · staking API/UI atop the test-backed contract (Phase 3). All type-check green in CI.
