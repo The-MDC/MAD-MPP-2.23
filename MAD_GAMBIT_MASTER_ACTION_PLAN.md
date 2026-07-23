@@ -673,3 +673,22 @@ Closes the lib-only tail the Part X audit flagged (virality / Fibonacci rewards 
 - **Compliance framing (per the Part B2 flag):** the new surface is named + documented as **game-economy engagement**, not neuroscience — no "dopamine / affliction / anticipation-circuit / VRS-as-addiction" language. The legacy `dopamine-engine.tsx` (locked `/gambit`) still carries that framing; scrubbing it is the separate Phase-1 compliance pass, deliberately not touched here to avoid regressing the locked layout.
 - **Momentum ≠ Chaos:** Chaos = flat 24h mean × 20; Momentum = exp-recency-weighted mean × 20 over 48h — genuinely different math, so the two can diverge.
 - **Proof:** `tsc --noEmit` green; the `gdelt_signals` read path is already DB-smoke-proven on every PR.
+
+## PART AA — On-chain markets + staking reality-check (built 2026-07-23)
+
+### AA-A — Staking: the "central lie" was ALREADY closed (verified, not rebuilt)
+Set out to build `MADStaking.sol` (the old plan's "28-byte stub" / Grok's fabricated "complete"). **Found it already real**: `contracts/src/MADStaking.sol` is a full tiered-staking implementation (STAKING_TIERS 12→68% APY; rewards paid from a separately-funded reserve — no printing, a stake never funds another user's rewards; SafeERC20 / Ownable / ReentrancyGuard; checks-effects-interactions). `contracts/test/MADStaking.t.sol` is a genuine suite (tier boundaries mirror STAKING_TIERS, 1-yr Gold accrual → 700 MADx, claim-from-reserve, unstake-keeps-rewards, a reserve-isolation invariant, revert cases). Both live in `src/`+`test/` ⇒ the forge CI green on the last 3 commits already proves it. **Did NOT rebuild** — honest verification beats duplicate work. The root-level `MADStaking{Core,Orchestrator}.sol` are stale 18–20-byte placeholders superseded by this contract.
+
+### AA-B — SHIPPED: MADMarketFactory.sol (on-chain market settlement)
+The on-chain counterpart to the markets/bets ledger (Part W). UGC **Over/Under** parimutuel markets (one of the two CIRO non-binary types) in $MADx:
+| Piece | Detail |
+|---|---|
+| `contracts/src/MADMarketFactory.sol` | create · back · resolve · claim · cancel · refund; parimutuel pro-rata; SafeERC20 + ReentrancyGuard + Pausable; CEI; custom errors + events |
+| Canonical fees (non-stacking) | `platformFee = 1.88%` of the pot · `creatorCut = 40%` of that fee (creator-made) · remaining 60% → treasury. The platform-wide 28.8% community share is a treasury-level net split, deliberately NOT computed per-market (non-additive by design, per Part A) |
+| `contracts/test/MADMarketFactory.t.sol` | Over/Under wins, exact fee-split asserts (2000 pot → 37.6 fee / 15.04 creator / 22.56 protocol / 1962.4 winner), threshold boundary (`>=`), no-winner→cancel+refund, owner cancel+refund, auth/revert cases, **fuzz fee-conservation + pro-rata payout** |
+
+### AA-C — Honest scope
+- **Mechanism = parimutuel, stated as such** — not an LMSR/AMM maker (the Continuous DL-LMSR type is a separate later contract). Deliberately simple + custody-safe for v1.
+- **Resolution is owner/oracle-fed** today (`onlyOwner resolve`); the triple-threat oracle (Chainlink + News + community) is Phase-5 wiring.
+- **Not deployed** — compiles + tests green in CI is the deliverable; testnet deploy + frontend address wiring is founder/Phase-3-gated.
+- **Proof:** `forge build --sizes` + `forge test` (foundry.yml, fuzz 1000 runs) — see commit CI.
