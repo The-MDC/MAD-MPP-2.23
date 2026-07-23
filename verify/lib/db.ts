@@ -6,7 +6,7 @@ export function getDbPool() {
   if (!pool) {
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      // Vercel Postgres max connections
+      // Neon pooled connection cap
       max: 10,
     });
   }

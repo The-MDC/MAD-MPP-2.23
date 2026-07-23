@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
     const quip = `Ayo — Sentinel scored that a ${Math.round(reading.score)} on the Z-Liar. Verdict: ${reading.verdict}. [LLM persona pending]`;
     return NextResponse.json({ success: true, statement, reading, quip, _llm: "PLACEHOLDER" });
   } catch (e: any) {
-    return NextResponse.json({ success: false, error: e.message }, { status: 400 });
+    console.error("madhatr/zliar error:", e);
+    return NextResponse.json({ success: false, error: "Request failed" }, { status: 400 });
   }
 }

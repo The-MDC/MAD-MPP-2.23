@@ -31,27 +31,13 @@ import { PLATFORM, STAKING_TIERS, getStakingTier } from "@/lib/gambit-game-math"
 import GambitInstrumentCluster from "@/components/gambit-instrument-cluster";
 import PlatformCarousel from "@/components/platform-carousel";
 import UnpackedCardsCarousel from "@/components/unpacked-cards-carousel";
+import SeikoFlipClock from "@/components/seiko-flip-clock";
+import { INK as T } from "@/lib/gambit-design-tokens";
 
-/* ── DESIGN TOKENS — verbatim from the mockup images ─────────── */
-const T = {
-  bgDeep:     "#080a12",
-  bgPanel:    "#0d1018",
-  bgCard:     "#111520",
-  bgCardHov:  "#161c28",
-  gold:       "#ffd700",
-  goldDim:    "#b8860b",
-  cyan:       "#00e5ff",
-  cyanDim:    "#007a8a",
-  pink:       "#ff007f",
-  pinkDim:    "#7a003c",
-  green:      "#00ff88",
-  greenDim:   "#008844",
-  white:      "#f0f0f8",
-  muted:      "#6b7280",
-  border:     "rgba(255,255,255,0.06)",
-  borderGold: "rgba(255,215,0,0.3)",
-  borderCyan: "rgba(0,229,255,0.25)",
-} as const;
+/* ── DESIGN TOKENS ───────────────────────────────────────────
+ * Palette now sourced from lib/gambit-design-tokens.ts (INK), imported above
+ * as `T` — the mockup colors live in exactly one place instead of being
+ * re-declared here. INK is a superset of the keys this file uses. */
 
 /* ── TICKER PRICES — live-simulated ──────────────────────────── */
 const TICKER_BASE = [
@@ -548,26 +534,29 @@ export default function SeikoDopamineHub() {
       {/* ── 1b. MARKET-ENERGY EQUALIZER — sits below the golden ticker ── */}
       <EqualizerStrip />
 
-      {/* ── 2. HEADER ROW: title only — instrument cluster gets its own row below ── */}
-      <div style={{ padding: "14px 20px 4px", textAlign: "center" }}>
-        <div style={{
-          fontFamily: "ui-monospace, monospace",
-          fontSize: "9px",
-          fontWeight: 700,
-          letterSpacing: "3px",
-          color: T.gold,
-          textTransform: "uppercase",
-          marginBottom: "3px",
-        }}>
-          CUSTOMIZABLE DOPAMINE CAROUSEL
-        </div>
-        <div style={{
-          fontFamily: "ui-monospace, monospace",
-          fontSize: "8px",
-          color: T.muted,
-          letterSpacing: "1px",
-        }}>
-          MAD GAMBIT · PLATFORM {PLATFORM.FEE_BPS / 100}% FEE
+      {/* ── 2. HEADER ROW: split-flap flip clock + title ── */}
+      <div style={{ padding: "14px 20px 4px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+        <SeikoFlipClock />
+        <div>
+          <div style={{
+            fontFamily: "ui-monospace, monospace",
+            fontSize: "9px",
+            fontWeight: 700,
+            letterSpacing: "3px",
+            color: T.gold,
+            textTransform: "uppercase",
+            marginBottom: "3px",
+          }}>
+            CUSTOMIZABLE MARKET CAROUSEL
+          </div>
+          <div style={{
+            fontFamily: "ui-monospace, monospace",
+            fontSize: "8px",
+            color: T.muted,
+            letterSpacing: "1px",
+          }}>
+            MAD GAMBIT · PLATFORM {PLATFORM.FEE_BPS / 100}% FEE
+          </div>
         </div>
       </div>
 

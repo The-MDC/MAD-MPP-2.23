@@ -73,6 +73,7 @@ export async function POST(req: NextRequest) {
       opponent: opp,
     });
   } catch (e: any) {
-    return NextResponse.json({ success: false, error: e.message }, { status: 400 });
+    console.error("tournament/match error:", e);
+    return NextResponse.json({ success: false, error: "Request failed" }, { status: 400 });
   }
 }

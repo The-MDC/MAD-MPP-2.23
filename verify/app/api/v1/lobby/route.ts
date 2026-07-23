@@ -52,7 +52,8 @@ export async function GET(req: Request) {
             ORDER BY created_at ASC LIMIT 500`);
     return NextResponse.json({ success: true, messages: res.rows });
   } catch (e: any) {
-    return NextResponse.json({ success: false, error: e.message }, { status: 500 });
+    console.error("lobby error:", e);
+    return NextResponse.json({ success: false, error: "Internal error" }, { status: 500 });
   }
 }
 
@@ -82,6 +83,7 @@ export async function POST(req: Request) {
       [channel, username, subject, body, imageUrl]);
     return NextResponse.json({ success: true, message: res.rows[0] });
   } catch (e: any) {
-    return NextResponse.json({ success: false, error: e.message }, { status: 500 });
+    console.error("lobby error:", e);
+    return NextResponse.json({ success: false, error: "Internal error" }, { status: 500 });
   }
 }
