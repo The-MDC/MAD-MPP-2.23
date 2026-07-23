@@ -75,6 +75,15 @@ async function main() {
       "market_intelligence write+read",
     );
 
+    await client.query(
+      `INSERT INTO card_stats (id, owner, evolution_level) VALUES ('smoke_card_stats', $1, 1)`,
+      [ZERO],
+    );
+    assert(
+      (await client.query(`SELECT count(*)::int AS n FROM card_stats WHERE id='smoke_card_stats'`)).rows[0].n >= 1,
+      "card_stats write+read",
+    );
+
     console.log("✅ DB smoke passed — live read/write verified across all core tables");
   } catch (err) {
     console.error(`❌ smoke failed: ${err.message}`);

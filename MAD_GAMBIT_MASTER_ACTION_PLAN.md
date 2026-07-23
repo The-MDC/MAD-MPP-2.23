@@ -555,3 +555,27 @@ The **Unified Comprehensive Handoff** (Master Maths v2.24.1, Parts A–C) asked 
 3. `NEON_PROJECT_ID` var + `NEON_API_KEY` secret already exist (the PR-branch job uses them).
 
 **Net:** once `DATABASE_URL` is set, every table the routes read/write actually exists (auto-migrated on deploy), CI proves the live path green on each PR, and "degrade to demo" becomes a true fallback instead of the permanent state. **This is the difference between an MVP facade and a real, connected backend.**
+
+---
+
+## PART V — Card Evolution + VRF (living cards, built 2026-07-23)
+
+From the **Card-Evolution + VRF handoff**. The hybrid **off-chain living-card system is built for real on the now-live DB**; the on-chain VRF mint is the gated final step (cards stay **virtual until L3**).
+
+### V-A — SHIPPED (off-chain, real DB, CI-green + smoke-proven)
+| From handoff | Built | File |
+|---|---|---|
+| Evolution math | `calculateEvolutionScore` (net·10 + (MADConv/100)^1.45·40 + buzz·0.15 + GARCH·12 − scandal·0.85) · `determineLevel` (70/160/280) · `shouldEnterClownState` · 6 abilities · `evolve()` | `lib/card-evolution.ts` |
+| CardStats model + persistence | `card_stats` table + `create`/`get`/`listByOwner`/`recordBattleResult`/`applyEvolution` (raw pg + mappers) | `sql/0006_card_stats.sql` · `lib/card-evolution.ts` |
+| tRPC router → REST | `/api/v1/cards/evolution/{create, battle, card/[id], owner/[owner]}` | routes |
+| UI | Card Evolution display (level progress → L3 mint gate, W/L, scandal, buzz, abilities, clown/minted badges) → `/dashboard` | `components/card-stats-display.tsx` |
+| Live-DB proof | `db-smoke.mjs` now write+reads `card_stats` too (Part U) | `scripts/db-smoke.mjs` |
+
+**Stack adaptations from the handoff:** Drizzle → **raw SQL** (Neon, no ORM); tRPC → **Next API routes**. Mint gate = **L3 (score ≥ 160)**.
+
+### V-B — GATED on-chain (real code; needs Chainlink + testnet)
+- `contracts/evolution/EvolutionVRFConsumer.sol` — real **VRF v2.5 subscription** consumer (requestId→cardId mapping, **non-reverting** `fulfillRandomWords`, `ExtraArgsV1`, owner-gated finalize, no double-finalize). **Placed outside `contracts/src/`** so it cannot red Foundry CI until `chainlink-brownie-contracts` is vendored (`forge install` on CI runners) + remapping `@chainlink/contracts/=lib/…` added; then move to `src/`, add a VRF-mock test, deploy to Arbitrum/Base Sepolia, fund a subscription, add the consumer.
+- Mint pipeline (handoff Step 4): backend listener on `EvolutionFinalized` → map `randomWords` → abilities+seed → IPFS metadata → `MADCard1155.mint` (gated on `isMinted===false && level≥3`).
+
+### V-C — QUEUED
+Saga-leg batch evolution hook · JoyEngine/DopamineCarousel level-up + mint celebration · wire owner MADConv from the CDP into the score (currently passed per call) · evolution unit tests (score edge cases: high scandal / pure losses / high MADConv).
