@@ -84,6 +84,33 @@ async function main() {
       "card_stats write+read",
     );
 
+    await client.query(
+      `INSERT INTO markets (id, title, creator_wallet) VALUES ('smoke_market', 'Smoke market?', $1)`,
+      [ZERO],
+    );
+    assert(
+      (await client.query(`SELECT count(*)::int AS n FROM markets WHERE id='smoke_market'`)).rows[0].n >= 1,
+      "markets write+read",
+    );
+
+    await client.query(
+      `INSERT INTO bets (market_id, wallet_address, side, amount, odds_at_bet)
+       VALUES ('smoke_market', $1, 'YES', 100, 2.0)`,
+      [ZERO],
+    );
+    assert(
+      (await client.query(`SELECT count(*)::int AS n FROM bets WHERE market_id='smoke_market'`)).rows[0].n >= 1,
+      "bets write+read",
+    );
+
+    await client.query(
+      `INSERT INTO audit_log (entity_type, entity_id, action, details) VALUES ('market','smoke_market','create','{"smoke":true}')`,
+    );
+    assert(
+      (await client.query(`SELECT count(*)::int AS n FROM audit_log WHERE entity_id='smoke_market'`)).rows[0].n >= 1,
+      "audit_log write+read",
+    );
+
     console.log("✅ DB smoke passed — live read/write verified across all core tables");
   } catch (err) {
     console.error(`❌ smoke failed: ${err.message}`);

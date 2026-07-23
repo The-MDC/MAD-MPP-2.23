@@ -4,6 +4,7 @@ import ShieldPanel from "@/components/shield-panel";
 import CardLifecyclePanel from "@/components/card-lifecycle-panel";
 import BayesianPanel from "@/components/bayesian-panel";
 import CardStatsDisplay from "@/components/card-stats-display";
+import MarketsPanel from "@/components/markets-panel";
 import { INK } from "@/lib/gambit-design-tokens";
 
 export const metadata = {
@@ -35,6 +36,7 @@ export default function DashboardPage() {
         <CardLifecyclePanel />
         <BayesianPanel />
         <CardStatsDisplay />
+        <MarketsPanel />
       </div>
     </main>
   );

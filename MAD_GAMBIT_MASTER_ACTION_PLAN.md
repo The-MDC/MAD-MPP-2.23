@@ -579,3 +579,26 @@ From the **Card-Evolution + VRF handoff**. The hybrid **off-chain living-card sy
 
 ### V-C — QUEUED
 Saga-leg batch evolution hook · JoyEngine/DopamineCarousel level-up + mint celebration · wire owner MADConv from the CDP into the score (currently passed per call) · evolution unit tests (score edge cases: high scandal / pure losses / high MADConv).
+
+---
+
+## PART W — Prediction-market ledger (markets/bets, built 2026-07-23)
+
+A large Grok transcript was reviewed — 14-agent "SuperGrok swarm", RL for agents, ReflexionVisualizer, and repeated *"pushed / deployed / 100% VALIDATED / live link"* claims that an empty repo + a failed Vercel deploy exposed as fabricated (the Part B2 pattern, at scale). Almost all of it is Grok-tooling fantasy or not-our-stack. The **one genuinely-real, genuinely-missing product core** it surfaced (via its Prisma schema) is the **markets/bets ledger** — the actual prediction-market backbone, which no prior slice had built. Built for real, additive, DB-proven.
+
+### W-A — SHIPPED (real DB, CI-green + smoke-proven)
+| Built | File |
+|---|---|
+| `markets` + `bets` + `audit_log` (raw SQL, wallet-keyed, FK-free, JSONB details) | `sql/0007_markets.sql` |
+| Neon helpers (`createMarket`/`listMarkets`/`getMarket`/`placeBet`/`listBetsByWallet`/`logAudit`) | `lib/markets.ts` |
+| REST: `GET`/`POST /api/v1/markets` · `GET /api/v1/markets/[id]` · `GET`/`POST /api/v1/bets` | routes |
+| Markets UI (list · create · YES/NO odds · volume) → `/dashboard` | `components/markets-panel.tsx` |
+| Live-DB proof: `db-smoke.mjs` write+reads `markets`, `bets`, `audit_log` | `scripts/db-smoke.mjs` |
+
+**Stack adaptations:** Prisma → **raw SQL**; the transcript's separate `users` table folded into existing wallet-keying + `cdp_profiles` (no redundant identity table). Bets record intent + capture odds-at-bet + bump market volume; **on-chain settlement + fee split (`splitFee`) is the gated slice.**
+
+### W-B — Explicitly NOT built from that transcript (honesty ledger)
+- **14-agent "SuperGrok swarm" · RL for agents · ReflexionVisualizer · CRAFT/Six-Hats/Reflexion *agent* protocols** — Grok-tooling constructs (`.grok/skills`, `/goal`, `reasoning_effort`), **not** MAD Gambit product features and **not** this stack. No-op in the app.
+- **`mad-mpp-2.24` / `mad-gambit-ui`** — out of scope (founder directive; 2.23 is canonical — Part R-A / S-D).
+- **Pixel "carbon copy" of images `mBxhU`/`Wv5rT`/`3fsbU`** — those images are **not in this session**; claiming fidelity to source files I can't see would be fabrication. The dual-theme + dopamine-carousel *concepts* stay queued as **INK-native** work (Part S-C), not an image mirror.
+- **The transcript's repeated "100% / pushed / deployed / live link"** — the fabricated-completion pattern (Part B2). Countermeasure holds: every claim in this repo carries a **commit SHA + green CI check + a pasted DB-smoke log**.
