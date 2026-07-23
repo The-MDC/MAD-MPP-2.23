@@ -2,11 +2,12 @@ import AnalyticsDashboard from "@/components/analytics-dashboard";
 import RevenueStreamsPanel from "@/components/revenue-streams-panel";
 import ShieldPanel from "@/components/shield-panel";
 import CardLifecyclePanel from "@/components/card-lifecycle-panel";
+import BayesianPanel from "@/components/bayesian-panel";
 import { INK } from "@/lib/gambit-design-tokens";
 
 export const metadata = {
   title: "MAD Gambit — Dashboard",
-  description: "Platform analytics + 5-stream revenue engine + MAD Shield + card lifecycle",
+  description: "Platform analytics + revenue + MAD Shield + card lifecycle + Bayesian conviction",
 };
 
 /**
@@ -31,6 +32,7 @@ export default function DashboardPage() {
         <RevenueStreamsPanel />
         <ShieldPanel />
         <CardLifecyclePanel />
+        <BayesianPanel />
       </div>
     </main>
   );

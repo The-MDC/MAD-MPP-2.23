@@ -505,3 +505,32 @@ Attach `madgambit.fun`/`.io` to **`mad-mpp-2.23`** (Root Directory already `veri
 - **Scandal velocity** = Σ `EMOTION_WEIGHTS·e` (shame 1.8 · anger 1.4 · disgust 1.3 · fear 1.2 · sadness 1.0 · joy −0.5), clamped ≥0 → `lib/gdelt.ts`.
 - **Perp trigger** `P = 1 − exp(−0.25 · matches · themeWeight · (1+velocity))`, bounded 0..1 → `lib/gdelt.ts`.
 - These feed the existing `zLiarMeter`/`scandal-velocity-meter` surfaces; the handoff's "r²=0.94" is an **unverified Grok claim** — treat the formula as canonical, the correlation stat as decorative until we measure it on real data.
+
+---
+
+## PART T — Bayesian conviction math layer (Unified Handoff, built 2026-07-23)
+
+The **Unified Comprehensive Handoff** (Master Maths v2.24.1, Parts A–C) asked for a new `bayesian-conviction.ts` porting the Bayesian / decision-tree / sequential-reasoning maths. Built for real (its Parts D–F = the GDELT + full-thread handoffs already shipped in **Parts R/S**). Pure, deterministic, edge-safe — no DB, no value movement.
+
+### T-A — SHIPPED (real code, CI-green on PR #23)
+| From handoff | Built | File |
+|---|---|---|
+| Bayesian update + log-odds sequencing + hybrid MADConv update | `bayesianUpdate` · `toLogOdds`/`fromLogOdds` · `sequentialLogOddsUpdate` · `madconvHybridUpdate` (`M^0.85·(1+β·bayes)`) | `lib/bayesian-conviction.ts` |
+| Decision-tree backward induction (conviction bonus) | `TreeNode` + `propagateTree` (depth-bounded 64, malformed-node tolerant) | ″ |
+| VOI · edge detection · act-threshold · proper scoring | `voiEstimate` · `computeEdge` · `shouldAct` · `brierScore` · `logScore` | ″ |
+| Conviction-adjusted Kelly | re-exports existing `kellyFraction` (gambit-game-math:692) — **no duplication** | ″ |
+| GARCH extensions (EGARCH asymmetry · CGARCH long/short split) | `egarchLogVar` · `cgarchUpdate` | ″ |
+| Calculators (pure, no DB) | `POST /api/v1/bayesian/{update,tree,voi}` | routes |
+| UI | **Bayesian Conviction Lab** (sequential update + edge/Kelly/act calculator) → `/dashboard` | `components/bayesian-panel.tsx` |
+
+*Canonical unchanged:* MADConv exponents (t^1.35·c^0.75·d^1.45·ψ^1.15·(1+π^0.9)…), base GARCH(1,1) ω/α/β, and Kelly all preserved — this is **additive depth**, exactly as the handoff's §9 instructed.
+
+### T-B — QUEUED (codeable; overlaps existing surfaces — build next)
+- **Bayesian Tree Explorer** (`bayesian-tree-explorer.tsx`, React-Flow/SVG) · **Conviction Evolution Timeline** (`conviction-evolution-chart.tsx` — note `conviction-charts.tsx` already exists) · **Liar Impact Simulator** (`liar-impact-simulator.tsx`, ties to existing `zliar-meter`).
+- **Joy-drop scheduler + procedural satire** (`joy-engineering.ts`) — GARCH/VOI-triggered variable rewards with the ethical guardrails (transparent EV, opt-in intensity, cooldowns, neurodiversity "Surprise Level" slider, WCAG "why this happened" tooltips). *(Keep the mechanic; scrub any "dopamine/addiction" external framing per Part B2.)*
+- **Customizable Dopamine Carousel** — extend existing `seiko-dopamine-hub.tsx`, don't fork.
+- Wire `madconvHybridUpdate` into the CDP/events pipeline so conviction updates are event-driven + auditable.
+
+### T-C — Compliance / canon guards (carry forward)
+- **"MAD Shield = loss mitigation, never insurance"** and **no on-chain gambling framing** (Part B2). The joy/variable-reward layer stays **conviction-modulated + positive-EV + user-controlled** — never pure chance.
+- Proprietary-IP rule from the handoff (don't expose exact MADConv/GARCH coefficients in external materials) already matches the MADHAT'r Concierge guardrail; keep formulas server-side.
