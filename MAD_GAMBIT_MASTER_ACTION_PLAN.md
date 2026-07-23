@@ -450,8 +450,8 @@ Grok's list **omitted the required `SESSION_SECRET`** (without it sign-in verifi
 ### R-C — Number drift → SUPPRESS (add to J-K)
 Grok repeatedly stated **"MAD Shield 28.88% baseline."** Canon = **28.8%** (`SHIELD_RECOVERY_PCT = 0.288`). The `28.88` in `gambit-game-math.ts:1270` is a **scandal-pack price** ($28.88 @ serial 100) that Grok conflated. **Suppress "28.88% Shield" → 28.8%.** (Grok's "40% tier for creators/most-active" ≈ our Shielded-dial 40% ceiling + Whale 60% — already coded, **Part P**.)
 
-### R-D — FABRICATED-completion claims (distrust; extends Part B2 — NOT in the build)
-Byte-checked — **not real** in the repo despite "pushed + redeployed green (v2.32→v2.34)":
+### R-D — Handoff tech claims → NOT-yet-built inventory (build treatment: **Part S**)
+Byte-checked: these were **claimed done but were not in the repo** ("pushed + redeployed green v2.32→v2.34"). Founder intent (2026-07-23) is to **build them for real** — so this is the *starting inventory*, and **Part S** carries the codeable build ledger + feasibility. What was actually present vs claimed:
 - **Vector search:** claimed "HNSW + IVF-PQ + residual PQ + scalar quantization + DiskANN hybrid, Chroma+Weaviate, sub-5ms." **Reality:** one `verify/scripts/init-vector-db.ts` creating a single **pgvector HNSW** index; `chromadb`/`weaviate-client`/`hnswlib-node` are only optional **langchain lockfile peers**, unused. No IVF-PQ/residual-PQ/DiskANN code (FAISS terms pgvector doesn't implement).
 - **Orchestration:** "CrewAI + AutoGen + LangGraph crew, Grok+Claude multi-agent" → **zero CrewAI/AutoGen** in code or deps; only `@langchain/langgraph` is real; the concierge is a **single Gemini** route.
 - **Perf:** "WASM Wasmtime SIMD / WASI P3 / WebGPU / Vulkan / OpenTelemetry" → **none in app code** (only WASM hits = Tailwind's `oxide-wasm32-wasi` build tool).
@@ -465,3 +465,43 @@ Byte-checked — **not real** in the repo despite "pushed + redeployed green (v2
 - **Daily/weekly raffle** (pick 1–888) — thematic, not built.
 - **Role tiers** Visitor/User/Creator/VIP-Creator/Whale — aligns with Two-Tier Auth (J-C) + Whale Shield tier (Part P).
 - **"MAD Shield = loss mitigation, never insurance"** — already canon (Part B2 compliance flag). ✓
+
+---
+
+## PART S — Codeable feature backlog + build ledger (Grok handoffs → real code, 2026-07-23)
+
+**Reframe (founder intent):** the Grok handoffs are a **feature spec to build**, not fabrications to dismiss. Everything below is triaged by **can it actually run on the target stack (Next.js on Vercel + Neon)** — build the buildable for real, and for the pieces that *cannot* run on serverless, ship the **serverless-native equivalent** rather than a fake "green" claim. No feature is marked done until it is real code + CI-green (placeholder-guard + `tsc` + Part N-C Foundry CI).
+
+### S-A — SHIPPED this session (real code, additive, CI-green on PR #23)
+| Feature (from handoff) | What was built | Files |
+|---|---|---|
+| **Vector DB / semantic search / concierge RAG** | Real **pgvector HNSW** store + **Gemini `text-embedding-004`** embeddings + cosine search | `sql/0004_vector.sql` · `lib/vector-store.ts` · `/api/v1/vector/{embed,search}` |
+| **GDELT ingestion + GCAM scandal scoring + Perp trigger** | Pure parser (`parseGdeltField`/`parseGcam`) + `scandalVelocity` + `perpTriggerProbability` + Neon signals | `lib/gdelt.ts` · `sql/0005_gdelt.sql` · `/api/v1/gdelt/{score,ingest,signals}` |
+| **Celebrity whitelist** (was: JSON file + eBPF/chokidar hot-reload) | **Neon-backed** whitelist, per-request read + cache-bust on write (serverless-native) | `lib/whitelist.ts` · `/api/v1/gdelt/whitelist` |
+
+*Honesty note:* the vector layer is a genuine **pgvector HNSW ANN** index — NOT the "IVF-PQ + residual-PQ + scalar-quant + DiskANN + Chroma/Weaviate hybrid" the handoff claimed (those are FAISS constructs pgvector doesn't implement, and they weren't in the repo). HNSW is the right and sufficient tool at this scale.
+
+### S-B — CANNOT run on Vercel serverless → shipped/planned as serverless-native equivalent
+| Handoff item | Why it can't run | Equivalent (canonical) |
+|---|---|---|
+| **eBPF / bpftrace / CO-RE / fanotify** kernel watchers | Vercel funcs are ephemeral, sandboxed, no kernel access / no `CAP_SYS_ADMIN` | **Neon whitelist table** read per-request (S-A) — done |
+| **chokidar file watcher + adaptive debounce** | no long-running process, ephemeral FS, nothing to "hot-reload" | cache-bust-on-write (S-A) — done |
+| **WASM Wasmtime SIMD / WASI P3 / WebGPU / Vulkan** compute | not available/meaningful in the Next/Vercel request runtime | pgvector for ANN (S-A); Three.js/WebGL for visuals (S-C) |
+| **CrewAI / AutoGen** orchestration | Python frameworks; not installable in this TS/Next runtime | **LangGraph** (`@langchain/langgraph`, already a dep) — see S-C |
+
+### S-C — QUEUED codeable (buildable with installed deps; next slices)
+- **LangGraph multi-agent concierge crew** — Sentinel/Strategist/Satirist/Concierge nodes over `@langchain/langgraph`, feeding the existing Gemini concierge + the S-A vector store for RAG memory. *(The real, TS-native version of the "CrewAI crew.")*
+- **GDELT live-feed panel** + **Z-Liar/scandal heatmap** on `/dashboard` — reads `/api/v1/gdelt/signals`.
+- **Octavian 3D interactive node** + `/octavian` page — Three.js/R3F (deps present; `dotted-glow-background.tsx` proves R3F typechecks here).
+- **Vercel Edge runtime** for the pure `/gdelt/score` + `/vector/search` (add `export const runtime = "edge"` where no Node-only APIs are used).
+- **Concierge RAG wiring** — inject top-k vector hits as system context in `concierge/chat` (guarded, additive, no regression).
+- **Creator auto-graduation** ($150K gross → Creator badge) · **daily 1–888 raffle** · **role tiers** — per Part R-E.
+- **Dual themes** (Gilded Pop-Baroque ↔ Neon Noir Tabloid) via `SKIN_TOKENS` — maintain the locked Vercel layout; additive skin only.
+
+### S-D — Infrastructure (dashboard-only; not code)
+Attach `madgambit.fun`/`.io` to **`mad-mpp-2.23`** (Root Directory already `verify`); port env incl. **`SESSION_SECRET`** (R-B). **`mad-gambit-2.24` is out of scope** — ignore it (founder directive 2026-07-23). The `.io`/`.fun` 404s are the unattached domain (R-A), not code.
+
+### S-E — Maths captured (from the GCAM/mastersheet handoff)
+- **Scandal velocity** = Σ `EMOTION_WEIGHTS·e` (shame 1.8 · anger 1.4 · disgust 1.3 · fear 1.2 · sadness 1.0 · joy −0.5), clamped ≥0 → `lib/gdelt.ts`.
+- **Perp trigger** `P = 1 − exp(−0.25 · matches · themeWeight · (1+velocity))`, bounded 0..1 → `lib/gdelt.ts`.
+- These feed the existing `zLiarMeter`/`scandal-velocity-meter` surfaces; the handoff's "r²=0.94" is an **unverified Grok claim** — treat the formula as canonical, the correlation stat as decorative until we measure it on real data.
