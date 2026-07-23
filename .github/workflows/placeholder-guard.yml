@@ -1,0 +1,50 @@
+name: Placeholder Guard
+
+# Fails the build if any source file is a prose placeholder instead of real code.
+# This is the tripwire for the failure mode that overwrote main with one-line
+# descriptions (e.g. "file_content from types.ts", "Full MADStaking with rewards").
+
+on:
+  push:
+    branches: [main, "mad-mpp-2.24"]
+  pull_request:
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan for placeholder source files
+        run: |
+          set -euo pipefail
+          fail=0
+
+          # 1) TS/TSX under verify/ must contain real code tokens.
+          while IFS= read -r f; do
+            case "$f" in *next-env.d.ts) continue;; esac
+            if ! grep -qE '(import |export |function |=>|;|\{)' "$f"; then
+              echo "::error file=$f::TS/TSX file has no code tokens (placeholder?)"
+              fail=1
+            fi
+          done < <(git ls-files 'verify/**/*.ts' 'verify/**/*.tsx')
+
+          # 2) Solidity under contracts/src and contracts/test must have a pragma.
+          while IFS= read -r f; do
+            if ! grep -qE 'pragma solidity' "$f"; then
+              echo "::error file=$f::Solidity file missing pragma (placeholder?)"
+              fail=1
+            fi
+          done < <(git ls-files 'contracts/src/**/*.sol' 'contracts/test/**/*.sol')
+
+          # 3) Known placeholder phrases anywhere in tracked source.
+          if git grep -nIE 'file_content from|The content of [a-z_]+\.ts|Full [A-Za-z]+ with rewards|Minimal core staking|Orchestrator layer' -- \
+               'verify/**' 'contracts/src/**' 'contracts/test/**' ; then
+            echo "::error::Placeholder phrase found in tracked source"
+            fail=1
+          fi
+
+          if [ "$fail" -ne 0 ]; then
+            echo "Placeholder guard FAILED — real code required, not descriptions."
+            exit 1
+          fi
+          echo "Placeholder guard passed ✓"
