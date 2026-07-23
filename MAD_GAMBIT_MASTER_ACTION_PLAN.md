@@ -363,3 +363,46 @@ Today's workflows — `ci.yml` (tsc), `neon-pr-branch.yml`, `placeholder-guard.y
 
 ### N-E — Already covered / no new action (prevents rework)
 `EvolutionEngine.sol` lost → already **J-D line 224**. `M_nft = 1+Clout/200` → already **J-D line 227** + TS line 1076. `demo-repository` contracts → already **Part K**. Prisma 60+ TS fixes / 161-164 tests / 3 failures → **MPP-2.0-internal**, not portable to the Neon stack. Exposed PAT → **J-C line 221** (reinforced above).
+
+---
+
+## PART O — Production Gap Inventory (refreshed 2026-07-23; supersedes the Part C backlog snapshot)
+
+Full repo scan vs the **production `verify/` app on `main`** (4 pages: `/ · /gambit · /dashboard · /workbench` · 21 API routes · 47 components). Since V1/V2/Phase-4 shipped, the Part C "genuinely open backlog" is stale — this is current ground truth, sorted by **how real the code is**.
+
+### O-1 — REAL code, coded but NOT surfaced (wire-up candidates — the valuable pool)
+- **Contracts — `contracts/madhat-core/` = 15 real `.sol`, none integrated** (compile via **Part K** checklist): `prediction/{game,BondingCurve}`, `staking/StakingPool` (the Part N-B clout `createStake`), `insurance/RiskOracle`, `tokens/{MADxToken,MADDEXToken,MadhatCard,MadhatCardOptimized}`, `treasury/{Madhat,Community}Treasury`, `registries/{roles,assets}`, `errors/Errors`, `events/{Evolution,Staking}Events`. Plus **5 empty root stubs** (`MADStakingCore`, `MADStakingOrchestrator`, `P2PEscrowMarket`, `ReferralRewards`, `SessionKeyManager`).
+- **TS logic — 43 of 85 `gambit-game-math.ts` exports have zero production surface** (only `calculateFurnaceBurnPercent` is live, via `revenue-engine.ts`). By theme:
+  - **MAD Shield engine** (flagship loss-protection; highest value): `createShieldOptIn`, `calculateShieldPremium`, `calculateShieldPayoutFull`/`Tiered`, `calculateShieldReturnWindow`, `requestShieldUnstake`, `isShieldUnstakeComplete`, `shieldReturnCountdown`, `isWhaleShieldEligible`, `WHALE_SHIELD_ELIGIBILITY`. **→ Part P surfaces this.**
+  - **Card lifecycle:** `generateCard`, `rollRarity`, `attemptEvolution` + `EVOLUTION_BURN_COSTS`, `applyUsageWear`/`calculateUsageWear` + `RARITY_WEAR_PCT`.
+  - **Pack pricing:** `scandalPackPrice`, `SCANDAL_PACK_TIERS`/`CAP`/`FLOOR`, `getAuctionPrice` (Dutch auction).
+  - **Staking yield:** `calculateStakingYield` (the `1+clout/200` boost, Part N-B).
+  - **Governance:** `quadraticMatch`, `calculateGovernanceThreshold` (`mpp-math.ts`). `futarchy-board.tsx` exists but doesn't call these.
+  - **Behavioral / virality:** `lossAversionWeight`, `temporalDecay`, `stochasticDecay`, `attentionDecay`, `calculateUserDopamineIndex`, `viralityScore`, `getFibonacciReward`.
+  - **Trust / risk:** `assignTrustScore` (EigenTrust), `kellyFraction`, `calculateConvictionSafe`.
+
+### O-2 — INTENT only (prose stubs, NOT built — need real coding, not merging)
+The **"v2 layer"** on `feature/nft-card-system-v2` ≡ `feat/supergrok-skills-guardrails` ≡ `production-optimizations-and-env` (identical **19–125-byte prose stubs**; e.g. `P2PMarket.tsx` = *"P2P Escrow Market component"*, `api/realtime/ws/route.ts` = *"WebSocket API route"*): pages `marketplace/creator/vip/profile`; APIs `data/events`, `information-market/create`, `marketplace/assets`, `realtime/ws`, `referrals/track`, `session-keys`; modules P2P + behavioral-econ, Referral Suite, Session Keys (AA), UGC Feed, Information Markets, User Intelligence (CDP), realtime provider. **These are the Part J-D/J-G roadmap — real as *plan*, unbuilt as *code*.** The `placeholder-guard` blocks merging them until real. *(Same fabricated-completion pattern as the Grok "it's built" claims — Part B2.)*
+
+### O-3 — Orphaned (ignore)
+Root `/app/` (`octavian-master`, `maddegens-presentation`) — not the production app; `verify/` is canonical.
+
+**Surface order for O-1:** **MAD Shield (Part P — flagship, code exists)** → card lifecycle → staking-yield clout → governance math → pack pricing. Contracts follow the Part K reconciliation + Part N-C Foundry CI.
+
+---
+
+## PART P — MAD Shield surfacing: step-by-step build (front + back, Vercel + Neon)
+
+Surface the **already-coded** MAD Shield engine as a live product surface — the flagship loss-protection mechanic — **additively** on `/dashboard`, degrade-to-demo, **no real value movement yet** (on-chain vault deposit/charge is a later gated slice). All math already exists in `gambit-game-math.ts`; this is wiring, not new economics.
+
+**Canonical (already in code — do not change):** Standard **28.8%** · Shielded **28.8→40%** dial · Whale **60%** (gated: ≥250k lifetime vol + ≥90d age + ≥85 trust + ≥1 Golden Hand). Premium **2–4%** of stake (whale flat 3%). Return window **2–24h** by stake size.
+
+| Slice | Layer | Work | DoD |
+|---|---|---|---|
+| **P-1** | back (no DB) | `/api/v1/shield/quote` — pure calculator wrapping `calculateShieldPremium` + `calculateShieldPayoutFull` + `calculateShieldReturnWindow` | POST `{stake,tier,premiumTier,eligibility?,requestWhaleTier?}` → `{premium,payout,effectivePct,tier,returnWindowHours}`; works with no DB |
+| **P-2** | Neon | `sql/0002_shield.sql` → `shield_positions`; `lib/shield.ts` DB helpers (insert / list / complete) via untyped `pool.query` + typed mappers | migration idempotent; helpers typed; no generic-constraint TS errors |
+| **P-3** | back (DB) | `/api/v1/shield/opt-in` (POST, rate-limited, records opt-in via `createShieldOptIn`; 503 without DB) + `/api/v1/shield/positions/[wallet]` (GET; demo-empty without DB) | validated inputs; degrade clean; rate-limited write |
+| **P-4** | front | `components/shield-panel.tsx` (INK; 3 tier cards + live premium/payout calculator hitting `/quote`; return-window) → mount on `/dashboard` | renders always (calculator needs no DB); no visual regression to existing dashboard |
+| **P-5** | GATED (later) | wire to `MADShieldVault.sol` for real `$MADx` premium charge + recovery payout | Phase-3 testnet; `security-review` skill; no unsigned-value trust at the boundary |
+
+**This session builds P-1…P-4** (safe, additive, no real value). **P-5 stays gated** behind the Phase-3 contract work. Verification: `tsc` + `placeholder-guard` green; canonical 28.8/40/60 + 2–4% unchanged; `/dashboard` gains a working Shield calculator alongside Analytics + Revenue panels.
