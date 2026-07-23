@@ -332,3 +332,34 @@ Executed as small, verifiable slices — each one **real code** (the placeholder
 | **V4–V8** | planned | — | — | see `docs/V2_BUILD_PLAN.md` |
 
 **Evolutionary discipline:** V1 is the backbone (V2/V3/V4 read it); every route **degrades to a clean demo/empty state** when `DATABASE_URL` or a migration is absent, so the build and the demo never break before the SQL is applied. Migrations ship as committed SQL under `verify/sql/`, validated against the ephemeral Neon PR branch.
+
+---
+
+## PART N — MPP-2.0 parallel-repo handoff ingest (2026-07-23)
+
+A handoff arrived from a parallel thread working on **`The-MDC/MPP-2.0`** — a **distinct, Prisma-based** production build, separate from both this repo (`MAD-MPP-2.23`, Neon + raw `pg`) and `The-MDC/demo-repository` (already consolidated in **Part K**). Analyzed against ground truth: **most of its concepts are already in this plan.** Only the genuinely-new/relevant items are captured below, each cross-referenced so nothing duplicates. **No Prisma/Supabase is adopted — Neon stays canonical (Part I / J-K line 261).**
+
+**⚠️ SECURITY — TOP PRIORITY (do before anything else):** the handoff pasted a **live GitHub Personal Access Token in plaintext**. **Revoke/rotate it immediately** — GitHub → Settings → Developer settings → Personal access tokens → revoke, then reissue a **fine-grained, least-scope** token. The token value is **deliberately not recorded here or anywhere in the repo/commits** — treat it as compromised until rotation is confirmed. This reinforces the existing **J-C line 221** exposed-`ghp_…`-PAT flag; assume unrotated until the founder confirms.
+
+### N-A — Parallel-repo reconciliation (NEW flag)
+- **`The-MDC/MPP-2.0`** is a parallel production build on **Prisma v7.6.0 + Postgres (Supabase-style)**, with recent work: Foundry v1.6.0 compilation, ~60+ TypeScript fixes, **161/164 tests passing (3 failing)**. This repo (`MAD-MPP-2.23`) is **Neon + raw `pg`**; Prisma/Supabase are suppressed (**J-K line 261**).
+- **DECISION NEEDED — which is canonical production?** Recommendation: keep **`MAD-MPP-2.23` (Neon) canonical** per the locked stack (Part I). Treat MPP-2.0 as a **source of on-chain/staking logic to port**, not a stack to adopt. Port **schema *intent*** (not Prisma migrations) into `verify/sql/*.sql`; **do not import Prisma/Supabase**. The **3 failing tests + Prisma TS fixes are MPP-2.0-internal** — they stay in that repo's thread, not portable here.
+
+### N-B — On-chain NFT-boosted staking → fold into madhat-core `StakingPool` (extends Part K)
+MPP-2.0 exposes an on-chain **`createStake(amount, nftId)` with a clout boost** `M_nft = 1.0 + Clout/200`. Ground-truth state in *this* repo:
+- **TS already implements the formula:** `verify/lib/gambit-game-math.ts` → `calculateStakingYield(apyBase, nftClout) = apyBase · (1 + max(nftClout,0)/200)` (**line 1076**). ✅ present.
+- **madhat-core Solidity already has `createStake`:** `contracts/madhat-core/src/staking/StakingPool.sol` (**line 236**) — pulled in Part K, not yet compiling.
+- **`contracts/src/MADStaking.sol` intentionally uses the per-tier clout/APY *table*, NOT `1+Clout/200`** (**J-D line 227**) — that stays.
+- **Reconciliation:** fold MPP-2.0's `createStake(nftId, clout)` semantics into **madhat-core `StakingPool.sol`** as part of the **Part K checklist item 5**, *not* into `MADStaking.sol`. Two staking models coexist **by design**: (a) `MADStaking.sol` fixed-tier table (deploy-safe, canonical); (b) madhat-core `StakingPool` NFT-clout-boosted (advanced). Founder picks which fronts production before mainnet.
+
+### N-C — Foundry CI on GitHub Actions (NEW — actionable now)
+Today's workflows — `ci.yml` (tsc), `neon-pr-branch.yml`, `placeholder-guard.yml`, `vercel-deploy.yml` — run **no `forge build`/`forge test`**. Unlike the web sandbox (where `forge`/`npm`/RPCs are network-blocked), **GitHub Actions runners are NOT blocked**, so Foundry can compile and test there.
+- **Action:** add **`.github/workflows/foundry.yml`** using `foundry-rs/foundry-toolchain` → `forge fmt --check` + `forge build` + `forge test -vvv` against `contracts/` (and `contracts/madhat-core/` once the Part K checklist lands). This operationalizes the **Part H** "`forge test` green for touched contracts" gate that currently cannot run in-session, and is the **CI-enforced rebuttal** to Grok's "12 fuzz tests pass" claim (Part B2).
+
+### N-D — Staking-economics reconciliation flags (NEW; canon wins unless founder overrides)
+- **Loyalty time bonuses** (MPP-2.0): **+2% (30d) / +5% (90d) / +8% (365d)** on staking APY. **Not in app, not in canon.** If founder approves, add to **Part E** as `STAKING_LOYALTY_BONUS_BPS = {30d:200, 90d:500, 365d:800}`, additive on top of tier APY (no yield "printing" — funded from fees/Shield premiums per J-D).
+- **Card-rarity staking-APY conflict:** MPP-2.0 = **Common 8% … Golden Hand 60%**; **app/canon (Part E) = Common 12% … Golden Hand 68% … Mythic 88%.** Canon wins — **flag, do not silently change.**
+- **Card CONDITION power-scaling** (MPP-2.0): **Pristine 100% → Wrecked 10%** yield/power multiplier — distinct from the app's per-tier `RARITY_WEAR_PCT` *durability loss* (**J-I line 252**). If adopted, fold into the card-wear state machine under **J-C PROFILE_DB**, not as a rarity-table edit.
+
+### N-E — Already covered / no new action (prevents rework)
+`EvolutionEngine.sol` lost → already **J-D line 224**. `M_nft = 1+Clout/200` → already **J-D line 227** + TS line 1076. `demo-repository` contracts → already **Part K**. Prisma 60+ TS fixes / 161-164 tests / 3 failures → **MPP-2.0-internal**, not portable to the Neon stack. Exposed PAT → **J-C line 221** (reinforced above).
