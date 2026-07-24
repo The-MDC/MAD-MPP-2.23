@@ -692,3 +692,12 @@ The on-chain counterpart to the markets/bets ledger (Part W). UGC **Over/Under**
 - **Resolution is owner/oracle-fed** today (`onlyOwner resolve`); the triple-threat oracle (Chainlink + News + community) is Phase-5 wiring.
 - **Not deployed** — compiles + tests green in CI is the deliverable; testnet deploy + frontend address wiring is founder/Phase-3-gated.
 - **Proof:** `forge build --sizes` + `forge test` (foundry.yml, fuzz 1000 runs) — see commit CI.
+
+## PART AB — $MADx ground truth + mechanism/oracle research + deploy wiring (2026-07-24)
+
+Full write-up: **`docs/MECHANISM_ORACLE_MADX_RESEARCH.md`** (cited).
+
+- **$MADx (verified on-chain, Arbitrum One):** `0x6972370e1caAA3624F37D7e87C28e1089D00151f` — name **MADDEX**, symbol **MADx**, 18 dec, ERC20+Ownable+**Pausable**, cap **224,573,096**, `totalSupply` **0** (fair-launch, mint-on-purchase, owner-modifiable). **Canon says 888,888,888 fixed** → founder must reconcile (both reachable since the contract is mutable; for the strongest "every token was bought" claim, restrict mint to the sale contract). The 2nd address given is an EIP-7702 smart wallet, not the token (not probed, per owner).
+- **Market mechanism:** keep parimutuel (`MADMarketFactory`) for UGC/satire; **add LS-LMSR** (`MADLmsrMarket.sol`) for flagship continuous-odds markets (the productionizable "Continuous DL-LMSR"); **spike pm-AMM** as the frontier. The hard part is fixed-point `exp`/`ln` + invariants — scoped in the doc.
+- **Oracle → quadruple:** the triple (Chainlink/Pyth + AI multi-agent + community) are all *signal sources*; add a 4th **optimistic-bond finalizer** (UMA / Reality.eth+Kleros pattern, bonds in $MADx) and **quadratic-weight the community leg** (weight = √staked $MADx). Legs 1–3 propose; leg 4 finalizes with money at risk.
+- **Deploy wiring (shipped this commit):** `verify/lib/contracts.ts` (real $MADx + chain registry, env-overridable, degrade-safe) + `contracts/script/Deploy.s.sol` (deploys MADStaking + MADMarketFactory against $MADx). Testnet deploy is founder-gated (RPC + deployer key).
