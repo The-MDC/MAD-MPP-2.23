@@ -52,26 +52,30 @@ export default function DopamineCarouselStrip() {
     if (ref.current) ref.current.scrollBy({ left: dir * 150, behavior: "smooth" });
   };
 
-  const arrowStyle = (side: "l" | "r"): React.CSSProperties => ({
-    position: "absolute",
-    top: "50%",
-    transform: "translateY(-50%)",
-    [side === "l" ? "left" : "right"]: -8,
-    zIndex: 3,
-    width: 28,
-    height: 28,
-    borderRadius: "50%",
-    background: "rgba(0,0,0,0.7)",
-    border: `1px solid ${skin.accent}`,
-    color: skin.accent,
-    cursor: "pointer",
-    fontSize: 15,
-    fontWeight: 900,
-    lineHeight: "26px",
-    textAlign: "center",
-    padding: 0,
-    fontFamily: INSTRUMENT_FONT,
-  });
+  const arrowStyle = (side: "l" | "r"): React.CSSProperties => {
+    const base: React.CSSProperties = {
+      position: "absolute",
+      top: "50%",
+      transform: "translateY(-50%)",
+      zIndex: 3,
+      width: 28,
+      height: 28,
+      borderRadius: "50%",
+      background: "rgba(0,0,0,0.7)",
+      border: `1px solid ${skin.accent}`,
+      color: skin.accent,
+      cursor: "pointer",
+      fontSize: 15,
+      fontWeight: 900,
+      lineHeight: "26px",
+      textAlign: "center",
+      padding: 0,
+      fontFamily: INSTRUMENT_FONT,
+    };
+    if (side === "l") base.left = -8;
+    else base.right = -8;
+    return base;
+  };
 
   return (
     <div style={{ position: "relative" }}>
