@@ -35,11 +35,13 @@ const GAMBIT: Tick[] = [
   { symbol: "VOLUME", value: "$2.4M" },
 ];
 const SCANDAL: Tick[] = [
-  { symbol: "🔥", value: "Royal feud escalates into a docuseries" },
-  { symbol: "⭐", value: "Pop couple argues over one shared dessert" },
-  { symbol: "🪙", value: "Token rallies 40% on pure vibes" },
-  { symbol: "🏛️", value: "Committee agrees only on the catering order" },
-  { symbol: "🗞️", value: "GossipCop perp: is the empire saga forever?" },
+  { symbol: "HOT", value: "Royal feud escalates into a docuseries" },
+  { symbol: "CELEB", value: "Pop couple argues over one shared dessert" },
+  { symbol: "TABLOID", value: "Mystery yacht photos spark three separate feuds" },
+  { symbol: "CRYPTO", value: "Token rallies 40% on pure vibes" },
+  { symbol: "POL", value: "Committee agrees only on the catering order" },
+  { symbol: "VIRAL", value: "Cat interrupts live feed, becomes national icon" },
+  { symbol: "GC", value: "GossipCop perp: is the empire saga forever?" },
 ];
 
 function jumpTo(id: string) {

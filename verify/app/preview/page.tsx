@@ -14,6 +14,7 @@
  * placeholders; flip-clock, carousel, parallax and themes are live.
  */
 import React, { useEffect, useState } from "react";
+import { Home, TrendingUp, Wallet, User, type LucideIcon } from "lucide-react";
 import { SkinProvider, useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import CryptoTickerDual from "@/components/crypto-ticker-dual";
@@ -26,6 +27,8 @@ import MarketTypeCarousels from "@/components/market-type-carousels";
 import CategoryRail from "@/components/category-rail";
 import AccountRail from "@/components/account-rail";
 import PlatformExplorer from "@/components/platform-explorer";
+import DottedGlowBackground from "@/components/dotted-glow-background";
+import BrandHero from "@/components/brand-lockup";
 
 function Chip({ label, filled }: { label: string; filled?: boolean }) {
   const { skin } = useSkin();
@@ -47,12 +50,12 @@ function SectionHeading({ children, color }: { children: React.ReactNode; color?
 
 function BottomNav() {
   const { skin } = useSkin();
-  const items: [string, string, string][] = [["🏠", "Home", "/"], ["📈", "Markets", "/gambit?tab=floor"], ["👛", "Wallet", "/gambit?tab=portal"], ["👤", "Profile", "/gambit?tab=saga"]];
+  const items: [LucideIcon, string, string][] = [[Home, "Home", "/"], [TrendingUp, "Markets", "/gambit?tab=floor"], [Wallet, "Wallet", "/gambit?tab=portal"], [User, "Profile", "/gambit?tab=saga"]];
   return (
     <nav style={{ position: "fixed", left: 0, right: 0, bottom: 0, display: "flex", justifyContent: "space-around", alignItems: "center", padding: "10px 0", background: skin.panel, borderTop: `1px solid ${skin.border}`, backdropFilter: "blur(6px)", zIndex: 30 }}>
-      {items.map(([icon, label, href], i) => (
-        <a key={label} href={href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, textDecoration: "none", color: i === 0 ? skin.accent : skin.muted, fontSize: 8, letterSpacing: 1, textTransform: "uppercase" }}>
-          <span style={{ fontSize: 18 }} aria-hidden="true">{icon}</span>
+      {items.map(([Icon, label, href], i) => (
+        <a key={label} href={href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, textDecoration: "none", color: i === 0 ? skin.accent : skin.muted, fontSize: 8, letterSpacing: 1, textTransform: "uppercase" }}>
+          <Icon size={16} strokeWidth={2.25} />
           {label}
         </a>
       ))}
@@ -85,8 +88,23 @@ function PreviewInner() {
 
   return (
     <div style={{ position: "relative", minHeight: "100vh", background: skin.bg, color: skin.text, fontFamily: INSTRUMENT_FONT, overflowX: "hidden" }}>
-      {/* Parallax glow layers — drift at different rates behind the content */}
+      {/* ── /gambit's real backdrop, merged in: WebGL dotted-glow particle field
+             (exact props the platform passes at chaos≈67) + its ambient radial glows,
+             with the hub's scroll-parallax drift layered on top. */}
+      <DottedGlowBackground
+        gap={14}
+        radius={1.5}
+        color="rgba(255,255,255,0.05)"
+        glowColor={`${skin.accent}cc`}
+        speedMin={0.77}
+        speedMax={1.67}
+        speedScale={0.84}
+      />
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }} aria-hidden="true">
+        {/* /gambit ambient glows (verbatim geometry) */}
+        <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle 900px at 85% -100px, ${skin.accent}18, transparent)` }} />
+        <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle 900px at 10% 700px, ${skin.accent2}12, transparent)` }} />
+        {/* hub parallax drift layers */}
         <div style={{ position: "absolute", top: -90, left: -70, width: 340, height: 340, borderRadius: "50%", background: `radial-gradient(circle, ${skin.accent}22, transparent 70%)`, transform: par(0.25) }} />
         <div style={{ position: "absolute", top: 440, right: -90, width: 360, height: 360, borderRadius: "50%", background: `radial-gradient(circle, ${skin.accent2}22, transparent 70%)`, transform: par(-0.18) }} />
         <div style={{ position: "absolute", top: 980, left: -50, width: 300, height: 300, borderRadius: "50%", background: `radial-gradient(circle, ${skin.gold}18, transparent 70%)`, transform: par(0.3) }} />
@@ -114,6 +132,9 @@ function PreviewInner() {
           {wide ? <CategoryRail /> : null}
 
           <main style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 26 }}>
+            {/* /gambit's gold-chisel hero lockup + trinity, ported verbatim */}
+            <BrandHero primary={skin.accent2} />
+
             <div id="mg-news">
               <NewsTwoRow />
             </div>

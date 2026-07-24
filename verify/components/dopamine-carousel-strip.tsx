@@ -9,20 +9,22 @@
  * data-wired analytics variant; this is the pixel-faithful landing strip.)
  */
 import React, { useRef } from "react";
+import { Dices, Flame, type LucideIcon } from "lucide-react";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 
 interface DopCard {
   title: string;
-  icon?: string;
+  Icon?: LucideIcon;
+  iconColor?: "accent" | "accent2";
   value?: string;
   gauge?: number; // 0..100 → renders the chaos gauge
   gainers?: [string, string][];
 }
 
 const CARDS: DopCard[] = [
-  { title: "Active Bets", icon: "🎲", value: "3 Live" },
-  { title: "Degen Streak", icon: "🔥", value: "5 Day Streak!" },
+  { title: "Active Bets", Icon: Dices, iconColor: "accent", value: "3 Live" },
+  { title: "Degen Streak", Icon: Flame, iconColor: "accent2", value: "5 Day Streak!" },
   { title: "Chaos Meter", gauge: 85, value: "85% Chaos" },
   { title: "Top Gainers", gainers: [["UserA", "+50%"], ["UserB", "+30%"], ["UserC", "+30%"]] },
 ];
@@ -103,7 +105,11 @@ export default function DopamineCarouselStrip() {
             <div style={{ fontSize: 11, fontWeight: 900, color: skin.accent, letterSpacing: 0.6, textTransform: "uppercase", lineHeight: 1.15, minHeight: 26 }}>
               {c.title}
             </div>
-            {c.icon ? <div style={{ fontSize: 29, margin: "9px 0" }} aria-hidden="true">{c.icon}</div> : null}
+            {c.Icon ? (
+              <div style={{ display: "flex", justifyContent: "center", margin: "10px 0" }} aria-hidden="true">
+                <c.Icon size={26} strokeWidth={1.75} style={{ color: c.iconColor === "accent2" ? skin.accent2 : skin.accent, filter: `drop-shadow(0 0 6px ${c.iconColor === "accent2" ? skin.accent2 : skin.accent}66)` }} />
+              </div>
+            ) : null}
             {typeof c.gauge === "number" ? <Gauge pct={c.gauge} /> : null}
             {c.gainers ? (
               <div style={{ fontSize: 10, fontWeight: 900, textAlign: "left", lineHeight: 1.6, color: skin.text, marginTop: 8 }}>

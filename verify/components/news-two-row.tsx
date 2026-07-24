@@ -13,7 +13,7 @@ import React, { useEffect, useState } from "react";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 
-type Kind = "celebrity" | "crypto" | "political" | "zliar" | "gossipcop";
+type Kind = "entertainment" | "celebrity" | "tabloid" | "crypto" | "political" | "viral" | "zliar" | "gossipcop";
 interface Card {
   kind: Kind;
   source: string;
@@ -23,7 +23,7 @@ interface Card {
   link: string;
 }
 
-const LABEL: Record<Kind, string> = { celebrity: "Celebrity", crypto: "Crypto", political: "Political", zliar: "Z-Liar", gossipcop: "GossipCop" };
+const LABEL: Record<Kind, string> = { entertainment: "Entertainment", celebrity: "Celebrity", tabloid: "Tabloid", crypto: "Crypto", political: "Political", viral: "Viral Social", zliar: "Z-Liar", gossipcop: "GossipCop" };
 
 function ThumbImg({ src }: { src: string }) {
   const [broken, setBroken] = useState(false);
@@ -34,7 +34,14 @@ function ThumbImg({ src }: { src: string }) {
 
 function CardView({ c }: { c: Card }) {
   const { skin } = useSkin();
-  const color = c.kind === "crypto" || c.kind === "zliar" ? skin.gold : c.kind === "political" ? skin.accent : skin.accent2;
+  const color =
+    c.kind === "crypto" || c.kind === "zliar"
+      ? skin.gold
+      : c.kind === "political" || c.kind === "entertainment"
+      ? skin.accent
+      : c.kind === "viral"
+      ? skin.positive
+      : skin.accent2; // celebrity · tabloid · gossipcop
   const onClick = () => {
     if (!c.link) return;
     if (c.link.charAt(0) === "/") window.location.href = c.link;
@@ -88,9 +95,9 @@ export default function NewsTwoRow() {
     ]).then(([news, markets]) => {
       const out: Card[] = [];
       if (news?.success) {
-        (["celebrity", "crypto", "political"] as Kind[]).forEach((k) => {
+        (["entertainment", "celebrity", "tabloid", "crypto", "political", "viral"] as Kind[]).forEach((k) => {
           const arr = news.byCategory?.[k] ?? [];
-          arr.slice(0, 4).forEach((it: { source: string; satiricalHeadline: string; image: string | null; satireScore: number; link: string }) => {
+          arr.slice(0, 3).forEach((it: { source: string; satiricalHeadline: string; image: string | null; satireScore: number; link: string }) => {
             out.push({ kind: k, source: it.source, headline: it.satiricalHeadline, image: it.image, z: it.satireScore, link: it.link ?? "" });
           });
         });

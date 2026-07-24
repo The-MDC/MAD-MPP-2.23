@@ -25,4 +25,12 @@ describe("satirizeHeadline", () => {
     expect(satirizeHeadline("", "crypto")).toBe("");
     expect(satirizeHeadline("   ", "crypto")).toBe("");
   });
+
+  it("supports the tabloid and viral voices distinctly", () => {
+    const tab = satirizeHeadline("Mystery yacht photos surface", "tabloid");
+    const vir = satirizeHeadline("Mystery yacht photos surface", "viral");
+    expect(tab).toContain("Mystery yacht photos surface");
+    expect(vir).toContain("Mystery yacht photos surface");
+    expect(tab).not.toBe(vir);
+  });
 });

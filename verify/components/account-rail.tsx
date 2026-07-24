@@ -3,30 +3,35 @@
 /**
  * MAD Gambit — right account rail (mockup's right sidebar).
  * ────────────────────────────────────────────────────────────────
- * The account/utility nav from the mockup (Login · Sign Up · Settings · … · Live).
- * Every item is a real clickable link. Login/Sign Up route into the app; the rest
- * are placeholder anchors for beta. Skin-aware; desktop chrome.
+ * The account/utility nav from the mockup (Login · Sign Up · Settings · … · Live),
+ * in lucide line icons (no emoji). Login/Sign Up route into the app; the rest are
+ * placeholder anchors for beta. Skin-aware; desktop chrome.
  */
 import React from "react";
+import {
+  KeyRound, Sparkles, Settings, LifeBuoy, Mail, FileText, Lock, Briefcase,
+  Megaphone, Calendar, Mic, Film, Image as ImageIcon, Radio,
+  type LucideIcon,
+} from "lucide-react";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 
-// [icon, label, href]
-const LINKS: [string, string, string][] = [
-  ["🔑", "Login", "/gambit"],
-  ["✨", "Sign Up", "/gambit"],
-  ["⚙️", "Settings", "#settings"],
-  ["❓", "Help", "#help"],
-  ["✉️", "Contact", "#contact"],
-  ["📄", "Terms", "#terms"],
-  ["🔒", "Privacy", "#privacy"],
-  ["💼", "Careers", "#careers"],
-  ["📣", "Advertise", "#advertise"],
-  ["📅", "Events", "#events"],
-  ["🎙️", "Podcasts", "#podcasts"],
-  ["🎞️", "Videos", "#videos"],
-  ["🖼️", "Photos", "#photos"],
-  ["🔴", "Live", "#live"],
+// [Icon, label, href]
+const LINKS: [LucideIcon, string, string][] = [
+  [KeyRound, "Login", "/gambit"],
+  [Sparkles, "Sign Up", "/gambit"],
+  [Settings, "Settings", "#settings"],
+  [LifeBuoy, "Help", "#help"],
+  [Mail, "Contact", "#contact"],
+  [FileText, "Terms", "#terms"],
+  [Lock, "Privacy", "#privacy"],
+  [Briefcase, "Careers", "#careers"],
+  [Megaphone, "Advertise", "#advertise"],
+  [Calendar, "Events", "#events"],
+  [Mic, "Podcasts", "#podcasts"],
+  [Film, "Videos", "#videos"],
+  [ImageIcon, "Photos", "#photos"],
+  [Radio, "Live", "#live"],
 ];
 
 export default function AccountRail() {
@@ -38,7 +43,7 @@ export default function AccountRail() {
         <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, color: skin.gold }}>MG</span>
       </div>
       <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {LINKS.map(([icon, label, href], i) => {
+        {LINKS.map(([Icon, label, href], i) => {
           const primary = i < 2;
           return (
             <a
@@ -46,7 +51,7 @@ export default function AccountRail() {
               href={href}
               style={{ display: "flex", alignItems: "center", gap: 9, padding: "7px 9px", borderRadius: 9, textDecoration: "none", background: primary ? `${skin.gold}18` : "transparent", border: `1px solid ${primary ? `${skin.gold}55` : "transparent"}`, color: primary ? skin.text : skin.muted, fontSize: 10, fontWeight: primary ? 900 : 700, letterSpacing: 0.3, fontFamily: INSTRUMENT_FONT }}
             >
-              <span style={{ fontSize: 12 }} aria-hidden="true">{icon}</span>
+              <Icon size={12} strokeWidth={2.25} style={{ color: primary ? skin.gold : skin.muted, flex: "none" }} />
               {label}
             </a>
           );

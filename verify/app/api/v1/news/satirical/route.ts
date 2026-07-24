@@ -12,14 +12,16 @@ import { satireMetrics } from "@/lib/satire-metrics";
  */
 export const revalidate = 300;
 
-const CATEGORIES: NewsCategory[] = ["entertainment", "celebrity", "crypto", "political"];
+const CATEGORIES: NewsCategory[] = ["entertainment", "celebrity", "tabloid", "crypto", "political", "viral"];
 
 // sourceId → display bucket (satire sources like Onion/Bee are style refs, excluded).
 const BUCKET: Record<string, NewsCategory> = {
   eonline: "entertainment", variety: "entertainment",
-  tmz: "celebrity", dailymail: "celebrity", pagesix: "celebrity", people: "celebrity", usweekly: "celebrity",
+  tmz: "celebrity", pagesix: "celebrity", people: "celebrity", usweekly: "celebrity",
+  dailymail: "tabloid", thesun: "tabloid", mirror: "tabloid",
   coindesk: "crypto", cointelegraph: "crypto", decrypt: "crypto", theblock: "crypto", bankless: "crypto",
   reuters: "political", politico: "political", thehill: "political", bbcpolitics: "political", axios: "political",
+  redditviral: "viral", buzzfeed: "viral",
 };
 
 export interface SatiricalNewsItem {
@@ -61,6 +63,11 @@ const DEMO: { source: string; category: NewsCategory; title: string }[] = [
   { source: "Politico", category: "political", title: "Bipartisan committee agrees only on the catering order" },
   { source: "The Hill", category: "political", title: "Official denies rumor no one had actually reported yet" },
   { source: "BBC Politics", category: "political", title: "Landmark bill passes, immediately scheduled for repeal" },
+  { source: "Daily Mail", category: "tabloid", title: "Mystery yacht photos spark three separate feuds" },
+  { source: "The Sun", category: "tabloid", title: "Soap star's parking ticket becomes front-page saga" },
+  { source: "The Mirror", category: "tabloid", title: "Royal corgi's diet 'leaked' by palace insider" },
+  { source: "Reddit Viral", category: "viral", title: "Cat interrupts live parliament feed, becomes national icon" },
+  { source: "BuzzFeed", category: "viral", title: "Quiz determining which scandal you are crashes from traffic" },
 ];
 
 export async function GET() {
@@ -78,7 +85,7 @@ export async function GET() {
   const live = items.length > 0;
   if (!live) items = DEMO.map((d) => toItem(d.source, d.category, d.title));
 
-  const byCategory: Record<NewsCategory, SatiricalNewsItem[]> = { entertainment: [], celebrity: [], crypto: [], political: [] };
+  const byCategory: Record<NewsCategory, SatiricalNewsItem[]> = { entertainment: [], celebrity: [], tabloid: [], crypto: [], political: [], viral: [] };
   for (const it of items) byCategory[it.category].push(it);
   for (const c of CATEGORIES) byCategory[c] = byCategory[c].slice(0, 10); // top 10 per bucket
 
