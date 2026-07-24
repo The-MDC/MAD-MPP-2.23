@@ -1,17 +1,49 @@
 version: 2
+
+# Dependabot config is read from the DEFAULT branch (main) — enhancements here
+# take effect once merged. Version updates below surface out-of-range bumps
+# (e.g. postcss ≥ 8.5.10 flows through the /verify npm updater on the next run).
+#
+# For the HIGH/critical advisories specifically, also enable — in repo Settings →
+# Advanced Security → Dependabot — "Dependabot alerts" + "Dependabot security
+# updates". That UI toggle (which a config file cannot set) auto-opens dedicated
+# security PRs the moment an advisory lands, independent of this weekly schedule.
+# CodeQL is intentionally NOT re-added (it was removed deliberately earlier).
 updates:
+  # ── App dependencies: the Next.js app lives in verify/ ──────────────
   - package-ecosystem: "npm"
     directory: "/verify"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Etc/UTC"
     open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
     commit-message:
       prefix: "deps"
       include: "scope"
+    groups:
+      # Batch low-risk minor/patch bumps into one PR to cut review noise; security
+      # advisories still open their own dedicated PRs regardless of grouping.
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # ── GitHub Actions workflow pins ────────────────────────────────────
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Etc/UTC"
     open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
     commit-message:
       prefix: "ci"
+      include: "scope"
