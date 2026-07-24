@@ -17,7 +17,7 @@ import React, { useEffect, useState } from "react";
 import { SkinProvider, useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import CryptoTickerDual from "@/components/crypto-ticker-dual";
-import NewsFlowSection from "@/components/news-flow-section";
+import NewsCarousel from "@/components/news-carousel";
 import FeaturedMarketCards from "@/components/featured-market-cards";
 import DopamineCarouselStrip from "@/components/dopamine-carousel-strip";
 import SeikoFlipClock from "@/components/seiko-flip-clock";
@@ -99,7 +99,7 @@ function PreviewInner() {
         </header>
 
         <main style={{ maxWidth: 1040, margin: "0 auto", padding: "8px 16px 96px", display: "flex", flexDirection: "column", gap: 26 }}>
-          <NewsFlowSection />
+          <NewsCarousel />
 
           <div style={{ display: "flex", justifyContent: "center", padding: "4px 0" }}>
             <SeikoFlipClock label="MAD·TIME UTC" />
