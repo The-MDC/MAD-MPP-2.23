@@ -23,6 +23,8 @@ import DopamineCarouselStrip from "@/components/dopamine-carousel-strip";
 import SeikoFlipClock from "@/components/seiko-flip-clock";
 import PerpDials from "@/components/perp-dials";
 import MarketTypeCarousels from "@/components/market-type-carousels";
+import CategoryRail from "@/components/category-rail";
+import AccountRail from "@/components/account-rail";
 
 function Chip({ label, filled }: { label: string; filled?: boolean }) {
   const { skin } = useSkin();
@@ -44,14 +46,14 @@ function SectionHeading({ children, color }: { children: React.ReactNode; color?
 
 function BottomNav() {
   const { skin } = useSkin();
-  const items: [string, string][] = [["🏠", "Home"], ["📈", "Markets"], ["👛", "Wallet"], ["👤", "Profile"]];
+  const items: [string, string, string][] = [["🏠", "Home", "/"], ["📈", "Markets", "/gambit"], ["👛", "Wallet", "/gambit"], ["👤", "Profile", "/gambit"]];
   return (
     <nav style={{ position: "fixed", left: 0, right: 0, bottom: 0, display: "flex", justifyContent: "space-around", alignItems: "center", padding: "10px 0", background: skin.panel, borderTop: `1px solid ${skin.border}`, backdropFilter: "blur(6px)", zIndex: 30 }}>
-      {items.map(([icon, label]) => (
-        <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, color: skin.muted, fontSize: 8, letterSpacing: 1, textTransform: "uppercase" }}>
+      {items.map(([icon, label, href], i) => (
+        <a key={label} href={href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, textDecoration: "none", color: i === 0 ? skin.accent : skin.muted, fontSize: 8, letterSpacing: 1, textTransform: "uppercase" }}>
           <span style={{ fontSize: 18 }} aria-hidden="true">{icon}</span>
           {label}
-        </div>
+        </a>
       ))}
     </nav>
   );
@@ -61,13 +63,21 @@ function PreviewInner() {
   const { skin, name, toggle } = useSkin();
   const [sy, setSy] = useState(0);
   const [reduce, setReduce] = useState(false);
+  const [wide, setWide] = useState(false);
 
   useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduce(mq.matches);
+    const rm = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduce(rm.matches);
+    const wq = window.matchMedia("(min-width: 1024px)");
+    const applyWide = () => setWide(wq.matches);
+    applyWide();
+    wq.addEventListener("change", applyWide);
     const onScroll = () => setSy(window.scrollY || 0);
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      wq.removeEventListener("change", applyWide);
+      window.removeEventListener("scroll", onScroll);
+    };
   }, []);
 
   const par = (factor: number): string => (reduce ? "none" : `translateY(${sy * factor}px)`);
@@ -98,33 +108,42 @@ function PreviewInner() {
           </div>
         </header>
 
-        <main style={{ maxWidth: 1040, margin: "0 auto", padding: "8px 16px 96px", display: "flex", flexDirection: "column", gap: 26 }}>
-          <NewsCarousel />
+        {/* Responsive shell: left + right rails on desktop (mockup sidebars), stacked on mobile */}
+        <div style={{ maxWidth: wide ? 1300 : 1040, margin: "0 auto", padding: "8px 12px 96px", display: "flex", gap: 16, alignItems: "flex-start" }}>
+          {wide ? <CategoryRail /> : null}
 
-          <div style={{ display: "flex", justifyContent: "center", padding: "4px 0" }}>
-            <SeikoFlipClock label="MAD·TIME UTC" />
-          </div>
+          <main style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 26 }}>
+            <div id="mg-news">
+              <NewsCarousel />
+            </div>
 
-          <div>
-            <SectionHeading>Customizable Dopamine Carousel</SectionHeading>
-            <DopamineCarouselStrip />
-          </div>
+            <div style={{ display: "flex", justifyContent: "center", padding: "4px 0" }}>
+              <SeikoFlipClock label="MAD·TIME UTC" />
+            </div>
 
-          {/* Restored analog dials + GossipCop × Z-Liar dashboard */}
-          <PerpDials />
+            <div>
+              <SectionHeading>Customizable Dopamine Carousel</SectionHeading>
+              <DopamineCarouselStrip />
+            </div>
 
-          {/* One carousel per market class (Progression · Saga · Z-Liar · Perp · GossipCop) */}
-          <MarketTypeCarousels />
+            {/* Restored analog dials + GossipCop × Z-Liar dashboard */}
+            <PerpDials />
 
-          <div id="mg-featured">
-            <FeaturedMarketCards />
-          </div>
+            {/* One carousel per market class (Progression · Saga · Z-Liar · Perp · GossipCop) */}
+            <MarketTypeCarousels />
 
-          <div style={{ fontSize: 8, color: skin.muted, textAlign: "center", lineHeight: 1.6 }}>
-            Faithful assembly of the dopamine-landing mockup · clickable perpetual tickers · scroll-parallax hub ·
-            flip-clock + arrow carousel + dual themes are live · imagery/odds are beta placeholders.
-          </div>
-        </main>
+            <div id="mg-featured">
+              <FeaturedMarketCards />
+            </div>
+
+            <div style={{ fontSize: 8, color: skin.muted, textAlign: "center", lineHeight: 1.6 }}>
+              Faithful assembly of the dopamine-landing mockup · clickable tickers, rails, nav + cards · scroll-parallax
+              hub · live news / dials / market carousels · imagery & odds are beta placeholders.
+            </div>
+          </main>
+
+          {wide ? <AccountRail /> : null}
+        </div>
       </div>
 
       <BottomNav />

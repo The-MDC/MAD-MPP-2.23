@@ -128,7 +128,12 @@ export default function NewsCarousel() {
       ) : item === null ? (
         <div style={{ fontSize: 9, color: skin.muted, padding: "20px 2px" }}>No headlines in this feed yet.</div>
       ) : (
-        <div style={{ position: "relative", borderRadius: 16, overflow: "hidden", border: `1px solid ${skin.border}`, minHeight: 232 }}>
+        <div
+          onClick={() => { if (item.link) window.open(item.link, "_blank", "noopener"); }}
+          role="link"
+          title={item.link ? "Open source article" : undefined}
+          style={{ position: "relative", borderRadius: 16, overflow: "hidden", border: `1px solid ${skin.border}`, minHeight: 232, cursor: item.link ? "pointer" : "default" }}
+        >
           <Art image={item.image} from={from} to={to} />
           <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", minHeight: 232, padding: 16 }}>
             {/* top row: source + badges */}
@@ -159,8 +164,8 @@ export default function NewsCarousel() {
           </div>
 
           {/* arrows */}
-          <button type="button" aria-label="Previous" onClick={() => step(-1)} style={arrowStyle(skin.accent, "left")}>‹</button>
-          <button type="button" aria-label="Next" onClick={() => step(1)} style={arrowStyle(skin.accent, "right")}>›</button>
+          <button type="button" aria-label="Previous" onClick={(e) => { e.stopPropagation(); step(-1); }} style={arrowStyle(skin.accent, "left")}>‹</button>
+          <button type="button" aria-label="Next" onClick={(e) => { e.stopPropagation(); step(1); }} style={arrowStyle(skin.accent, "right")}>›</button>
         </div>
       )}
 

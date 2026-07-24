@@ -78,14 +78,17 @@ export default function FeaturedMarketCards() {
                 <div style={{ fontSize: 22, fontWeight: 900, color: skin.text }}>{m.no}</div>
               </div>
             </div>
-            <button
-              type="button"
+            <a
+              href="/gambit"
               style={{
+                display: "block",
                 width: "100%",
                 padding: "12px 0",
                 borderRadius: 12,
                 border: "none",
                 cursor: "pointer",
+                textAlign: "center",
+                textDecoration: "none",
                 background: skin.accent,
                 color: skin.bg,
                 fontSize: 13,
@@ -97,7 +100,7 @@ export default function FeaturedMarketCards() {
               }}
             >
               Bet Now
-            </button>
+            </a>
           </div>
         ))}
       </div>
