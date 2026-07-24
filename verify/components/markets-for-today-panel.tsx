@@ -5,7 +5,7 @@
  * proposals (progression / saga / z-liar / perp) from real scandal signals via
  * /api/v1/markets/proposals. Filterable by type. Skin-aware, degrade-safe.
  */
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 
@@ -32,19 +32,29 @@ export default function MarketsForTodayPanel() {
   const { skin } = useSkin();
   const [data, setData] = useState<Resp | null>(null);
   const [filter, setFilter] = useState<MarketType | "all">("all");
+  const [pulling, setPulling] = useState(false);
 
-  useEffect(() => {
-    let stop = false;
+  const load = useCallback(() => {
     fetch("/api/v1/markets/proposals?limit=16")
       .then((r) => r.json())
       .then((d: Resp) => {
-        if (!stop && d?.success) setData(d);
+        if (d?.success) setData(d);
       })
       .catch(() => {});
-    return () => {
-      stop = true;
-    };
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // Yank fresh chaos from GDELT, then re-classify. (Live in prod; a no-op flourish
+  // without a DB — the button still spins and reloads the demo set.)
+  const pullFresh = async () => {
+    setPulling(true);
+    await fetch("/api/v1/ingest/gdelt", { method: "POST" }).catch(() => {});
+    load();
+    setPulling(false);
+  };
 
   const typeColor = (t: MarketType): string =>
     t === "perp" ? skin.accent2 : t === "zliar" ? skin.gold : t === "saga" ? skin.accent : skin.positive;
@@ -59,11 +69,21 @@ export default function MarketsForTodayPanel() {
         <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: skin.gold, textTransform: "uppercase" }}>
           Markets for Today
         </div>
-        {data && (
-          <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "2px 6px", borderRadius: 4, color: live ? skin.accent : skin.muted, background: `${live ? skin.accent : skin.muted}18`, border: `1px solid ${live ? skin.accent : skin.muted}40` }}>
-            {live ? "live" : "demo"}
-          </span>
-        )}
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <button
+            onClick={pullFresh}
+            disabled={pulling}
+            title="Pull fresh scandals from GDELT"
+            style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "3px 7px", borderRadius: 5, cursor: pulling ? "default" : "pointer", color: skin.gold, background: `${skin.gold}18`, border: `1px solid ${skin.gold}55`, fontFamily: INSTRUMENT_FONT, opacity: pulling ? 0.6 : 1 }}
+          >
+            {pulling ? "…" : "⚡ Pull fresh"}
+          </button>
+          {data && (
+            <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "2px 6px", borderRadius: 4, color: live ? skin.accent : skin.muted, background: `${live ? skin.accent : skin.muted}18`, border: `1px solid ${live ? skin.accent : skin.muted}40` }}>
+              {live ? "live" : "demo"}
+            </span>
+          )}
+        </div>
       </div>
       <div style={{ fontSize: 7, color: skin.muted, marginBottom: 12 }}>
         Auto-classified from scandal signals · Progression / Saga / Z-Liar / Perp.

@@ -111,6 +111,20 @@ async function main() {
       "audit_log write+read",
     );
 
+    // gdelt url dedup — the unique index makes live ingest idempotent (Phase 1).
+    await client.query(
+      `INSERT INTO gdelt_signals (headline, url) VALUES ('smoke dedup', 'smoke://dedup')
+       ON CONFLICT (url) WHERE url IS NOT NULL DO NOTHING`,
+    );
+    await client.query(
+      `INSERT INTO gdelt_signals (headline, url) VALUES ('smoke dedup 2', 'smoke://dedup')
+       ON CONFLICT (url) WHERE url IS NOT NULL DO NOTHING`,
+    );
+    assert(
+      (await client.query(`SELECT count(*)::int AS n FROM gdelt_signals WHERE url='smoke://dedup'`)).rows[0].n === 1,
+      "gdelt_signals url dedup (unique index)",
+    );
+
     await client.query(`INSERT INTO madx_accounts (owner, balance, staked) VALUES ($1, 500, 100)`, [ZERO]);
     assert(
       (await client.query(`SELECT count(*)::int AS n FROM madx_accounts WHERE owner=$1`, [ZERO])).rows[0].n >= 1,
