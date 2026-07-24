@@ -8,6 +8,8 @@
     "start": "node .next/standalone/server.js",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "migrate": "node scripts/migrate.mjs",
     "db:smoke": "node scripts/db-smoke.mjs"
   },
