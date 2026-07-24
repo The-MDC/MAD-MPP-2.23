@@ -108,6 +108,16 @@ function GambitInner() {
   // Modals
   const [showAuthModal, setShowAuthModal] = useState(false);
 
+  // Deep-link: open the tab named in ?tab= (or #hash) on load, so the hub / any
+  // link can route straight into a platform tab. Validated against the Tab union.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const raw = (params.get("tab") || window.location.hash.replace("#", "")).toLowerCase();
+    const valid = ["floor", "saga", "arena", "packs", "portal", "casino", "logic"];
+    if (valid.indexOf(raw) !== -1) setTab(raw as Tab);
+  }, []);
+
   // Reward-moment delight — a celebration burst when entering a high-point tab.
   useEffect(() => {
     if (tab === "packs" || tab === "casino" || tab === "arena") {

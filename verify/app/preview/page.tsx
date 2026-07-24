@@ -25,6 +25,7 @@ import PerpDials from "@/components/perp-dials";
 import MarketTypeCarousels from "@/components/market-type-carousels";
 import CategoryRail from "@/components/category-rail";
 import AccountRail from "@/components/account-rail";
+import PlatformExplorer from "@/components/platform-explorer";
 
 function Chip({ label, filled }: { label: string; filled?: boolean }) {
   const { skin } = useSkin();
@@ -46,7 +47,7 @@ function SectionHeading({ children, color }: { children: React.ReactNode; color?
 
 function BottomNav() {
   const { skin } = useSkin();
-  const items: [string, string, string][] = [["🏠", "Home", "/"], ["📈", "Markets", "/gambit"], ["👛", "Wallet", "/gambit"], ["👤", "Profile", "/gambit"]];
+  const items: [string, string, string][] = [["🏠", "Home", "/"], ["📈", "Markets", "/gambit?tab=floor"], ["👛", "Wallet", "/gambit?tab=portal"], ["👤", "Profile", "/gambit?tab=saga"]];
   return (
     <nav style={{ position: "fixed", left: 0, right: 0, bottom: 0, display: "flex", justifyContent: "space-around", alignItems: "center", padding: "10px 0", background: skin.panel, borderTop: `1px solid ${skin.border}`, backdropFilter: "blur(6px)", zIndex: 30 }}>
       {items.map(([icon, label, href], i) => (
@@ -136,9 +137,17 @@ function PreviewInner() {
               <FeaturedMarketCards />
             </div>
 
-            <div style={{ fontSize: 8, color: skin.muted, textAlign: "center", lineHeight: 1.6 }}>
-              Faithful assembly of the dopamine-landing mockup · clickable tickers, rails, nav + cards · scroll-parallax
-              hub · live news / dials / market carousels · imagery & odds are beta placeholders.
+            {/* Every /gambit tab/feature, deep-linked into the new theme */}
+            <PlatformExplorer />
+
+            <div style={{ textAlign: "center", lineHeight: 1.7 }}>
+              <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1, color: skin.muted, textTransform: "uppercase" }}>
+                Platform Fee 1.88% · Creator Share 40% · Community 28.8% · $MADx 888,888,888 fixed
+              </div>
+              <div style={{ fontSize: 8, color: skin.muted, marginTop: 4 }}>
+                Faithful assembly of the mockup · clickable tickers, rails, nav, cards + platform links · live news /
+                dials / market carousels · imagery & odds are beta placeholders.
+              </div>
             </div>
           </main>
 
