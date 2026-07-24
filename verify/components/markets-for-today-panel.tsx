@@ -9,7 +9,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 
-type MarketType = "progression" | "saga" | "zliar" | "perp";
+type MarketType = "progression" | "saga" | "zliar" | "perp" | "gossipcop";
 interface Proposal {
   type: MarketType;
   title: string;
@@ -26,7 +26,7 @@ interface Resp {
   byType: Record<MarketType, number>;
 }
 
-const TYPE_LABEL: Record<MarketType, string> = { progression: "Progression", saga: "Saga", zliar: "Z-Liar", perp: "Perp" };
+const TYPE_LABEL: Record<MarketType, string> = { progression: "Progression", saga: "Saga", zliar: "Z-Liar", perp: "Perp", gossipcop: "Gossip Perp" };
 
 export default function MarketsForTodayPanel() {
   const { skin } = useSkin();
@@ -57,11 +57,17 @@ export default function MarketsForTodayPanel() {
   };
 
   const typeColor = (t: MarketType): string =>
-    t === "perp" ? skin.accent2 : t === "zliar" ? skin.gold : t === "saga" ? skin.accent : skin.positive;
+    t === "perp" || t === "gossipcop"
+      ? skin.accent2
+      : t === "zliar"
+      ? skin.gold
+      : t === "saga"
+      ? skin.accent
+      : skin.positive;
 
   const proposals = (data?.proposals ?? []).filter((p) => filter === "all" || p.type === filter);
   const live = data?.source === "live";
-  const chips: (MarketType | "all")[] = ["all", "progression", "saga", "zliar", "perp"];
+  const chips: (MarketType | "all")[] = ["all", "progression", "saga", "zliar", "perp", "gossipcop"];
 
   return (
     <div style={{ background: skin.panel, border: `1px solid ${skin.border}`, borderRadius: 16, padding: 18, fontFamily: INSTRUMENT_FONT, color: skin.text }}>

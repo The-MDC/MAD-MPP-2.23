@@ -21,7 +21,19 @@ import { scoreSentiment, type Sentiment } from "@/lib/sentiment";
 import { zLiarMeter } from "@/lib/gambit-game-math";
 import { perpTriggerProbability } from "@/lib/gdelt";
 
-export type MarketType = "progression" | "saga" | "zliar" | "perp";
+export type MarketType = "progression" | "saga" | "zliar" | "perp" | "gossipcop";
+
+// GossipCop = the celebrity/entertainment historical-vault perp family. A long-arc
+// gossip storyline tracked continuously (never a clean binary resolution).
+const GOSSIP_TERMS = [
+  "celebrity", "gossip", "royal", "tabloid", "breakup", "divorce", "feud", "affair",
+  "dating", "split", "scandal", "drama", "rumor", "cheating", "meltdown", "hollywood",
+];
+
+function isGossip(headline: string): boolean {
+  const t = (headline ?? "").toLowerCase();
+  return GOSSIP_TERMS.some((w) => t.includes(w));
+}
 
 export interface Signal {
   headline: string;
@@ -70,6 +82,8 @@ function horizonLabel(days: number): string {
 function buildTitle(headline: string, type: MarketType, days: number): string {
   const h = headline.length > 90 ? `${headline.slice(0, 87)}…` : headline;
   switch (type) {
+    case "gossipcop":
+      return `Gossip Perp: is "${h}" a forever-saga? (continuous)`;
     case "perp":
       return `Ongoing: "${h}" — chaos index (perpetual)`;
     case "saga":
@@ -83,6 +97,8 @@ function buildTitle(headline: string, type: MarketType, days: number): string {
 
 function buildResolution(type: MarketType, days: number): string {
   switch (type) {
+    case "gossipcop":
+      return "Continuous MAD Gossip perp — historical-pattern (GossipCop-style) tracked; positions roll while the saga stays live.";
     case "perp":
       return "Continuous market — no fixed end; positions roll while the storyline stays live.";
     case "saga":
@@ -119,9 +135,11 @@ export function classifySignal(sig: Signal): MarketProposal {
   const zliarEligible = zliar.score >= 60 && sentiment.dopaminePotential;
   const perpEligible = perpProbability >= 0.6;
 
-  // Primary type — priority order documented above.
+  // Primary type — priority order documented above. A long-arc, celebrity/gossip
+  // perp graduates to the GossipCop class (its own carousel + dashboard surface).
   let type: MarketType;
-  if (perpEligible && horizonDays >= 365) type = "perp";
+  if (perpEligible && horizonDays >= 365 && isGossip(headline)) type = "gossipcop";
+  else if (perpEligible && horizonDays >= 365) type = "perp";
   else if (zliarEligible && horizonDays <= 45) type = "zliar";
   else if (horizonDays > 60) type = "saga";
   else type = "progression";

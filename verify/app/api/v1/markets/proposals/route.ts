@@ -19,7 +19,7 @@ const DEMO_HEADLINES = [
 ];
 
 function countByType(proposals: { type: MarketType }[]): Record<MarketType, number> {
-  const c: Record<MarketType, number> = { progression: 0, saga: 0, zliar: 0, perp: 0 };
+  const c: Record<MarketType, number> = { progression: 0, saga: 0, zliar: 0, perp: 0, gossipcop: 0 };
   for (const p of proposals) c[p.type] += 1;
   return c;
 }

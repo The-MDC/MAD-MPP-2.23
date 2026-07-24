@@ -25,6 +25,19 @@ describe("classifySignal", () => {
     expect(p.horizonDays).toBe(540);
   });
 
+  it("labels a long-horizon, high-perp CELEBRITY signal as a GossipCop perp", () => {
+    const sig: Signal = { headline: "a decade-long celebrity feud saga", perpProbability: 0.9 };
+    const p = classifySignal(sig);
+    expect(p.type).toBe("gossipcop");
+    expect(p.perpEligible).toBe(true);
+    expect(p.horizonDays).toBe(540);
+  });
+
+  it("keeps a non-celebrity long-horizon perp as a plain perp (not GossipCop)", () => {
+    const p = classifySignal({ headline: "a decade-long empire saga", perpProbability: 0.9 });
+    expect(p.type).toBe("perp");
+  });
+
   it("labels a long-horizon, low-perp signal as a saga", () => {
     const sig: Signal = { headline: "a decade-long empire saga", perpProbability: 0.1 };
     const p = classifySignal(sig);

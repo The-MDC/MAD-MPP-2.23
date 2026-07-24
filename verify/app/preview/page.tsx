@@ -21,6 +21,8 @@ import NewsFlowSection from "@/components/news-flow-section";
 import FeaturedMarketCards from "@/components/featured-market-cards";
 import DopamineCarouselStrip from "@/components/dopamine-carousel-strip";
 import SeikoFlipClock from "@/components/seiko-flip-clock";
+import PerpDials from "@/components/perp-dials";
+import MarketTypeCarousels from "@/components/market-type-carousels";
 
 function Chip({ label, filled }: { label: string; filled?: boolean }) {
   const { skin } = useSkin();
@@ -107,6 +109,12 @@ function PreviewInner() {
             <SectionHeading>Customizable Dopamine Carousel</SectionHeading>
             <DopamineCarouselStrip />
           </div>
+
+          {/* Restored analog dials + GossipCop × Z-Liar dashboard */}
+          <PerpDials />
+
+          {/* One carousel per market class (Progression · Saga · Z-Liar · Perp · GossipCop) */}
+          <MarketTypeCarousels />
 
           <div id="mg-featured">
             <FeaturedMarketCards />
