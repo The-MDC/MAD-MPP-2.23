@@ -3,21 +3,22 @@
 /**
  * MAD Gambit — Seiko Split-Flap Flip Clock
  * ────────────────────────────────────────────────────────────────
- * The mockup's top-right clock as a real split-flap (departure-board)
- * display, not flat glowing text: each digit is a gold-cased card whose
- * top leaf folds down (rotateX) to reveal the next value.
+ * The mockup's clock as a real split-flap (departure-board) display, not flat
+ * glowing text: each digit is a gold-cased card whose top leaf folds down
+ * (rotateX) to reveal the next value.
  *
  * - Tokens only: INK / GOLD_CHISEL_STOPS / INSTRUMENT_FONT (no local palette).
- * - Reduced-motion: honors prefers-reduced-motion — digits swap instantly,
- *   no fold animation.
+ * - `scale` prop: true layout scaling (card metrics multiply — no CSS transform
+ *   blur, no overlap). scale={1.2} = the hub's 20%-enlarged chrono.
+ * - Reduced-motion: honors prefers-reduced-motion — digits swap instantly.
  * - SSR-safe: renders a stable placeholder until mounted, so the server and
  *   first client paint match (no hydration mismatch from Date.now()).
  */
 import React, { useEffect, useRef, useState } from "react";
 import { INK, GOLD_CHISEL_STOPS, INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 
-const CARD_W = 30;
-const CARD_H = 44;
+const BASE_W = 30;
+const BASE_H = 44;
 const FLIP_MS = 500;
 
 const goldCss = `linear-gradient(160deg, ${GOLD_CHISEL_STOPS.map(([o, c]) => `${c} ${o}%`).join(", ")})`;
@@ -34,15 +35,21 @@ function usePrefersReducedMotion(): boolean {
   return reduce;
 }
 
+interface Metrics {
+  w: number;
+  h: number;
+  fs: number;
+}
+
 /** One half of a digit card — the glyph clipped to its top or bottom band. */
-function Half({ digit, half }: { digit: string; half: "top" | "bottom" }) {
+function Half({ digit, half, m }: { digit: string; half: "top" | "bottom"; m: Metrics }) {
   const isTop = half === "top";
   return (
     <div
       style={{
         position: "relative",
-        width: CARD_W,
-        height: CARD_H / 2,
+        width: m.w,
+        height: m.h / 2,
         overflow: "hidden",
         background: INK.bgCard,
         borderRadius: isTop ? "5px 5px 0 0" : "0 0 5px 5px",
@@ -69,16 +76,18 @@ function Half({ digit, half }: { digit: string; half: "top" | "bottom" }) {
       <div
         style={{
           position: "absolute",
-          top: isTop ? 0 : -CARD_H / 2,
-          width: CARD_W,
-          height: CARD_H,
-          lineHeight: `${CARD_H}px`,
+          top: isTop ? 0 : -m.h / 2,
+          width: m.w,
+          height: m.h,
+          lineHeight: `${m.h}px`,
           textAlign: "center",
           fontFamily: INSTRUMENT_FONT,
-          fontSize: 30,
-          fontWeight: 800,
-          color: INK.goldLcd,
-          textShadow: `0 0 8px ${INK.gold}55`,
+          fontSize: m.fs,
+          fontWeight: 900,
+          // Neon-ticker numerals (mockup dopamine-ticker treatment): hot gold core
+          // with layered luminance halo, like the BTC/MADx marquee digits.
+          color: INK.gold,
+          textShadow: `0 0 6px ${INK.gold}, 0 0 14px ${INK.gold}aa, 0 0 28px ${INK.gold}55`,
           background: "transparent",
         }}
       >
@@ -88,7 +97,7 @@ function Half({ digit, half }: { digit: string; half: "top" | "bottom" }) {
   );
 }
 
-function FlipDigit({ value }: { value: string }) {
+function FlipDigit({ value, m }: { value: string; m: Metrics }) {
   const [current, setCurrent] = useState(value);
   const [previous, setPrevious] = useState(value);
   const [flipping, setFlipping] = useState(false);
@@ -111,10 +120,10 @@ function FlipDigit({ value }: { value: string }) {
   }, [value]);
 
   return (
-    <div style={{ position: "relative", width: CARD_W, height: CARD_H, perspective: 220 }}>
+    <div style={{ position: "relative", width: m.w, height: m.h, perspective: Math.round(220 * (m.h / BASE_H)) }}>
       {/* Settled halves: top already shows the new value, bottom still shows old */}
-      <Half digit={current} half="top" />
-      <Half digit={flipping ? previous : current} half="bottom" />
+      <Half digit={current} half="top" m={m} />
+      <Half digit={flipping ? previous : current} half="bottom" m={m} />
 
       {flipping && (
         <>
@@ -130,13 +139,13 @@ function FlipDigit({ value }: { value: string }) {
               zIndex: 3,
             }}
           >
-            <Half digit={previous} half="top" />
+            <Half digit={previous} half="top" m={m} />
           </div>
           {/* Lower leaf of the NEW digit folding into place */}
           <div
             style={{
               position: "absolute",
-              top: CARD_H / 2,
+              top: m.h / 2,
               left: 0,
               transformOrigin: "50% 0%",
               transformStyle: "preserve-3d",
@@ -145,7 +154,7 @@ function FlipDigit({ value }: { value: string }) {
               zIndex: 3,
             }}
           >
-            <Half digit={current} half="bottom" />
+            <Half digit={current} half="bottom" m={m} />
           </div>
         </>
       )}
@@ -153,28 +162,35 @@ function FlipDigit({ value }: { value: string }) {
   );
 }
 
-function Separator() {
+function Separator({ scale }: { scale: number }) {
+  const dot = Math.max(3, Math.round(4 * scale));
   return (
     <div
       style={{
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
-        gap: 6,
-        padding: "0 3px",
+        gap: Math.round(6 * scale),
+        padding: `0 ${Math.round(3 * scale)}px`,
       }}
       aria-hidden="true"
     >
       {[0, 1].map((i) => (
-        <span key={i} style={{ width: 4, height: 4, borderRadius: "50%", background: INK.gold, boxShadow: `0 0 5px ${INK.gold}` }} />
+        <span key={i} style={{ width: dot, height: dot, borderRadius: "50%", background: INK.gold, boxShadow: `0 0 5px ${INK.gold}` }} />
       ))}
     </div>
   );
 }
 
-export default function SeikoFlipClock({ label = "MAD·TIME UTC" }: { label?: string }) {
+export default function SeikoFlipClock({ label = "MAD·TIME UTC", scale = 1 }: { label?: string; scale?: number }) {
   const [mounted, setMounted] = useState(false);
   const [time, setTime] = useState("00:00:00");
+
+  const m: Metrics = {
+    w: Math.round(BASE_W * scale),
+    h: Math.round(BASE_H * scale),
+    fs: Math.round(30 * scale),
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -193,8 +209,8 @@ export default function SeikoFlipClock({ label = "MAD·TIME UTC" }: { label?: st
   const digits = time.replace(/:/g, "");
   const cells: React.ReactNode[] = [];
   digits.split("").forEach((d, i) => {
-    cells.push(<FlipDigit key={`d${i}`} value={mounted ? d : "0"} />);
-    if (i === 1 || i === 3) cells.push(<Separator key={`s${i}`} />);
+    cells.push(<FlipDigit key={`d${i}`} value={mounted ? d : "0"} m={m} />);
+    if (i === 1 || i === 3) cells.push(<Separator key={`s${i}`} scale={scale} />);
   });
 
   return (
@@ -203,9 +219,9 @@ export default function SeikoFlipClock({ label = "MAD·TIME UTC" }: { label?: st
         style={{
           display: "inline-flex",
           alignItems: "center",
-          gap: 3,
-          padding: 6,
-          borderRadius: 10,
+          gap: Math.round(3 * scale),
+          padding: Math.round(6 * scale),
+          borderRadius: Math.round(10 * scale),
           background: goldCss,
           boxShadow: `0 2px 10px rgba(0,0,0,0.5), inset 0 0 0 1px ${INK.borderGold}`,
         }}

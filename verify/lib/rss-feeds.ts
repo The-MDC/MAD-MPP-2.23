@@ -15,7 +15,7 @@ export interface FeedSource {
   id: string;
   name: string;
   url: string;
-  category: "crypto" | "macro" | "news" | "thesis" | "entertainment" | "satire";
+  category: "crypto" | "macro" | "news" | "thesis" | "entertainment" | "satire" | "celebrity" | "political" | "tabloid" | "viral";
   trust_score: number;       // 1 to 10
   satire_flag: boolean;
   virality_weight: number;   // multiplier
@@ -25,23 +25,51 @@ export const FEED_SOURCES: FeedSource[] = [
   { id: "reuters",      name: "Global Headlines (Reuters)", url: "https://www.reutersagency.com/feed/?best-regions=global&best-sectors=top-news", category: "news", trust_score: 10, satire_flag: false, virality_weight: 1.0 },
   { id: "eonline",      name: "Entertainment Headlines (E!)", url: "https://www.eonline.com/syndication/feeds/rssfeeds/topstories.xml", category: "entertainment", trust_score: 7, satire_flag: false, virality_weight: 1.5 },
   { id: "tmz",          name: "Celebrity News (TMZ)", url: "https://www.tmz.com/rss.xml", category: "entertainment", trust_score: 6, satire_flag: false, virality_weight: 2.0 },
-  { id: "dailymail",    name: "Tabloids (Daily Mail)", url: "https://www.dailymail.co.uk/articles.rss", category: "news", trust_score: 4, satire_flag: false, virality_weight: 2.5 },
+  { id: "dailymail",    name: "Tabloids (Daily Mail)", url: "https://www.dailymail.co.uk/articles.rss", category: "tabloid", trust_score: 4, satire_flag: false, virality_weight: 2.5 },
   { id: "coindesk",     name: "Crypto News (CoinDesk)", url: "https://www.coindesk.com/arc/outboundfeeds/rss/", category: "crypto", trust_score: 8, satire_flag: false, virality_weight: 1.2 },
   { id: "cointelegraph",name: "Crypto News (Cointelegraph)", url: "https://cointelegraph.com/rss", category: "crypto", trust_score: 8, satire_flag: false, virality_weight: 1.2 },
   { id: "theonion",     name: "The Onion", url: "https://www.theonion.com/rss", category: "satire", trust_score: 1, satire_flag: true, virality_weight: 3.0 },
   { id: "babylonbee",   name: "The Potato (Babylon Bee)", url: "https://babylonbee.com/feed", category: "satire", trust_score: 1, satire_flag: true, virality_weight: 3.0 },
-  { id: "redditviral",  name: "Social Viral Media (Reddit)", url: "https://www.reddit.com/r/ViralNews/.rss", category: "news", trust_score: 5, satire_flag: false, virality_weight: 2.5 },
+  { id: "redditviral",  name: "Social Viral Media (Reddit)", url: "https://www.reddit.com/r/ViralNews/.rss", category: "viral", trust_score: 5, satire_flag: false, virality_weight: 2.5 },
+  // Top-source expansion across the 4 display buckets (Entertainment · Celebrity · Crypto · Political).
+  { id: "variety",      name: "Variety", url: "https://variety.com/feed/", category: "entertainment", trust_score: 7, satire_flag: false, virality_weight: 1.6 },
+  { id: "pagesix",      name: "Page Six", url: "https://pagesix.com/feed/", category: "celebrity", trust_score: 5, satire_flag: false, virality_weight: 2.2 },
+  { id: "people",       name: "People", url: "https://people.com/feed/", category: "celebrity", trust_score: 6, satire_flag: false, virality_weight: 1.8 },
+  { id: "usweekly",     name: "Us Weekly", url: "https://www.usmagazine.com/feed/", category: "celebrity", trust_score: 5, satire_flag: false, virality_weight: 2.1 },
+  { id: "decrypt",      name: "Decrypt", url: "https://decrypt.co/feed", category: "crypto", trust_score: 7, satire_flag: false, virality_weight: 1.3 },
+  { id: "theblock",     name: "The Block", url: "https://www.theblock.co/rss.xml", category: "crypto", trust_score: 8, satire_flag: false, virality_weight: 1.2 },
+  { id: "bankless",     name: "Bankless", url: "https://www.bankless.com/rss/feed", category: "crypto", trust_score: 7, satire_flag: false, virality_weight: 1.3 },
+  { id: "politico",     name: "Politico", url: "https://www.politico.com/rss/politicopicks.xml", category: "political", trust_score: 7, satire_flag: false, virality_weight: 1.4 },
+  { id: "thehill",      name: "The Hill", url: "https://thehill.com/news/feed/", category: "political", trust_score: 7, satire_flag: false, virality_weight: 1.4 },
+  { id: "bbcpolitics",  name: "BBC Politics", url: "https://feeds.bbci.co.uk/news/politics/rss.xml", category: "political", trust_score: 9, satire_flag: false, virality_weight: 1.1 },
+  { id: "axios",        name: "Axios Politics", url: "https://api.axios.com/feed/", category: "political", trust_score: 8, satire_flag: false, virality_weight: 1.3 },
+  { id: "thesun",       name: "The Sun", url: "https://www.thesun.co.uk/feed/", category: "tabloid", trust_score: 3, satire_flag: false, virality_weight: 2.6 },
+  { id: "mirror",       name: "The Mirror", url: "https://www.mirror.co.uk/?service=rss", category: "tabloid", trust_score: 4, satire_flag: false, virality_weight: 2.4 },
+  { id: "buzzfeed",     name: "BuzzFeed", url: "https://www.buzzfeed.com/index.xml", category: "viral", trust_score: 4, satire_flag: false, virality_weight: 2.8 },
 ];
 
 export interface FeedItem {
   source: string;
+  sourceId: string;
   category: FeedSource["category"];
   title: string;
   link: string;
   published: string;
+  image?: string;
   trust_score: number;
   satire_flag: boolean;
   virality_weight: number;
+}
+
+/** Best-effort image URL from an RSS/Atom item (media:*, enclosure, or inline img). */
+function extractImage(block: string): string | undefined {
+  const media = block.match(/<media:(?:content|thumbnail)[^>]*url=["']([^"']+)["']/i);
+  if (media) return media[1];
+  const enc = block.match(/<enclosure[^>]*url=["']([^"']+)["'][^>]*type=["']image/i);
+  if (enc) return enc[1];
+  const img = block.match(/<img[^>]*src=["']([^"']+)["']/i);
+  if (img) return img[1];
+  return undefined;
 }
 
 // Minimal, dependency-free RSS/Atom extraction (titles + links + dates).
@@ -60,10 +88,12 @@ function extractItems(xml: string, source: FeedSource): FeedItem[] {
     if (title) {
       items.push({
         source: source.name,
+        sourceId: source.id,
         category: source.category,
         title: title.trim(),
         link: (link || "").trim(),
         published: published.trim(),
+        image: extractImage(block),
         trust_score: source.trust_score,
         satire_flag: source.satire_flag,
         virality_weight: source.virality_weight,

@@ -1,10 +1,19 @@
 import AnalyticsDashboard from "@/components/analytics-dashboard";
 import RevenueStreamsPanel from "@/components/revenue-streams-panel";
-import { INK } from "@/lib/gambit-design-tokens";
+import ShieldPanel from "@/components/shield-panel";
+import CardLifecyclePanel from "@/components/card-lifecycle-panel";
+import BayesianPanel from "@/components/bayesian-panel";
+import CardStatsDisplay from "@/components/card-stats-display";
+import MarketsPanel from "@/components/markets-panel";
+import DopamineMetricsCarousel from "@/components/dopamine-metrics-carousel";
+import ReflexionVisualizer from "@/components/reflexion-visualizer";
+import MadxWalletPanel from "@/components/madx-wallet-panel";
+import MarketsForTodayPanel from "@/components/markets-for-today-panel";
+import DashboardShell from "@/components/dashboard-shell";
 
 export const metadata = {
   title: "MAD Gambit — Dashboard",
-  description: "Platform analytics + 5-stream revenue engine",
+  description: "Live pulse + markets + Shield + cards + Bayesian + activity ledger (dual-theme)",
 };
 
 /**
@@ -14,20 +23,18 @@ export const metadata = {
  */
 export default function DashboardPage() {
   return (
-    <main style={{ minHeight: "100vh", background: INK.bgDeep, padding: "24px 16px" }}>
-      <div
-        style={{
-          maxWidth: 1100,
-          margin: "0 auto",
-          display: "grid",
-          gap: 16,
-          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-          alignItems: "start",
-        }}
-      >
-        <AnalyticsDashboard />
-        <RevenueStreamsPanel />
-      </div>
-    </main>
+    <DashboardShell>
+      <DopamineMetricsCarousel />
+      <MadxWalletPanel />
+      <MarketsForTodayPanel />
+      <AnalyticsDashboard />
+      <MarketsPanel />
+      <ShieldPanel />
+      <CardLifecyclePanel />
+      <BayesianPanel />
+      <CardStatsDisplay />
+      <RevenueStreamsPanel />
+      <ReflexionVisualizer />
+    </DashboardShell>
   );
 }

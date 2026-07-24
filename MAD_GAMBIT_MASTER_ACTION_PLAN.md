@@ -332,3 +332,394 @@ Executed as small, verifiable slices — each one **real code** (the placeholder
 | **V4–V8** | planned | — | — | see `docs/V2_BUILD_PLAN.md` |
 
 **Evolutionary discipline:** V1 is the backbone (V2/V3/V4 read it); every route **degrades to a clean demo/empty state** when `DATABASE_URL` or a migration is absent, so the build and the demo never break before the SQL is applied. Migrations ship as committed SQL under `verify/sql/`, validated against the ephemeral Neon PR branch.
+
+---
+
+## PART N — MPP-2.0 parallel-repo handoff ingest (2026-07-23)
+
+A handoff arrived from a parallel thread working on **`The-MDC/MPP-2.0`** — a **distinct, Prisma-based** production build, separate from both this repo (`MAD-MPP-2.23`, Neon + raw `pg`) and `The-MDC/demo-repository` (already consolidated in **Part K**). Analyzed against ground truth: **most of its concepts are already in this plan.** Only the genuinely-new/relevant items are captured below, each cross-referenced so nothing duplicates. **No Prisma/Supabase is adopted — Neon stays canonical (Part I / J-K line 261).**
+
+**⚠️ SECURITY — verify (likely non-genuine):** a **PAT-formatted string** appeared in the handoff. Its value is **deliberately not recorded here or anywhere in the repo/commits** (repo-wide scan for `ghp_` is clean). Founder review (2026-07-23): the string **does not appear in the Grok materials and looks like spam / non-genuine**. Action: check it against GitHub → Settings → Developer settings → Personal access tokens — **if no live token matches, no action is needed**; revoke only if a real, unrecognized token is actually listed. Related: the older exposed-`ghp_…` flag at **J-C line 221**.
+
+### N-A — Parallel-repo reconciliation (NEW flag)
+- **`The-MDC/MPP-2.0`** is a parallel production build on **Prisma v7.6.0 + Postgres (Supabase-style)**, with recent work: Foundry v1.6.0 compilation, ~60+ TypeScript fixes, **161/164 tests passing (3 failing)**. This repo (`MAD-MPP-2.23`) is **Neon + raw `pg`**; Prisma/Supabase are suppressed (**J-K line 261**).
+- **DECISION NEEDED — which is canonical production?** Recommendation: keep **`MAD-MPP-2.23` (Neon) canonical** per the locked stack (Part I). Treat MPP-2.0 as a **source of on-chain/staking logic to port**, not a stack to adopt. Port **schema *intent*** (not Prisma migrations) into `verify/sql/*.sql`; **do not import Prisma/Supabase**. The **3 failing tests + Prisma TS fixes are MPP-2.0-internal** — they stay in that repo's thread, not portable here.
+
+### N-B — On-chain NFT-boosted staking → fold into madhat-core `StakingPool` (extends Part K)
+MPP-2.0 exposes an on-chain **`createStake(amount, nftId)` with a clout boost** `M_nft = 1.0 + Clout/200`. Ground-truth state in *this* repo:
+- **TS already implements the formula:** `verify/lib/gambit-game-math.ts` → `calculateStakingYield(apyBase, nftClout) = apyBase · (1 + max(nftClout,0)/200)` (**line 1076**). ✅ present.
+- **madhat-core Solidity already has `createStake`:** `contracts/madhat-core/src/staking/StakingPool.sol` (**line 236**) — pulled in Part K, not yet compiling.
+- **`contracts/src/MADStaking.sol` intentionally uses the per-tier clout/APY *table*, NOT `1+Clout/200`** (**J-D line 227**) — that stays.
+- **Reconciliation:** fold MPP-2.0's `createStake(nftId, clout)` semantics into **madhat-core `StakingPool.sol`** as part of the **Part K checklist item 5**, *not* into `MADStaking.sol`. Two staking models coexist **by design**: (a) `MADStaking.sol` fixed-tier table (deploy-safe, canonical); (b) madhat-core `StakingPool` NFT-clout-boosted (advanced). Founder picks which fronts production before mainnet.
+
+### N-C — Foundry CI on GitHub Actions (NEW — actionable now)
+Today's workflows — `ci.yml` (tsc), `neon-pr-branch.yml`, `placeholder-guard.yml`, `vercel-deploy.yml` — run **no `forge build`/`forge test`**. Unlike the web sandbox (where `forge`/`npm`/RPCs are network-blocked), **GitHub Actions runners are NOT blocked**, so Foundry can compile and test there.
+- **Action:** add **`.github/workflows/foundry.yml`** using `foundry-rs/foundry-toolchain` → `forge fmt --check` + `forge build` + `forge test -vvv` against `contracts/` (and `contracts/madhat-core/` once the Part K checklist lands). This operationalizes the **Part H** "`forge test` green for touched contracts" gate that currently cannot run in-session, and is the **CI-enforced rebuttal** to Grok's "12 fuzz tests pass" claim (Part B2).
+
+### N-D — Staking-economics reconciliation flags (NEW; canon wins unless founder overrides)
+- **Loyalty time bonuses** (MPP-2.0): **+2% (30d) / +5% (90d) / +8% (365d)** on staking APY. **Not in app, not in canon.** If founder approves, add to **Part E** as `STAKING_LOYALTY_BONUS_BPS = {30d:200, 90d:500, 365d:800}`, additive on top of tier APY (no yield "printing" — funded from fees/Shield premiums per J-D).
+- **Card-rarity staking-APY conflict:** MPP-2.0 = **Common 8% … Golden Hand 60%**; **app/canon (Part E) = Common 12% … Golden Hand 68% … Mythic 88%.** Canon wins — **flag, do not silently change.**
+- **Card CONDITION power-scaling** (MPP-2.0): **Pristine 100% → Wrecked 10%** yield/power multiplier — distinct from the app's per-tier `RARITY_WEAR_PCT` *durability loss* (**J-I line 252**). If adopted, fold into the card-wear state machine under **J-C PROFILE_DB**, not as a rarity-table edit.
+
+### N-E — Already covered / no new action (prevents rework)
+`EvolutionEngine.sol` lost → already **J-D line 224**. `M_nft = 1+Clout/200` → already **J-D line 227** + TS line 1076. `demo-repository` contracts → already **Part K**. Prisma 60+ TS fixes / 161-164 tests / 3 failures → **MPP-2.0-internal**, not portable to the Neon stack. Exposed PAT → **J-C line 221** (reinforced above).
+
+---
+
+## PART O — Production Gap Inventory (refreshed 2026-07-23; supersedes the Part C backlog snapshot)
+
+Full repo scan vs the **production `verify/` app on `main`** (4 pages: `/ · /gambit · /dashboard · /workbench` · 21 API routes · 47 components). Since V1/V2/Phase-4 shipped, the Part C "genuinely open backlog" is stale — this is current ground truth, sorted by **how real the code is**.
+
+### O-1 — REAL code, coded but NOT surfaced (wire-up candidates — the valuable pool)
+- **Contracts — `contracts/madhat-core/` = 15 real `.sol`, none integrated** (compile via **Part K** checklist): `prediction/{game,BondingCurve}`, `staking/StakingPool` (the Part N-B clout `createStake`), `insurance/RiskOracle`, `tokens/{MADxToken,MADDEXToken,MadhatCard,MadhatCardOptimized}`, `treasury/{Madhat,Community}Treasury`, `registries/{roles,assets}`, `errors/Errors`, `events/{Evolution,Staking}Events`. Plus **5 empty root stubs** (`MADStakingCore`, `MADStakingOrchestrator`, `P2PEscrowMarket`, `ReferralRewards`, `SessionKeyManager`).
+- **TS logic — 43 of 85 `gambit-game-math.ts` exports have zero production surface** (only `calculateFurnaceBurnPercent` is live, via `revenue-engine.ts`). By theme:
+  - **MAD Shield engine** (flagship loss-protection; highest value): `createShieldOptIn`, `calculateShieldPremium`, `calculateShieldPayoutFull`/`Tiered`, `calculateShieldReturnWindow`, `requestShieldUnstake`, `isShieldUnstakeComplete`, `shieldReturnCountdown`, `isWhaleShieldEligible`, `WHALE_SHIELD_ELIGIBILITY`. **→ Part P surfaces this.**
+  - **Card lifecycle:** `generateCard`, `rollRarity`, `attemptEvolution` + `EVOLUTION_BURN_COSTS`, `applyUsageWear`/`calculateUsageWear` + `RARITY_WEAR_PCT`.
+  - **Pack pricing:** `scandalPackPrice`, `SCANDAL_PACK_TIERS`/`CAP`/`FLOOR`, `getAuctionPrice` (Dutch auction).
+  - **Staking yield:** `calculateStakingYield` (the `1+clout/200` boost, Part N-B).
+  - **Governance:** `quadraticMatch`, `calculateGovernanceThreshold` (`mpp-math.ts`). `futarchy-board.tsx` exists but doesn't call these.
+  - **Behavioral / virality:** `lossAversionWeight`, `temporalDecay`, `stochasticDecay`, `attentionDecay`, `calculateUserDopamineIndex`, `viralityScore`, `getFibonacciReward`.
+  - **Trust / risk:** `assignTrustScore` (EigenTrust), `kellyFraction`, `calculateConvictionSafe`.
+
+### O-2 — INTENT only (prose stubs, NOT built — need real coding, not merging)
+The **"v2 layer"** on `feature/nft-card-system-v2` ≡ `feat/supergrok-skills-guardrails` ≡ `production-optimizations-and-env` (identical **19–125-byte prose stubs**; e.g. `P2PMarket.tsx` = *"P2P Escrow Market component"*, `api/realtime/ws/route.ts` = *"WebSocket API route"*): pages `marketplace/creator/vip/profile`; APIs `data/events`, `information-market/create`, `marketplace/assets`, `realtime/ws`, `referrals/track`, `session-keys`; modules P2P + behavioral-econ, Referral Suite, Session Keys (AA), UGC Feed, Information Markets, User Intelligence (CDP), realtime provider. **These are the Part J-D/J-G roadmap — real as *plan*, unbuilt as *code*.** The `placeholder-guard` blocks merging them until real. *(Same fabricated-completion pattern as the Grok "it's built" claims — Part B2.)*
+
+### O-3 — Orphaned (ignore)
+Root `/app/` (`octavian-master`, `maddegens-presentation`) — not the production app; `verify/` is canonical.
+
+**Surface order for O-1:** **MAD Shield (Part P — flagship, code exists)** → card lifecycle → staking-yield clout → governance math → pack pricing. Contracts follow the Part K reconciliation + Part N-C Foundry CI.
+
+---
+
+## PART P — MAD Shield surfacing: step-by-step build (front + back, Vercel + Neon)
+
+Surface the **already-coded** MAD Shield engine as a live product surface — the flagship loss-protection mechanic — **additively** on `/dashboard`, degrade-to-demo, **no real value movement yet** (on-chain vault deposit/charge is a later gated slice). All math already exists in `gambit-game-math.ts`; this is wiring, not new economics.
+
+**Canonical (already in code — do not change):** Standard **28.8%** · Shielded **28.8→40%** dial · Whale **60%** (gated: ≥250k lifetime vol + ≥90d age + ≥85 trust + ≥1 Golden Hand). Premium **2–4%** of stake (whale flat 3%). Return window **2–24h** by stake size.
+
+| Slice | Layer | Work | DoD |
+|---|---|---|---|
+| **P-1** | back (no DB) | `/api/v1/shield/quote` — pure calculator wrapping `calculateShieldPremium` + `calculateShieldPayoutFull` + `calculateShieldReturnWindow` | POST `{stake,tier,premiumTier,eligibility?,requestWhaleTier?}` → `{premium,payout,effectivePct,tier,returnWindowHours}`; works with no DB |
+| **P-2** | Neon | `sql/0002_shield.sql` → `shield_positions`; `lib/shield.ts` DB helpers (insert / list / complete) via untyped `pool.query` + typed mappers | migration idempotent; helpers typed; no generic-constraint TS errors |
+| **P-3** | back (DB) | `/api/v1/shield/opt-in` (POST, rate-limited, records opt-in via `createShieldOptIn`; 503 without DB) + `/api/v1/shield/positions/[wallet]` (GET; demo-empty without DB) | validated inputs; degrade clean; rate-limited write |
+| **P-4** | front | `components/shield-panel.tsx` (INK; 3 tier cards + live premium/payout calculator hitting `/quote`; return-window) → mount on `/dashboard` | renders always (calculator needs no DB); no visual regression to existing dashboard |
+| **P-5** | GATED (later) | wire to `MADShieldVault.sol` for real `$MADx` premium charge + recovery payout | Phase-3 testnet; `security-review` skill; no unsigned-value trust at the boundary |
+
+**This session builds P-1…P-4** (safe, additive, no real value). **P-5 stays gated** behind the Phase-3 contract work. Verification: `tsc` + `placeholder-guard` green; canonical 28.8/40/60 + 2–4% unchanged; `/dashboard` gains a working Shield calculator alongside Analytics + Revenue panels.
+
+---
+
+## PART Q — Card lifecycle surface (built 2026-07-23)
+
+Second **O-1** engine surfaced (after Shield). Pack **generation** already existed (`openCardPack` → `/api/v1/cards/open-pack`); this closes the **post-acquisition** lifecycle — **own → wear → evolve** — which was entirely unsurfaced. Additive on `/dashboard`, degrade-to-demo, no value movement.
+
+**Naming note (answers a founder question):** `contracts/madhat-core/` is the **platform-core** contract set (prediction market, staking, treasury, tokens — *and* `tokens/MadhatCard.sol`), not "the card game," and **"MADHAT" is neither the platform nor the card-game name** — it is legacy branding on that demo-repository set, slated for `Madhat* → MAD*` rename (Part K item 4). The card game is one module within it.
+
+| Slice | Layer | What | State |
+|---|---|---|---|
+| **Q-1** | Neon | `sql/0003_cards.sql` → `cards` ledger; `lib/cards.ts` (insert/list, typed mappers) | ✅ |
+| **Q-2** | back (DB) | `/api/v1/cards/collect` (persist to wallet; rate-limited; demo echo) + `/api/v1/cards/collection/[wallet]` (read; demo-empty) | ✅ |
+| **Q-3** | back (pure) | `/api/v1/cards/wear` — `calculateUsageWear`/`applyUsageWear` (2–16%/use, floored at 0) | ✅ |
+| **Q-4** | back (pure) | `/api/v1/cards/evolve` — burn-ladder requirements (`nextEvolution`) + VRF **simulate** (`attemptEvolution`, non-authoritative) | ✅ |
+| **Q-5** | front | `components/card-lifecycle-panel.tsx` (rarity selector · durability/wear calculator · evolution ladder + VRF simulate) → `/dashboard` | ✅ |
+| **Q-6** | GATED | on-chain `MAD Card` mint + real burn-ladder + Chainlink-VRF evolution | Phase 3 |
+
+Canonical unchanged: wear **2/2/10/11.5/13/14.5/16%** (`RARITY_WEAR_PCT`); burn ladder **C→U 100/100 · U→R 250/200 · R→E 500/500 · E→L 1000/2500**; VRF stage cap **3**, oracle clamp **[5,95]/[10,90]** (the house-edge security boundary — never remove).
+
+**O-1 surface progress:** Shield ✅ (Part P) · Card lifecycle ✅ (Part Q) · next: staking-yield clout → governance math → pack pricing.
+
+---
+
+## PART R — Grok "full thread handoff" synthesis (2026-07-23)
+
+A Grok-authored *"zero-omit"* thread handoff (`MAD_GAMBIT_FULL_THREAD_HANDOFF_2026-07-23.md`) was ingested. Per the **Part B2 / Part G** discipline (*Grok fabricates completion*), every "pushed + redeployed green / fully live" claim was **byte-checked against this repo** before incorporation. Net: **one verified, actionable item** (Vercel domain), an **env-list correction**, a **number-drift to suppress**, and a large body of **fabricated claims recorded to distrust — not as done.**
+
+### R-A — GROUNDED + VERIFIED: the real `madgambit.fun` 404 cause (ACTIONABLE)
+Confirmed via **Vercel MCP** (team `madgambit` `team_TgoOJAiilwZ3I3LPyD2FcNZm`, 2026-07-23):
+- **`madgambit.fun` / `www.madgambit.fun` is attached to NEITHER project** → *this* is the `DEPLOYMENT_NOT_FOUND` / 404. (`mad-mpp-2.23` domains = `mad-mpp-223[-git-main]-madgambit.vercel.app` only; `mad-gambit-2.24` domains = `mad-gambit-224*.vercel.app` only.)
+- **`mad-gambit-2.24`** (`prj_TEVVoLDuzpx7YmPkJhcs67t3lLtR`): latest production deploy = **ERROR** ("No Next.js version detected" = Root Directory ≠ `verify`); Node 24.x.
+- **`mad-mpp-2.23`** (`prj_XJ1OqBGYZMrg5eqJAZQQLnt1GYC9`): the **healthy** project (production `mad-mpp-223-madgambit.vercel.app`); Node 22.x.
+- **Fix — dashboard-only (cannot be set via API/tools):** on **`mad-mpp-2.23`** → Domains → add `madgambit.fun` + `www.madgambit.fun`; confirm Root Directory = `verify`; add Production env (R-B); promote the latest **READY** production deploy. *(Or fix 2.24's Root Directory=`verify` first — but 2.23 is already healthy, so point the domain there.)* Extends **J-H**.
+
+### R-B — Env-var reconciliation (CORRECTS Grok's port list; ground truth = `verify/.env.example`)
+Grok's list **omitted the required `SESSION_SECRET`** (without it sign-in verifies but issues **no session cookie — fails closed**) and invented extras. Canonical Production set:
+- **Required:** `GOOGLE_API_KEY` (Gemini — code reads this, *not* `GEMINI_API_KEY`) · **`SESSION_SECRET`** (HMAC session signing — Grok missed this) · `EVM_RPC_URL` · `EVM_RPC_URL_NOVA`.
+- **Optional (degrade gracefully):** `ALCHEMY_API_KEY` · `CHAINLINK_VRF_KEY` · `NEWS_API_KEY` · `DATABASE_URL` (Neon) · `CARD_ART_CDN` · `NODE_ENV=production`.
+- Grok's `NEXT_PUBLIC_APP_URL` / `NEXT_TELEMETRY_DISABLED` = harmless, not required; `PORT=8080` is Cloud-Run-only (ignore on Vercel). **Supersedes the stale J-H line 246 list** (`AUTH_SECRET`/`NEXTAUTH_URL`/`WALLETCONNECT` are NOT in the real `.env.example`).
+
+### R-C — Number drift → SUPPRESS (add to J-K)
+Grok repeatedly stated **"MAD Shield 28.88% baseline."** Canon = **28.8%** (`SHIELD_RECOVERY_PCT = 0.288`). The `28.88` in `gambit-game-math.ts:1270` is a **scandal-pack price** ($28.88 @ serial 100) that Grok conflated. **Suppress "28.88% Shield" → 28.8%.** (Grok's "40% tier for creators/most-active" ≈ our Shielded-dial 40% ceiling + Whale 60% — already coded, **Part P**.)
+
+### R-D — Handoff tech claims → NOT-yet-built inventory (build treatment: **Part S**)
+Byte-checked: these were **claimed done but were not in the repo** ("pushed + redeployed green v2.32→v2.34"). Founder intent (2026-07-23) is to **build them for real** — so this is the *starting inventory*, and **Part S** carries the codeable build ledger + feasibility. What was actually present vs claimed:
+- **Vector search:** claimed "HNSW + IVF-PQ + residual PQ + scalar quantization + DiskANN hybrid, Chroma+Weaviate, sub-5ms." **Reality:** one `verify/scripts/init-vector-db.ts` creating a single **pgvector HNSW** index; `chromadb`/`weaviate-client`/`hnswlib-node` are only optional **langchain lockfile peers**, unused. No IVF-PQ/residual-PQ/DiskANN code (FAISS terms pgvector doesn't implement).
+- **Orchestration:** "CrewAI + AutoGen + LangGraph crew, Grok+Claude multi-agent" → **zero CrewAI/AutoGen** in code or deps; only `@langchain/langgraph` is real; the concierge is a **single Gemini** route.
+- **Perf:** "WASM Wasmtime SIMD / WASI P3 / WebGPU / Vulkan / OpenTelemetry" → **none in app code** (only WASM hits = Tailwind's `oxide-wasm32-wasi` build tool).
+- **"vercel.json rewrites + 404 fallback"** → real `vercel.json` carries only **security headers**, no rewrites.
+- **Contracts:** Grok listed `MarketFactory`/`DutchAuction` as present → **LOST** (J-D line 224).
+- **Enforcement:** placeholder-guard + Part N-C Foundry CI. *Grok "vX.Y green" = unverified until byte-checked.*
+
+### R-E — Real product concepts to log (flags — verify/decide, NOT built)
+- **Auto-graduation to Creator at $150K gross market volume** + Creator badge. **Not built** (the in-repo 150K is a **DAU** projection, not a volume gate). Fold into UGC/MarketFactory (Part D / J-E) if approved.
+- **Octavian 3D interactive mesh nodes** (global + per-dashboard + central Master page). Basis exists (`three`/react-three-fiber + orphaned `app/octavian-master/page.tsx`) but the global-state version is aspirational → build or archive the orphan.
+- **Daily/weekly raffle** (pick 1–888) — thematic, not built.
+- **Role tiers** Visitor/User/Creator/VIP-Creator/Whale — aligns with Two-Tier Auth (J-C) + Whale Shield tier (Part P).
+- **"MAD Shield = loss mitigation, never insurance"** — already canon (Part B2 compliance flag). ✓
+
+---
+
+## PART S — Codeable feature backlog + build ledger (Grok handoffs → real code, 2026-07-23)
+
+**Reframe (founder intent):** the Grok handoffs are a **feature spec to build**, not fabrications to dismiss. Everything below is triaged by **can it actually run on the target stack (Next.js on Vercel + Neon)** — build the buildable for real, and for the pieces that *cannot* run on serverless, ship the **serverless-native equivalent** rather than a fake "green" claim. No feature is marked done until it is real code + CI-green (placeholder-guard + `tsc` + Part N-C Foundry CI).
+
+### S-A — SHIPPED this session (real code, additive, CI-green on PR #23)
+| Feature (from handoff) | What was built | Files |
+|---|---|---|
+| **Vector DB / semantic search / concierge RAG** | Real **pgvector HNSW** store + **Gemini `text-embedding-004`** embeddings + cosine search | `sql/0004_vector.sql` · `lib/vector-store.ts` · `/api/v1/vector/{embed,search}` |
+| **GDELT ingestion + GCAM scandal scoring + Perp trigger** | Pure parser (`parseGdeltField`/`parseGcam`) + `scandalVelocity` + `perpTriggerProbability` + Neon signals | `lib/gdelt.ts` · `sql/0005_gdelt.sql` · `/api/v1/gdelt/{score,ingest,signals}` |
+| **Celebrity whitelist** (was: JSON file + eBPF/chokidar hot-reload) | **Neon-backed** whitelist, per-request read + cache-bust on write (serverless-native) | `lib/whitelist.ts` · `/api/v1/gdelt/whitelist` |
+
+*Honesty note:* the vector layer is a genuine **pgvector HNSW ANN** index — NOT the "IVF-PQ + residual-PQ + scalar-quant + DiskANN + Chroma/Weaviate hybrid" the handoff claimed (those are FAISS constructs pgvector doesn't implement, and they weren't in the repo). HNSW is the right and sufficient tool at this scale.
+
+### S-B — CANNOT run on Vercel serverless → shipped/planned as serverless-native equivalent
+| Handoff item | Why it can't run | Equivalent (canonical) |
+|---|---|---|
+| **eBPF / bpftrace / CO-RE / fanotify** kernel watchers | Vercel funcs are ephemeral, sandboxed, no kernel access / no `CAP_SYS_ADMIN` | **Neon whitelist table** read per-request (S-A) — done |
+| **chokidar file watcher + adaptive debounce** | no long-running process, ephemeral FS, nothing to "hot-reload" | cache-bust-on-write (S-A) — done |
+| **WASM Wasmtime SIMD / WASI P3 / WebGPU / Vulkan** compute | not available/meaningful in the Next/Vercel request runtime | pgvector for ANN (S-A); Three.js/WebGL for visuals (S-C) |
+| **CrewAI / AutoGen** orchestration | Python frameworks; not installable in this TS/Next runtime | **LangGraph** (`@langchain/langgraph`, already a dep) — see S-C |
+
+### S-C — QUEUED codeable (buildable with installed deps; next slices)
+- **LangGraph multi-agent concierge crew** — Sentinel/Strategist/Satirist/Concierge nodes over `@langchain/langgraph`, feeding the existing Gemini concierge + the S-A vector store for RAG memory. *(The real, TS-native version of the "CrewAI crew.")*
+- **GDELT live-feed panel** + **Z-Liar/scandal heatmap** on `/dashboard` — reads `/api/v1/gdelt/signals`.
+- **Octavian 3D interactive node** + `/octavian` page — Three.js/R3F (deps present; `dotted-glow-background.tsx` proves R3F typechecks here).
+- **Vercel Edge runtime** for the pure `/gdelt/score` + `/vector/search` (add `export const runtime = "edge"` where no Node-only APIs are used).
+- **Concierge RAG wiring** — inject top-k vector hits as system context in `concierge/chat` (guarded, additive, no regression).
+- **Creator auto-graduation** ($150K gross → Creator badge) · **daily 1–888 raffle** · **role tiers** — per Part R-E.
+- **Dual themes** (Gilded Pop-Baroque ↔ Neon Noir Tabloid) via `SKIN_TOKENS` — maintain the locked Vercel layout; additive skin only.
+
+### S-D — Infrastructure (dashboard-only; not code)
+Attach `madgambit.fun`/`.io` to **`mad-mpp-2.23`** (Root Directory already `verify`); port env incl. **`SESSION_SECRET`** (R-B). **`mad-gambit-2.24` is out of scope** — ignore it (founder directive 2026-07-23). The `.io`/`.fun` 404s are the unattached domain (R-A), not code.
+
+### S-E — Maths captured (from the GCAM/mastersheet handoff)
+- **Scandal velocity** = Σ `EMOTION_WEIGHTS·e` (shame 1.8 · anger 1.4 · disgust 1.3 · fear 1.2 · sadness 1.0 · joy −0.5), clamped ≥0 → `lib/gdelt.ts`.
+- **Perp trigger** `P = 1 − exp(−0.25 · matches · themeWeight · (1+velocity))`, bounded 0..1 → `lib/gdelt.ts`.
+- These feed the existing `zLiarMeter`/`scandal-velocity-meter` surfaces; the handoff's "r²=0.94" is an **unverified Grok claim** — treat the formula as canonical, the correlation stat as decorative until we measure it on real data.
+
+---
+
+## PART T — Bayesian conviction math layer (Unified Handoff, built 2026-07-23)
+
+The **Unified Comprehensive Handoff** (Master Maths v2.24.1, Parts A–C) asked for a new `bayesian-conviction.ts` porting the Bayesian / decision-tree / sequential-reasoning maths. Built for real (its Parts D–F = the GDELT + full-thread handoffs already shipped in **Parts R/S**). Pure, deterministic, edge-safe — no DB, no value movement.
+
+### T-A — SHIPPED (real code, CI-green on PR #23)
+| From handoff | Built | File |
+|---|---|---|
+| Bayesian update + log-odds sequencing + hybrid MADConv update | `bayesianUpdate` · `toLogOdds`/`fromLogOdds` · `sequentialLogOddsUpdate` · `madconvHybridUpdate` (`M^0.85·(1+β·bayes)`) | `lib/bayesian-conviction.ts` |
+| Decision-tree backward induction (conviction bonus) | `TreeNode` + `propagateTree` (depth-bounded 64, malformed-node tolerant) | ″ |
+| VOI · edge detection · act-threshold · proper scoring | `voiEstimate` · `computeEdge` · `shouldAct` · `brierScore` · `logScore` | ″ |
+| Conviction-adjusted Kelly | re-exports existing `kellyFraction` (gambit-game-math:692) — **no duplication** | ″ |
+| GARCH extensions (EGARCH asymmetry · CGARCH long/short split) | `egarchLogVar` · `cgarchUpdate` | ″ |
+| Calculators (pure, no DB) | `POST /api/v1/bayesian/{update,tree,voi}` | routes |
+| UI | **Bayesian Conviction Lab** (sequential update + edge/Kelly/act calculator) → `/dashboard` | `components/bayesian-panel.tsx` |
+
+*Canonical unchanged:* MADConv exponents (t^1.35·c^0.75·d^1.45·ψ^1.15·(1+π^0.9)…), base GARCH(1,1) ω/α/β, and Kelly all preserved — this is **additive depth**, exactly as the handoff's §9 instructed.
+
+### T-B — QUEUED (codeable; overlaps existing surfaces — build next)
+- **Bayesian Tree Explorer** (`bayesian-tree-explorer.tsx`, React-Flow/SVG) · **Conviction Evolution Timeline** (`conviction-evolution-chart.tsx` — note `conviction-charts.tsx` already exists) · **Liar Impact Simulator** (`liar-impact-simulator.tsx`, ties to existing `zliar-meter`).
+- **Joy-drop scheduler + procedural satire** (`joy-engineering.ts`) — GARCH/VOI-triggered variable rewards with the ethical guardrails (transparent EV, opt-in intensity, cooldowns, neurodiversity "Surprise Level" slider, WCAG "why this happened" tooltips). *(Keep the mechanic; scrub any "dopamine/addiction" external framing per Part B2.)*
+- **Customizable Dopamine Carousel** — extend existing `seiko-dopamine-hub.tsx`, don't fork.
+- Wire `madconvHybridUpdate` into the CDP/events pipeline so conviction updates are event-driven + auditable.
+
+### T-C — Compliance / canon guards (carry forward)
+- **"MAD Shield = loss mitigation, never insurance"** and **no on-chain gambling framing** (Part B2). The joy/variable-reward layer stays **conviction-modulated + positive-EV + user-controlled** — never pure chance.
+- Proprietary-IP rule from the handoff (don't expose exact MADConv/GARCH coefficients in external materials) already matches the MADHAT'r Concierge guardrail; keep formulas server-side.
+
+---
+
+## PART U — Making the database REAL (migration runner + CI-proven live DB, 2026-07-23)
+
+**Founder callout (valid, acted on):** routes degraded-to-demo, but **nothing applied the schema** — so the backend was *permanently* in demo mode: a facade, not a live DB. Root causes found: (1) **no migration runner** — `verify/sql/*.sql` were never executed by anything; (2) `neon-pr-branch.yml` created an **empty** ephemeral branch and never migrated it (the `db_url` output was discarded); (3) `DATABASE_URL` was wired into **no** build/deploy step.
+
+**Fixed — the DB is now provisioned + exercised end-to-end:**
+| Piece | What |
+|---|---|
+| `verify/scripts/migrate.mjs` | Idempotent runner — applies every `sql/*.sql` in order, tracked in a `_migrations` table (safe re-runs). `npm run migrate`. |
+| `verify/scripts/db-smoke.mjs` | **Live write+read** across `events_stream`, `shield_positions`, `cards`, `celebrity_whitelist`, `gdelt_signals`, `market_intelligence` — transaction rolled back. `npm run db:smoke`. |
+| `neon-pr-branch.yml` (+steps) | Every PR now **applies the schema to the fresh Neon branch and smoke-tests real read/write**. A green Neon job = the live Postgres path works, not just the demo fallback. |
+| `db-migrate.yml` (new) | Applies migrations to **production** Neon on merge-to-`main` + manual dispatch (guarded on the `DATABASE_URL` secret; idempotent). |
+
+**Still founder-action (Vercel dashboard / GitHub secrets — cannot be set via tools):**
+1. **Set `DATABASE_URL`** (prod Neon connection string) in **Vercel → `mad-mpp-2.23` → Settings → Env → Production** (so the deployed app talks to the DB) **and** as a **GitHub repo secret** (so `db-migrate.yml` provisions prod on merge). Until then prod stays demo — **by configuration, not by bug**.
+2. Set **`GOOGLE_API_KEY`** (embeddings + concierge) + **`SESSION_SECRET`** (R-B) the same way.
+3. `NEON_PROJECT_ID` var + `NEON_API_KEY` secret already exist (the PR-branch job uses them).
+
+**Net:** once `DATABASE_URL` is set, every table the routes read/write actually exists (auto-migrated on deploy), CI proves the live path green on each PR, and "degrade to demo" becomes a true fallback instead of the permanent state. **This is the difference between an MVP facade and a real, connected backend.**
+
+---
+
+## PART V — Card Evolution + VRF (living cards, built 2026-07-23)
+
+From the **Card-Evolution + VRF handoff**. The hybrid **off-chain living-card system is built for real on the now-live DB**; the on-chain VRF mint is the gated final step (cards stay **virtual until L3**).
+
+### V-A — SHIPPED (off-chain, real DB, CI-green + smoke-proven)
+| From handoff | Built | File |
+|---|---|---|
+| Evolution math | `calculateEvolutionScore` (net·10 + (MADConv/100)^1.45·40 + buzz·0.15 + GARCH·12 − scandal·0.85) · `determineLevel` (70/160/280) · `shouldEnterClownState` · 6 abilities · `evolve()` | `lib/card-evolution.ts` |
+| CardStats model + persistence | `card_stats` table + `create`/`get`/`listByOwner`/`recordBattleResult`/`applyEvolution` (raw pg + mappers) | `sql/0006_card_stats.sql` · `lib/card-evolution.ts` |
+| tRPC router → REST | `/api/v1/cards/evolution/{create, battle, card/[id], owner/[owner]}` | routes |
+| UI | Card Evolution display (level progress → L3 mint gate, W/L, scandal, buzz, abilities, clown/minted badges) → `/dashboard` | `components/card-stats-display.tsx` |
+| Live-DB proof | `db-smoke.mjs` now write+reads `card_stats` too (Part U) | `scripts/db-smoke.mjs` |
+
+**Stack adaptations from the handoff:** Drizzle → **raw SQL** (Neon, no ORM); tRPC → **Next API routes**. Mint gate = **L3 (score ≥ 160)**.
+
+### V-B — GATED on-chain (real code; needs Chainlink + testnet)
+- `contracts/evolution/EvolutionVRFConsumer.sol` — real **VRF v2.5 subscription** consumer (requestId→cardId mapping, **non-reverting** `fulfillRandomWords`, `ExtraArgsV1`, owner-gated finalize, no double-finalize). **Placed outside `contracts/src/`** so it cannot red Foundry CI until `chainlink-brownie-contracts` is vendored (`forge install` on CI runners) + remapping `@chainlink/contracts/=lib/…` added; then move to `src/`, add a VRF-mock test, deploy to Arbitrum/Base Sepolia, fund a subscription, add the consumer.
+- Mint pipeline (handoff Step 4): backend listener on `EvolutionFinalized` → map `randomWords` → abilities+seed → IPFS metadata → `MADCard1155.mint` (gated on `isMinted===false && level≥3`).
+
+### V-C — QUEUED
+Saga-leg batch evolution hook · JoyEngine/DopamineCarousel level-up + mint celebration · wire owner MADConv from the CDP into the score (currently passed per call) · evolution unit tests (score edge cases: high scandal / pure losses / high MADConv).
+
+---
+
+## PART W — Prediction-market ledger (markets/bets, built 2026-07-23)
+
+A large Grok transcript was reviewed — 14-agent "SuperGrok swarm", RL for agents, ReflexionVisualizer, and repeated *"pushed / deployed / 100% VALIDATED / live link"* claims that an empty repo + a failed Vercel deploy exposed as fabricated (the Part B2 pattern, at scale). Almost all of it is Grok-tooling fantasy or not-our-stack. The **one genuinely-real, genuinely-missing product core** it surfaced (via its Prisma schema) is the **markets/bets ledger** — the actual prediction-market backbone, which no prior slice had built. Built for real, additive, DB-proven.
+
+### W-A — SHIPPED (real DB, CI-green + smoke-proven)
+| Built | File |
+|---|---|
+| `markets` + `bets` + `audit_log` (raw SQL, wallet-keyed, FK-free, JSONB details) | `sql/0007_markets.sql` |
+| Neon helpers (`createMarket`/`listMarkets`/`getMarket`/`placeBet`/`listBetsByWallet`/`logAudit`) | `lib/markets.ts` |
+| REST: `GET`/`POST /api/v1/markets` · `GET /api/v1/markets/[id]` · `GET`/`POST /api/v1/bets` | routes |
+| Markets UI (list · create · YES/NO odds · volume) → `/dashboard` | `components/markets-panel.tsx` |
+| Live-DB proof: `db-smoke.mjs` write+reads `markets`, `bets`, `audit_log` | `scripts/db-smoke.mjs` |
+
+**Stack adaptations:** Prisma → **raw SQL**; the transcript's separate `users` table folded into existing wallet-keying + `cdp_profiles` (no redundant identity table). Bets record intent + capture odds-at-bet + bump market volume; **on-chain settlement + fee split (`splitFee`) is the gated slice.**
+
+### W-B — Explicitly NOT built from that transcript (honesty ledger)
+- **14-agent "SuperGrok swarm" · RL for agents · ReflexionVisualizer · CRAFT/Six-Hats/Reflexion *agent* protocols** — Grok-tooling constructs (`.grok/skills`, `/goal`, `reasoning_effort`), **not** MAD Gambit product features and **not** this stack. No-op in the app.
+- **`mad-mpp-2.24` / `mad-gambit-ui`** — out of scope (founder directive; 2.23 is canonical — Part R-A / S-D).
+- **Pixel "carbon copy" of images `mBxhU`/`Wv5rT`/`3fsbU`** — those images are **not in this session**; claiming fidelity to source files I can't see would be fabrication. The dual-theme + dopamine-carousel *concepts* stay queued as **INK-native** work (Part S-C), not an image mirror.
+- **The transcript's repeated "100% / pushed / deployed / live link"** — the fabricated-completion pattern (Part B2). Countermeasure holds: every claim in this repo carries a **commit SHA + green CI check + a pasted DB-smoke log**.
+
+---
+
+## PART X — Master-math coverage audit + surfacing (2026-07-23)
+
+Grounded audit (grep, not assertion): **every deep-master-math concept is DEFINED in the repo.** A tail was **lib-only** (defined but not wired to a product) — now surfaced as real routes.
+
+**Defined ✓** (canonical libs `gambit-game-math.ts` · `mpp-math.ts` · `bayesian-conviction.ts` · `gdelt.ts` · `card-evolution.ts`): MADConv (`calculateConviction`) · GARCH (`garchUpdate`, `garch_amp`) + EGARCH/CGARCH · Liar (`zLiarMeter` + LieImpact) · Bayesian / log-odds / hybrid-MADConv / tree / VOI / edge / Brier / Log · Kelly · `splitFee` · Furnace burn · staking (`STAKING_TIERS`, `calculateStakingYield`) · full Shield engine · evolution score · GCAM scandal + Perp trigger · governance (`quadraticMatch`, `calculateGovernanceThreshold`) · EigenTrust · pack pricing (`scandalPackPrice`, `getAuctionPrice`) · rarity · streaks / Fibonacci · virality / behavioral decay.
+
+**Surfaced THIS pass** (were lib-only → now live pure-calculator routes):
+| Master math | Route |
+|---|---|
+| `quadraticMatch` + `calculateGovernanceThreshold` | `POST /api/v1/governance` |
+| `scandalPackPrice` + `getAuctionPrice` + `SCANDAL_PACK_TIERS` | `POST /api/v1/packs/price` |
+| `brierScore` + `logScore` (proper scoring) | `POST /api/v1/bayesian/score` |
+| `egarchLogVar` + `cgarchUpdate` (GARCH extensions) | `POST /api/v1/bayesian/garch` |
+| `calculateStakingYield` (clout boost `1+clout/200`) | `POST /api/v1/staking/yield` |
+
+**Already surfaced (prior parts):** Shield (P) · card lifecycle/wear/evolution-preview (Q) · 5-stream revenue via `splitFee`+furnace (Phase 4) · GDELT scandal velocity/Perp (S) · Bayesian update/tree/VOI (T) · card evolution score (V) · markets/bets (W) · MADConv/GARCH/Liar/EigenTrust/rarity/streak/DL-LMSR/Kelly (in `/gambit`, `/workbench`, cards + agents routes).
+
+**Still lib-only (deliberately deferred):** `viralityScore` · `getFibonacciReward` · behavioral decay (`temporalDecay`/`stochasticDecay`/`lossAversionWeight`) · `calculateUserDopamineIndex` — these are **inputs to the joy/dopamine layer** (Part T-B's queued `joy-engineering.ts`), not standalone calculators; they surface when that panel lands.
+
+**Verdict:** every master-math concept is in the codebase; all standalone calculators (governance, pack pricing, proper scoring, GARCH extensions, clout-staking) are now live routes. The only unsurfaced remainder is the dopamine-layer input set, queued with the joy panel.
+
+---
+
+## PART Y — Dopamine UI + dual-theme + activity ledger (built 2026-07-23)
+
+Nuanced the reviewed UI concepts **for our stack** — INK-native, wired to real data, additive (default look unchanged). **Not** an image "pixel carbon-copy" (the source images aren't in this session — claiming fidelity to them would be fabrication); this is honest, on-brand, real-data product.
+
+### Y-A — SHIPPED (CI-green)
+| Concept (from transcript) | Nuanced build | Files |
+|---|---|---|
+| Dopamine metrics carousel | Live pulse from **real** markets/bets/gdelt/events — Active Bets · **Chaos Meter** (GCAM scandal velocity) · Markets · 24h Vol · hot scandal; 15s refresh | `/api/v1/dopamine/metrics` · `components/dopamine-metrics-carousel.tsx` |
+| ReflexionVisualizer | Honest nuance: **Activity Ledger** — real decision/action timeline from `audit_log` (NOT a fake AI-swarm monitor) | `/api/v1/audit` · `components/reflexion-visualizer.tsx` |
+| Dual-theme (Gilded ↔ Neon Noir) in hamburger | `SKINS` token sets + `SkinProvider` (localStorage) + hamburger toggle in the dashboard shell | `lib/skins.ts` · `components/skin-provider.tsx` · `components/dashboard-shell.tsx` |
+
+All on `/dashboard`, degrade-to-demo, reduced-motion-safe.
+
+### Y-B — Honest scope (what's real vs progressive)
+- **Dual-theme default = Neon Noir = the current INK look → zero regression.** Gilded is opt-in via the hamburger. The switch reskins the **dashboard shell + skin-aware surfaces** (carousel, activity ledger) today; **per-panel reskin of the older INK panels is progressive** (they still render Neon-Noir until threaded through `useSkin`) — flagged, not claimed as complete.
+- **Global-hamburger integration** into the locked `/gambit` main-nav is deferred; the toggle lives in the additive `/dashboard` shell to avoid regressing the locked layout.
+- Chaos Meter = `round(avg(scandal_velocity)·20)` over 24h `gdelt_signals`.
+
+### Y-C — Per-panel dual-theme threading COMPLETE (closes the Y-B "progressive" flag, 2026-07-23)
+Y-B flagged the older INK panels as *not yet* skin-aware. Now closed: threaded `useSkin()` through **all 7** remaining dashboard panels so the Gilded ↔ Neon Noir toggle reskins the **entire** dashboard, not just the shell + pulse surfaces.
+
+| Panel | Change |
+|---|---|
+| `analytics-dashboard` · `markets-panel` · `card-lifecycle-panel` · `card-stats-display` · `shield-panel` · `revenue-streams-panel` · `bayesian-panel` | `INK.*` inline-style tokens → `skin.*` via `useSkin()`; module-scope color maps (`TIER_META`, `STATUS_COLOR`, `LEVEL_COLOR`) moved inside their components so the hook is in scope |
+
+- **Token model:** added one semantic token — `positive` — to the `Skin` type (was the only INK color, `INK.green`, with no skin equivalent). `neonNoir.positive = #00ff88` (= `INK.green`); `gilded.positive = #6fbf7f` (jade that reads positive on velvet).
+- **Zero-regression proof (by construction):** `useSkin()` falls back to `neonNoir`, whose tokens are byte-identical to `INK`; default render is pixel-identical to before. Rarity-specific accents (`RARITY_TABLE[r].accent`) left theme-independent by design.
+- **Verified:** `grep` confirms **0** remaining `INK.*` references in the 7 panels; all `skin.*` tokens used are a strict subset of the `Skin` interface fields. Gate = `tsc --noEmit` (green — see commit CI).
+
+## PART Z — Joy Engineering: last dopamine-layer math surfaced (built 2026-07-23)
+
+Closes the lib-only tail the Part X audit flagged (virality / Fibonacci rewards / attention decay). **Composed — not re-derived** — the existing pure primitives into one honest surface, and wired a real signal into the live pulse.
+
+### Z-A — SHIPPED
+| Piece | What | Files |
+|---|---|---|
+| `lib/joy-engineering.ts` | Composes `viralityIndex` · `attentionDecay` · `temporalDecay` · Fibonacci reward curve (`getFibonacciReward ∘ calculateUserDopamineIndex`) into `computeJoyState` + `rewardForTenure` + `momentumIndex` | `verify/lib/joy-engineering.ts` |
+| `/api/v1/joy/state` | Pure POST calculator surfacing the full composition (reachable/testable) | `verify/app/api/v1/joy/state/route.ts` |
+| Live momentum | Real recency-weighted momentum from the 48h `gdelt_signals` window (companion to the flat 24h Chaos mean) added to `/api/v1/dopamine/metrics` + a carousel readout | `.../dopamine/metrics/route.ts` · `dopamine-metrics-carousel.tsx` |
+
+### Z-B — Honest scope + compliance
+- **Composition, not fabrication:** every value is a deterministic function of the *existing* pure primitives; no new hidden mechanic invented.
+- **Compliance framing (per the Part B2 flag):** the new surface is named + documented as **game-economy engagement**, not neuroscience — no "dopamine / affliction / anticipation-circuit / VRS-as-addiction" language. The legacy `dopamine-engine.tsx` (locked `/gambit`) still carries that framing; scrubbing it is the separate Phase-1 compliance pass, deliberately not touched here to avoid regressing the locked layout.
+- **Momentum ≠ Chaos:** Chaos = flat 24h mean × 20; Momentum = exp-recency-weighted mean × 20 over 48h — genuinely different math, so the two can diverge.
+- **Proof:** `tsc --noEmit` green; the `gdelt_signals` read path is already DB-smoke-proven on every PR.
+
+## PART AA — On-chain markets + staking reality-check (built 2026-07-23)
+
+### AA-A — Staking: the "central lie" was ALREADY closed (verified, not rebuilt)
+Set out to build `MADStaking.sol` (the old plan's "28-byte stub" / Grok's fabricated "complete"). **Found it already real**: `contracts/src/MADStaking.sol` is a full tiered-staking implementation (STAKING_TIERS 12→68% APY; rewards paid from a separately-funded reserve — no printing, a stake never funds another user's rewards; SafeERC20 / Ownable / ReentrancyGuard; checks-effects-interactions). `contracts/test/MADStaking.t.sol` is a genuine suite (tier boundaries mirror STAKING_TIERS, 1-yr Gold accrual → 700 MADx, claim-from-reserve, unstake-keeps-rewards, a reserve-isolation invariant, revert cases). Both live in `src/`+`test/` ⇒ the forge CI green on the last 3 commits already proves it. **Did NOT rebuild** — honest verification beats duplicate work. The root-level `MADStaking{Core,Orchestrator}.sol` are stale 18–20-byte placeholders superseded by this contract.
+
+### AA-B — SHIPPED: MADMarketFactory.sol (on-chain market settlement)
+The on-chain counterpart to the markets/bets ledger (Part W). UGC **Over/Under** parimutuel markets (one of the two CIRO non-binary types) in $MADx:
+| Piece | Detail |
+|---|---|
+| `contracts/src/MADMarketFactory.sol` | create · back · resolve · claim · cancel · refund; parimutuel pro-rata; SafeERC20 + ReentrancyGuard + Pausable; CEI; custom errors + events |
+| Canonical fees (non-stacking) | `platformFee = 1.88%` of the pot · `creatorCut = 40%` of that fee (creator-made) · remaining 60% → treasury. The platform-wide 28.8% community share is a treasury-level net split, deliberately NOT computed per-market (non-additive by design, per Part A) |
+| `contracts/test/MADMarketFactory.t.sol` | Over/Under wins, exact fee-split asserts (2000 pot → 37.6 fee / 15.04 creator / 22.56 protocol / 1962.4 winner), threshold boundary (`>=`), no-winner→cancel+refund, owner cancel+refund, auth/revert cases, **fuzz fee-conservation + pro-rata payout** |
+
+### AA-C — Honest scope
+- **Mechanism = parimutuel, stated as such** — not an LMSR/AMM maker (the Continuous DL-LMSR type is a separate later contract). Deliberately simple + custody-safe for v1.
+- **Resolution is owner/oracle-fed** today (`onlyOwner resolve`); the triple-threat oracle (Chainlink + News + community) is Phase-5 wiring.
+- **Not deployed** — compiles + tests green in CI is the deliverable; testnet deploy + frontend address wiring is founder/Phase-3-gated.
+- **Proof:** `forge build --sizes` + `forge test` (foundry.yml, fuzz 1000 runs) — see commit CI.
+
+## PART AB — $MADx ground truth + mechanism/oracle research + deploy wiring (2026-07-24)
+
+Full write-up: **`docs/MECHANISM_ORACLE_MADX_RESEARCH.md`** (cited).
+
+- **$MADx (verified on-chain, Arbitrum One):** `0x6972370e1caAA3624F37D7e87C28e1089D00151f` — name **MADDEX**, symbol **MADx**, 18 dec, ERC20+Ownable+**Pausable**, cap **224,573,096**, `totalSupply` **0** (fair-launch, mint-on-purchase, owner-modifiable). **Canon says 888,888,888 fixed** → founder must reconcile (both reachable since the contract is mutable; for the strongest "every token was bought" claim, restrict mint to the sale contract). The 2nd address given is an EIP-7702 smart wallet, not the token (not probed, per owner).
+- **Market mechanism:** keep parimutuel (`MADMarketFactory`) for UGC/satire; **add LS-LMSR** (`MADLmsrMarket.sol`) for flagship continuous-odds markets (the productionizable "Continuous DL-LMSR"); **spike pm-AMM** as the frontier. The hard part is fixed-point `exp`/`ln` + invariants — scoped in the doc.
+- **Oracle → quadruple:** the triple (Chainlink/Pyth + AI multi-agent + community) are all *signal sources*; add a 4th **optimistic-bond finalizer** (UMA / Reality.eth+Kleros pattern, bonds in $MADx) and **quadratic-weight the community leg** (weight = √staked $MADx). Legs 1–3 propose; leg 4 finalizes with money at risk.
+- **Deploy wiring (shipped this commit):** `verify/lib/contracts.ts` (real $MADx + chain registry, env-overridable, degrade-safe) + `contracts/script/Deploy.s.sol` (deploys MADStaking + MADMarketFactory against $MADx). Testnet deploy is founder-gated (RPC + deployer key).
+
+## PART AC — Market classification engine + honest read of the Grok dual-ingestion thread (2026-07-24)
+
+A long Grok thread proposed a dual-ingestion (RSS + GDELT/GossipCop++) → auto-market-creation engine with sentiment scoring. Sorted honestly:
+
+### AC-A — SHIPPED (the genuinely-codeable core)
+| Piece | What | Files |
+|---|---|---|
+| Lexicon sentiment | VADER-style TS scorer (valence/intensity/dopaminePotential) — a lexicon scorer, explicitly **not** a transformer | `verify/lib/sentiment.ts` |
+| Market classifier | Deterministic **Progression / Saga / Z-Liar / Perp** taxonomy by horizon + structure, composing the EXISTING `zLiarMeter` + `perpTriggerProbability` + sentiment | `verify/lib/market-classifier.ts` |
+| Markets for Today | `/api/v1/markets/proposals` classifies real `gdelt_signals` into ranked proposals; `MarketsForTodayPanel` surfaces them (filter by type) | route + `components/markets-for-today-panel.tsx` |
+
+### AC-B — Explicitly NOT implemented (claiming otherwise would be fabrication)
+- **The INT8-QAT / Straight-Through-Estimator / per-channel-adaptive-clipping / DistilBERT-vs-RoBERTa-training chain.** That is ML *training* research; this is a Next.js/Neon webapp — we don't train quantized transformers here. The honest serverless equivalent is the lexicon scorer above. A heavier model, if ever justified, belongs in the separate `MAD-Scandal-Corpus` Python service.
+- **The GraphRAG / GossipCop++ Python index.** Separate repo, still a scaffold. Built the TS side that *would consume* such signals; did not claim to build the Python pipeline.
+- **Grok "skill" files** under a `/home/workdir/.grok/skills/` tree — that is Grok's environment, not this repo.
+- The thread's repeated **"executed / pushed / verified"** claims that it then retracted on cross-check ("not yet in the repos… descriptive plan only"). Recorded as the failure mode to avoid; every claim in this repo is backed by a commit SHA + CI.
+
+### AC-C — Honest scope
+- Classifier is **heuristic** (keyword horizon + `zLiarMeter` + perp trigger), stated as such — not ML. Deterministic + testable.
+- Proposals are **suggestions**; publishing to the ledger/on-chain market is the existing `/api/v1/markets` + `MADMarketFactory` path.
+- **Proof:** `tsc --noEmit` green; the `gdelt_signals` read path is DB-smoke-proven.
