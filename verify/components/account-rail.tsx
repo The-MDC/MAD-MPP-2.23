@@ -9,7 +9,7 @@
  */
 import React from "react";
 import {
-  KeyRound, Sparkles, Settings, LifeBuoy, Mail, FileText, Lock, Briefcase,
+  KeyRound, Sparkles, UserCircle, BarChart3, Settings, LifeBuoy, Mail, FileText, Lock, Briefcase,
   Megaphone, Calendar, Mic, Film, Image as ImageIcon, Radio,
   type LucideIcon,
 } from "lucide-react";
@@ -20,7 +20,9 @@ import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 const LINKS: [LucideIcon, string, string][] = [
   [KeyRound, "Login", "/gambit"],
   [Sparkles, "Sign Up", "/gambit"],
-  [Settings, "Settings", "#settings"],
+  [UserCircle, "Profile", "/profile"],
+  [BarChart3, "Reports", "/reports"],
+  [Settings, "Settings", "/settings"],
   [LifeBuoy, "Help", "#help"],
   [Mail, "Contact", "#contact"],
   [FileText, "Terms", "#terms"],
