@@ -4,6 +4,7 @@ import "./globals.css";
 import { WorkspaceProvider } from "@/context/workspace-context";
 import { MppProvider } from "@/context/mpp-context";
 import { ThemeProvider } from "@/context/theme-context";
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export const metadata: Metadata = {
   title: "Mad Gambit Conviction Workspace",
@@ -34,6 +35,7 @@ export default function RootLayout({
             </MppProvider>
           </WorkspaceProvider>
         </ThemeProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
