@@ -87,11 +87,8 @@ function scandalWeightFromTitle(title: string): { themes: string[]; weight: numb
 function matchWhitelist(title: string, whitelist: Set<string>): string[] {
   if (!whitelist.size) return [];
   const low = title.toLowerCase();
-  const out: string[] = [];
-  for (const name of whitelist) {
-    if (name.length >= 3 && low.includes(name)) out.push(name);
-  }
-  return out;
+  // Array.from (not for-of) so we don't require the ES2015 iteration downlevel flag.
+  return Array.from(whitelist).filter((name) => name.length >= 3 && low.includes(name));
 }
 
 /** Score one article into a ScoredSignal (headline-only path; velocity proxied). */
