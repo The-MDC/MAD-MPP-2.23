@@ -14,7 +14,8 @@
  * placeholders; flip-clock, carousel, parallax and themes are live.
  */
 import React, { useEffect, useState } from "react";
-import { Home, TrendingUp, Wallet, User, type LucideIcon } from "lucide-react";
+import { Home, TrendingUp, Wallet, User, PanelLeft, PanelRight, X, type LucideIcon } from "lucide-react";
+import ModuleShelf from "@/components/module-shelf";
 import { SkinProvider, useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import CryptoTickerDual from "@/components/crypto-ticker-dual";
@@ -60,7 +61,7 @@ function SectionHeading({ children, color }: { children: React.ReactNode; color?
 
 function BottomNav() {
   const { skin } = useSkin();
-  const items: [LucideIcon, string, string][] = [[Home, "Home", "/"], [TrendingUp, "Markets", "/gambit?tab=floor"], [Wallet, "Wallet", "/gambit?tab=portal"], [User, "Profile", "/gambit?tab=saga"]];
+  const items: [LucideIcon, string, string][] = [[Home, "Home", "/"], [TrendingUp, "Markets", "/gambit?tab=floor"], [Wallet, "Wallet", "/gambit?tab=portal"], [User, "Profile", "/profile"]];
   return (
     <nav style={{ position: "fixed", left: 0, right: 0, bottom: 0, display: "flex", justifyContent: "space-around", alignItems: "center", padding: "10px 0", background: skin.panel, borderTop: `1px solid ${skin.border}`, backdropFilter: "blur(6px)", zIndex: 30 }}>
       {items.map(([Icon, label, href], i) => (
@@ -78,12 +79,20 @@ function PreviewInner() {
   const [sy, setSy] = useState(0);
   const [reduce, setReduce] = useState(false);
   const [wide, setWide] = useState(false);
+  // Tray/console state — rails retract and fold out. Desktop: pinned when open,
+  // collapses fully on retract. Mobile: slide-in console overlays with backdrop.
+  const [leftOpen, setLeftOpen] = useState(false);
+  const [rightOpen, setRightOpen] = useState(false);
 
   useEffect(() => {
     const rm = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReduce(rm.matches);
     const wq = window.matchMedia("(min-width: 1024px)");
-    const applyWide = () => setWide(wq.matches);
+    const applyWide = () => {
+      setWide(wq.matches);
+      setLeftOpen(wq.matches);
+      setRightOpen(wq.matches);
+    };
     applyWide();
     wq.addEventListener("change", applyWide);
     const onScroll = () => setSy(window.scrollY || 0);
@@ -125,10 +134,18 @@ function PreviewInner() {
 
         <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "11px 14px", maxWidth: 1040, margin: "0 auto", flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+            <button type="button" onClick={() => setLeftOpen((o) => !o)} aria-label="Toggle categories tray" title="Categories tray"
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, flex: "none", borderRadius: 8, cursor: "pointer", color: leftOpen ? skin.accent : skin.muted, background: skin.card, border: `1px solid ${leftOpen ? `${skin.accent}66` : skin.border}` }}>
+              <PanelLeft size={15} strokeWidth={2.25} />
+            </button>
             <span style={{ width: 28, height: 28, flex: "none", borderRadius: "50%", background: `radial-gradient(circle at 35% 30%, ${skin.gold}, ${skin.accent2})`, boxShadow: `0 0 10px ${skin.gold}66`, display: "inline-block" }} aria-hidden="true" />
             <span style={{ fontSize: 14, fontWeight: 900, letterSpacing: 0.5, color: skin.gold, textTransform: "uppercase", whiteSpace: "nowrap" }}>MADHAT&rsquo;s Gambit</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6, flex: "none" }}>
+            <button type="button" onClick={() => setRightOpen((o) => !o)} aria-label="Toggle account console" title="Account console"
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, flex: "none", borderRadius: 8, cursor: "pointer", color: rightOpen ? skin.gold : skin.muted, background: skin.card, border: `1px solid ${rightOpen ? `${skin.gold}66` : skin.border}` }}>
+              <PanelRight size={15} strokeWidth={2.25} />
+            </button>
             <button type="button" onClick={toggle} style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "6px 11px", borderRadius: 8, cursor: "pointer", color: skin.text, background: skin.card, border: `1px solid ${skin.accent}66`, whiteSpace: "nowrap", fontFamily: INSTRUMENT_FONT }} title="Toggle Gilded Pop-Baroque ⇄ Neon Noir Tabloid">
               {name === "gilded" ? "◑ Gilded" : "◐ Neon Noir"}
             </button>
@@ -139,7 +156,7 @@ function PreviewInner() {
 
         {/* Responsive shell: left + right rails on desktop (mockup sidebars), stacked on mobile */}
         <div style={{ maxWidth: wide ? 1300 : 1040, margin: "0 auto", padding: "8px 12px 96px", display: "flex", gap: 16, alignItems: "flex-start" }}>
-          {wide ? <CategoryRail /> : null}
+          {wide && leftOpen ? <CategoryRail /> : null}
 
           <main style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
             {/* /gambit's gold-chisel hero lockup + trinity, ported verbatim */}
@@ -180,6 +197,9 @@ function PreviewInner() {
               <FeaturedMarketCards />
             </div>
 
+            {/* The precision merge: every /gambit module inline, lazy-mounted */}
+            <ModuleShelf />
+
             {/* Every /gambit tab/feature, deep-linked into the new theme */}
             <PlatformExplorer />
 
@@ -194,8 +214,30 @@ function PreviewInner() {
             </div>
           </main>
 
-          {wide ? <AccountRail /> : null}
+          {wide && rightOpen ? <AccountRail /> : null}
         </div>
+
+        {/* Mobile fold-out console trays (overlay + backdrop; desktop uses pinned rails) */}
+        {!wide && (leftOpen || rightOpen) ? (
+          <div onClick={() => { setLeftOpen(false); setRightOpen(false); }}
+            style={{ position: "fixed", inset: 0, zIndex: 40, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(2px)" }}>
+            <div onClick={(e) => e.stopPropagation()} className={reduce ? undefined : "mg-tray-in-" + (leftOpen ? "l" : "r")}
+              style={{ position: "absolute", top: 0, bottom: 0, ...(leftOpen ? { left: 0 } : { right: 0 }), width: 216, background: skin.bg, borderRight: leftOpen ? `1px solid ${skin.border}` : undefined, borderLeft: leftOpen ? undefined : `1px solid ${skin.border}`, padding: 10, overflowY: "auto" }}>
+              <button type="button" onClick={() => { setLeftOpen(false); setRightOpen(false); }} aria-label="Close tray"
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 26, height: 26, marginBottom: 8, borderRadius: 7, cursor: "pointer", color: skin.muted, background: skin.card, border: `1px solid ${skin.border}` }}>
+                <X size={13} />
+              </button>
+              {leftOpen ? <CategoryRail /> : <AccountRail />}
+            </div>
+          </div>
+        ) : null}
+        <style>{`
+          @keyframes mgTrayL { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+          @keyframes mgTrayR { from { transform: translateX(100%); } to { transform: translateX(0); } }
+          .mg-tray-in-l { animation: mgTrayL .22s ease-out; }
+          .mg-tray-in-r { animation: mgTrayR .22s ease-out; }
+          @media (prefers-reduced-motion: reduce) { .mg-tray-in-l, .mg-tray-in-r { animation: none; } }
+        `}</style>
       </div>
 
       <BottomNav />
