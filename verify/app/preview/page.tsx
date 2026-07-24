@@ -21,7 +21,6 @@ import CryptoTickerDual from "@/components/crypto-ticker-dual";
 import NewsTwoRow from "@/components/news-two-row";
 import FeaturedMarketCards from "@/components/featured-market-cards";
 import DopamineCarouselStrip from "@/components/dopamine-carousel-strip";
-import SeikoFlipClock from "@/components/seiko-flip-clock";
 import PerpDials from "@/components/perp-dials";
 import MarketTypeCarousels from "@/components/market-type-carousels";
 import CategoryRail from "@/components/category-rail";
@@ -29,6 +28,17 @@ import AccountRail from "@/components/account-rail";
 import PlatformExplorer from "@/components/platform-explorer";
 import DottedGlowBackground from "@/components/dotted-glow-background";
 import BrandHero from "@/components/brand-lockup";
+// /gambit floor components, ported natively (GameProvider below powers them —
+// and fixes the latent useGame() crash in ZLiarMeter inside PerpDials).
+import { GameProvider } from "@/context/game-context";
+import LiveTicker from "@/components/live-ticker";
+import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
+import TopMarketsRail from "@/components/top-markets-rail";
+import MarketRails from "@/components/market-rails";
+import ZLiarSection from "@/components/zliar-section";
+import DopamineEngine from "@/components/dopamine-engine";
+import PositionsDashboard from "@/components/positions-dashboard";
+import { EigenTrustWidget } from "@/components/virality-eigen";
 
 function Chip({ label, filled }: { label: string; filled?: boolean }) {
   const { skin } = useSkin();
@@ -131,16 +141,15 @@ function PreviewInner() {
         <div style={{ maxWidth: wide ? 1300 : 1040, margin: "0 auto", padding: "8px 12px 96px", display: "flex", gap: 16, alignItems: "flex-start" }}>
           {wide ? <CategoryRail /> : null}
 
-          <main style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 26 }}>
+          <main style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
             {/* /gambit's gold-chisel hero lockup + trinity, ported verbatim */}
             <BrandHero primary={skin.accent2} />
 
+            {/* /gambit's triple-mode RSS wire, ported native */}
+            <LiveTicker />
+
             <div id="mg-news">
               <NewsTwoRow />
-            </div>
-
-            <div style={{ display: "flex", justifyContent: "center", padding: "4px 0" }}>
-              <SeikoFlipClock label="MAD·TIME UTC" />
             </div>
 
             <div>
@@ -148,8 +157,21 @@ function PreviewInner() {
               <DopamineCarouselStrip />
             </div>
 
-            {/* Restored analog dials + GossipCop × Z-Liar dashboard */}
+            {/* Tickers & Dials — meters row + cluster with the split-flap chrono */}
             <PerpDials />
+
+            {/* ── /gambit FLOOR, ported native (GameProvider-powered) ── */}
+            <SeikoDopamineHub />
+            <TopMarketsRail />
+            <MarketRails />
+            <ZLiarSection />
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: 12 }}>
+              <PositionsDashboard />
+              <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
+                <EigenTrustWidget />
+                <DopamineEngine />
+              </div>
+            </div>
 
             {/* One carousel per market class (Progression · Saga · Z-Liar · Perp · GossipCop) */}
             <MarketTypeCarousels />
@@ -184,7 +206,9 @@ function PreviewInner() {
 export default function PreviewPage() {
   return (
     <SkinProvider>
-      <PreviewInner />
+      <GameProvider>
+        <PreviewInner />
+      </GameProvider>
     </SkinProvider>
   );
 }

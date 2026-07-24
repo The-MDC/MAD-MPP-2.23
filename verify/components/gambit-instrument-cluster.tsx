@@ -268,6 +268,9 @@ export interface GambitInstrumentClusterProps {
   leftDialPresets?: DialStat[];
   rightDialPresets?: DialStat[];
   uid?: string;
+  /** Optional center replacement — when set, renders INSTEAD of the 3 KPI pods
+   *  between the two dials (e.g. the split-flap chrono on the hub). */
+  centerSlot?: React.ReactNode;
 }
 
 export default function GambitInstrumentCluster({
@@ -277,6 +280,7 @@ export default function GambitInstrumentCluster({
   leftDialPresets = DEFAULT_LEFT_DIAL_PRESETS,
   rightDialPresets = DEFAULT_RIGHT_DIAL_PRESETS,
   uid = "hero",
+  centerSlot,
 }: GambitInstrumentClusterProps) {
   const [p1, setP1] = useState(0);
   const [p2, setP2] = useState(0);
@@ -296,7 +300,9 @@ export default function GambitInstrumentCluster({
         fontFamily: INSTRUMENT_FONT, fontSize: "7px", color: "#6b7280",
         letterSpacing: "1px", textAlign: "center",
       }}>
-        3 INDEPENDENT KPI PODS &middot; 2 CUSTOMIZABLE DIALS &middot; TAP ANY DOT TO SWAP
+        {centerSlot
+          ? <>SPLIT-FLAP CHRONO &middot; 2 CUSTOMIZABLE DIALS &middot; TAP ANY DOT TO SWAP</>
+          : <>3 INDEPENDENT KPI PODS &middot; 2 CUSTOMIZABLE DIALS &middot; TAP ANY DOT TO SWAP</>}
       </div>
 
       <div style={{
@@ -305,11 +311,15 @@ export default function GambitInstrumentCluster({
       }}>
         <AnalogGauge presets={leftDialPresets} idx={dl} onSelect={setDl} uid={`${uid}-l`} />
 
-        <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
-          <DigitPairPod presets={pair1Presets} idx={p1} onSelect={setP1} uid={`${uid}-p1`} />
-          <DigitPairPod presets={pair2Presets} idx={p2} onSelect={setP2} uid={`${uid}-p2`} />
-          <DigitPairPod presets={pair3Presets} idx={p3} onSelect={setP3} uid={`${uid}-p3`} />
-        </div>
+        {centerSlot ? (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>{centerSlot}</div>
+        ) : (
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+            <DigitPairPod presets={pair1Presets} idx={p1} onSelect={setP1} uid={`${uid}-p1`} />
+            <DigitPairPod presets={pair2Presets} idx={p2} onSelect={setP2} uid={`${uid}-p2`} />
+            <DigitPairPod presets={pair3Presets} idx={p3} onSelect={setP3} uid={`${uid}-p3`} />
+          </div>
+        )}
 
         <AnalogGauge presets={rightDialPresets} idx={dr} onSelect={setDr} uid={`${uid}-r`} />
       </div>
