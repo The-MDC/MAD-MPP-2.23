@@ -7,6 +7,7 @@ import CardStatsDisplay from "@/components/card-stats-display";
 import MarketsPanel from "@/components/markets-panel";
 import DopamineMetricsCarousel from "@/components/dopamine-metrics-carousel";
 import ReflexionVisualizer from "@/components/reflexion-visualizer";
+import MadxWalletPanel from "@/components/madx-wallet-panel";
 import DashboardShell from "@/components/dashboard-shell";
 
 export const metadata = {
@@ -23,6 +24,7 @@ export default function DashboardPage() {
   return (
     <DashboardShell>
       <DopamineMetricsCarousel />
+      <MadxWalletPanel />
       <AnalyticsDashboard />
       <MarketsPanel />
       <ShieldPanel />

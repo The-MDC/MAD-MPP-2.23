@@ -111,6 +111,23 @@ async function main() {
       "audit_log write+read",
     );
 
+    await client.query(`INSERT INTO madx_accounts (owner, balance, staked) VALUES ($1, 500, 100)`, [ZERO]);
+    assert(
+      (await client.query(`SELECT count(*)::int AS n FROM madx_accounts WHERE owner=$1`, [ZERO])).rows[0].n >= 1,
+      "madx_accounts write+read",
+    );
+
+    await client.query(`INSERT INTO madx_ledger (owner, kind, amount, note) VALUES ($1, 'welcome', 500, 'smoke')`, [ZERO]);
+    assert(
+      (await client.query(`SELECT count(*)::int AS n FROM madx_ledger WHERE owner=$1`, [ZERO])).rows[0].n >= 1,
+      "madx_ledger write+read",
+    );
+
+    assert(
+      (await client.query(`SELECT count(*)::int AS n FROM madx_supply WHERE id=1`)).rows[0].n === 1,
+      "madx_supply singleton present",
+    );
+
     console.log("✅ DB smoke passed — live read/write verified across all core tables");
   } catch (err) {
     console.error(`❌ smoke failed: ${err.message}`);
