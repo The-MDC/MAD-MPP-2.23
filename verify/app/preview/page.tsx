@@ -17,7 +17,7 @@ import React, { useEffect, useState } from "react";
 import { SkinProvider, useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import CryptoTickerDual from "@/components/crypto-ticker-dual";
-import NewsCarousel from "@/components/news-carousel";
+import NewsTwoRow from "@/components/news-two-row";
 import FeaturedMarketCards from "@/components/featured-market-cards";
 import DopamineCarouselStrip from "@/components/dopamine-carousel-strip";
 import SeikoFlipClock from "@/components/seiko-flip-clock";
@@ -114,7 +114,7 @@ function PreviewInner() {
 
           <main style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 26 }}>
             <div id="mg-news">
-              <NewsCarousel />
+              <NewsTwoRow />
             </div>
 
             <div style={{ display: "flex", justifyContent: "center", padding: "4px 0" }}>
