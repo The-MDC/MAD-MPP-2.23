@@ -8,6 +8,7 @@ import MarketsPanel from "@/components/markets-panel";
 import DopamineMetricsCarousel from "@/components/dopamine-metrics-carousel";
 import ReflexionVisualizer from "@/components/reflexion-visualizer";
 import MadxWalletPanel from "@/components/madx-wallet-panel";
+import MarketsForTodayPanel from "@/components/markets-for-today-panel";
 import DashboardShell from "@/components/dashboard-shell";
 
 export const metadata = {
@@ -25,6 +26,7 @@ export default function DashboardPage() {
     <DashboardShell>
       <DopamineMetricsCarousel />
       <MadxWalletPanel />
+      <MarketsForTodayPanel />
       <AnalyticsDashboard />
       <MarketsPanel />
       <ShieldPanel />

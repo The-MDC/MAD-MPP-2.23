@@ -701,3 +701,25 @@ Full write-up: **`docs/MECHANISM_ORACLE_MADX_RESEARCH.md`** (cited).
 - **Market mechanism:** keep parimutuel (`MADMarketFactory`) for UGC/satire; **add LS-LMSR** (`MADLmsrMarket.sol`) for flagship continuous-odds markets (the productionizable "Continuous DL-LMSR"); **spike pm-AMM** as the frontier. The hard part is fixed-point `exp`/`ln` + invariants — scoped in the doc.
 - **Oracle → quadruple:** the triple (Chainlink/Pyth + AI multi-agent + community) are all *signal sources*; add a 4th **optimistic-bond finalizer** (UMA / Reality.eth+Kleros pattern, bonds in $MADx) and **quadratic-weight the community leg** (weight = √staked $MADx). Legs 1–3 propose; leg 4 finalizes with money at risk.
 - **Deploy wiring (shipped this commit):** `verify/lib/contracts.ts` (real $MADx + chain registry, env-overridable, degrade-safe) + `contracts/script/Deploy.s.sol` (deploys MADStaking + MADMarketFactory against $MADx). Testnet deploy is founder-gated (RPC + deployer key).
+
+## PART AC — Market classification engine + honest read of the Grok dual-ingestion thread (2026-07-24)
+
+A long Grok thread proposed a dual-ingestion (RSS + GDELT/GossipCop++) → auto-market-creation engine with sentiment scoring. Sorted honestly:
+
+### AC-A — SHIPPED (the genuinely-codeable core)
+| Piece | What | Files |
+|---|---|---|
+| Lexicon sentiment | VADER-style TS scorer (valence/intensity/dopaminePotential) — a lexicon scorer, explicitly **not** a transformer | `verify/lib/sentiment.ts` |
+| Market classifier | Deterministic **Progression / Saga / Z-Liar / Perp** taxonomy by horizon + structure, composing the EXISTING `zLiarMeter` + `perpTriggerProbability` + sentiment | `verify/lib/market-classifier.ts` |
+| Markets for Today | `/api/v1/markets/proposals` classifies real `gdelt_signals` into ranked proposals; `MarketsForTodayPanel` surfaces them (filter by type) | route + `components/markets-for-today-panel.tsx` |
+
+### AC-B — Explicitly NOT implemented (claiming otherwise would be fabrication)
+- **The INT8-QAT / Straight-Through-Estimator / per-channel-adaptive-clipping / DistilBERT-vs-RoBERTa-training chain.** That is ML *training* research; this is a Next.js/Neon webapp — we don't train quantized transformers here. The honest serverless equivalent is the lexicon scorer above. A heavier model, if ever justified, belongs in the separate `MAD-Scandal-Corpus` Python service.
+- **The GraphRAG / GossipCop++ Python index.** Separate repo, still a scaffold. Built the TS side that *would consume* such signals; did not claim to build the Python pipeline.
+- **Grok "skill" files** under a `/home/workdir/.grok/skills/` tree — that is Grok's environment, not this repo.
+- The thread's repeated **"executed / pushed / verified"** claims that it then retracted on cross-check ("not yet in the repos… descriptive plan only"). Recorded as the failure mode to avoid; every claim in this repo is backed by a commit SHA + CI.
+
+### AC-C — Honest scope
+- Classifier is **heuristic** (keyword horizon + `zLiarMeter` + perp trigger), stated as such — not ML. Deterministic + testable.
+- Proposals are **suggestions**; publishing to the ledger/on-chain market is the existing `/api/v1/markets` + `MADMarketFactory` path.
+- **Proof:** `tsc --noEmit` green; the `gdelt_signals` read path is DB-smoke-proven.
