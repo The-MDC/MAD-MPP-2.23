@@ -1,8 +1,11 @@
+import { redirect } from "next/navigation";
+
 /**
- * MAD Gambit — /MPP2.23 : the platform's residing URL.
- * ------------------------------------------------------------------
- * Serves the dopamine hub at the canonical path, so once madgambit.io is
- * attached to this Vercel project, https://madgambit.io/MPP2.23 is the front
- * door. Same page as /preview (single source — a re-export, not a copy).
+ * Legacy uppercase route. The canonical path for the new premiere 2.23 theme is
+ * the lowercase /mpp2.23 (App Router paths are case-sensitive, so a visitor
+ * typing madgambit.io/mpp2.23 must resolve). This preserves any existing
+ * madgambit.io/MPP2.23 bookmark by redirecting it to the canonical URL.
  */
-export { default } from "../preview/page";
+export default function LegacyMPP() {
+  redirect("/mpp2.23");
+}
