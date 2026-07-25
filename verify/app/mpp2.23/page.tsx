@@ -1,258 +1,408 @@
 "use client";
 
 /**
- * MAD Gambit — /mpp2.23 : the NEW premiere 2.23 theme. Faithful, scroll-parallax
- * assembly of the dopamine-landing mockup:
- *   perpetual clickable dual ticker → nav + theme switch → News Flow → gold
- *   split-flap clock → Customizable Dopamine Carousel (arrow-scrollable) →
- *   Featured Market Cards → bottom nav, over drifting parallax glow layers.
+ * MΛĐ Gambit — /mpp2.23  v3.0  (the ALTERNATIVE earlier hub theme)
+ * ─────────────────────────────────────────────────────────────────
+ * Served at /mpp2.23; the retired /gambit route redirects here (query
+ * preserved, so /gambit?tab=X → /mpp2.23?tab=X still deep-links a tab).
+ * Full platform assembled. 7 tabs. All sprint deliverables wired.
  *
- * This is the canonical front door once madgambit.io is attached:
- * https://madgambit.io/mpp2.23 . The EARLIER persisted hub theme is retained
- * and lives at /preview (and /gambit, the root redirect target) — the two
- * coexist, nothing is replaced. The two skins ARE the mockup's two themes
- * (Gilded Pop-Baroque ⇄ Neon Noir Tabloid) — toggle top-right. Imagery/ticker/
- * odds are branded beta placeholders; flip-clock, carousel, parallax and themes
- * are live.
+ * THE FLOOR     — Scandal Velocity + Prediction Circus + Positions
+ *                 + Swap Interface + Z-Liar + Dopamine Engine
+ * NFT SAGA      — Card collection + Evolution + Saga episodes
+ * ARENA         — Named Tournaments + Cull PvP
+ * PACKS         — Dutch Auction + Golden Ticket
+ * PORTAL        — Thesis carousel + Contribution Connectors
+ * CASINO        — Golden Hand gated provably fair flip
+ * LOGIC         — δ-limit + φ-shield + Code Checker + DAO Sim
+ *
+ * Dopamine principles encoded throughout:
+ *  - DottedGlowBackground driven by live chaosMeter
+ *  - VRS flash covers viewport on Fibonacci node hit
+ *  - ScandalVelocityMeter changes color temperature with GARCH σ²
+ *  - All animations respect prefers-reduced-motion
+ *  - Skin tokens from SKIN_TOKENS drive all accent colors
  */
-import React, { useEffect, useState } from "react";
-import { Home, TrendingUp, Wallet, User, PanelLeft, PanelRight, X, type LucideIcon } from "lucide-react";
-import ModuleShelf from "@/components/module-shelf";
-import { SkinProvider, useSkin } from "@/components/skin-provider";
-import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
-import CryptoTickerDual from "@/components/crypto-ticker-dual";
-import NewsTwoRow from "@/components/news-two-row";
-import FeaturedMarketCards from "@/components/featured-market-cards";
-import DopamineCarouselStrip from "@/components/dopamine-carousel-strip";
-import PerpDials from "@/components/perp-dials";
-import MarketTypeCarousels from "@/components/market-type-carousels";
-import CategoryRail from "@/components/category-rail";
-import AccountRail from "@/components/account-rail";
-import PlatformExplorer from "@/components/platform-explorer";
-import DottedGlowBackground from "@/components/dotted-glow-background";
-import BrandHero from "@/components/brand-lockup";
-// /gambit floor components, ported natively (GameProvider below powers them —
-// and fixes the latent useGame() crash in ZLiarMeter inside PerpDials).
+
+import React, { useState, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { GameProvider } from "@/context/game-context";
-import LiveTicker from "@/components/live-ticker";
-import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
+import { useGame } from "@/context/game-context";
+
+// Background
+import DottedGlowBackground from "@/components/dotted-glow-background";
+
+// Floor components
+import ScandalVelocityMeter from "@/components/scandal-velocity-meter";
+import { KaitoPriceTicker, PredictionCircus } from "@/components/kaito-and-circus";
+import PositionsDashboard from "@/components/positions-dashboard";
+import SwapInterface from "@/components/swap-interface";
+import ZLiarSection from "@/components/zliar-section";
+import GameLobby from "@/components/game-lobby";
+import PackShop from "@/components/pack-shop";
 import TopMarketsRail from "@/components/top-markets-rail";
 import MarketRails from "@/components/market-rails";
-import ZLiarSection from "@/components/zliar-section";
 import DopamineEngine from "@/components/dopamine-engine";
-import PositionsDashboard from "@/components/positions-dashboard";
+import LiveTicker from "@/components/live-ticker";
+import OVDeckSelector from "@/components/ov-deck-selector";
+import MadhatrConcierge from "@/components/madhatr-concierge";
 import { EigenTrustWidget } from "@/components/virality-eigen";
+import AuthModal from "@/components/auth-modal";
 
-function Chip({ label, filled }: { label: string; filled?: boolean }) {
-  const { skin } = useSkin();
+// Tab panels
+import NftSaga from "@/components/nft-saga";
+import TournamentArena from "@/components/tournament-arena";
+import DutchAuctionPanel from "@/components/dutch-auction-panel";
+import PortalTab from "@/components/portal-tab";
+import CasinoPanel from "@/components/casino-panel";
+import LogicLab from "@/components/logic-lab";
+import PackOpening from "@/components/pack-opening";
+import StakingTiersPanel from "@/components/staking-tiers-panel";
+import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
+import BottomNav from "@/components/bottom-nav";
+import DeviceFrame from "@/components/device-frame";
+import MainNav from "@/components/main-nav";
+import FutarchyBoard from "@/components/futarchy-board";
+import MarketFactory from "@/components/market-factory";
+import BayesianDecisionTree from "@/components/decision-tree";
+import { useTheme } from "@/context/theme-context";
+import StateMachineView from "@/components/state-machine-view";
+import JoyLayer, { celebrate } from "@/components/joy-layer";
+
+import {
+  OVDeck, OV_DECKS, SKIN_TOKENS, SkinTokens,
+} from "@/lib/gambit-game-math";
+import {
+  ShieldAlert, Layers, Trophy, Package, Ticket, Cpu,
+  Palette, Crown, Sparkles, User, Wallet, LogOut
+} from "lucide-react";
+
+type Tab = "floor" | "saga" | "arena" | "packs" | "portal" | "casino" | "logic";
+
+// Demo Bayesian evidence chain for the Logic tab's decision tree (thematic).
+const DECISION_NODES = [
+  { evidence: "Scandal velocity σ² spike (GARCH)", oldPrior: 0.42, newPosterior: 0.61, shift: 0.19, action: "WEAK_BUY" as const },
+  { evidence: "Z-Liar sentiment flips truth→liar",  oldPrior: 0.61, newPosterior: 0.38, shift: -0.23, action: "WEAK_SELL" as const },
+  { evidence: "Whale conviction stake detected",     oldPrior: 0.38, newPosterior: 0.72, shift: 0.34, action: "STRONG_BUY" as const },
+  { evidence: "RSS wire corroboration (7 feeds)",    oldPrior: 0.72, newPosterior: 0.78, shift: 0.06, action: "HOLD" as const },
+  { evidence: "Oracle cascade divergence",           oldPrior: 0.78, newPosterior: 0.55, shift: -0.23, action: "STRONG_SELL" as const },
+];
+
+export default function GambitPage() {
   return (
-    <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "6px 11px", borderRadius: 8, color: filled ? skin.bg : skin.text, background: filled ? skin.gold : "transparent", border: `1px solid ${filled ? skin.gold : skin.border}`, whiteSpace: "nowrap", fontFamily: INSTRUMENT_FONT }}>
-      {label}
-    </span>
+    <GameProvider>
+      <DeviceFrame>
+        <GambitInner />
+      </DeviceFrame>
+    </GameProvider>
   );
 }
 
-function SectionHeading({ children, color }: { children: React.ReactNode; color?: string }) {
-  const { skin } = useSkin();
-  return (
-    <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 2, color: color ?? skin.gold, textTransform: "uppercase", margin: "0 0 12px 2px" }}>
-      {children}
-    </div>
-  );
-}
+function GambitInner() {
+  const [tab, setTab]             = useState<Tab>("floor");
+  const [activeDeck, setActiveDeck] = useState<OVDeck>(OV_DECKS[0]);
+  const { skin, setSkin, tokens } = useTheme(); // global theme — shared app-wide
+  const [skinMenuOpen, setSkinMenuOpen] = useState(false);
 
-function BottomNav() {
-  const { skin } = useSkin();
-  const items: [LucideIcon, string, string][] = [[Home, "Home", "/"], [TrendingUp, "Markets", "/gambit?tab=floor"], [Wallet, "Wallet", "/gambit?tab=portal"], [User, "Profile", "/profile"]];
-  return (
-    <nav style={{ position: "fixed", left: 0, right: 0, bottom: 0, display: "flex", justifyContent: "space-around", alignItems: "center", padding: "10px 0", background: skin.panel, borderTop: `1px solid ${skin.border}`, backdropFilter: "blur(6px)", zIndex: 30 }}>
-      {items.map(([Icon, label, href], i) => (
-        <a key={label} href={href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, textDecoration: "none", color: i === 0 ? skin.accent : skin.muted, fontSize: 8, letterSpacing: 1, textTransform: "uppercase" }}>
-          <Icon size={16} strokeWidth={2.25} />
-          {label}
-        </a>
-      ))}
-    </nav>
-  );
-}
+  const { chaosMeter, vrsFlash, cards, socialAuth, setSocialAuth, walletAuth, setWalletAuth } = useGame();
+  const hasGoldenHand = cards.some(c => ["Golden Hand","Mythic"].includes(c.rarity));
 
-function PreviewInner() {
-  const { skin, name, toggle } = useSkin();
-  const [sy, setSy] = useState(0);
-  const [reduce, setReduce] = useState(false);
-  const [wide, setWide] = useState(false);
-  // Tray/console state — rails retract and fold out. Desktop: pinned when open,
-  // collapses fully on retract. Mobile: slide-in console overlays with backdrop.
-  const [leftOpen, setLeftOpen] = useState(false);
-  const [rightOpen, setRightOpen] = useState(false);
+  // Modals
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
+  // Deep-link: open the tab named in ?tab= (or #hash) on load, so the hub / any
+  // link can route straight into a platform tab. Validated against the Tab union.
   useEffect(() => {
-    const rm = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduce(rm.matches);
-    const wq = window.matchMedia("(min-width: 1024px)");
-    const applyWide = () => {
-      setWide(wq.matches);
-      setLeftOpen(wq.matches);
-      setRightOpen(wq.matches);
-    };
-    applyWide();
-    wq.addEventListener("change", applyWide);
-    const onScroll = () => setSy(window.scrollY || 0);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      wq.removeEventListener("change", applyWide);
-      window.removeEventListener("scroll", onScroll);
-    };
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const raw = (params.get("tab") || window.location.hash.replace("#", "")).toLowerCase();
+    const valid = ["floor", "saga", "arena", "packs", "portal", "casino", "logic"];
+    if (valid.indexOf(raw) !== -1) setTab(raw as Tab);
   }, []);
 
-  const par = (factor: number): string => (reduce ? "none" : `translateY(${sy * factor}px)`);
+  // Reward-moment delight — a celebration burst when entering a high-point tab.
+  useEffect(() => {
+    if (tab === "packs" || tab === "casino" || tab === "arena") {
+      celebrate({ intensity: tab === "casino" ? 1.1 : 0.7 });
+    }
+  }, [tab]);
 
   return (
-    <div style={{ position: "relative", minHeight: "100vh", background: skin.bg, color: skin.text, fontFamily: INSTRUMENT_FONT, overflowX: "hidden" }}>
-      {/* ── /gambit's real backdrop, merged in: WebGL dotted-glow particle field
-             (exact props the platform passes at chaos≈67) + its ambient radial glows,
-             with the hub's scroll-parallax drift layered on top. */}
+    <main className="min-h-screen text-neutral-100 relative overflow-hidden pb-16"
+      style={{ background: tokens.bg }}>
+
+      {/* ── Canvas dot backdrop (intensity driven by chaosMeter) */}
       <DottedGlowBackground
-        gap={14}
-        radius={1.5}
+        gap={14} radius={1.5}
         color="rgba(255,255,255,0.05)"
-        glowColor={`${skin.accent}cc`}
-        speedMin={0.77}
-        speedMax={1.67}
-        speedScale={0.84}
+        glowColor={tokens.glow + "cc"}
+        speedMin={0.3 + chaosMeter * 0.007}
+        speedMax={1.0 + chaosMeter * 0.01}
+        speedScale={0.5 + chaosMeter * 0.005}
       />
-      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }} aria-hidden="true">
-        {/* /gambit ambient glows (verbatim geometry) */}
-        <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle 900px at 85% -100px, ${skin.accent}18, transparent)` }} />
-        <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle 900px at 10% 700px, ${skin.accent2}12, transparent)` }} />
-        {/* hub parallax drift layers */}
-        <div style={{ position: "absolute", top: -90, left: -70, width: 340, height: 340, borderRadius: "50%", background: `radial-gradient(circle, ${skin.accent}22, transparent 70%)`, transform: par(0.25) }} />
-        <div style={{ position: "absolute", top: 440, right: -90, width: 360, height: 360, borderRadius: "50%", background: `radial-gradient(circle, ${skin.accent2}22, transparent 70%)`, transform: par(-0.18) }} />
-        <div style={{ position: "absolute", top: 980, left: -50, width: 300, height: 300, borderRadius: "50%", background: `radial-gradient(circle, ${skin.gold}18, transparent 70%)`, transform: par(0.3) }} />
+
+      {/* ── Ambient radial glows */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ background: `radial-gradient(circle 900px at 85% -100px, ${tokens.accent}18, transparent)` }} />
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ background: `radial-gradient(circle 900px at 10% 700px, ${tokens.primary}12, transparent)` }} />
+      <div className="absolute top-1/3 left-1/3 w-[520px] h-[520px] rounded-full pointer-events-none animate-chaos-pulse"
+        style={{ background: `${tokens.secondary}06`, filter: "blur(170px)" }} />
+
+      {/* ── VRS full-viewport flash on Fibonacci jackpot */}
+      {vrsFlash && (
+        <div className="fixed inset-0 z-50 pointer-events-none animate-scandal-flash"
+          style={{ background: `${tokens.primary}20` }} />
+      )}
+
+      {/* ── TOP AUTH BAR ── */}
+      <div className="relative z-20 flex items-center justify-end p-4 gap-3">
+        {!socialAuth.isAuthenticated ? (
+          <button 
+            onClick={() => setShowAuthModal(true)}
+            className="px-4 py-2 bg-white text-black font-mono text-[10px] uppercase font-bold tracking-widest rounded-lg hover:bg-neutral-200 transition-colors"
+          >
+            Login / Sign Up
+          </button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <div className="px-3 py-1.5 bg-[#05070c] border border-neutral-800 rounded-lg flex items-center gap-2">
+              <User className="w-3.5 h-3.5 text-neutral-400" />
+              <span className="font-mono text-[10px] text-neutral-300">{socialAuth.email}</span>
+            </div>
+            
+            {!walletAuth.isConnected ? (
+              <button 
+                onClick={() => setWalletAuth({ isConnected: true, address: "0xMAD...8888" })}
+                className="px-4 py-1.5 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-[10px] uppercase font-bold tracking-widest rounded-lg hover:bg-cyan-500/20 transition-colors flex items-center gap-1.5"
+              >
+                <Wallet className="w-3.5 h-3.5" /> Connect Wallet
+              </button>
+            ) : (
+              <div className="px-3 py-1.5 bg-cyan-500/10 border border-cyan-500/30 rounded-lg flex items-center gap-2">
+                <Wallet className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="font-mono text-[10px] text-cyan-400 font-bold">{walletAuth.address}</span>
+              </div>
+            )}
+            
+            <button 
+              onClick={() => {
+                setSocialAuth({ isAuthenticated: false, provider: null, email: null });
+                setWalletAuth({ isConnected: false, address: null });
+              }}
+              className="p-1.5 text-neutral-500 hover:text-rose-400 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
 
-      <div style={{ position: "relative", zIndex: 1 }}>
-        <CryptoTickerDual />
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-2 pb-24 lg:pb-2">
 
-        <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "11px 14px", maxWidth: 1040, margin: "0 auto", flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-            <button type="button" onClick={() => setLeftOpen((o) => !o)} aria-label="Toggle categories tray" title="Categories tray"
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, flex: "none", borderRadius: 8, cursor: "pointer", color: leftOpen ? skin.accent : skin.muted, background: skin.card, border: `1px solid ${leftOpen ? `${skin.accent}66` : skin.border}` }}>
-              <PanelLeft size={15} strokeWidth={2.25} />
-            </button>
-            <span style={{ width: 28, height: 28, flex: "none", borderRadius: "50%", background: `radial-gradient(circle at 35% 30%, ${skin.gold}, ${skin.accent2})`, boxShadow: `0 0 10px ${skin.gold}66`, display: "inline-block" }} aria-hidden="true" />
-            <span style={{ fontSize: 14, fontWeight: 900, letterSpacing: 0.5, color: skin.gold, textTransform: "uppercase", whiteSpace: "nowrap" }}>MADHAT&rsquo;s Gambit</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flex: "none" }}>
-            <button type="button" onClick={() => setRightOpen((o) => !o)} aria-label="Toggle account console" title="Account console"
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, flex: "none", borderRadius: 8, cursor: "pointer", color: rightOpen ? skin.gold : skin.muted, background: skin.card, border: `1px solid ${rightOpen ? `${skin.gold}66` : skin.border}` }}>
-              <PanelRight size={15} strokeWidth={2.25} />
-            </button>
-            <button type="button" onClick={toggle} style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "6px 11px", borderRadius: 8, cursor: "pointer", color: skin.text, background: skin.card, border: `1px solid ${skin.accent}66`, whiteSpace: "nowrap", fontFamily: INSTRUMENT_FONT }} title="Toggle Gilded Pop-Baroque ⇄ Neon Noir Tabloid">
-              {name === "gilded" ? "◑ Gilded" : "◐ Neon Noir"}
-            </button>
-            <Chip label="Login" />
-            <Chip label="Sign Up" filled />
-          </div>
+        {/* HERO HEADER */}
+        <header className="text-center mb-4">
+          <BrandLockup primary={tokens.primary} accent={tokens.accent} />
+          <p className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.35em] text-neutral-500 mt-3">
+            Predict the Scandal · Own the Culture
+          </p>
+          <Trinity />
         </header>
 
-        {/* Responsive shell: left + right rails on desktop (mockup sidebars), stacked on mobile */}
-        <div style={{ maxWidth: wide ? 1300 : 1040, margin: "0 auto", padding: "8px 12px 96px", display: "flex", gap: 16, alignItems: "flex-start" }}>
-          {wide && leftOpen ? <CategoryRail /> : null}
+        {/* HAMBURGER MENU — docked inside the phone; global theme button lives here */}
+        <MainNav active={tab} onSelect={setTab} hasGoldenHand={hasGoldenHand} />
 
-          <main style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* /gambit's gold-chisel hero lockup + trinity, ported verbatim */}
-            <BrandHero primary={skin.accent2} />
+        {/* KAITO TICKER */}
+        <div className="mb-2"><KaitoPriceTicker /></div>
 
-            {/* /gambit's triple-mode RSS wire, ported native */}
-            <LiveTicker />
+        {/* RSS WIRE */}
+        <div className="mb-4"><LiveTicker /></div>
 
-            <div id="mg-news">
-              <NewsTwoRow />
-            </div>
+        {/* O-V DECK + SKIN */}
+        <div className="grid sm:grid-cols-[1fr_auto] gap-3 mb-5 items-start">
+          <OVDeckSelector selectedDeck={activeDeck} onSelect={setActiveDeck} convictionStake={500} />
+          <div className="relative">
+            <button onClick={() => setSkinMenuOpen(p => !p)}
+              className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-neutral-800 bg-[#030508] hover:border-neutral-700 transition-all font-mono text-[10px] uppercase tracking-wider whitespace-nowrap"
+              style={{ color: tokens.primary }}>
+              <Palette className="w-3.5 h-3.5" /> {tokens.label}
+            </button>
+            {skinMenuOpen && (
+              <div className="absolute right-0 top-full mt-1.5 rounded-xl border border-neutral-800 bg-[#05070c] shadow-2xl overflow-hidden z-50 w-52">
+                {(Object.values(SKIN_TOKENS) as SkinTokens[]).map(s => (
+                  <button key={s.id} onClick={() => { setSkin(s.id); setSkinMenuOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 hover:bg-[#0b0e14] transition-all flex items-center gap-2.5 ${s.id === skin ? "border-l-2" : ""}`}
+                    style={s.id === skin ? { borderColor: s.primary } : {}}>
+                    <span className="w-3 h-3 rounded-full shrink-0" style={{ background: s.primary }} />
+                    <span className="font-mono text-[10px] text-neutral-300">{s.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
 
-            <div>
-              <SectionHeading>Customizable Dopamine Carousel</SectionHeading>
-              <DopamineCarouselStrip />
-            </div>
+        {/* 7 TABS */}
+        <nav className="flex items-center justify-center flex-wrap gap-2 mb-6">
+          <TabBtn active={tab==="floor"}  onClick={() => setTab("floor")}  icon={<ShieldAlert className="w-3.5 h-3.5"/>} label="The Floor" color={tokens.primary} />
+          <TabBtn active={tab==="saga"}   onClick={() => setTab("saga")}   icon={<Layers className="w-3.5 h-3.5"/>}     label="NFT Saga"  color={tokens.primary} />
+          <TabBtn active={tab==="arena"}  onClick={() => setTab("arena")}  icon={<Trophy className="w-3.5 h-3.5"/>}     label="Arena"    color={tokens.primary} />
+          <TabBtn active={tab==="packs"}  onClick={() => setTab("packs")}  icon={<Package className="w-3.5 h-3.5"/>}    label="Packs"    color={tokens.primary} />
+          <TabBtn active={tab==="portal"} onClick={() => setTab("portal")} icon={<Ticket className="w-3.5 h-3.5"/>}     label="Portal"   color={tokens.primary} />
+          <TabBtn
+            active={tab==="casino"}
+            onClick={() => setTab("casino")}
+            icon={hasGoldenHand ? <Crown className="w-3.5 h-3.5"/> : <Crown className="w-3.5 h-3.5 opacity-30"/>}
+            label={hasGoldenHand ? "Casino" : "Casino 🔒"}
+            color={tokens.primary}
+          />
+          <TabBtn active={tab==="logic"}  onClick={() => setTab("logic")}  icon={<Cpu className="w-3.5 h-3.5"/>}        label="Logic"    color={tokens.primary} />
+        </nav>
 
-            {/* Tickers & Dials — meters row + cluster with the split-flap chrono */}
-            <PerpDials />
+        {/* PANELS — crossfade between tabs for a polished transition */}
+        <AnimatePresence mode="wait">
+        <motion.div
+          key={tab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.22, ease: "easeOut" }}
+        >
 
-            {/* ── /gambit FLOOR, ported native (GameProvider-powered) ── */}
+        {/* ── THE FLOOR ── */}
+        {tab === "floor" && (
+          <div className="space-y-5">
             <SeikoDopamineHub />
             <TopMarketsRail />
-            <MarketRails />
             <ZLiarSection />
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: 12 }}>
-              <PositionsDashboard />
-              <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
+            <MarketRails />
+            <ScandalVelocityMeter />
+            <MarketFactory />
+            <div className="grid lg:grid-cols-[1.3fr_1fr] gap-5">
+              <div className="space-y-5">
+                <PredictionCircus activeDeck={activeDeck} />
+                <SwapInterface activeDeck={activeDeck} />
+              </div>
+              <div className="space-y-5">
+                <PositionsDashboard />
                 <EigenTrustWidget />
                 <DopamineEngine />
               </div>
             </div>
-
-            {/* One carousel per market class (Progression · Saga · Z-Liar · Perp · GossipCop) */}
-            <MarketTypeCarousels />
-
-            <div id="mg-featured">
-              <FeaturedMarketCards />
-            </div>
-
-            {/* The precision merge: every /gambit module inline, lazy-mounted */}
-            <ModuleShelf />
-
-            {/* Every /gambit tab/feature, deep-linked into the new theme */}
-            <PlatformExplorer />
-
-            <div style={{ textAlign: "center", lineHeight: 1.7 }}>
-              <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1, color: skin.muted, textTransform: "uppercase" }}>
-                Platform Fee 1.88% · Creator Share 40% · Community 28.8% · $MADx 888,888,888 fixed
-              </div>
-              <div style={{ fontSize: 8, color: skin.muted, marginTop: 4 }}>
-                Faithful assembly of the mockup · clickable tickers, rails, nav, cards + platform links · live news /
-                dials / market carousels · imagery & odds are beta placeholders.
-              </div>
-            </div>
-          </main>
-
-          {wide && rightOpen ? <AccountRail /> : null}
-        </div>
-
-        {/* Mobile fold-out console trays (overlay + backdrop; desktop uses pinned rails) */}
-        {!wide && (leftOpen || rightOpen) ? (
-          <div onClick={() => { setLeftOpen(false); setRightOpen(false); }}
-            style={{ position: "fixed", inset: 0, zIndex: 40, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(2px)" }}>
-            <div onClick={(e) => e.stopPropagation()} className={reduce ? undefined : "mg-tray-in-" + (leftOpen ? "l" : "r")}
-              style={{ position: "absolute", top: 0, bottom: 0, ...(leftOpen ? { left: 0 } : { right: 0 }), width: 216, background: skin.bg, borderRight: leftOpen ? `1px solid ${skin.border}` : undefined, borderLeft: leftOpen ? undefined : `1px solid ${skin.border}`, padding: 10, overflowY: "auto" }}>
-              <button type="button" onClick={() => { setLeftOpen(false); setRightOpen(false); }} aria-label="Close tray"
-                style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 26, height: 26, marginBottom: 8, borderRadius: 7, cursor: "pointer", color: skin.muted, background: skin.card, border: `1px solid ${skin.border}` }}>
-                <X size={13} />
-              </button>
-              {leftOpen ? <CategoryRail /> : <AccountRail />}
-            </div>
+            <GameLobby />
           </div>
-        ) : null}
-        <style>{`
-          @keyframes mgTrayL { from { transform: translateX(-100%); } to { transform: translateX(0); } }
-          @keyframes mgTrayR { from { transform: translateX(100%); } to { transform: translateX(0); } }
-          .mg-tray-in-l { animation: mgTrayL .22s ease-out; }
-          .mg-tray-in-r { animation: mgTrayR .22s ease-out; }
-          @media (prefers-reduced-motion: reduce) { .mg-tray-in-l, .mg-tray-in-r { animation: none; } }
-        `}</style>
+        )}
+
+        {tab === "saga"   && <NftSaga />}
+        {tab === "arena"  && <TournamentArena />}
+        {tab === "packs"  && (
+          <div className="space-y-4">
+            <PackShop />
+            <PackOpening />
+            <DutchAuctionPanel />
+          </div>
+        )}
+        {tab === "portal" && (
+          <div className="space-y-4">
+            <StakingTiersPanel />
+            <PortalTab />
+          </div>
+        )}
+        {tab === "casino" && <CasinoPanel />}
+        {tab === "logic"  && (
+          <div className="space-y-4">
+            <StateMachineView />
+            <FutarchyBoard />
+            <BayesianDecisionTree nodes={DECISION_NODES} />
+            <LogicLab activeDeck={activeDeck} />
+          </div>
+        )}
+
+        </motion.div>
+        </AnimatePresence>
+
+        <footer className="mt-12 text-center space-y-2">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-neutral-600">
+            Platform Fee 1.88% · Creator Share 40% · Community 28.8% · $MADx 888,888,888 fixed
+          </p>
+          <p className="font-mono text-[9px] text-neutral-700">
+            © 2026 MΛĐ GAMBIT LLC · Conviction · Prediction · Affliction
+          </p>
+        </footer>
       </div>
 
-      <BottomNav />
+      {/* Reward-moment celebration layer — fires on high-point tabs / wins.
+          Fixed canvas; inside the DeviceFrame transform it stays in the phone. */}
+      <JoyLayer />
+
+      {/* Fixed mobile bottom action bar — additive mobile UX, mirrors the 7 tabs.
+          Desktop (lg+) keeps the shipped top tab bar; this is lg:hidden. */}
+      <BottomNav active={tab} onSelect={setTab} color={tokens.primary} hasGoldenHand={hasGoldenHand} />
+
+      {/* MADHAT'r floating concierge — page-level, persists across every tab.
+          Fixed bottom-right, real top-hat logo, GEMINI.md persona. */}
+      <MadhatrConcierge />
+      
+      {/* ── GLOBAL MODALS ── */}
+      {showAuthModal && (
+        <AuthModal 
+          isOpen={showAuthModal} 
+          onClose={() => setShowAuthModal(false)} 
+        />
+      )}
+    </main>
+  );
+}
+
+function BrandLockup({ primary, accent }: { primary: string; accent: string }) {
+  return (
+    <svg viewBox="0 0 520 90" className="w-[300px] sm:w-[360px] mx-auto animate-dramatic">
+      <defs>
+        <linearGradient id="gold-g" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#fffcf0"/><stop offset="25%" stopColor="#efc76d"/>
+          <stop offset="50%" stopColor="#ab7b29"/><stop offset="75%" stopColor="#f7d983"/>
+          <stop offset="100%" stopColor="#5c3c04"/>
+        </linearGradient>
+        <filter id="g-glow"><feGaussianBlur stdDeviation="3" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <text x="6" y="68" fontFamily="Georgia,serif" fontSize="72" fontWeight="900" letterSpacing="3"
+        fill="url(#gold-g)" filter="drop-shadow(0 4px 8px rgba(0,0,0,0.9))">MΛĐ</text>
+      <g filter="url(#g-glow)">
+        <polygon points="218,18 240,72 222,72 246,118 210,80 226,80"
+          transform="translate(0,-14) scale(0.62) translate(150,10)" fill={primary}/>
+      </g>
+      <text x="232" y="68" fontFamily="Georgia,serif" fontSize="72" fontWeight="900" letterSpacing="1"
+        fill="url(#gold-g)" filter="drop-shadow(0 4px 8px rgba(0,0,0,0.9))">Gambit</text>
+    </svg>
+  );
+}
+
+function Trinity() {
+  const p = [["PREDICTION","#fbbf24"],["CONVICTION","#ec4899"],["AFFLICTION","#c084fc"]] as const;
+  return (
+    <div className="flex items-center justify-center gap-3 sm:gap-5 mt-4">
+      {p.map(([l,c],i) => (
+        <React.Fragment key={l}>
+          <span className="font-mono text-[10px] sm:text-xs font-black uppercase tracking-[0.25em]"
+            style={{color:c, textShadow:`0 0 12px ${c}55`}}>{l}</span>
+          {i<2 && <span className="text-neutral-700">·</span>}
+        </React.Fragment>
+      ))}
     </div>
   );
 }
 
-export default function PreviewPage() {
+function TabBtn({ active, onClick, icon, label, color }: {
+  active: boolean; onClick: () => void; icon: React.ReactNode; label: string; color: string;
+}) {
   return (
-    <SkinProvider>
-      <GameProvider>
-        <PreviewInner />
-      </GameProvider>
-    </SkinProvider>
+    <button onClick={onClick}
+      className={`flex items-center gap-2 px-3 py-2 rounded-xl font-mono text-[10px] uppercase tracking-widest font-bold transition-all ${
+        active ? "border" : "border border-neutral-850 text-neutral-500 hover:text-neutral-300"
+      }`}
+      style={active ? { background: color + "18", borderColor: color + "55", color } : {}}>
+      {icon} {label}
+    </button>
   );
 }
