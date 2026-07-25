@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { satirizeHeadline } from "./satire-headline";
+import { satirizeHeadline, type NewsCategory } from "./satire-headline";
+
+const ALL_CATEGORIES: NewsCategory[] = [
+  "celebrity", "entertainment", "influencer", "political", "sports",
+  "tabloid", "television", "viral", "crypto", "funnies",
+];
 
 describe("satirizeHeadline", () => {
   it("is deterministic for the same input", () => {
@@ -32,5 +37,34 @@ describe("satirizeHeadline", () => {
     expect(tab).toContain("Mystery yacht photos surface");
     expect(vir).toContain("Mystery yacht photos surface");
     expect(tab).not.toBe(vir);
+  });
+
+  it("supports all 10 worksheet categories (wraps and preserves the headline)", () => {
+    for (const cat of ALL_CATEGORIES) {
+      const out = satirizeHeadline("A perfectly ordinary Tuesday", cat);
+      expect(out).toContain("A perfectly ordinary Tuesday");
+      expect(out.length).toBeGreaterThan("A perfectly ordinary Tuesday".length);
+    }
+  });
+
+  it("applies the South-Park edge voice to roughly 15% of headlines", () => {
+    // The edge voice is chosen deterministically for ~15 in 100 items. Over a
+    // large deterministic sample the share should sit near 15% (10%–20% band).
+    const EDGE_MARKERS = [
+      "OH MY GOD, THEY:",
+      "IN AN EPISODE THAT WRITES ITSELF:",
+      "BREAKING (respectfully, insanely):",
+      "SOMEHOW STILL LEGAL:",
+      "A CHILD COULD SEE THIS COMING:",
+    ];
+    const N = 2000;
+    let edged = 0;
+    for (let i = 0; i < N; i++) {
+      const out = satirizeHeadline(`Headline number ${i}`, "crypto");
+      if (EDGE_MARKERS.some((m) => out.startsWith(m))) edged++;
+    }
+    const pct = (edged / N) * 100;
+    expect(pct).toBeGreaterThan(10);
+    expect(pct).toBeLessThan(20);
   });
 });
