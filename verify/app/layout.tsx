@@ -5,6 +5,7 @@ import { WorkspaceProvider } from "@/context/workspace-context";
 import { MppProvider } from "@/context/mpp-context";
 import { ThemeProvider } from "@/context/theme-context";
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Mad Gambit Conviction Workspace",
@@ -36,6 +37,12 @@ export default function RootLayout({
           </WorkspaceProvider>
         </ThemeProvider>
         <SpeedInsights />
+        {/* Vercel Web Analytics — first-party script (equivalent to the
+            @vercel/analytics <Analytics/> component; used directly because the
+            build sandbox can't reach npm to update the lockfile). Counts
+            visitors + page views, incl. App Router client navigations, once Web
+            Analytics is enabled for the project. */}
+        <Script src="/_vercel/insights/script.js" strategy="afterInteractive" />
       </body>
     </html>
   );
