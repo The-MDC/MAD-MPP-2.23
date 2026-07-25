@@ -13,8 +13,15 @@ import type { NextRequest } from "next/server";
  * Deployment Protection is turned OFF for this project — otherwise Vercel's own
  * SSO gate blocks the request before middleware runs.
  */
-const GUEST_USER = process.env.GUEST_USER ?? "Guest0001";
-const GUEST_PASS = process.env.GUEST_PASS ?? "Guest1979";
+// Shared guest logins (intentionally shareable). Multiple pairs are accepted;
+// the primary pair can also be overridden/added via env (GUEST_USER/GUEST_PASS).
+const GUESTS: Record<string, string> = {
+  Guest0001: "Guest1979",
+  Guest0002: "Guest1980",
+};
+if (process.env.GUEST_USER && process.env.GUEST_PASS) {
+  GUESTS[process.env.GUEST_USER] = process.env.GUEST_PASS;
+}
 
 export function middleware(req: NextRequest) {
   const header = req.headers.get("authorization");
@@ -25,7 +32,8 @@ export function middleware(req: NextRequest) {
     const sep = decoded.indexOf(":");
     const user = decoded.slice(0, sep);
     const pass = decoded.slice(sep + 1);
-    if (user === GUEST_USER && pass === GUEST_PASS) {
+    // Object.hasOwn guards against prototype keys (e.g. "constructor").
+    if (Object.hasOwn(GUESTS, user) && GUESTS[user] === pass) {
       return NextResponse.next();
     }
   }

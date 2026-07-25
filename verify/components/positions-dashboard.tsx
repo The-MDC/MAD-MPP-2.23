@@ -10,6 +10,7 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { INK } from "@/lib/gambit-design-tokens";
 import { useGame } from "@/context/game-context";
 import { shieldPhiRatio, garchUpdate, PHI, shieldReturnCountdown } from "@/lib/gambit-game-math";
 import { Shield, ShieldOff, ShieldCheck, TrendingUp, TrendingDown, Clock, Zap, Timer, Radar, Brain, Loader2 } from "lucide-react";
@@ -237,7 +238,7 @@ export default function PositionsDashboard() {
                   <MiniStat
                     label="φ-Protection"
                     value={`+${phiRecovery.toFixed(0)}`}
-                    color="#ffd700"
+                    color={INK.gold}
                     icon={<Shield className="w-2.5 h-2.5" />}
                   />
                 ) : (

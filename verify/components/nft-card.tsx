@@ -21,6 +21,7 @@
  */
 
 import React from "react";
+import { INK } from "@/lib/gambit-design-tokens";
 import { NftCard as Card, FACTIONS } from "@/context/game-context";
 import { RARITY_TABLE } from "@/lib/gambit-game-math";
 import { cardArtUrl } from "@/lib/card-art";
@@ -52,7 +53,7 @@ export function NftCardView({
   const uid = card.id;
   // Savage Mode: intensify accent colors when streak ≥7
   const activeAccent = savageMode ? "#ff4500" : accent;
-  const activeFAccent = savageMode ? "#ffd700" : fAccent;
+  const activeFAccent = savageMode ? INK.gold : fAccent;
 
   return (
     <button
@@ -107,7 +108,7 @@ export function NftCardView({
         {/* dual neon frame — faithful to deck cover (cyan left / pink right); Savage Mode = fire */}
         <g opacity="0.9">
           <path d="M160 9 L40 9 A30 30 0 0 0 10 39 L10 401 A30 30 0 0 0 40 431 L160 431" fill="none" stroke={savageMode ? "#ff4500" : "#00f0ff"} strokeWidth="6" opacity="0.5" strokeLinecap="round" />
-          <path d="M160 9 L280 9 A30 30 0 0 1 310 39 L310 401 A30 30 0 0 1 280 431 L160 431" fill="none" stroke={savageMode ? "#ffd700" : "#ff00f0"} strokeWidth="6" opacity="0.5" strokeLinecap="round" />
+          <path d="M160 9 L280 9 A30 30 0 0 1 310 39 L310 401 A30 30 0 0 1 280 431 L160 431" fill="none" stroke={savageMode ? INK.gold : "#ff00f0"} strokeWidth="6" opacity="0.5" strokeLinecap="round" />
           <rect x="9" y="9" width="302" height="422" rx="21" fill="none" stroke={savageMode ? "#ff450060" : "#ffffff"} strokeWidth="1" opacity="0.85" />
         </g>
 

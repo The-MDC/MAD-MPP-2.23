@@ -14,6 +14,7 @@
  */
 
 import React, { useState, useRef } from "react";
+import { INK } from "@/lib/gambit-design-tokens";
 import { useGame } from "@/context/game-context";
 import { RARITY_TABLE, isVrsTrigger } from "@/lib/gambit-game-math";
 import { Lock, Zap, Crown, TrendingUp, TrendingDown } from "lucide-react";
@@ -168,7 +169,7 @@ export default function CasinoPanel() {
 
           <button onClick={flip} disabled={flipping || bet > madCredits}
             className="w-full rounded-xl py-3 font-mono text-sm font-black uppercase tracking-widest transition-all hover:scale-[1.01] disabled:opacity-30 flex items-center justify-center gap-2"
-            style={{ background: "#ffd70018", border: "1px solid #ffd70044", color: "#ffd700" }}>
+            style={{ background: `${INK.gold}18`, border: `1px solid ${INK.gold}44`, color: INK.gold }}>
             <Zap className="w-4 h-4" />
             {flipping ? "FLIPPING…" : `FLIP FOR ${bet} $MADx`}
           </button>
