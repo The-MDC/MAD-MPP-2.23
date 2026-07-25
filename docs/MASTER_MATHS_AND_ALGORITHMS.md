@@ -3,7 +3,7 @@
 > **This is the one canonical maths document.** It supersedes and consolidates the
 > previously-scattered maths notes (`engine-room-math-formulas.md`,
 > `REPORTS/GARCH_VULKAN_ADVANCED.md`, `docs/VULKAN_MAD_MAPPING.md`,
-> `docs/SHIELD_RISK_DEFENCES.md`, and the old 8-line `MASTER_MATHS_ALGORITHMS.md`),
+> `docs/SHIELD_RISK_DEFENCES.md`, and the old 8-line `MASTER_MATHS_AND_ALGORITHMS.md`),
 > which now point here.
 >
 > **The code is the authority.** Every formula below cites its implementation home
@@ -114,6 +114,18 @@ Victory probability `#calculateVictoryProbability`; Elo-style `#mmrDelta` (K=32)
 ## §12 — Thematic / temporal
 
 Lunar phase multiplier `#getLunarPhaseMultiplier` / illumination `#getLunarIllumination` (`LUNAR_CYCLE_MS`, `IMMACULATE_CONCEPTION_EPOCH_MS`); golden ratio `#PHI`; EigenTrust `#assignTrustScore`.
+
+## §12b — Economic-impact & virality dynamics (MAD HAT Math Spec v1.0, Drive handoff)
+
+Folded in from `MAD_HAT_Mathematical_Handoff_Document.md` (Drive). These are the pieces of the spec that were **not** already covered above; status tagged against the code.
+
+- **Projected stock/brand move:** `ProjectedStockMove_t = LieScore · σ_t · k_category` (k ≈ 0.019 baseline, per asset class/virality). ⚠️ **Spec only — NOT in code yet.**
+- **Ad-revenue / brand erosion:** `AdRevenueLoss_t = LieScore · σ_t · 0.9` ($M); confidence band `58 + LieScore · 0.32`. ⚠️ **Spec only — NOT in code yet.**
+- **Virality ODE (impressions growth):** `dI/dt = β · E_agg(t) · (M − I(t)) · (1 + η · Conv̄(t))`. Code ships **discrete approximations** — `gambit-game-math.ts#viralityScore` / `#viralityIndex` — not the literal ODE integrator.
+- **Effective-time / attention decay (integral form):** `t_eff = ∫₀ᵀ a(u) · e^(−λ(T−u)) du`. Code ships the discrete `#attentionDecay` / `#temporalDecay` / `#stochasticDecay`. Meme drops + high-LieScore events recharge attention.
+- **Non-binary market structure (CIRO):** Continuous (DL-LMSR) + Over/Under only; legs **45–90 days, never < 30** (30-day minimum-maturity compliance); Conviction Saga auto-relaunches next leg, MADConv profile compounds across legs. (Structure/compliance rule — enforced in market config, not a standalone formula.)
+
+> The three ⚠️ items are the only maths from the Drive handoff **not yet implemented** — they belong in the Liar-Impact / market-projection surface (Part T-B of the plan). Everything else in the handoff is already in code (§2–§4).
 
 ---
 

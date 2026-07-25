@@ -3,7 +3,7 @@
 > **Purpose:** one triangulated picture of what is *in* the MAD Gambit MPP now vs.
 > what is *outstanding*, audited against the two single-sources-of-truth:
 > - **Plan SoT:** [`MAD_GAMBIT_MASTER_ACTION_PLAN.md`](../MAD_GAMBIT_MASTER_ACTION_PLAN.md) (living A→AC ledger)
-> - **Maths SoT:** [`docs/MASTER_MATHS_ALGORITHMS.md`](./MASTER_MATHS_ALGORITHMS.md) (consolidated this pass)
+> - **Maths SoT:** [`docs/MASTER_MATHS_AND_ALGORITHMS.md`](./MASTER_MATHS_AND_ALGORITHMS.md) (consolidated this pass)
 >
 > Cross-checked against the live repo/code, the two Vercel productions, and the
 > original **MADGit** Google Drive folder. Every "in" claim below is grounded in a
@@ -17,7 +17,7 @@
 | Domain | Single source of truth | Status |
 |---|---|---|
 | Execution plan | `MAD_GAMBIT_MASTER_ACTION_PLAN.md` | Living ledger, Parts A→AC |
-| Maths & algorithms | `docs/MASTER_MATHS_ALGORITHMS.md` | ✅ consolidated this pass (4 stub docs now redirect here) |
+| Maths & algorithms | `docs/MASTER_MATHS_AND_ALGORITHMS.md` | ✅ consolidated this pass (4 stub docs now redirect here) |
 | Canonical numbers | `docs/imported/tokenomics/CANONICAL_NUMBERS.md` | ⚠️ has unresolved conflicts — see §6 |
 | Code (implementation truth) | `verify/lib/gambit-game-math.ts` (+ math libs) | Authoritative; docs mirror it |
 

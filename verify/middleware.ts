@@ -33,7 +33,10 @@ export function middleware(req: NextRequest) {
   return new NextResponse("Guest access required.", {
     status: 401,
     headers: {
-      "WWW-Authenticate": 'Basic realm="MAD Gambit — Guest Access", charset="UTF-8"',
+      // Realm must be Latin-1 only — a non-ASCII char (e.g. an em-dash) makes the
+      // Edge runtime drop the whole header, so the browser never shows the login
+      // dialog and users just see the 401 body. Keep it plain ASCII.
+      "WWW-Authenticate": 'Basic realm="MAD Gambit Guest Access", charset="UTF-8"',
     },
   });
 }
