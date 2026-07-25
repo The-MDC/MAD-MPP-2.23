@@ -72,12 +72,12 @@ import JoyLayer, { celebrate } from "@/components/joy-layer";
 import {
   OVDeck, OV_DECKS, SKIN_TOKENS, SkinTokens,
 } from "@/lib/gambit-game-math";
+import { PLATFORM_FEATURES, PLATFORM_TAB_KEYS, type PlatformTabKey } from "@/lib/platform-features";
 import {
-  ShieldAlert, Layers, Trophy, Package, Ticket, Cpu,
-  Palette, Crown, Sparkles, User, Wallet, LogOut
+  Palette, Sparkles, User, Wallet, LogOut
 } from "lucide-react";
 
-type Tab = "floor" | "saga" | "arena" | "packs" | "portal" | "casino" | "logic";
+type Tab = PlatformTabKey;
 
 // Demo Bayesian evidence chain for the Logic tab's decision tree (thematic).
 const DECISION_NODES = [
@@ -116,8 +116,7 @@ function GambitInner() {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const raw = (params.get("tab") || window.location.hash.replace("#", "")).toLowerCase();
-    const valid = ["floor", "saga", "arena", "packs", "portal", "casino", "logic"];
-    if (valid.indexOf(raw) !== -1) setTab(raw as Tab);
+    if ((PLATFORM_TAB_KEYS as readonly string[]).indexOf(raw) !== -1) setTab(raw as Tab);
   }, []);
 
   // Reward-moment delight — a celebration burst when entering a high-point tab.
@@ -242,21 +241,22 @@ function GambitInner() {
           </div>
         </div>
 
-        {/* 7 TABS */}
+        {/* 7 TABS — driven by the shared PLATFORM_FEATURES registry so this bar and
+            the premiere theme's PlatformExplorer can never drift out of parity. */}
         <nav className="flex items-center justify-center flex-wrap gap-2 mb-6">
-          <TabBtn active={tab==="floor"}  onClick={() => setTab("floor")}  icon={<ShieldAlert className="w-3.5 h-3.5"/>} label="The Floor" color={tokens.primary} />
-          <TabBtn active={tab==="saga"}   onClick={() => setTab("saga")}   icon={<Layers className="w-3.5 h-3.5"/>}     label="NFT Saga"  color={tokens.primary} />
-          <TabBtn active={tab==="arena"}  onClick={() => setTab("arena")}  icon={<Trophy className="w-3.5 h-3.5"/>}     label="Arena"    color={tokens.primary} />
-          <TabBtn active={tab==="packs"}  onClick={() => setTab("packs")}  icon={<Package className="w-3.5 h-3.5"/>}    label="Packs"    color={tokens.primary} />
-          <TabBtn active={tab==="portal"} onClick={() => setTab("portal")} icon={<Ticket className="w-3.5 h-3.5"/>}     label="Portal"   color={tokens.primary} />
-          <TabBtn
-            active={tab==="casino"}
-            onClick={() => setTab("casino")}
-            icon={hasGoldenHand ? <Crown className="w-3.5 h-3.5"/> : <Crown className="w-3.5 h-3.5 opacity-30"/>}
-            label={hasGoldenHand ? "Casino" : "Casino 🔒"}
-            color={tokens.primary}
-          />
-          <TabBtn active={tab==="logic"}  onClick={() => setTab("logic")}  icon={<Cpu className="w-3.5 h-3.5"/>}        label="Logic"    color={tokens.primary} />
+          {PLATFORM_FEATURES.map((f) => {
+            const locked = !!f.gated && !hasGoldenHand;
+            return (
+              <TabBtn
+                key={f.key}
+                active={tab === f.key}
+                onClick={() => setTab(f.key)}
+                icon={<f.Icon className={`w-3.5 h-3.5${locked ? " opacity-30" : ""}`} />}
+                label={locked ? `${f.name} 🔒` : f.name}
+                color={tokens.primary}
+              />
+            );
+          })}
         </nav>
 
         {/* PANELS — crossfade between tabs for a polished transition */}

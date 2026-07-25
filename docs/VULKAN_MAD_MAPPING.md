@@ -1,5 +1,4 @@
-**Vulkan Pipeline → MAD Gambit**
-Compute Stage: Parallel MADConv/GARCH
-Vertex: User conviction input
-Fragment: Joy output rendering
-... Full creative mapping table.
+# Vulkan → MAD mapping (superseded)
+
+> **SUPERSEDED — consolidated into the single source of truth:** [`docs/MASTER_MATHS_ALGORITHMS.md`](./MASTER_MATHS_ALGORITHMS.md).
+> This file is retained only as a redirect; do not add maths here.
