@@ -36,14 +36,16 @@ export interface PlatformFeature {
   readonly gated?: boolean;
 }
 
+// `gated` is set on every entry (not just Casino) so that under `as const` the
+// property exists on all union members — consumers can read `f.gated` freely.
 export const PLATFORM_FEATURES = [
-  { key: "floor", name: "The Floor", Icon: ShieldAlert, blurb: "Scandal Velocity · Prediction Circus · Z-Liar · Swap · Positions · Dopamine" },
-  { key: "saga", name: "NFT Saga", Icon: Layers, blurb: "Card collection · evolution · saga episodes" },
-  { key: "arena", name: "Arena", Icon: Trophy, blurb: "Named tournaments · Cull PvP" },
-  { key: "packs", name: "Packs", Icon: Package, blurb: "Dutch auction · Golden Ticket pack opening" },
-  { key: "portal", name: "Portal", Icon: Ticket, blurb: "Staking tiers · contribution connectors" },
+  { key: "floor", name: "The Floor", Icon: ShieldAlert, blurb: "Scandal Velocity · Prediction Circus · Z-Liar · Swap · Positions · Dopamine", gated: false },
+  { key: "saga", name: "NFT Saga", Icon: Layers, blurb: "Card collection · evolution · saga episodes", gated: false },
+  { key: "arena", name: "Arena", Icon: Trophy, blurb: "Named tournaments · Cull PvP", gated: false },
+  { key: "packs", name: "Packs", Icon: Package, blurb: "Dutch auction · Golden Ticket pack opening", gated: false },
+  { key: "portal", name: "Portal", Icon: Ticket, blurb: "Staking tiers · contribution connectors", gated: false },
   { key: "casino", name: "Casino", Icon: Crown, blurb: "Golden-Hand-gated provably-fair flip", gated: true },
-  { key: "logic", name: "Logic", Icon: Cpu, blurb: "δ-limit · φ-shield · Futarchy · Bayesian tree · DAO sim" },
+  { key: "logic", name: "Logic", Icon: Cpu, blurb: "δ-limit · φ-shield · Futarchy · Bayesian tree · DAO sim", gated: false },
 ] as const satisfies readonly PlatformFeature[];
 
 /** Union of every platform tab id — the canonical Tab type both themes share. */
