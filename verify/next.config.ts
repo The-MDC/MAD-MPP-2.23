@@ -21,6 +21,10 @@ const nextConfig = (phase: string): NextConfig => {
     async redirects() {
       return [
         { source: "/MPP2.23", destination: "/mpp2.23", permanent: true },
+        // /gambit was retired when the earlier hub theme moved to /mpp2.23.
+        // Config redirects preserve the query string, so existing deep links
+        // like /gambit?tab=floor resolve to /mpp2.23?tab=floor.
+        { source: "/gambit", destination: "/mpp2.23", permanent: true },
       ];
     },
   };
