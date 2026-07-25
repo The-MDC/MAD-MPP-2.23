@@ -723,3 +723,15 @@ A long Grok thread proposed a dual-ingestion (RSS + GDELT/GossipCop++) → auto-
 - Classifier is **heuristic** (keyword horizon + `zLiarMeter` + perp trigger), stated as such — not ML. Deterministic + testable.
 - Proposals are **suggestions**; publishing to the ledger/on-chain market is the existing `/api/v1/markets` + `MADMarketFactory` path.
 - **Proof:** `tsc --noEmit` green; the `gdelt_signals` read path is DB-smoke-proven.
+
+## PART AD — Vercel-audit thread: routing, guest gates, both-theme guarantee, hardening + doc consolidation (2026-07-25)
+
+Session `claude/mad-gambit-vercel-audit-ocof1b`. All CI-green; PRs merged unless noted.
+
+- **Theme routing (merged #28, #29):** premiere theme → **`/preview`** (flagship, root redirects here); alt 7-tab hub → **`/mpp2.23`**; legacy `/gambit` + `/MPP2.23` → query-preserving redirects. Removed the `/gambit`≡`/preview` duplication. Pure relocation, no layout change.
+- **Guest access gates:** HTTP Basic Auth (`Guest0001`) — MPP `verify/middleware.ts` (merged #28) and Data House root `middleware.ts` + `vercel.json` (PR #4; fixed the static site's long-broken `next/server` build). Active once Deployment Protection is off per project.
+- **Both-theme guarantee (PR #30):** `verify/lib/platform-features.ts` = single feature registry both themes render from; `platform-features.test.ts` fails CI if either stops consuming it. Adding a feature = one registry entry → appears in both themes.
+- **Full-stack hardening (PR #30):** `Dockerfile` node:20→22 + `npm ci --omit=dev` + HEALTHCHECK; new `.dockerignore`; `lib/db.ts` TLS-enforced + pool-error handler + timeouts; new unguarded `/api/health`.
+- **Doc consolidation:** `docs/MASTER_MATHS_ALGORITHMS.md` is now the single maths SoT (4 stub docs redirect to it), grounded in `gambit-game-math.ts`; **7 canonical-number conflicts flagged for founder sign-off** (its §13). New `docs/MPP_STATE_OF_THE_UNION_AUDIT.md` triangulates repo/code/Vercel/MADGit-Drive into the in-vs-outstanding picture.
+- **Verified done (not rebuilt):** AI routes already on `gemini-flash-latest`; SIWE signature verification already wired; neuroscience framing already clean in docs.
+- **Still outstanding (see State-of-the-Union §5):** design-token scrub (82 raw-hex, 5 panels) · MADCard Foundry tests · `MADLmsrMarket.sol`+UMA oracle · O-2 v2 layer · queued UI · madhat-core integration · dopamine-engine compliance scrub · founder/infra items.

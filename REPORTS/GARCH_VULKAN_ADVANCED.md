@@ -1,5 +1,4 @@
-**GARCH + Vulkan Sync Report**
+# GARCH + Vulkan (superseded)
 
-**Advanced GARCH**: EGARCH, TGARCH, CGARCH extensions for asymmetric volatility + joy shocks.
-
-**Vulkan Sync**: Full models (fences, semaphores, barriers, events) with platform mapping (MADConv updates trigger compute stage with barrier, joy signal via timeline). Applications: Ultra-smooth 3D + reliable market sims.
+> **SUPERSEDED — consolidated into the single source of truth:** [`docs/MASTER_MATHS_ALGORITHMS.md`](./MASTER_MATHS_ALGORITHMS.md).
+> This file is retained only as a redirect; do not add maths here.

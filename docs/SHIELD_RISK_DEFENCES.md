@@ -1,2 +1,4 @@
-**Bayesian Anomaly Detection** + **Commit-Reveal Oracle** + **Refined Stress Tests** implemented as core defences for MAD Shield.
-All mitigations coded and documented.
+# Shield risk defences (superseded)
+
+> **SUPERSEDED — consolidated into the single source of truth:** [`docs/MASTER_MATHS_ALGORITHMS.md`](./MASTER_MATHS_ALGORITHMS.md).
+> This file is retained only as a redirect; do not add maths here.
