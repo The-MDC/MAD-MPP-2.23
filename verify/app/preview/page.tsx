@@ -18,7 +18,7 @@
  * placeholders; flip-clock, carousel, parallax and themes are live.
  */
 import React, { useEffect, useState } from "react";
-import { Home, TrendingUp, Wallet, User, PanelLeft, PanelRight, X, type LucideIcon } from "lucide-react";
+import { Home, TrendingUp, Wallet, User, PlusSquare, PanelLeft, PanelRight, X, type LucideIcon } from "lucide-react";
 import ModuleShelf from "@/components/module-shelf";
 import { SkinProvider, useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
@@ -36,7 +36,6 @@ import BrandHero from "@/components/brand-lockup";
 // /gambit floor components, ported natively (GameProvider below powers them —
 // and fixes the latent useGame() crash in ZLiarMeter inside PerpDials).
 import { GameProvider } from "@/context/game-context";
-import LiveTicker from "@/components/live-ticker";
 import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
 import TopMarketsRail from "@/components/top-markets-rail";
 import MarketRails from "@/components/market-rails";
@@ -65,7 +64,9 @@ function SectionHeading({ children, color }: { children: React.ReactNode; color?
 
 function BottomNav() {
   const { skin } = useSkin();
-  const items: [LucideIcon, string, string][] = [[Home, "Home", "/"], [TrendingUp, "Markets", "/gambit?tab=floor"], [Wallet, "Wallet", "/gambit?tab=portal"], [User, "Profile", "/profile"]];
+  // 5 buttons per spec. Placeholder anchors (no navigation to the /mpp2.23 hub)
+  // until each destination page/dashboard has content; Home + Profile are real.
+  const items: [LucideIcon, string, string][] = [[Home, "Home", "/"], [TrendingUp, "All Markets", "#markets"], [Wallet, "Wallet", "#wallet"], [PlusSquare, "Market++", "#market-plus"], [User, "Profile", "/profile"]];
   return (
     <nav style={{ position: "fixed", left: 0, right: 0, bottom: 0, display: "flex", justifyContent: "space-around", alignItems: "center", padding: "10px 0", background: skin.panel, borderTop: `1px solid ${skin.border}`, backdropFilter: "blur(6px)", zIndex: 30 }}>
       {items.map(([Icon, label, href], i) => (
@@ -166,8 +167,8 @@ function PreviewInner() {
             {/* /gambit's gold-chisel hero lockup + trinity, ported verbatim */}
             <BrandHero primary={skin.accent2} />
 
-            {/* /gambit's triple-mode RSS wire, ported native */}
-            <LiveTicker />
+            {/* Redundant "MARKETS · NYSE" panel removed per worksheet — the top
+               CryptoTickerDual already carries the perpetual market ticker. */}
 
             <div id="mg-news">
               <NewsTwoRow />
