@@ -74,21 +74,23 @@ function hash(s: string): number {
   return Math.abs(h);
 }
 
-/** Significant lowercase tokens (length ≥ 4, non-stopword) for clustering. */
-function tokenize(title: string): Set<string> {
-  return new Set(
-    (title || "")
-      .toLowerCase()
-      .replace(/[^a-z0-9 ]+/g, " ")
-      .split(/\s+/)
-      .filter((w) => w.length >= 4 && !STOP.has(w)),
-  );
+/** Significant lowercase tokens (length ≥ 4, non-stopword, unique) for clustering.
+ *  Returns an array (not a Set) so it iterates under the project's ES target. */
+function tokenize(title: string): string[] {
+  const words = (title || "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").split(/\s+/);
+  const seen: Record<string, true> = {};
+  const out: string[] = [];
+  for (const w of words) {
+    if (w.length >= 4 && !STOP.has(w) && !seen[w]) { seen[w] = true; out.push(w); }
+  }
+  return out;
 }
 
-/** Two headlines are "the same story" when they share ≥ 2 significant tokens. */
-function similar(a: Set<string>, b: Set<string>): boolean {
+/** Two headlines are "the same story" when they share ≥ 2 significant tokens.
+ *  `aTokens` is iterated (array); `bSet` is only membership-tested (.has). */
+function similar(aTokens: string[], bSet: Set<string>): boolean {
   let shared = 0;
-  for (const t of a) if (b.has(t)) { shared++; if (shared >= 2) return true; }
+  for (const t of aTokens) if (bSet.has(t)) { shared++; if (shared >= 2) return true; }
   return false;
 }
 
@@ -104,14 +106,15 @@ function velocityOf(publishedMs: number | null, nowMs: number): number {
  * pickup. Returns results keyed by input id, in the same order as `pool`.
  */
 export function computeHeatForPool(pool: HeatInput[], nowMs = Date.now()): HeatResult[] {
-  const toks = pool.map((p) => tokenize(p.title));
+  const toks = pool.map((p) => tokenize(p.title)); // string[][]
+  const tokSets = toks.map((t) => new Set(t));      // Set<string>[] for fast .has
 
   return pool.map((item, i) => {
     // crossSource: distinct publishers whose headline matches this one (incl. self).
     const publishers = new Set<string>([item.sourceId]);
     for (let j = 0; j < pool.length; j++) {
       if (j === i) continue;
-      if (similar(toks[i], toks[j])) publishers.add(pool[j].sourceId);
+      if (similar(toks[i], tokSets[j])) publishers.add(pool[j].sourceId);
     }
     const crossSource = publishers.size;
 
