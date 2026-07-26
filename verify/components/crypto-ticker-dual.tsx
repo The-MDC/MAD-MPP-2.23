@@ -14,6 +14,7 @@
 import React from "react";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
+import MetricPopover, { type MetricRow } from "@/components/metric-popover";
 
 interface Tick {
   symbol: string;
@@ -21,6 +22,46 @@ interface Tick {
   change?: string;
   up?: boolean;
 }
+
+// Each ticker row explains what it measures (worksheet: every ticker item is
+// clickable and opens a popup explaining how it's measured, plus a link on).
+interface TickerInfo {
+  title: string;
+  blurb: string;
+  rows: MetricRow[];
+  ctaLabel: string;
+}
+const INFO: Record<string, TickerInfo> = {
+  crypto: {
+    title: "Crypto prices",
+    blurb: "Live spot quotes for the majors, the collateral behind on-platform markets. Beta placeholders today — wiring to Pyth / Chainlink price feeds.",
+    rows: [
+      { label: "Price", kind: "measured", note: "Last spot price from the oracle feed." },
+      { label: "24h change", kind: "measured", note: "Percentage move over the trailing 24 hours." },
+    ],
+    ctaLabel: "View featured markets →",
+  },
+  gambit: {
+    title: "MAD Gambit house metrics",
+    blurb: "The platform's own tape: token price, degen momentum, the CHAOS index, and total market VOLUME. Beta placeholders until on-chain reads are wired.",
+    rows: [
+      { label: "MADx", kind: "measured", note: "MAD Gambit token spot price." },
+      { label: "CHAOS", kind: "estimated", note: "Composite volatility/heat index across open markets." },
+      { label: "VOLUME", kind: "measured", note: "Total value traded across all markets." },
+    ],
+    ctaLabel: "View featured markets →",
+  },
+  scandal: {
+    title: "Live scandal wire",
+    blurb: "The hottest satirical headlines right now, ranked by Heat — a traffic-value score led by cross-publisher pickup and estimated engagement. Click any card in the News Flow for its full Heat breakdown.",
+    rows: [
+      { label: "Cross-publisher pickup", kind: "measured", note: "How many distinct publishers ran a similar headline." },
+      { label: "Engagement (likes · comments · views)", kind: "estimated", note: "Estimated until Reddit/X/YouTube counts are connected." },
+      { label: "Freshness & satire", kind: "measured", note: "Recency plus the Z-Liar satire score." },
+    ],
+    ctaLabel: "Open the News Flow →",
+  },
+};
 
 const CRYPTO: Tick[] = [
   { symbol: "BTC", value: "$69,420", change: "+4.2%", up: true },
@@ -50,7 +91,7 @@ function jumpTo(id: string) {
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function Row({ items, accent, target, dur }: { items: Tick[]; accent: string; target: string; dur: number }) {
+function Row({ items, accent, target, dur, onPick }: { items: Tick[]; accent: string; target: string; dur: number; onPick: () => void }) {
   const { skin } = useSkin();
   const run = items.concat(items); // duplicated → seamless -50% loop
   return (
@@ -60,8 +101,8 @@ function Row({ items, accent, target, dur }: { items: Tick[]; accent: string; ta
           <button
             key={i}
             type="button"
-            onClick={() => jumpTo(target)}
-            title={`${t.symbol} ${t.value ?? ""} ${t.change ?? ""}`.replace(/\s+/g, " ").trim()}
+            onClick={onPick}
+            title={`${t.symbol} ${t.value ?? ""} ${t.change ?? ""} — how is this measured?`.replace(/\s+/g, " ").trim()}
             className="mg-ck-item"
             style={{ display: "inline-flex", alignItems: "baseline", gap: 6, padding: "2px 16px", background: "transparent", border: "none", cursor: "pointer", fontFamily: INSTRUMENT_FONT, fontSize: 13, fontWeight: 900, letterSpacing: 0.5 }}
           >
@@ -78,11 +119,21 @@ function Row({ items, accent, target, dur }: { items: Tick[]; accent: string; ta
 
 export default function CryptoTickerDual() {
   const { skin } = useSkin();
+  const [info, setInfo] = React.useState<{ key: keyof typeof INFO; target: string } | null>(null);
+  const active = info ? INFO[info.key] : null;
   return (
     <div style={{ width: "100%" }}>
-      <Row items={CRYPTO} accent={skin.gold} target="mg-featured" dur={32} />
-      <Row items={GAMBIT} accent={skin.accent} target="mg-featured" dur={26} />
-      <Row items={SCANDAL} accent={skin.accent2} target="mg-news" dur={38} />
+      <Row items={CRYPTO} accent={skin.gold} target="mg-featured" dur={32} onPick={() => setInfo({ key: "crypto", target: "mg-featured" })} />
+      <Row items={GAMBIT} accent={skin.accent} target="mg-featured" dur={26} onPick={() => setInfo({ key: "gambit", target: "mg-featured" })} />
+      <Row items={SCANDAL} accent={skin.accent2} target="mg-news" dur={38} onPick={() => setInfo({ key: "scandal", target: "mg-news" })} />
+      <MetricPopover
+        open={!!active}
+        onClose={() => setInfo(null)}
+        title={active?.title ?? ""}
+        blurb={active?.blurb ?? ""}
+        rows={active?.rows}
+        cta={info ? { label: active!.ctaLabel, onClick: () => jumpTo(info.target) } : undefined}
+      />
       <style>{`
         .mg-ck-track { animation-name: mgCkScroll; animation-timing-function: linear; animation-iteration-count: infinite; }
         .mg-ck-row:hover .mg-ck-track { animation-play-state: paused; }

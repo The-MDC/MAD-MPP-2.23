@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { fetchAllFeeds } from "@/lib/rss-feeds";
+import { fetchAllFeeds, FEED_SOURCES } from "@/lib/rss-feeds";
 import { satirizeHeadline, type NewsCategory } from "@/lib/satire-headline";
 import { satireMetrics } from "@/lib/satire-metrics";
+import { computeHeatForPool, type HeatInput, type HeatSignals } from "@/lib/heat-score";
 
 /**
  * GET /api/v1/news/satirical — the rotating satirical-news feed, bucketed into
@@ -43,21 +44,47 @@ export interface SatiricalNewsItem {
   verdict: string;
   brandSafe: boolean;
   link: string;
+  heat: number;            // 0–100 composite traffic-value score (drives the ordering)
+  heatSignals: HeatSignals; // per-signal breakdown for the explainer popup
 }
 
-function toItem(source: string, category: NewsCategory, title: string, image?: string, link = ""): SatiricalNewsItem {
+// Publisher metadata by id, for heat scoring of live items.
+const SOURCE_META = new Map(FEED_SOURCES.map((s) => [s.id, s]));
+
+// Default per-category publisher metadata for DEMO rows (no live feed metadata).
+const DEMO_META: Record<NewsCategory, { trust: number; virality: number }> = {
+  celebrity: { trust: 6, virality: 2.1 }, entertainment: { trust: 7, virality: 1.6 },
+  influencer: { trust: 5, virality: 2.6 }, political: { trust: 7, virality: 1.4 },
+  sports: { trust: 6, virality: 2.0 }, tabloid: { trust: 4, virality: 2.5 },
+  television: { trust: 7, virality: 1.6 }, viral: { trust: 4, virality: 2.8 },
+  crypto: { trust: 8, virality: 1.2 }, funnies: { trust: 2, virality: 3.0 },
+};
+
+// A working record carries the satirized item plus the raw signals heat needs.
+interface Raw extends Omit<SatiricalNewsItem, "heat" | "heatSignals"> {
+  sourceId: string;
+  publishedMs: number | null;
+  trustScore: number;
+  viralityWeight: number;
+}
+
+function toRaw(
+  source: string, sourceId: string, category: NewsCategory, title: string,
+  meta: { trust: number; virality: number }, publishedMs: number | null, image?: string, link = "",
+): Raw {
   const m = satireMetrics(title);
   return {
-    source,
-    category,
-    image: image ?? null,
-    realHeadline: title,
+    source, sourceId, category, image: image ?? null, realHeadline: title,
     satiricalHeadline: satirizeHeadline(title, category),
-    satireScore: m.satireScore,
-    verdict: m.verdict,
-    brandSafe: m.brandSafe,
-    link,
+    satireScore: m.satireScore, verdict: m.verdict, brandSafe: m.brandSafe, link,
+    publishedMs, trustScore: meta.trust, viralityWeight: meta.virality,
   };
+}
+
+function parseDate(s: string | undefined): number | null {
+  if (!s) return null;
+  const t = Date.parse(s);
+  return Number.isFinite(t) ? t : null;
 }
 
 const DEMO: { source: string; category: NewsCategory; title: string }[] = [
@@ -91,35 +118,81 @@ const DEMO: { source: string; category: NewsCategory; title: string }[] = [
   { source: "Gaffe Desk", category: "funnies", title: "Keynote demo works flawlessly in rehearsal, combusts on stage" },
 ];
 
+// Deterministic pseudo-age for a demo row (0–36h) so velocity varies without a feed.
+function demoAgeMs(title: string): number {
+  let h = 0;
+  for (let i = 0; i < title.length; i++) h = (h * 31 + title.charCodeAt(i)) | 0;
+  return (Math.abs(h) % 36) * 3_600_000;
+}
+
+function demoRaw(now: number): Raw[] {
+  return DEMO.map((d) =>
+    toRaw(d.source, d.source, d.category, d.title, DEMO_META[d.category], now - demoAgeMs(d.title)),
+  );
+}
+
 export async function GET() {
-  let items: SatiricalNewsItem[] = [];
+  const now = Date.now();
+  let items: Raw[] = [];
   try {
     const feeds = await fetchAllFeeds();
     for (const f of feeds) {
       const cat = BUCKET[f.sourceId];
-      if (cat) items.push(toItem(f.source, cat, f.title, f.image, f.link));
+      if (!cat) continue;
+      const meta = SOURCE_META.get(f.sourceId);
+      items.push(
+        toRaw(f.source, f.sourceId, cat, f.title,
+          { trust: meta?.trust_score ?? 5, virality: meta?.virality_weight ?? 1.5 },
+          parseDate(f.published), f.image, f.link),
+      );
     }
   } catch {
     items = [];
   }
 
   const live = items.length > 0;
-  if (!live) items = DEMO.map((d) => toItem(d.source, d.category, d.title));
+  if (!live) items = demoRaw(now);
+
+  // Backfill any empty bucket so all 10 categories always show hub-style cards
+  // (categories without a live feed yet: influencer, sports — and any feed that
+  // was unreachable this fetch). Demo rows join the SAME pool so heat is scored
+  // against everything shown.
+  const present = new Set(items.map((r) => r.category));
+  if (live) {
+    for (const c of CATEGORIES) {
+      if (!present.has(c)) items.push(...demoRaw(now).filter((r) => r.category === c));
+    }
+  }
+
+  // Score the whole pool together so cross-publisher pickup is measured across
+  // every source, then attach heat + signals to each item.
+  const heat = computeHeatForPool(
+    items.map<HeatInput>((r) => ({
+      id: r.link || r.realHeadline, sourceId: r.sourceId, title: r.realHeadline,
+      publishedMs: r.publishedMs, trustScore: r.trustScore, viralityWeight: r.viralityWeight,
+      satireScore: r.satireScore,
+    })),
+    now,
+  );
+  const scored: SatiricalNewsItem[] = items.map((r, i) => {
+    const { sourceId, publishedMs, trustScore, viralityWeight, ...pub } = r;
+    void sourceId; void publishedMs; void trustScore; void viralityWeight;
+    return { ...pub, heat: heat[i].heat, heatSignals: heat[i].signals };
+  });
 
   const byCategory: Record<NewsCategory, SatiricalNewsItem[]> = {
     celebrity: [], entertainment: [], influencer: [], political: [], sports: [],
     tabloid: [], television: [], viral: [], crypto: [], funnies: [],
   };
-  for (const it of items) byCategory[it.category].push(it);
-  // Backfill any empty bucket with its demo rows so all 10 categories always
-  // show hub-style cards (categories without a live feed yet: influencer,
-  // sports — and any feed that was unreachable this fetch).
+  for (const it of scored) byCategory[it.category].push(it);
+  // Auto-surface the hottest first: sort each bucket by heat desc, cap at 10.
   for (const c of CATEGORIES) {
-    if (byCategory[c].length === 0) {
-      byCategory[c] = DEMO.filter((d) => d.category === c).map((d) => toItem(d.source, d.category, d.title));
-    }
-    byCategory[c] = byCategory[c].slice(0, 10); // top 10 per bucket
+    byCategory[c].sort((a, b) => b.heat - a.heat);
+    byCategory[c] = byCategory[c].slice(0, 10);
   }
 
-  return NextResponse.json({ success: true, source: live ? "live" : "demo", byCategory });
+  // Top headlines across all categories, hottest first — powers the automated carousel.
+  const top = [...scored].sort((a, b) => b.heat - a.heat).slice(0, 20);
+
+  return NextResponse.json({ success: true, source: live ? "live" : "demo", byCategory, top });
 }

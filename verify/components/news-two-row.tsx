@@ -12,6 +12,8 @@
 import React, { useEffect, useState } from "react";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
+import MetricPopover from "@/components/metric-popover";
+import { HEAT_EXPLAINER, type HeatSignals } from "@/lib/heat-score";
 
 type Kind =
   | "celebrity" | "entertainment" | "influencer" | "political" | "sports"
@@ -24,6 +26,8 @@ interface Card {
   image: string | null;
   z: number;
   link: string;
+  heat: number;
+  signals: HeatSignals | null;
 }
 
 // The 10 satirical feed categories (order mirrors the API / left rail).
@@ -46,8 +50,19 @@ function ThumbImg({ src }: { src: string }) {
   return <img src={src} alt="" loading="lazy" onError={() => setBroken(true)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />;
 }
 
+/** Rows for the Heat explainer popup: HEAT_EXPLAINER copy + this card's values. */
+function heatRows(sig: HeatSignals) {
+  return HEAT_EXPLAINER.signals.map((s) => ({
+    label: s.label,
+    kind: s.kind,
+    note: s.note,
+    value: s.key === "crossSource" ? `×${sig.crossSource}` : sig[s.key],
+  }));
+}
+
 function CardView({ c }: { c: Card }) {
   const { skin } = useSkin();
+  const [info, setInfo] = useState(false);
   const color =
     c.kind === "crypto" || c.kind === "zliar" || c.kind === "funnies"
       ? skin.gold
@@ -72,6 +87,17 @@ function CardView({ c }: { c: Card }) {
         {c.image ? <ThumbImg src={c.image} /> : null}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.05))" }} />
         <span style={{ position: "absolute", top: 6, left: 6, fontSize: 6.5, fontWeight: 900, letterSpacing: 0.5, textTransform: "uppercase", color: "#fff", background: `${color}cc`, padding: "2px 6px", borderRadius: 5 }}>{LABEL[c.kind]}</span>
+        {/* Heat badge — clickable; explains how the ranking is measured. */}
+        {c.signals ? (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setInfo(true); }}
+            title="How is Heat measured?"
+            style={{ position: "absolute", top: 6, right: 6, display: "inline-flex", alignItems: "center", gap: 2, fontSize: 8, fontWeight: 900, color: "#0b0b12", background: skin.gold, border: "none", borderRadius: 6, padding: "2px 6px", cursor: "pointer", fontFamily: INSTRUMENT_FONT, boxShadow: `0 0 10px ${skin.gold}66` }}
+          >
+            🔥 {Math.round(c.heat)}
+          </button>
+        ) : null}
       </div>
       <div style={{ padding: "8px 10px" }}>
         <div style={{ fontSize: 9, fontWeight: 700, color: skin.text, lineHeight: 1.3, height: 35, overflow: "hidden" }}>{c.headline}</div>
@@ -80,6 +106,17 @@ function CardView({ c }: { c: Card }) {
           <span style={{ marginLeft: "auto" }}>Z-Liar <b style={{ color: skin.gold }}>{Math.round(c.z)}</b></span>
         </div>
       </div>
+      {c.signals ? (
+        <MetricPopover
+          open={info}
+          onClose={() => setInfo(false)}
+          title={HEAT_EXPLAINER.title}
+          blurb={HEAT_EXPLAINER.blurb}
+          score={{ label: "Heat", value: c.heat }}
+          rows={heatRows(c.signals)}
+          cta={c.link ? { label: "Open this story →", onClick } : undefined}
+        />
+      ) : null}
     </div>
   );
 }
@@ -122,23 +159,24 @@ export default function NewsTwoRow() {
       if (news?.success) {
         FEED_KINDS.forEach((k) => {
           const arr = news.byCategory?.[k] ?? [];
-          arr.slice(0, 5).forEach((it: { source: string; satiricalHeadline: string; image: string | null; satireScore: number; link: string }) => {
-            out.push({ kind: k, source: it.source, headline: it.satiricalHeadline, image: it.image, z: it.satireScore, link: it.link ?? "" });
+          arr.slice(0, 5).forEach((it: { source: string; satiricalHeadline: string; image: string | null; satireScore: number; link: string; heat?: number; heatSignals?: HeatSignals }) => {
+            out.push({ kind: k, source: it.source, headline: it.satiricalHeadline, image: it.image, z: it.satireScore, link: it.link ?? "", heat: it.heat ?? 0, signals: it.heatSignals ?? null });
           });
         });
       }
       if (markets?.success) {
         (markets.proposals ?? []).forEach((p: { type: Kind; title: string; zliarScore: number }) => {
-          if (p.type === "zliar") out.push({ kind: "zliar", source: "Z-Liar Meter", headline: p.title, image: null, z: p.zliarScore, link: "/gambit" });
-          if (p.type === "gossipcop") out.push({ kind: "gossipcop", source: "GossipCop", headline: p.title, image: null, z: p.zliarScore, link: "/gambit" });
+          if (p.type === "zliar") out.push({ kind: "zliar", source: "Z-Liar Meter", headline: p.title, image: null, z: p.zliarScore, link: "/gambit", heat: 0, signals: null });
+          if (p.type === "gossipcop") out.push({ kind: "gossipcop", source: "GossipCop", headline: p.title, image: null, z: p.zliarScore, link: "/gambit", heat: 0, signals: null });
         });
       }
       setCards(out);
     });
   }, []);
 
-  const all = cards ?? [];
-  // Active category filters the wire in place; null = the full two-row marquee.
+  // Auto-surface the hottest first: rank the whole wire by Heat (traffic value),
+  // then filter in place when a category is active. null = the full two-row wire.
+  const all = [...(cards ?? [])].sort((a, b) => b.heat - a.heat);
   const list = active ? all.filter((c) => c.kind === active) : all;
   const rowA = list.filter((_, i) => i % 2 === 0);
   const rowB = list.filter((_, i) => i % 2 === 1);
