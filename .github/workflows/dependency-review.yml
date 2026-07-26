@@ -1,0 +1,29 @@
+name: Dependency Review
+
+# Blocks PRs that pull in dependencies with known high/critical advisories, at
+# the moment they are added — complementary to Dependabot (which bumps existing
+# deps on a schedule). This is the point-of-introduction gate: it diffs the
+# manifests/lockfiles a PR changes and fails on newly introduced vulnerable
+# versions before they ever reach main.
+#
+# Requires the repo's Dependency Graph to be enabled (Settings → Advanced
+# Security). If it is off, this job reports that instead of silently passing.
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependency review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high

@@ -27,3 +27,53 @@ jobs:
         run: npm ci
       - name: Type-check (tsc --noEmit)
         run: npm run type-check
+
+  # ── Lint gate ───────────────────────────────────────────────────────
+  # ESLint (next/core-web-vitals) as a first-class PR check. Fast, clearly
+  # labelled failure signal for lint errors (react-hooks/rules-of-hooks and
+  # the @next/next correctness rules) that previously had no gate anywhere —
+  # `next build` linted only on push-to-main, so PRs merged lint-blind.
+  lint:
+    name: Lint (next lint)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: verify
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: verify/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint (next lint)
+        run: npm run lint
+
+  # ── Build gate ──────────────────────────────────────────────────────
+  # The real `next build` on every PR. Until now it ran ONLY on push-to-main
+  # (vercel-deploy.yml) and the Vercel deployment was dashboard-Ignored, so
+  # PRs merged build-blind and build breaks surfaced only after merge. This
+  # closes that gap: prerender/build failures now block the PR, not main.
+  # No app env vars are set — mirrors vercel-deploy.yml; missing NEXT_PUBLIC_*
+  # just inline as undefined at build (non-fatal).
+  build:
+    name: Build (next build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: verify
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: verify/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Build (next build)
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"

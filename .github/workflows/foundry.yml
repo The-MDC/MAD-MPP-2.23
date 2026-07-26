@@ -42,3 +42,28 @@ jobs:
 
       - name: forge test
         run: forge test -vvv
+
+  # ── Static analysis ─────────────────────────────────────────────────
+  # Slither on the canonical Foundry project. forge build+test above proves the
+  # contracts compile and behave; Slither catches the classes tests pass over —
+  # reentrancy, unchecked external calls, arbitrary-send, access-control gaps —
+  # which is table stakes for contracts that custody prediction-market funds.
+  # Foundry is installed first so crytic-compile drives `forge build` against
+  # contracts/foundry.toml (same scoping as the forge job). fail-on: high gates
+  # on high-impact findings only, so an existing backlog of informational/low
+  # notes reports without walling the first run; tighten to `medium` later.
+  slither:
+    name: Slither static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Slither
+        uses: crytic/slither-action@v0.4.0
+        with:
+          target: "contracts/"
+          fail-on: high
