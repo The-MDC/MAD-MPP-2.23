@@ -8,7 +8,10 @@ name: Foundry — contracts
 # until its Part K reconciliation checklist lands (see MAD_GAMBIT_MASTER_ACTION_PLAN.md N-C).
 
 on:
+  # Scope push to main only — feature-branch pushes are already covered by the
+  # pull_request trigger, so this kills the redundant double-run per commit.
   push:
+    branches: [main]
     paths:
       - "contracts/src/**"
       - "contracts/test/**"
@@ -22,6 +25,10 @@ on:
       - "contracts/foundry.toml"
       - "contracts/lib/**"
       - ".github/workflows/foundry.yml"
+
+concurrency:
+  group: foundry-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   forge:

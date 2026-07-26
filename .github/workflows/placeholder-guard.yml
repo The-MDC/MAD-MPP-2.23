@@ -9,6 +9,10 @@ on:
     branches: [main, "mad-mpp-2.24"]
   pull_request:
 
+concurrency:
+  group: guard-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   guard:
     runs-on: ubuntu-latest

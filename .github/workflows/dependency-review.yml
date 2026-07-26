@@ -11,6 +11,14 @@ name: Dependency Review
 
 on:
   pull_request:
+    paths:
+      - "verify/package.json"
+      - "verify/package-lock.json"
+      - ".github/workflows/dependency-review.yml"
+
+concurrency:
+  group: dep-review-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
