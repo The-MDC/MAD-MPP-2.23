@@ -1,21 +1,78 @@
 # Security Policy
 
-## Supported Versions
-
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
-
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+MAD Gambit is a prediction-market platform: it custodies funds, verifies
+wallet identity, and resolves markets on-chain. Security is layered, not a
+single control. This file is the entry point; the full layer-by-layer map —
+what each layer is, where it lives, and what's missing — is in
+[`docs/SECURITY_LAYERS.md`](docs/SECURITY_LAYERS.md).
 
 ## Reporting a Vulnerability
 
-Use this section to tell people how to report a vulnerability.
+Report suspected vulnerabilities privately — do **not** open a public issue,
+PR, or Discord/Telegram post for anything exploitable.
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+- **Email:** security@the-mdc.com (rotate to the founder inbox if unset)
+- **What to include:** affected component, reproduction steps, impact, and any
+  PoC. For on-chain issues, include the network, contract address, and tx hash.
+- **Response:** acknowledgement within 3 business days; a triage decision
+  (accepted / needs-info / declined) within 7. Critical issues affecting funds
+  are worked immediately.
+- **Disclosure:** coordinated. Please give us a reasonable window to ship a fix
+  before public disclosure. We credit reporters who follow this process.
+
+## Supported Versions
+
+Active development happens on `main` and the current `mad-mpp-*` line. Only the
+latest deployed release receives security updates; older snapshots do not.
+
+| Surface | Supported |
+| ------- | --------- |
+| `main` (production) | ✅ |
+| Current `mad-mpp-2.x` app (`verify/`) | ✅ |
+| Contracts under `contracts/src` | ✅ |
+| Older branches / archived snapshots | ❌ |
+
+## Secret Management
+
+- **Never** commit secrets. All secrets come from environment variables /
+  the platform secret store — never source. This is enforced in CI by the
+  **Secret Scan** workflow (TruffleHog on the PR diff).
+- Required server secrets: `DATABASE_URL`, `SESSION_SECRET`, `CRON_SECRET`,
+  `GOOGLE_API_KEY`, `GUEST_USER`, `GUEST_PASS`, `GDELT_QUERY`.
+- Build-time public values: `NEXT_PUBLIC_MADX_ADDRESS`,
+  `NEXT_PUBLIC_MARKET_FACTORY_ADDRESS`, `NEXT_PUBLIC_STAKING_ADDRESS`,
+  `NEXT_PUBLIC_TREASURY_ADDRESS`.
+- If a secret is ever exposed, rotate it immediately and audit for reuse.
+
+## CI Security Gates
+
+Every PR runs (see `.github/workflows/`):
+
+| Gate | Enforces |
+| ---- | -------- |
+| Type-check | TypeScript soundness (`tsc --noEmit`) |
+| Unit tests | Behavioural correctness (vitest) |
+| Build | Real `next build` — prerender/build failures block merge |
+| Placeholder Guard | No prose-placeholder source files reach `main` |
+| Secret Scan (TruffleHog) | No hardcoded secrets in the diff |
+| Slither | Solidity static analysis (reentrancy, unchecked calls, access control) |
+| Dependency Review | No new high/critical dependency advisories |
+| Lint (eslint) | `react-hooks/rules-of-hooks` + `@next/next` correctness rules |
+
+Some gates run **report-only** while their backlog is triaged or an account
+setting (GitHub Advanced Security) is enabled — see `docs/SECURITY_LAYERS.md`
+§7 for the current enforcement status and the path to making each blocking.
+
+## Pre-Deployment Checklist
+
+Before any production deploy, the `security-review` process
+(governance repo: `MADHATs-Claude-Enhancement/.claude/skills/ecc/security-review.md`,
+rules in `.claude/rules/common-security.md`) must pass:
+
+- [ ] No hardcoded secrets; required secrets present at startup
+- [ ] All user input validated; parameterized queries only
+- [ ] XSS / CSRF protections in place
+- [ ] Auth & authorization verified on every protected route
+- [ ] Rate limiting on all public endpoints
+- [ ] Error messages leak no sensitive data
+- [ ] Smart-contract changes have had a security review (Slither clean or triaged)
