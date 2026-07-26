@@ -9,7 +9,7 @@
     "dev": "next dev --port 3000",
     "build": "next build",
     "start": "node .next/standalone/server.js",
-    "lint": "next lint",
+    "lint": "eslint app components context hooks lib middleware.ts --ext .js,.jsx,.ts,.tsx",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -23,7 +23,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Staged report-only (continue-on-error): the action hard-errors with
+      # "Dependency review is not supported on this repository" until the repo's
+      # Dependency Graph + GitHub Advanced Security are enabled in Settings →
+      # Security & analysis. Once enabled, drop continue-on-error to enforce.
       - name: Dependency review
+        continue-on-error: true
         uses: actions/dependency-review-action@v4
         with:
           fail-on-severity: high
