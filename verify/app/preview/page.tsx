@@ -32,7 +32,7 @@ import CategoryRail from "@/components/category-rail";
 import AccountRail from "@/components/account-rail";
 import PlatformExplorer from "@/components/platform-explorer";
 import DottedGlowBackground from "@/components/dotted-glow-background";
-import BrandHero from "@/components/brand-lockup";
+import { BrandMark } from "@/components/brand-lockup";
 // /gambit floor components, ported natively (GameProvider below powers them —
 // and fixes the latent useGame() crash in ZLiarMeter inside PerpDials).
 import { GameProvider } from "@/context/game-context";
@@ -143,8 +143,8 @@ function PreviewInner() {
               style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, flex: "none", borderRadius: 8, cursor: "pointer", color: leftOpen ? skin.accent : skin.muted, background: skin.card, border: `1px solid ${leftOpen ? `${skin.accent}66` : skin.border}` }}>
               <PanelLeft size={15} strokeWidth={2.25} />
             </button>
-            <span style={{ width: 28, height: 28, flex: "none", borderRadius: "50%", background: `radial-gradient(circle at 35% 30%, ${skin.gold}, ${skin.accent2})`, boxShadow: `0 0 10px ${skin.gold}66`, display: "inline-block" }} aria-hidden="true" />
-            <span style={{ fontSize: 14, fontWeight: 900, letterSpacing: 0.5, color: skin.gold, textTransform: "uppercase", whiteSpace: "nowrap" }}>MADHAT&rsquo;s Gambit</span>
+            {/* Worksheet C: official logo + MAD Gambit wordmark + tagline, top-left. */}
+            <BrandMark accent={skin.accent2} gold={skin.gold} />
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6, flex: "none" }}>
             <button type="button" onClick={() => setRightOpen((o) => !o)} aria-label="Toggle account console" title="Account console"
@@ -164,12 +164,11 @@ function PreviewInner() {
           {wide && leftOpen ? <CategoryRail /> : null}
 
           <main style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* /gambit's gold-chisel hero lockup + trinity, ported verbatim */}
-            <BrandHero primary={skin.accent2} />
-
-            {/* Redundant "MARKETS · NYSE" panel removed per worksheet — the top
-               CryptoTickerDual already carries the perpetual market ticker. */}
-
+            {/* Worksheet C: the MAD Gambit hero lockup + tagline moved to the
+               top-left header (see BrandMark). Worksheet E: the redundant
+               "MARKETS · NYSE" panel was removed — the top CryptoTickerDual
+               carries the perpetual market ticker. The column now leads with the
+               News Flow. */}
             <div id="mg-news">
               <NewsTwoRow />
             </div>

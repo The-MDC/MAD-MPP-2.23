@@ -11,9 +11,9 @@
 import React from "react";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 
-export function BrandLockup({ primary, width = 300 }: { primary: string; width?: number }) {
+export function BrandLockup({ primary, width = 300, align = "center" }: { primary: string; width?: number; align?: "center" | "left" }) {
   return (
-    <svg viewBox="0 0 520 90" style={{ width, maxWidth: "86%", display: "block", margin: "0 auto" }} aria-label="MAD Gambit">
+    <svg viewBox="0 0 520 90" style={{ width, maxWidth: align === "center" ? "86%" : "100%", display: "block", margin: align === "center" ? "0 auto" : 0 }} aria-label="MAD Gambit">
       <defs>
         <linearGradient id="mg-gold-g" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#fffcf0" /><stop offset="25%" stopColor="#efc76d" />
@@ -45,6 +45,40 @@ export function Trinity() {
           {i < 2 ? <span style={{ color: "#3f3f46" }}>·</span> : null}
         </React.Fragment>
       ))}
+    </div>
+  );
+}
+
+/**
+ * Compact top-left brand lockup for the header (worksheet item C): the official
+ * MAD Gambit top-hat logo + the gold "MΛĐ Gambit" wordmark + the "Predict the
+ * Scandal · Own the Culture" tagline — relocated here from the centre column.
+ * If the logo asset is missing the mark degrades to the gilded gradient dot, so
+ * the header never shows a broken image.
+ */
+export function BrandMark({ accent, gold }: { accent: string; gold: string }) {
+  const [broken, setBroken] = React.useState(false);
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+      {broken ? (
+        <span aria-hidden="true" style={{ width: 40, height: 40, flex: "none", borderRadius: "50%", background: `radial-gradient(circle at 35% 30%, ${gold}, ${accent})`, boxShadow: `0 0 10px ${gold}66` }} />
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src="/brand/mad-gambit-tophat.png"
+          alt="MAD Gambit"
+          width={40}
+          height={40}
+          onError={() => setBroken(true)}
+          style={{ width: 40, height: 40, flex: "none", objectFit: "contain", filter: `drop-shadow(0 0 8px ${gold}55)` }}
+        />
+      )}
+      <div style={{ minWidth: 0 }}>
+        <BrandLockup primary={accent} width={140} align="left" />
+        <div style={{ fontFamily: INSTRUMENT_FONT, fontSize: 7, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.24em", color: "#8a8a93", marginTop: 3, whiteSpace: "nowrap" }}>
+          Predict the Scandal · Own the Culture
+        </div>
+      </div>
     </div>
   );
 }
