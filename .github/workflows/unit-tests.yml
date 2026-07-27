@@ -2,8 +2,14 @@ name: Unit Tests
 
 on:
   pull_request:
+    paths:
+      - "verify/**"
+      - ".github/workflows/unit-tests.yml"
   push:
     branches: [ main ]
+    paths:
+      - "verify/**"
+      - ".github/workflows/unit-tests.yml"
 
 concurrency:
   group: unit-tests-${{ github.ref }}

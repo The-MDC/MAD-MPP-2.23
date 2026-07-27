@@ -4,8 +4,10 @@
  * MAD Gambit — right account rail (mockup's right sidebar).
  * ────────────────────────────────────────────────────────────────
  * The account/utility nav from the mockup (Login · Sign Up · Settings · … · Live),
- * in lucide line icons (no emoji). Login/Sign Up route into the app; the rest are
- * placeholder anchors for beta. Skin-aware; desktop chrome.
+ * in lucide line icons (no emoji). Login/Sign Up are dead placeholders (#login /
+ * #signup) until the auth flow exists — they must NOT navigate to the /mpp2.23
+ * hub. Profile/Reports/Settings link to their real pages; the rest are beta
+ * placeholder anchors. Skin-aware; desktop chrome.
  */
 import React from "react";
 import {
@@ -18,8 +20,8 @@ import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 
 // [Icon, label, href]
 const LINKS: [LucideIcon, string, string][] = [
-  [KeyRound, "Login", "/gambit"],
-  [Sparkles, "Sign Up", "/gambit"],
+  [KeyRound, "Login", "#login"],
+  [Sparkles, "Sign Up", "#signup"],
   [UserCircle, "Profile", "/profile"],
   [BarChart3, "Reports", "/reports"],
   [Settings, "Settings", "/settings"],

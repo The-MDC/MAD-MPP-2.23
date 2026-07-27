@@ -2,8 +2,14 @@ name: CI
 
 on:
   pull_request:
+    paths:
+      - "verify/**"
+      - ".github/workflows/ci.yml"
   push:
     branches: [ main ]
+    paths:
+      - "verify/**"
+      - ".github/workflows/ci.yml"
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -27,3 +33,60 @@ jobs:
         run: npm ci
       - name: Type-check (tsc --noEmit)
         run: npm run type-check
+
+  # ── Lint gate (report-only) ─────────────────────────────────────────
+  # ESLint (next/core-web-vitals) as a PR check — catches react-hooks/
+  # rules-of-hooks and @next/next correctness rules that had no gate before.
+  # Invokes eslint directly: this app is on Next 16, which REMOVED the
+  # `next lint` subcommand, so the old `next lint` script is dead.
+  #
+  # Staged report-only (continue-on-error) for now: eslint-config-next is
+  # still pinned to 15.4.5 against Next 16, and the npm registry is blocked
+  # in-sandbox so the lockfile can't be regenerated here to realign it +
+  # migrate to flat config. Once that follow-up lands (deps bumped, config
+  # verified), drop continue-on-error to make this enforcing.
+  lint:
+    name: Lint (eslint)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: verify
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: verify/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint (eslint)
+        continue-on-error: true
+        run: npm run lint
+
+  # ── Build gate ──────────────────────────────────────────────────────
+  # The real `next build` on every PR. Until now it ran ONLY on push-to-main
+  # (vercel-deploy.yml) and the Vercel deployment was dashboard-Ignored, so
+  # PRs merged build-blind and build breaks surfaced only after merge. This
+  # closes that gap: prerender/build failures now block the PR, not main.
+  # No app env vars are set — mirrors vercel-deploy.yml; missing NEXT_PUBLIC_*
+  # just inline as undefined at build (non-fatal).
+  build:
+    name: Build (next build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: verify
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: verify/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Build (next build)
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"

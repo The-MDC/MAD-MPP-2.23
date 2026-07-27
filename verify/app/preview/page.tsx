@@ -18,7 +18,7 @@
  * placeholders; flip-clock, carousel, parallax and themes are live.
  */
 import React, { useEffect, useState } from "react";
-import { Home, TrendingUp, Wallet, User, PanelLeft, PanelRight, X, type LucideIcon } from "lucide-react";
+import { Home, TrendingUp, Wallet, User, PlusSquare, PanelLeft, PanelRight, X, type LucideIcon } from "lucide-react";
 import ModuleShelf from "@/components/module-shelf";
 import { SkinProvider, useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
@@ -32,11 +32,10 @@ import CategoryRail from "@/components/category-rail";
 import AccountRail from "@/components/account-rail";
 import PlatformExplorer from "@/components/platform-explorer";
 import DottedGlowBackground from "@/components/dotted-glow-background";
-import BrandHero from "@/components/brand-lockup";
+import { BrandMark } from "@/components/brand-lockup";
 // /gambit floor components, ported natively (GameProvider below powers them —
 // and fixes the latent useGame() crash in ZLiarMeter inside PerpDials).
-import { GameProvider } from "@/context/game-context";
-import LiveTicker from "@/components/live-ticker";
+import { GameProvider, useGame } from "@/context/game-context";
 import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
 import TopMarketsRail from "@/components/top-markets-rail";
 import MarketRails from "@/components/market-rails";
@@ -44,13 +43,25 @@ import ZLiarSection from "@/components/zliar-section";
 import DopamineEngine from "@/components/dopamine-engine";
 import PositionsDashboard from "@/components/positions-dashboard";
 import { EigenTrustWidget } from "@/components/virality-eigen";
+import JoyLayer, { celebrate } from "@/components/joy-layer";
+import AuthModal from "@/components/auth-modal";
 
-function Chip({ label, filled }: { label: string; filled?: boolean }) {
+/** Dopamine tap — a small celebration burst at the click point. */
+function tap(e: React.MouseEvent, intensity = 0.5) {
+  celebrate({ x: e.clientX, y: e.clientY, intensity });
+}
+/** Smooth-scroll to an in-page section by id. */
+function scrollToId(id: string) {
+  if (typeof document === "undefined") return;
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function Chip({ label, filled, onClick }: { label: string; filled?: boolean; onClick?: (e: React.MouseEvent) => void }) {
   const { skin } = useSkin();
   return (
-    <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "6px 11px", borderRadius: 8, color: filled ? skin.bg : skin.text, background: filled ? skin.gold : "transparent", border: `1px solid ${filled ? skin.gold : skin.border}`, whiteSpace: "nowrap", fontFamily: INSTRUMENT_FONT }}>
+    <button type="button" onClick={onClick} className="mg-tap" style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "6px 11px", borderRadius: 8, color: filled ? skin.bg : skin.text, background: filled ? skin.gold : "transparent", border: `1px solid ${filled ? skin.gold : skin.border}`, whiteSpace: "nowrap", fontFamily: INSTRUMENT_FONT, cursor: "pointer" }}>
       {label}
-    </span>
+    </button>
   );
 }
 
@@ -63,16 +74,27 @@ function SectionHeading({ children, color }: { children: React.ReactNode; color?
   );
 }
 
-function BottomNav() {
+function BottomNav({ onWallet, onProfile }: { onWallet: () => void; onProfile: () => void }) {
   const { skin } = useSkin();
-  const items: [LucideIcon, string, string][] = [[Home, "Home", "/"], [TrendingUp, "Markets", "/gambit?tab=floor"], [Wallet, "Wallet", "/gambit?tab=portal"], [User, "Profile", "/profile"]];
+  const [active, setActive] = useState(0);
+  // 5 buttons per spec. Each now performs a real in-page action (smooth-scroll
+  // to a live section, or open the account console / auth) instead of jumping
+  // to a dead anchor — item F, broader clickability, kept inside the theme.
+  const items: [LucideIcon, string, () => void][] = [
+    [Home, "Home", () => window.scrollTo({ top: 0, behavior: "smooth" })],
+    [TrendingUp, "All Markets", () => scrollToId("mg-markets")],
+    [Wallet, "Wallet", onWallet],
+    [PlusSquare, "Market++", () => scrollToId("mg-market-plus")],
+    [User, "Profile", onProfile],
+  ];
   return (
     <nav style={{ position: "fixed", left: 0, right: 0, bottom: 0, display: "flex", justifyContent: "space-around", alignItems: "center", padding: "10px 0", background: skin.panel, borderTop: `1px solid ${skin.border}`, backdropFilter: "blur(6px)", zIndex: 30 }}>
-      {items.map(([Icon, label, href], i) => (
-        <a key={label} href={href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, textDecoration: "none", color: i === 0 ? skin.accent : skin.muted, fontSize: 8, letterSpacing: 1, textTransform: "uppercase" }}>
+      {items.map(([Icon, label, fn], i) => (
+        <button key={label} type="button" className="mg-tap" onClick={(e) => { setActive(i); tap(e, 0.45); fn(); }}
+          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, background: "transparent", border: "none", cursor: "pointer", color: i === active ? skin.accent : skin.muted, fontSize: 8, letterSpacing: 1, textTransform: "uppercase" }}>
           <Icon size={16} strokeWidth={2.25} />
           {label}
-        </a>
+        </button>
       ))}
     </nav>
   );
@@ -80,6 +102,7 @@ function BottomNav() {
 
 function PreviewInner() {
   const { skin, name, toggle } = useSkin();
+  const { socialAuth } = useGame();
   const [sy, setSy] = useState(0);
   const [reduce, setReduce] = useState(false);
   const [wide, setWide] = useState(false);
@@ -87,6 +110,12 @@ function PreviewInner() {
   // collapses fully on retract. Mobile: slide-in console overlays with backdrop.
   const [leftOpen, setLeftOpen] = useState(false);
   const [rightOpen, setRightOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+
+  // Dopamine payoff: full-screen celebration the moment social auth lands.
+  useEffect(() => {
+    if (socialAuth.isAuthenticated) celebrate({ intensity: 1 });
+  }, [socialAuth.isAuthenticated]);
 
   useEffect(() => {
     const rm = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -142,8 +171,8 @@ function PreviewInner() {
               style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, flex: "none", borderRadius: 8, cursor: "pointer", color: leftOpen ? skin.accent : skin.muted, background: skin.card, border: `1px solid ${leftOpen ? `${skin.accent}66` : skin.border}` }}>
               <PanelLeft size={15} strokeWidth={2.25} />
             </button>
-            <span style={{ width: 28, height: 28, flex: "none", borderRadius: "50%", background: `radial-gradient(circle at 35% 30%, ${skin.gold}, ${skin.accent2})`, boxShadow: `0 0 10px ${skin.gold}66`, display: "inline-block" }} aria-hidden="true" />
-            <span style={{ fontSize: 14, fontWeight: 900, letterSpacing: 0.5, color: skin.gold, textTransform: "uppercase", whiteSpace: "nowrap" }}>MADHAT&rsquo;s Gambit</span>
+            {/* Worksheet C: official logo + MAD Gambit wordmark + tagline, top-left. */}
+            <BrandMark accent={skin.accent2} gold={skin.gold} />
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6, flex: "none" }}>
             <button type="button" onClick={() => setRightOpen((o) => !o)} aria-label="Toggle account console" title="Account console"
@@ -153,8 +182,8 @@ function PreviewInner() {
             <button type="button" onClick={toggle} style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "6px 11px", borderRadius: 8, cursor: "pointer", color: skin.text, background: skin.card, border: `1px solid ${skin.accent}66`, whiteSpace: "nowrap", fontFamily: INSTRUMENT_FONT }} title="Toggle Gilded Pop-Baroque ⇄ Neon Noir Tabloid">
               {name === "gilded" ? "◑ Gilded" : "◐ Neon Noir"}
             </button>
-            <Chip label="Login" />
-            <Chip label="Sign Up" filled />
+            <Chip label="Login" onClick={() => setAuthOpen(true)} />
+            <Chip label="Sign Up" filled onClick={(e) => { tap(e, 0.7); setAuthOpen(true); }} />
           </div>
         </header>
 
@@ -163,12 +192,11 @@ function PreviewInner() {
           {wide && leftOpen ? <CategoryRail /> : null}
 
           <main style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* /gambit's gold-chisel hero lockup + trinity, ported verbatim */}
-            <BrandHero primary={skin.accent2} />
-
-            {/* /gambit's triple-mode RSS wire, ported native */}
-            <LiveTicker />
-
+            {/* Worksheet C: the MAD Gambit hero lockup + tagline moved to the
+               top-left header (see BrandMark). Worksheet E: the redundant
+               "MARKETS · NYSE" panel was removed — the top CryptoTickerDual
+               carries the perpetual market ticker. The column now leads with the
+               News Flow. */}
             <div id="mg-news">
               <NewsTwoRow />
             </div>
@@ -183,8 +211,10 @@ function PreviewInner() {
 
             {/* ── /gambit FLOOR, ported native (GameProvider-powered) ── */}
             <SeikoDopamineHub />
-            <TopMarketsRail />
-            <MarketRails />
+            <div id="mg-markets" style={{ display: "flex", flexDirection: "column", gap: 16, scrollMarginTop: 72 }}>
+              <TopMarketsRail />
+              <MarketRails />
+            </div>
             <ZLiarSection />
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: 12 }}>
               <PositionsDashboard />
@@ -205,7 +235,9 @@ function PreviewInner() {
             <ModuleShelf />
 
             {/* Every /gambit tab/feature, deep-linked into the new theme */}
-            <PlatformExplorer />
+            <div id="mg-market-plus" style={{ scrollMarginTop: 72 }}>
+              <PlatformExplorer />
+            </div>
 
             <div style={{ textAlign: "center", lineHeight: 1.7 }}>
               <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1, color: skin.muted, textTransform: "uppercase" }}>
@@ -240,11 +272,24 @@ function PreviewInner() {
           @keyframes mgTrayR { from { transform: translateX(100%); } to { transform: translateX(0); } }
           .mg-tray-in-l { animation: mgTrayL .22s ease-out; }
           .mg-tray-in-r { animation: mgTrayR .22s ease-out; }
-          @media (prefers-reduced-motion: reduce) { .mg-tray-in-l, .mg-tray-in-r { animation: none; } }
+          /* item F: universal tactile press feedback — spring-scale + brighten */
+          .mg-tap { transition: transform .12s cubic-bezier(.34,1.56,.64,1), filter .12s ease; }
+          .mg-tap:hover { filter: brightness(1.08); }
+          .mg-tap:active { transform: scale(.94); }
+          @media (prefers-reduced-motion: reduce) {
+            .mg-tray-in-l, .mg-tray-in-r { animation: none; }
+            .mg-tap { transition: none; }
+            .mg-tap:active { transform: none; }
+          }
         `}</style>
       </div>
 
-      <BottomNav />
+      <BottomNav
+        onWallet={() => setRightOpen(true)}
+        onProfile={() => (socialAuth.isAuthenticated ? setRightOpen(true) : setAuthOpen(true))}
+      />
+      <JoyLayer />
+      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
     </div>
   );
 }
