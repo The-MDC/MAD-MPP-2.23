@@ -18,6 +18,8 @@ import type { NextRequest } from "next/server";
 const GUESTS: Record<string, string> = {
   Guest0001: "Guest1979",
   Guest0002: "Guest1980",
+  Guest0003: "Guest1981",
+  Guest0004: "Guest1982",
 };
 if (process.env.GUEST_USER && process.env.GUEST_PASS) {
   GUESTS[process.env.GUEST_USER] = process.env.GUEST_PASS;
