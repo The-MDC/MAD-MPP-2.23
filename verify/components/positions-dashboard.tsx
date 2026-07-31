@@ -6,7 +6,7 @@
  * Shows all open positions from game-context. Per-position card shows
  * δ-limit, shield status, φ-ratio recovery, GARCH σ², projected payout.
  * Resolves animate green (win) / red (loss) via CSS class swap.
- * Source: Gen 2 SustainableInsurancePanel userHoldings + Gen 1 ConvictionDashboard
+ * Source: Gen 2 sustainable Shield panel userHoldings + Gen 1 ConvictionDashboard
  */
 
 import React, { useState, useEffect } from "react";

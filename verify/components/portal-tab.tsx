@@ -39,7 +39,7 @@ const SLIDES: Slide[] = [
     cta: "Every loss feeds the furnace. Every evolution is deflationary.",
   },
   {
-    title: "Sustainable Conviction Insurance",
+    title: "Sustainable Conviction Shield",
     subtitle: "φ-Ratio Protective Limits",
     icon: "🛡",
     color: "#ffd700",

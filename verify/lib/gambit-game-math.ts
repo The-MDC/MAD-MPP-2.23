@@ -750,7 +750,7 @@ export interface OVDeck {
   multiplier: number;     // scales conviction and δ-limit
   minThreshold: number;   // minimum conviction to stake
   yieldApy: number;       // shield / staking APY %
-  reservePool: number;    // insurance pool size in USD
+  reservePool: number;    // Shield reserve pool size in USD
 }
 
 export const OV_DECKS: OVDeck[] = [
@@ -798,7 +798,7 @@ export function calculateDeltaLimit(multiplier: number, convictionStake: number)
 
 /* ====================================================================
  * 18. GOLDEN RATIO (φ) MAD SHIELD VARIANT
- *     From: MainActivity.kt SustainableInsurancePanel
+ *     From: MainActivity.kt sustainable Shield panel (legacy Kotlin source)
  *     "Phi-Ratio dynamic protective limits mapping extreme conditions"
  *     φ = 1.618034... — structural safety balancing factor
  * ==================================================================== */
