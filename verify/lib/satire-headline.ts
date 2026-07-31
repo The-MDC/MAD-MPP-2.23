@@ -4,12 +4,20 @@
  * Turns a real headline into a MAD-Magazine × South-Park satirical rewrite —
  * pure, deterministic, serverless-fast (no LLM call). The heavier Gemini
  * satire-engine route stays for on-demand, richer roasts; this powers the
- * always-on rotating news carousel and the 10 category feeds where a fast,
+ * always-on rotating news carousel and the category feeds where a fast,
  * brand-safe quip per item is what's needed. Category tunes the voice.
  *
- * The 10 categories mirror the hub's left rail (worksheet item D):
- *   celebrity · entertainment · influencer · political · sports ·
- *   tabloid · television · viral · crypto · funnies
+ * The 6 canonical categories mirror the hub's left rail (founder marketing
+ * taxonomy, 31 Jul 2026 — labels are canon, do not paraphrase):
+ *   headlines      → "Headlines & Politics"
+ *   entertainment  → "Entertainment & Celebrity"
+ *   sports         → "Athletes & Sports"
+ *   viraltech      → "Viral Media & Tech"
+ *   crypto         → "Crypto & Finance"
+ *   tabloid        → "Tabloids & Gossip"
+ * (The former 10-category worksheet-D taxonomy folded in: celebrity/
+ * television → entertainment · influencer/viral → viraltech · political →
+ * headlines · funnies → tabloid. Voice pools merged so flavor is preserved.)
  *
  * ~15% of items get the SOUTH-PARK EDGE voice — punchier, absurd, a touch
  * controversial (per the founder's "15% lean toward South Park" note). It is
@@ -18,41 +26,49 @@
  * still scores every output and flags anything that trips brandSafe.
  */
 export type NewsCategory =
-  | "celebrity"
+  | "headlines"
   | "entertainment"
-  | "influencer"
-  | "political"
   | "sports"
-  | "tabloid"
-  | "television"
-  | "viral"
+  | "viraltech"
   | "crypto"
-  | "funnies";
+  | "tabloid";
 
 const PREFIX: Record<NewsCategory, string[]> = {
-  celebrity: ["INSIDERS GASP:", "A REP DID NOT DENY:", "CAUGHT ON A RING CAM:", "PER A FRIEND OF A FRIEND:"],
-  entertainment: ["ALLEGEDLY:", "SOURCES SCREAM:", "IN A STUNNING TWIST:", "UNCONFIRMED BUT VIRAL:"],
-  influencer: ["PER THE GROUP CHAT:", "A BRAND DEAL WHISPERS:", "THE FOR-YOU PAGE INSISTS:", "AN UNPAID INTERN LEAKED:"],
-  political: ["A SENIOR AIDE SHRUGS:", "PER AN UNNAMED STAFFER:", "IN A LEAKED GROUP CHAT:", "OFF THE RECORD, ON THE NOSE:"],
+  headlines: ["A SENIOR AIDE SHRUGS:", "PER AN UNNAMED STAFFER:", "IN A LEAKED GROUP CHAT:", "OFF THE RECORD, ON THE NOSE:"],
+  entertainment: [
+    "INSIDERS GASP:", "A REP DID NOT DENY:", "CAUGHT ON A RING CAM:", "PER A FRIEND OF A FRIEND:",
+    "ALLEGEDLY:", "SOURCES SCREAM:", "IN A STUNNING TWIST:", "UNCONFIRMED BUT VIRAL:",
+    "A SHOWRUNNER TEASES:", "THE FINALE 'LEAKED':", "STREAMING METRICS WHISPER:",
+  ],
   sports: ["A LOCKER-ROOM SOURCE SWEARS:", "THE REPLAY BOOTH GASPS:", "PER A GUY WITH A PODCAST:", "SIDELINE INTEL CONFIRMS:"],
-  tabloid: ["EXCLUSIVE!!:", "YOU WON'T BELIEVE:", "SPOTTED AT 3AM:", "FRONT-PAGE FRENZY:"],
-  television: ["A SHOWRUNNER TEASES:", "THE FINALE 'LEAKED':", "PER A CANCELLED PILOT:", "STREAMING METRICS WHISPER:"],
-  viral: ["GOING VIRAL:", "THE ALGORITHM DEMANDS:", "REPOSTED 40K TIMES:", "CHRONICALLY ONLINE:"],
+  viraltech: [
+    "GOING VIRAL:", "THE ALGORITHM DEMANDS:", "REPOSTED 40K TIMES:", "CHRONICALLY ONLINE:",
+    "PER THE GROUP CHAT:", "A BRAND DEAL WHISPERS:", "THE FOR-YOU PAGE INSISTS:", "AN UNPAID INTERN LEAKED:",
+  ],
   crypto: ["ANON DEV CONFIRMS:", "ACCORDING TO ONE (1) TWEET:", "THE CHART WHISPERS:", "A WHALE ALLEGEDLY SAID:"],
-  funnies: ["IN TODAY'S GAFFE:", "CAUGHT MID-BLUNDER:", "THE BLOOPER REEL PRESENTS:", "FILED UNDER 'OOPS':"],
+  tabloid: [
+    "EXCLUSIVE!!:", "YOU WON'T BELIEVE:", "SPOTTED AT 3AM:", "FRONT-PAGE FRENZY:",
+    "IN TODAY'S GAFFE:", "CAUGHT MID-BLUNDER:", "THE BLOOPER REEL PRESENTS:", "FILED UNDER 'OOPS':",
+  ],
 };
 
 const SUFFIX: Record<NewsCategory, string[]> = {
-  celebrity: ["— sources close to the source confirm nothing", "— the feud enters season 3", "— a cryptic emoji says it all"],
-  entertainment: ["— fans demand a prequel", "— the internet is normal about it", "— a docuseries is already greenlit"],
-  influencer: ["— the apology video is already scripted", "— sponsored, obviously", "— the collab is on hiatus"],
-  political: ["— both sides declare victory", "— a committee will investigate the committee", "— nothing changes, epically"],
+  headlines: ["— both sides declare victory", "— a committee will investigate the committee", "— nothing changes, epically"],
+  entertainment: [
+    "— sources close to the source confirm nothing", "— the feud enters season 3", "— a cryptic emoji says it all",
+    "— fans demand a prequel", "— the internet is normal about it", "— a docuseries is already greenlit",
+    "— renewed for a season nobody asked for", "— the spinoff writes itself", "— a reunion special looms",
+  ],
   sports: ["— the refs are reviewing the vibes", "— a hot take grows louder", "— trade rumors intensify for no reason"],
-  tabloid: ["— full story on page SIX", "— photos inside", "— more as this develops (it won't)"],
-  television: ["— renewed for a season nobody asked for", "— the spinoff writes itself", "— a reunion special looms"],
-  viral: ["— ratio pending", "— the comments are undefeated", "— touch-grass advisory issued"],
+  viraltech: [
+    "— ratio pending", "— the comments are undefeated", "— touch-grass advisory issued",
+    "— the apology video is already scripted", "— sponsored, obviously", "— the collab is on hiatus",
+  ],
   crypto: ["— number may go up, down, or sideways", "— definitely not financial advice", "— the floor is now the ceiling"],
-  funnies: ["— caught on tape, naturally", "— the outtakes are the real story", "— someone's getting a stern email"],
+  tabloid: [
+    "— full story on page SIX", "— photos inside", "— more as this develops (it won't)",
+    "— caught on tape, naturally", "— the outtakes are the real story", "— someone's getting a stern email",
+  ],
 };
 
 // The ~15% South-Park edge: sharper, absurd, a touch controversial — aimed at
