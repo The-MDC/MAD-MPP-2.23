@@ -32,7 +32,7 @@ export default function ShieldPanel() {
   const { skin } = useSkin();
   const TIER_META: Record<Tier, { label: string; color: string; blurb: string }> = {
     standard: { label: "Standard", color: skin.accent, blurb: "28.8% recovery · flat" },
-    shielded: { label: "Shielded", color: skin.gold, blurb: "28.8 → 40% · premium dial" },
+    shielded: { label: "Shielded", color: skin.gold, blurb: "28.8 → 40% · opt-in fee dial" },
     whale: { label: "Whale / Partner", color: skin.accent2, blurb: "60% · trust-gated" },
   };
   const [stake, setStake] = useState(1000);
@@ -96,7 +96,7 @@ export default function ShieldPanel() {
   });
 
   const result: [string, string, string][] = [
-    ["Premium (2–4%)", quote ? usd(quote.premium) : "—", skin.accent2],
+    ["Opt-in fee (2–4%)", quote ? usd(quote.premium) : "—", skin.accent2],
     ["Recovery payout", quote ? usd(quote.payout) : "—", skin.positive],
     ["Effective rate", quote ? pct(quote.effectivePct) : "—", skin.gold],
     ["Return window", quote ? `${quote.returnWindowHours}h` : "—", skin.accent],

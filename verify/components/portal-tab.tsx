@@ -47,7 +47,7 @@ const SLIDES: Slide[] = [
       { label: "Base recovery",  value: "28.8% of loss" },
       { label: "VIP recovery",   value: "60% of loss" },
       { label: "φ at max vol",   value: "×1.618 uplift" },
-      { label: "Shield premium", value: "2–4% of stake" },
+      { label: "MAD-Shield opt-in fee", value: "2–4% of stake" },
     ],
     cta: "The golden ratio is not decoration. It is the structural safety factor.",
   },

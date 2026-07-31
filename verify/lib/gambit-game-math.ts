@@ -33,15 +33,39 @@ export const PLATFORM = {
   PACK_GUARANTEE_SLOT: 0, // slot 0 always uncommon or better
 } as const;
 
-/** Staking tier thresholds — source: Card Game Logic Code Reference §6 */
+/** Staking tiers — canonical 4-tier eights ladder (founder sign-off 31 Jul 2026).
+ *  Staking is the MAD-Shield gate: each tier maps to a Shield recovery cap.
+ *  VIP status (>= 888,888 $MADx, capital-side) sits above as a status, not a
+ *  public tier: 60% recovery + phi perks. effApy = apy * (1 + clout/200),
+ *  so max effective 77.6% at Clout 200 — earned, never promised. */
 export const STAKING_TIERS = [
-  { name: 'Bronze',   minMadx: 100,     apy: 0.12 },
-  { name: 'Silver',   minMadx: 500,     apy: 0.18 },
-  { name: 'Gold',     minMadx: 2_500,   apy: 0.28 },
-  { name: 'Platinum', minMadx: 10_000,  apy: 0.42 },
-  { name: 'Diamond',  minMadx: 50_000,  apy: 0.58 },
-  { name: 'MAD Tier', minMadx: 100_000, apy: 0.68 },
+  { name: 'Bronze',   minMadx: 88,     apy: 0.088, shieldRecoveryPct: 0.288 },
+  { name: 'Silver',   minMadx: 888,    apy: 0.188, shieldRecoveryPct: 0.328 },
+  { name: 'Gold',     minMadx: 8_888,  apy: 0.288, shieldRecoveryPct: 0.368 },
+  { name: 'MAD Tier', minMadx: 88_888, apy: 0.388, shieldRecoveryPct: 0.40  },
 ] as const;
+export const VIP_STATUS_MIN_MADX = 888_888; // ~0.1% of supply — 60% Shield recovery
+
+/* CREATOR LADDER — founder sign-off 31 Jul 2026. Fee share applies ONLY to
+ * the creator's own open markets (non-additive waterfall unchanged):
+ *   User 28.8% -> MinorCreator 40% (12+ tractioned markets)
+ *   -> CR8TR 60% (34 tractioned markets AND 888 followers).
+ * TRACTION: a market counts once total conviction >= LMSR b (1,200 $MADx)
+ * AND it has settled/rolled at least one payout to bettors.
+ * VIP is the capital-side status (Shield 60%), never a creator tier. */
+export const CREATOR_LADDER = [
+  { status: 'User',         shareBps: 2880, unlockMarkets: 0,  unlockFollowers: 0 },
+  { status: 'MinorCreator', shareBps: 4000, unlockMarkets: 12, unlockFollowers: 0 },
+  { status: 'CR8TR',        shareBps: 6000, unlockMarkets: 34, unlockFollowers: 888 },
+] as const;
+export const TRACTION_MIN_CONVICTION_MADX = 1_200; // = LMSR liquidity b
+
+export function creatorStatus(tractionedMarkets: number, followers: number) {
+  return [...CREATOR_LADDER]
+    .reverse()
+    .find(t => tractionedMarkets >= t.unlockMarkets && followers >= t.unlockFollowers)
+    ?? CREATOR_LADDER[0];
+}
 
 export function getStakingTier(madxBalance: number) {
   return [...STAKING_TIERS].reverse().find(t => madxBalance >= t.minMadx) ?? null;
