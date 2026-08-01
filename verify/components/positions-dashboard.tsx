@@ -12,7 +12,7 @@
 import React, { useState, useEffect } from "react";
 import { INK } from "@/lib/gambit-design-tokens";
 import { useGame } from "@/context/game-context";
-import { shieldPhiRatio, garchUpdate, PHI, shieldReturnCountdown } from "@/lib/gambit-game-math";
+import { shieldPhiRatio, garchUpdate, PHI, PLATFORM, shieldReturnCountdown } from "@/lib/gambit-game-math";
 import { Shield, ShieldOff, ShieldCheck, TrendingUp, TrendingDown, Clock, Zap, Timer, Radar, Brain, Loader2 } from "lucide-react";
 import WalletGateway from "./wallet-gateway";
 
@@ -22,7 +22,7 @@ function getCurrentSigma(): number {
   let s = 0.02;
   let seed = 42;
   const rand = () => { seed = (seed * 1664525 + 1013904223) % 2147483648; return seed / 2147483648; };
-  for (let i = 0; i < epoch; i++) { s = garchUpdate(0.008, 0.12, 0.82, s, (rand() - 0.5) * 0.3); }
+  for (let i = 0; i < epoch; i++) { s = garchUpdate(PLATFORM.GARCH_OMEGA, PLATFORM.GARCH_ALPHA, PLATFORM.GARCH_BETA, s, (rand() - 0.5) * 0.3); }
   return s;
 }
 

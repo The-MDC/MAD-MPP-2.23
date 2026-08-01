@@ -16,7 +16,7 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { garchUpdate, getLunarPhaseMultiplier } from "@/lib/gambit-game-math";
+import { garchUpdate, getLunarPhaseMultiplier, PLATFORM } from "@/lib/gambit-game-math";
 import { Activity, Wifi } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -49,7 +49,7 @@ function generateSeries(length: number): number[] {
   const rand = () => { seed = (seed * 1664525 + 1013904223) % 2147483648; return seed / 2147483648; };
   for (let i = 1; i < length; i++) {
     const shock = (rand() - 0.5) * 0.3;
-    sigma2 = garchUpdate(0.008, 0.12, 0.82, sigma2, shock);
+    sigma2 = garchUpdate(PLATFORM.GARCH_OMEGA, PLATFORM.GARCH_ALPHA, PLATFORM.GARCH_BETA, sigma2, shock);
     series.push(sigma2);
   }
   return series;

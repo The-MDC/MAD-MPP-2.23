@@ -18,7 +18,7 @@
  * secondary tags so a Saga can still surface a Z-Liar or Perp facet.
  */
 import { scoreSentiment, type Sentiment } from "@/lib/sentiment";
-import { zLiarMeter } from "@/lib/gambit-game-math";
+import { zLiarMeter, PLATFORM } from "@/lib/gambit-game-math";
 import { perpTriggerProbability } from "@/lib/gdelt";
 
 export type MarketType = "progression" | "saga" | "zliar" | "perp" | "gossipcop";
@@ -133,7 +133,7 @@ export function classifySignal(sig: Signal): MarketProposal {
   );
 
   const zliarEligible = zliar.score >= 60 && sentiment.dopaminePotential;
-  const perpEligible = perpProbability >= 0.6;
+  const perpEligible = perpProbability >= PLATFORM.PERP_TRIGGER_THRESHOLD;
 
   // Primary type — priority order documented above. A long-arc, celebrity/gossip
   // perp graduates to the GossipCop class (its own carousel + dashboard surface).
