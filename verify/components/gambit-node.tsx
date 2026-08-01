@@ -70,6 +70,19 @@ export function GambitNodeProvider({ children }: { children: React.ReactNode }) 
 
   const value = useMemo(() => ({ openNode, closeNode, activeNode: active }), [openNode, closeNode, active]);
 
+  // Decoupled open mechanism (mirrors the mg:category pattern): components
+  // that may render outside this provider dispatch
+  //   window.dispatchEvent(new CustomEvent("mg:open-node", { detail: "shield" }))
+  // and the provider answers when mounted. No-op when it isn't.
+  useEffect(() => {
+    const onOpen = (e: Event) => {
+      const id = (e as CustomEvent).detail as NodeId | undefined;
+      if (id && NODE_REGISTRY[id]) openNode(id);
+    };
+    window.addEventListener("mg:open-node", onOpen as EventListener);
+    return () => window.removeEventListener("mg:open-node", onOpen as EventListener);
+  }, [openNode]);
+
   return (
     <GambitNodeContext.Provider value={value}>
       {children}

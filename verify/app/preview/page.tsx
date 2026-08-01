@@ -45,7 +45,7 @@ import PositionsDashboard from "@/components/positions-dashboard";
 import { EigenTrustWidget } from "@/components/virality-eigen";
 import JoyLayer, { celebrate } from "@/components/joy-layer";
 import AuthModal from "@/components/auth-modal";
-import { GambitNodeProvider } from "@/components/gambit-node";
+import { GambitNodeProvider, useGambitNode } from "@/components/gambit-node";
 
 /** Dopamine tap — a small celebration burst at the click point. */
 function tap(e: React.MouseEvent, intensity = 0.5) {
@@ -75,17 +75,18 @@ function SectionHeading({ children, color }: { children: React.ReactNode; color?
   );
 }
 
-function BottomNav({ onWallet, onProfile }: { onWallet: () => void; onProfile: () => void }) {
+function BottomNav({ onProfile }: { onProfile: () => void }) {
   const { skin } = useSkin();
+  const { openNode } = useGambitNode();
   const [active, setActive] = useState(0);
-  // 5 buttons per spec. Each now performs a real in-page action (smooth-scroll
-  // to a live section, or open the account console / auth) instead of jumping
-  // to a dead anchor — item F, broader clickability, kept inside the theme.
+  // 5 buttons per spec, resolved per the D14 §5 matrix: Home scroll-top ·
+  // All Markets scrolls to the live section · Wallet / Market++ summon their
+  // Gambit Nodes · Profile opens the console when signed in, else its node.
   const items: [LucideIcon, string, () => void][] = [
     [Home, "Home", () => window.scrollTo({ top: 0, behavior: "smooth" })],
     [TrendingUp, "All Markets", () => scrollToId("mg-markets")],
-    [Wallet, "Wallet", onWallet],
-    [PlusSquare, "Market++", () => scrollToId("mg-market-plus")],
+    [Wallet, "Wallet", () => openNode("wallet")],
+    [PlusSquare, "Market++", () => openNode("market-plus")],
     [User, "Profile", onProfile],
   ];
   return (
@@ -104,6 +105,7 @@ function BottomNav({ onWallet, onProfile }: { onWallet: () => void; onProfile: (
 function PreviewInner() {
   const { skin, name, toggle } = useSkin();
   const { socialAuth } = useGame();
+  const { openNode } = useGambitNode();
   const [sy, setSy] = useState(0);
   const [reduce, setReduce] = useState(false);
   const [wide, setWide] = useState(false);
@@ -184,7 +186,8 @@ function PreviewInner() {
               {name === "gilded" ? "◑ Gilded" : "◐ Neon Noir"}
             </button>
             <Chip label="Login" onClick={() => setAuthOpen(true)} />
-            <Chip label="Sign Up" filled onClick={(e) => { tap(e, 0.7); setAuthOpen(true); }} />
+            {/* §5 matrix: Sign Up summons the beta-gate node (Login stays real). */}
+            <Chip label="Sign Up" filled onClick={(e) => { tap(e, 0.7); openNode("beta-gate"); }} />
           </div>
         </header>
 
@@ -242,7 +245,13 @@ function PreviewInner() {
 
             <div style={{ textAlign: "center", lineHeight: 1.7 }}>
               <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1, color: skin.muted, textTransform: "uppercase" }}>
-                Platform Fee 1.88% · Creator Share 40% · Community 28.8% · $MADx 888,888,888 fixed
+                {/* §5 matrix / Principle 9: every 1.88% is tappable → the fee-waterfall node. */}
+                Platform Fee{" "}
+                <button type="button" onClick={() => openNode("fee-waterfall")} className="mg-tap"
+                  style={{ background: "transparent", border: "none", padding: 0, cursor: "pointer", color: skin.gold, fontSize: "inherit", fontWeight: 900, letterSpacing: "inherit", textDecoration: "underline dotted", fontFamily: INSTRUMENT_FONT }}>
+                  1.88%
+                </button>
+                {" "}· Creator Ladder 28.8–60% · Community 28.8% · $MADx 888,888,888 fixed
               </div>
               <div style={{ fontSize: 8, color: skin.muted, marginTop: 4 }}>
                 Faithful assembly of the mockup · clickable tickers, rails, nav, cards + platform links · live news /
@@ -286,8 +295,7 @@ function PreviewInner() {
       </div>
 
       <BottomNav
-        onWallet={() => setRightOpen(true)}
-        onProfile={() => (socialAuth.isAuthenticated ? setRightOpen(true) : setAuthOpen(true))}
+        onProfile={() => (socialAuth.isAuthenticated ? setRightOpen(true) : openNode("profile"))}
       />
       <JoyLayer />
       <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
