@@ -1,10 +1,13 @@
 name: Create/Delete Branch for Pull Request
+# Diet (Aug 2026): dropped `synchronize` — the Neon branch is created once per
+# PR and deleted on close; re-creating it on every commit burned 3+ jobs per
+# push while Vercel PR previews are dashboard-Ignored (nothing consumes the
+# per-commit branch). Re-add `synchronize` if per-commit DB previews return.
 on:
   pull_request:
     types:
       - opened
       - reopened
-      - synchronize
       - closed
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
