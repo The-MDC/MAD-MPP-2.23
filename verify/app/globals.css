@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "./tokens.css";
 
 /* ─────────────────────────────────────────────────────────────────────
    MAD GAMBIT — Dopamine Neuroscience Animation System v3
