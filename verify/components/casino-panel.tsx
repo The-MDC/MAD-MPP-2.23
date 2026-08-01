@@ -17,6 +17,7 @@ import React, { useState, useRef } from "react";
 import { INK } from "@/lib/gambit-design-tokens";
 import { useGame } from "@/context/game-context";
 import { RARITY_TABLE, isVrsTrigger } from "@/lib/gambit-game-math";
+import { nextVrsTrigger } from "@/lib/session-vrs";
 import { Lock, Zap, Crown, TrendingUp, TrendingDown } from "lucide-react";
 
 const BET_SIZES = [100, 500, 1000];
@@ -175,7 +176,7 @@ export default function CasinoPanel() {
           </button>
 
           <p className="font-mono text-[8px] text-neutral-700 text-center mt-2">
-            Payout: {PAYOUT_MULT.toFixed(4)}× · VRS jackpot at streak {streak % 5 === 0 ? "NOW" : `+${5 - streak % 5}`}: {VRS_JACKPOT_MULT}×
+            Payout: {PAYOUT_MULT.toFixed(4)}× · VRS jackpot at streak {isVrsTrigger(streak) ? "NOW" : `+${nextVrsTrigger(streak) - streak}`}: {VRS_JACKPOT_MULT}×
           </p>
         </div>
       </div>

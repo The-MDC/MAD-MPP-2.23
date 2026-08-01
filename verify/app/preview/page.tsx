@@ -45,6 +45,7 @@ import PositionsDashboard from "@/components/positions-dashboard";
 import { EigenTrustWidget } from "@/components/virality-eigen";
 import JoyLayer, { celebrate } from "@/components/joy-layer";
 import AuthModal from "@/components/auth-modal";
+import { GambitNodeProvider } from "@/components/gambit-node";
 
 /** Dopamine tap — a small celebration burst at the click point. */
 function tap(e: React.MouseEvent, intensity = 0.5) {
@@ -298,7 +299,11 @@ export default function PreviewPage() {
   return (
     <SkinProvider>
       <GameProvider>
-        <PreviewInner />
+        {/* GambitNodeProvider rides the existing GameProvider tree (S0.6) —
+            any descendant converts a dead link with openNode('id'). */}
+        <GambitNodeProvider>
+          <PreviewInner />
+        </GambitNodeProvider>
       </GameProvider>
     </SkinProvider>
   );
