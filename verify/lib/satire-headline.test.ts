@@ -2,14 +2,13 @@ import { describe, it, expect } from "vitest";
 import { satirizeHeadline, type NewsCategory } from "./satire-headline";
 
 const ALL_CATEGORIES: NewsCategory[] = [
-  "celebrity", "entertainment", "influencer", "political", "sports",
-  "tabloid", "television", "viral", "crypto", "funnies",
+  "headlines", "entertainment", "sports", "viraltech", "crypto", "tabloid",
 ];
 
 describe("satirizeHeadline", () => {
   it("is deterministic for the same input", () => {
-    const a = satirizeHeadline("Pop star spotted leaving mansion", "celebrity");
-    const b = satirizeHeadline("Pop star spotted leaving mansion", "celebrity");
+    const a = satirizeHeadline("Pop star spotted leaving mansion", "entertainment");
+    const b = satirizeHeadline("Pop star spotted leaving mansion", "entertainment");
     expect(a).toBe(b);
   });
 
@@ -21,7 +20,7 @@ describe("satirizeHeadline", () => {
 
   it("varies the voice by category", () => {
     const ent = satirizeHeadline("Same headline here", "entertainment");
-    const pol = satirizeHeadline("Same headline here", "political");
+    const pol = satirizeHeadline("Same headline here", "headlines");
     // different category pools → the wrapper differs even for identical text
     expect(ent).not.toBe(pol);
   });
@@ -31,15 +30,15 @@ describe("satirizeHeadline", () => {
     expect(satirizeHeadline("   ", "crypto")).toBe("");
   });
 
-  it("supports the tabloid and viral voices distinctly", () => {
+  it("supports the tabloid and viraltech voices distinctly", () => {
     const tab = satirizeHeadline("Mystery yacht photos surface", "tabloid");
-    const vir = satirizeHeadline("Mystery yacht photos surface", "viral");
+    const vir = satirizeHeadline("Mystery yacht photos surface", "viraltech");
     expect(tab).toContain("Mystery yacht photos surface");
     expect(vir).toContain("Mystery yacht photos surface");
     expect(tab).not.toBe(vir);
   });
 
-  it("supports all 10 worksheet categories (wraps and preserves the headline)", () => {
+  it("supports all 6 canonical categories (wraps and preserves the headline)", () => {
     for (const cat of ALL_CATEGORIES) {
       const out = satirizeHeadline("A perfectly ordinary Tuesday", cat);
       expect(out).toContain("A perfectly ordinary Tuesday");

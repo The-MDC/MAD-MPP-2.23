@@ -4,7 +4,7 @@
  * MAD Gambit — two-row satirical headline carousel (restored, center column).
  * ────────────────────────────────────────────────────────────────
  * Two perpetual marquee rows (scrolling opposite directions) of satirical headline
- * cards spanning the feeds: Celebrity · Crypto · Political (from the news wire) plus
+ * cards spanning the 6 canonical category feeds (from the news wire) plus
  * Z-Liar Meter and GossipCop perp items (from the classifier). Each card = source
  * photo + our satirical headline + kind + Z-Liar badge, and is clickable (news →
  * source article, markets → the app). Hover pauses; reduced-motion safe.
@@ -16,8 +16,7 @@ import MetricPopover from "@/components/metric-popover";
 import { HEAT_EXPLAINER, type HeatSignals } from "@/lib/heat-score";
 
 type Kind =
-  | "celebrity" | "entertainment" | "influencer" | "political" | "sports"
-  | "tabloid" | "television" | "viral" | "crypto" | "funnies"
+  | "headlines" | "entertainment" | "sports" | "viraltech" | "crypto" | "tabloid"
   | "zliar" | "gossipcop";
 interface Card {
   kind: Kind;
@@ -30,16 +29,16 @@ interface Card {
   signals: HeatSignals | null;
 }
 
-// The 10 satirical feed categories (order mirrors the API / left rail).
+// The 6 canonical feed categories (order mirrors the API / left rail).
 const FEED_KINDS: Kind[] = [
-  "celebrity", "entertainment", "influencer", "political", "sports",
-  "tabloid", "television", "viral", "crypto", "funnies",
+  "headlines", "entertainment", "sports", "viraltech", "crypto", "tabloid",
 ];
 
+// Labels are founder marketing canon (31 Jul 2026) — verbatim, do not paraphrase.
 const LABEL: Record<Kind, string> = {
-  celebrity: "Celebrity", entertainment: "Entertainment", influencer: "Influencers & KOLs",
-  political: "Politics", sports: "Sports", tabloid: "Tabloid", television: "Television",
-  viral: "Viral Social", crypto: "Crypto", funnies: "Funnies & Gaffes",
+  headlines: "Headlines & Politics", entertainment: "Entertainment & Celebrity",
+  sports: "Athletes & Sports", viraltech: "Viral Media & Tech",
+  crypto: "Crypto & Finance", tabloid: "Tabloids & Gossip",
   zliar: "Z-Liar", gossipcop: "GossipCop",
 };
 
@@ -64,13 +63,13 @@ function CardView({ c }: { c: Card }) {
   const { skin } = useSkin();
   const [info, setInfo] = useState(false);
   const color =
-    c.kind === "crypto" || c.kind === "zliar" || c.kind === "funnies"
+    c.kind === "crypto" || c.kind === "zliar"
       ? skin.gold
-      : c.kind === "political" || c.kind === "entertainment" || c.kind === "television"
+      : c.kind === "headlines" || c.kind === "entertainment"
       ? skin.accent
-      : c.kind === "viral" || c.kind === "sports"
+      : c.kind === "viraltech" || c.kind === "sports"
       ? skin.positive
-      : skin.accent2; // celebrity · tabloid · influencer · gossipcop
+      : skin.accent2; // tabloid · gossipcop
   const onClick = () => {
     if (!c.link) return;
     if (c.link.charAt(0) === "/") window.location.href = c.link;

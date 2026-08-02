@@ -3,7 +3,7 @@
 /**
  * MAD Gambit — left category rail (mockup's left sidebar).
  * ────────────────────────────────────────────────────────────────
- * The 10 satirical news categories (worksheet item D) with the brand mark on
+ * The 6 canonical news categories (founder marketing taxonomy) with the brand mark on
  * top. Lucide line icons (the platform's icon language — no emoji). Each item
  * is a real clickable button that filters the hub News Flow to that category
  * (via the `mg:category` window event) and scrolls to it — the cards are the
@@ -12,7 +12,7 @@
  */
 import React from "react";
 import {
-  Star, Clapperboard, Megaphone, Landmark, Trophy, Newspaper, Tv, Flame, Coins, Laugh,
+  Star, Landmark, Trophy, Newspaper, Flame, Coins,
   type LucideIcon,
 } from "lucide-react";
 import { useSkin } from "@/components/skin-provider";
@@ -20,17 +20,14 @@ import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import type { NewsCategory } from "@/lib/satire-headline";
 
 // [Icon, display label, satire category key]. Order mirrors the API's CATEGORIES.
+// Labels are founder marketing canon (31 Jul 2026) — verbatim, do not paraphrase.
 const CATS: [LucideIcon, string, NewsCategory][] = [
-  [Star, "Celebrity News", "celebrity"],
-  [Clapperboard, "Entertainment News", "entertainment"],
-  [Megaphone, "Influencers & KOLs", "influencer"],
-  [Landmark, "Politics & Commentary", "political"],
-  [Trophy, "Sports & Athletes", "sports"],
-  [Newspaper, "Tabloid Gossip", "tabloid"],
-  [Tv, "Television", "television"],
-  [Flame, "Viral Socials", "viral"],
-  [Coins, "Crypto & Trading", "crypto"],
-  [Laugh, "Funnies & Gaffes", "funnies"],
+  [Landmark, "Headlines & Politics", "headlines"],
+  [Star, "Entertainment & Celebrity", "entertainment"],
+  [Trophy, "Athletes & Sports", "sports"],
+  [Flame, "Viral Media & Tech", "viraltech"],
+  [Coins, "Crypto & Finance", "crypto"],
+  [Newspaper, "Tabloids & Gossip", "tabloid"],
 ];
 
 function selectCategory(cat: NewsCategory | null) {

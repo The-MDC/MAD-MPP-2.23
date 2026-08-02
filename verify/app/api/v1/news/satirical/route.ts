@@ -6,32 +6,30 @@ import { computeHeatForPool, type HeatInput, type HeatSignals } from "@/lib/heat
 
 /**
  * GET /api/v1/news/satirical — the rotating satirical-news feed, bucketed into
- * Entertainment / Celebrity / Crypto / Political from the top publishers. Each item
+ * the 6 canonical hub categories from the top publishers. Each item
  * carries the REAL headline, OUR satirical rewrite, the source image (when the feed
  * provides one), and Z-Liar/GossipCop satire metrics. Live RSS when reachable;
  * otherwise demo rows through the SAME real satirizer + scorer.
  */
 export const revalidate = 300;
 
-// The 10 hub categories (worksheet item D), in left-rail order.
+// The 6 canonical hub categories (founder marketing taxonomy), in left-rail order.
 const CATEGORIES: NewsCategory[] = [
-  "celebrity", "entertainment", "influencer", "political", "sports",
-  "tabloid", "television", "viral", "crypto", "funnies",
+  "headlines", "entertainment", "sports", "viraltech", "crypto", "tabloid",
 ];
 
 // sourceId → display bucket. Onion/Bee are already satire, so they feed the
-// Funnies & Gaffes bucket rather than being excluded. Sources without a live
-// feed (influencer, sports) are backfilled from DEMO below so every category
-// still shows cards.
+// Tabloids & Gossip bucket rather than being excluded. Sources without a live
+// feed (sports) are backfilled from DEMO below so every category still shows
+// cards.
 const BUCKET: Record<string, NewsCategory> = {
-  eonline: "entertainment",
-  variety: "television",
-  tmz: "celebrity", pagesix: "celebrity", people: "celebrity", usweekly: "celebrity",
+  eonline: "entertainment", variety: "entertainment",
+  tmz: "entertainment", pagesix: "entertainment", people: "entertainment", usweekly: "entertainment",
   dailymail: "tabloid", thesun: "tabloid", mirror: "tabloid",
   coindesk: "crypto", cointelegraph: "crypto", decrypt: "crypto", theblock: "crypto", bankless: "crypto",
-  reuters: "political", politico: "political", thehill: "political", bbcpolitics: "political", axios: "political",
-  redditviral: "viral", buzzfeed: "viral",
-  theonion: "funnies", babylonbee: "funnies",
+  reuters: "headlines", politico: "headlines", thehill: "headlines", bbcpolitics: "headlines", axios: "headlines",
+  redditviral: "viraltech", buzzfeed: "viraltech",
+  theonion: "tabloid", babylonbee: "tabloid",
 };
 
 export interface SatiricalNewsItem {
@@ -53,11 +51,9 @@ const SOURCE_META = new Map(FEED_SOURCES.map((s) => [s.id, s]));
 
 // Default per-category publisher metadata for DEMO rows (no live feed metadata).
 const DEMO_META: Record<NewsCategory, { trust: number; virality: number }> = {
-  celebrity: { trust: 6, virality: 2.1 }, entertainment: { trust: 7, virality: 1.6 },
-  influencer: { trust: 5, virality: 2.6 }, political: { trust: 7, virality: 1.4 },
-  sports: { trust: 6, virality: 2.0 }, tabloid: { trust: 4, virality: 2.5 },
-  television: { trust: 7, virality: 1.6 }, viral: { trust: 4, virality: 2.8 },
-  crypto: { trust: 8, virality: 1.2 }, funnies: { trust: 2, virality: 3.0 },
+  headlines: { trust: 7, virality: 1.4 }, entertainment: { trust: 7, virality: 1.8 },
+  sports: { trust: 6, virality: 2.0 }, viraltech: { trust: 5, virality: 2.7 },
+  crypto: { trust: 8, virality: 1.2 }, tabloid: { trust: 3, virality: 2.7 },
 };
 
 // A working record carries the satirized item plus the raw signals heat needs.
@@ -88,34 +84,34 @@ function parseDate(s: string | undefined): number | null {
 }
 
 const DEMO: { source: string; category: NewsCategory; title: string }[] = [
-  { source: "Page Six", category: "celebrity", title: "Pop couple spotted arguing over a single shared dessert" },
-  { source: "TMZ", category: "celebrity", title: "Reality star launches feud, then a candle line, in the same afternoon" },
-  { source: "People", category: "celebrity", title: "A-lister's cryptic post sends fans into a 3 a.m. spiral" },
+  { source: "Page Six", category: "entertainment", title: "Pop couple spotted arguing over a single shared dessert" },
+  { source: "TMZ", category: "entertainment", title: "Reality star launches feud, then a candle line, in the same afternoon" },
+  { source: "People", category: "entertainment", title: "A-lister's cryptic post sends fans into a 3 a.m. spiral" },
   { source: "Variety", category: "entertainment", title: "Streaming giant greenlights a fourth cinematic universe nobody asked for" },
   { source: "E!", category: "entertainment", title: "Awards show run-time officially longer than some marriages" },
-  { source: "The Feed", category: "influencer", title: "Mega-influencer apologizes for the apology about the first apology" },
-  { source: "CreatorWire", category: "influencer", title: "Top KOL pivots from skincare to geopolitics in a single reel" },
-  { source: "ClipHouse", category: "influencer", title: "Podcaster's 'unfiltered' take turns out to be a brand partnership" },
-  { source: "Politico", category: "political", title: "Bipartisan committee agrees only on the catering order" },
-  { source: "The Hill", category: "political", title: "Official denies rumor no one had actually reported yet" },
-  { source: "BBC Politics", category: "political", title: "Landmark bill passes, immediately scheduled for repeal" },
+  { source: "The Feed", category: "viraltech", title: "Mega-influencer apologizes for the apology about the first apology" },
+  { source: "CreatorWire", category: "viraltech", title: "Top KOL pivots from skincare to geopolitics in a single reel" },
+  { source: "ClipHouse", category: "viraltech", title: "Podcaster's 'unfiltered' take turns out to be a brand partnership" },
+  { source: "Politico", category: "headlines", title: "Bipartisan committee agrees only on the catering order" },
+  { source: "The Hill", category: "headlines", title: "Official denies rumor no one had actually reported yet" },
+  { source: "BBC Politics", category: "headlines", title: "Landmark bill passes, immediately scheduled for repeal" },
   { source: "SidelineDesk", category: "sports", title: "Star athlete requests trade, then requests to un-request it" },
   { source: "The Booth", category: "sports", title: "Coach blames the loss on 'the vibes' during live presser" },
   { source: "OvertimeWire", category: "sports", title: "Fantasy league feud escalates into an actual group-chat exit" },
   { source: "Daily Mail", category: "tabloid", title: "Mystery yacht photos spark three separate feuds" },
   { source: "The Sun", category: "tabloid", title: "Soap star's parking ticket becomes front-page saga" },
   { source: "The Mirror", category: "tabloid", title: "Royal corgi's diet 'leaked' by palace insider" },
-  { source: "TV Line", category: "television", title: "Beloved series renewed for a season the writers openly dread" },
-  { source: "ScreenBeat", category: "television", title: "Reality finale reunion cancelled after cast reunites early, chaotically" },
-  { source: "The Guide", category: "television", title: "Streaming algorithm recommends the show it just cancelled" },
-  { source: "Reddit Viral", category: "viral", title: "Cat interrupts live parliament feed, becomes national icon" },
-  { source: "BuzzFeed", category: "viral", title: "Quiz determining which scandal you are crashes from traffic" },
+  { source: "TV Line", category: "entertainment", title: "Beloved series renewed for a season the writers openly dread" },
+  { source: "ScreenBeat", category: "entertainment", title: "Reality finale reunion cancelled after cast reunites early, chaotically" },
+  { source: "The Guide", category: "entertainment", title: "Streaming algorithm recommends the show it just cancelled" },
+  { source: "Reddit Viral", category: "viraltech", title: "Cat interrupts live parliament feed, becomes national icon" },
+  { source: "BuzzFeed", category: "viraltech", title: "Quiz determining which scandal you are crashes from traffic" },
   { source: "CoinDesk", category: "crypto", title: "Token rallies 40% on a roadmap that is mostly vibes" },
   { source: "Decrypt", category: "crypto", title: "Anonymous developer promises the airdrop is 'basically done'" },
   { source: "The Block", category: "crypto", title: "Exchange adds a coin, then quietly adds a disclaimer" },
-  { source: "The Onion", category: "funnies", title: "Official at podium slowly realizes the mic was on the entire time" },
-  { source: "Babylon Bee", category: "funnies", title: "Ribbon-cutting ceremony ruined by ceremonial scissors that don't cut" },
-  { source: "Gaffe Desk", category: "funnies", title: "Keynote demo works flawlessly in rehearsal, combusts on stage" },
+  { source: "The Onion", category: "tabloid", title: "Official at podium slowly realizes the mic was on the entire time" },
+  { source: "Babylon Bee", category: "tabloid", title: "Ribbon-cutting ceremony ruined by ceremonial scissors that don't cut" },
+  { source: "Gaffe Desk", category: "tabloid", title: "Keynote demo works flawlessly in rehearsal, combusts on stage" },
 ];
 
 // Deterministic pseudo-age for a demo row (0–36h) so velocity varies without a feed.
@@ -153,9 +149,9 @@ export async function GET() {
   const live = items.length > 0;
   if (!live) items = demoRaw(now);
 
-  // Backfill any empty bucket so all 10 categories always show hub-style cards
-  // (categories without a live feed yet: influencer, sports — and any feed that
-  // was unreachable this fetch). Demo rows join the SAME pool so heat is scored
+  // Backfill any empty bucket so all 6 categories always show hub-style cards
+  // (categories without a live feed yet: sports — and any feed that was
+  // unreachable this fetch). Demo rows join the SAME pool so heat is scored
   // against everything shown.
   const present = new Set(items.map((r) => r.category));
   if (live) {
@@ -181,8 +177,7 @@ export async function GET() {
   });
 
   const byCategory: Record<NewsCategory, SatiricalNewsItem[]> = {
-    celebrity: [], entertainment: [], influencer: [], political: [], sports: [],
-    tabloid: [], television: [], viral: [], crypto: [], funnies: [],
+    headlines: [], entertainment: [], sports: [], viraltech: [], crypto: [], tabloid: [],
   };
   for (const it of scored) byCategory[it.category].push(it);
   // Auto-surface the hottest first: sort each bucket by heat desc, cap at 10.

@@ -12,7 +12,7 @@ import React, { useEffect, useState } from "react";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 
-type NewsCategory = "entertainment" | "celebrity" | "crypto" | "political";
+type NewsCategory = "headlines" | "entertainment" | "sports" | "viraltech" | "crypto" | "tabloid";
 interface Item {
   source: string;
   category: NewsCategory;
@@ -31,10 +31,12 @@ interface Resp {
 }
 
 const TABS: { key: NewsCategory; label: string; emoji: string }[] = [
-  { key: "entertainment", label: "Entertainment", emoji: "🎬" },
-  { key: "celebrity", label: "Celebrity", emoji: "⭐" },
-  { key: "crypto", label: "Crypto", emoji: "🪙" },
-  { key: "political", label: "Political", emoji: "🏛️" },
+  { key: "headlines", label: "Headlines & Politics", emoji: "🏛️" },
+  { key: "entertainment", label: "Entertainment & Celebrity", emoji: "🎬" },
+  { key: "sports", label: "Athletes & Sports", emoji: "🏆" },
+  { key: "viraltech", label: "Viral Media & Tech", emoji: "🔥" },
+  { key: "crypto", label: "Crypto & Finance", emoji: "🪙" },
+  { key: "tabloid", label: "Tabloids & Gossip", emoji: "📰" },
 ];
 
 function Art({ image, from, to }: { image: string | null; from: string; to: string }) {
@@ -82,7 +84,7 @@ export default function NewsCarousel() {
 
   const item = items.length ? items[idx % items.length] : null;
   const live = data?.source === "live";
-  const isGossip = cat === "celebrity" || cat === "entertainment";
+  const isGossip = cat === "entertainment" || cat === "tabloid";
   const palette = [skin.accent2, skin.accent, skin.gold, skin.accent];
   const from = palette[idx % palette.length];
   const to = palette[(idx + 1) % palette.length];
