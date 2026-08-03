@@ -23,8 +23,18 @@
  *                 200 with `engine: "deterministic"` instead of 500ing.
  *
  * Brand safety: satire lands on the situation, never slurs or real-person
- * defamation. Every output — LLM or deterministic — is re-scored by
- * satireMetrics() and carries its own brandSafe flag for the caller to gate on.
+ * defamation. Both the SOURCE headline and the GENERATED roast are scored by
+ * satireMetrics(); `brand_safe` is the conjunction, so it fails closed if
+ * either trips, with `brand_safe_source`/`brand_safe_output` exposed for
+ * callers that need to know which side failed.
+ *
+ * Be clear about what that gate is and isn't: satireMetrics() composes the
+ * Z-Liar meter with lexicon sentiment. It is a heuristic quality/tone signal,
+ * NOT a defamation classifier — it cannot tell "absurd exaggeration" from "a
+ * false claim of fact about a real person". It is a useful tripwire and a
+ * necessary condition, not a sufficient one. The real control for anything
+ * user-facing is human review, the same posture scandal-scraper.ts already
+ * takes with requireHumanReviewAbove.
  */
 import { NextResponse } from "next/server";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
@@ -211,16 +221,27 @@ export async function GET() {
     }
 
     const take = parsed.value;
-    const metrics = satireMetrics(winner.title, { corroboration: winner.trust_score / 10 });
+    const satireTake = take.satire_take.trim();
+    const corroboration = winner.trust_score / 10;
+    // Score BOTH sides. Scoring only the source headline (the previous
+    // behaviour) means a clean headline can yield an ugly one-liner that still
+    // reports brand_safe: true — the gate would be measuring the input to the
+    // joke rather than the joke. `brand_safe` is now the conjunction, so it
+    // fails closed if either side trips.
+    const sourceMetrics = satireMetrics(winner.title, { corroboration });
+    const outputMetrics = satireMetrics(satireTake, { corroboration });
 
     return NextResponse.json({
       ...baseResponse,
-      satire_take: take.satire_take.trim(),
+      satire_take: satireTake,
       scandal_velocity: clamp100(take.scandal_velocity),
       z_liar_index: clamp100(take.z_liar_index),
-      brand_safe: metrics.brandSafe,
-      satire_score: metrics.satireScore,
-      verdict: metrics.verdict,
+      brand_safe: sourceMetrics.brandSafe && outputMetrics.brandSafe,
+      brand_safe_source: sourceMetrics.brandSafe,
+      brand_safe_output: outputMetrics.brandSafe,
+      satire_score: sourceMetrics.satireScore,
+      output_satire_score: outputMetrics.satireScore,
+      verdict: sourceMetrics.verdict,
       engine: "gemini",
       repaired: parsed.repaired,
     });
@@ -236,13 +257,18 @@ export async function GET() {
 
 /** Deterministic roast + real scoring — the always-available path. */
 function deterministicTake(headline: string, category: NewsCategory) {
-  const metrics = satireMetrics(headline);
+  const satireTake = satirizeHeadline(headline, category);
+  const sourceMetrics = satireMetrics(headline);
+  const outputMetrics = satireMetrics(satireTake);
   return {
-    satire_take: satirizeHeadline(headline, category),
-    scandal_velocity: clamp100(metrics.satireScore),
-    z_liar_index: clamp100(metrics.zLiarScore),
-    brand_safe: metrics.brandSafe,
-    satire_score: metrics.satireScore,
-    verdict: metrics.verdict,
+    satire_take: satireTake,
+    scandal_velocity: clamp100(sourceMetrics.satireScore),
+    z_liar_index: clamp100(sourceMetrics.zLiarScore),
+    brand_safe: sourceMetrics.brandSafe && outputMetrics.brandSafe,
+    brand_safe_source: sourceMetrics.brandSafe,
+    brand_safe_output: outputMetrics.brandSafe,
+    satire_score: sourceMetrics.satireScore,
+    output_satire_score: outputMetrics.satireScore,
+    verdict: sourceMetrics.verdict,
   };
 }
