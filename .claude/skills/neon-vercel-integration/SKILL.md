@@ -65,7 +65,35 @@ Use when the team already has a Neon account/project and wants to keep Neon as t
 
 ## Runbook — deployment failure caused by Neon credentials
 
-Symptom: `Create Neon Branch` fails (typically 401), or a deployed route falls back to demo data because it can't reach Postgres. Work these in order; **never paste a key into chat, a commit, a PR body, or an issue.**
+**First: read the status code. It tells you which problem you have.**
+
+| Code | Meaning | Go to |
+|---|---|---|
+| **401** | Key is bad/expired — auth failed | Steps 1–4 below |
+| **422** | Key is *fine*; Neon rejected the request body — almost always the branch quota | "422 — orphaned branches" below |
+
+Do not rotate the key on a 422. The key authenticated successfully; rotating it changes nothing and costs you a working credential.
+
+### 422 — orphaned branches exhausting the quota (hit here, Aug 2026)
+
+Root cause is a **create/delete naming mismatch that leaks branches permanently**:
+
+- `create` names the branch `preview/pr-${number}-${branch}`
+- older branches were created under a scheme *without* the `pr-N-` prefix — `preview/feat/constellation-s0`, `preview/vercel-agent/fix-deployment-health-checks`
+- `delete` computes the `pr-N-` name, doesn't find the legacy one, and fails with `Branch <name> not found`
+- because `delete_neon_branch` is `continue-on-error: true`, that failure is invisible at PR level — the orphan is never cleaned up
+
+Every leaked branch counts against the project's branch limit. Once the project hits it, **every subsequent create returns 422** and every PR loses its preview DB, its migrations run, and its smoke test.
+
+**Diagnosing it without Neon dashboard access:** the `delete-branch-action` prints the full live branch list when it fails to find its target — `Available branches: ...`. That log line is the cheapest inventory of what's actually leaked. Find it in any failed `Delete Neon Branch` job.
+
+**Fix:** delete the orphans (Neon console → Branches, or `neonctl branches delete <name> --project-id <id>`). Keep `main` and any branch belonging to a currently-open PR. Then re-run the failed job.
+
+**Preventing recurrence:** branches created by the current workflow carry `expires_at` (+14 days), so *new* orphans self-clean. Legacy pre-`expires_at` branches do not and must be removed by hand once. If the naming scheme ever changes again, delete every branch under the old scheme in the same change.
+
+### 401 — expired or rotated key
+
+Work these in order; **never paste a key into chat, a commit, a PR body, or an issue.**
 
 **1 · Rotate the key at Neon.** [console.neon.tech](https://console.neon.tech) → Account settings → **API keys** → create a new key (and revoke the old one once step 4 is green). Copy it straight into step 2 — it is shown once.
 
