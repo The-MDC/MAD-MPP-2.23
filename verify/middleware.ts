@@ -25,7 +25,20 @@ if (process.env.GUEST_USER && process.env.GUEST_PASS) {
   GUESTS[process.env.GUEST_USER] = process.env.GUEST_PASS;
 }
 
+const PUBLIC_PATHS = new Set([
+  "/api/health",
+  "/health",
+  "/favicon.ico",
+  "/favicon.png",
+  "/robots.txt",
+  "/sitemap.xml",
+]);
+
 export function middleware(req: NextRequest) {
+  if (PUBLIC_PATHS.has(req.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
+
   const header = req.headers.get("authorization");
 
   if (header?.startsWith("Basic ")) {
@@ -52,7 +65,7 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // Gate all pages. Exclude Next internals and /api so static assets load after
-  // sign-in and server-to-server / cron calls to the API are not blocked.
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  // Gate all pages. Exclude Next internals and /api; exact public liveness and
+  // metadata paths are allowlisted inside middleware.
+  matcher: ["/((?!api|_next/static|_next/image).*)"],
 };
