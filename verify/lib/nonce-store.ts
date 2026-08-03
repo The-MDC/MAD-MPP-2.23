@@ -7,13 +7,11 @@
  * Postgres instead (our stack — no Redis dependency), falling back to an
  * in-memory Map only when DATABASE_URL is unset (local/demo, single instance).
  *
- * One-time schema (run as a migration):
- *   CREATE TABLE IF NOT EXISTS siwe_nonces (
- *     nonce      TEXT PRIMARY KEY,
- *     issued_at  TIMESTAMPTZ NOT NULL DEFAULT now()
- *   );
- *   CREATE INDEX IF NOT EXISTS idx_siwe_nonces_issued ON siwe_nonces (issued_at);
- *   -- prune: DELETE FROM siwe_nonces WHERE issued_at < now() - interval '10 min';
+ * Schema: verify/sql/0010_auth_identity.sql (`siwe_nonces`). It lived here as a
+ * doc-comment for a while and was never actually migrated — which broke
+ * sign-in on every preview branch, since `useDb()` is true whenever
+ * DATABASE_URL is set and the in-memory fallback therefore never engaged.
+ * Keep the table in the migration, not in this comment.
  */
 import { randomBytes } from 'crypto';
 import { getDbPool } from './db';
