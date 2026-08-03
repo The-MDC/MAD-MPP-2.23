@@ -10,7 +10,7 @@
  * On-chain settlement per stream is Foundry-gated (see `contract` + `status`);
  * this layer is the off-chain model + API/UI the frontend reads.
  */
-import { splitFee, calculateFurnaceBurnPercent, type FeeSplit } from './gambit-game-math';
+import { splitFee, calculateFurnaceBurnPercent, CREATOR_LADDER, type FeeSplit } from './gambit-game-math';
 
 export type StreamId = 'prediction' | 'casino' | 'marketplace' | 'moonpad' | 'staking';
 
@@ -88,7 +88,9 @@ export function projectStream(
   const stream = REVENUE_STREAMS.find((s) => s.id === streamId);
   const creator = (stream?.creatorEligible ?? false) && isCreatorMarket;
   const v = Math.max(0, volume);
-  const fee = splitFee(v, creator);
+  // Creator markets are modeled at the MinorCreator rung (40%) — the ladder's
+  // middle rung — for projection purposes; real splits use creatorStatus().
+  const fee = splitFee(v, creator ? CREATOR_LADDER[1].shareBps : 0);
   const burnPercent = calculateFurnaceBurnPercent(v, fee.grossFee);
   const burnAmount = (burnPercent / 100) * v;
   const netProtocol = Math.max(0, fee.protocolCut - burnAmount);

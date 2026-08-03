@@ -16,15 +16,26 @@
  * ==================================================================== */
 export const PLATFORM = {
   FEE_BPS: 188, // 1.88% global platform fee — NEVER CHANGES
-  CREATOR_SHARE_BPS: 4000, // 40% of fee → creator-made markets
+  CREATOR_SHARE_BPS: 4000, // MinorCreator rung of the CREATOR_LADDER (legacy default — prefer the ladder)
   COMMUNITY_SHARE_BPS: 2880, // 28.8% of fee → community pool
   SHIELD_RECOVERY_PCT: 0.288, // 28.8% loss recovery, standard tier
   SHIELD_RECOVERY_PREMIUM_PCT: 0.40, // 40% loss recovery, shielded tier ceiling
   SHIELD_RECOVERY_WHALE_PCT: 0.60, // 60% loss recovery — Whale/VIP/Partner only
-  SHIELD_PREMIUM_MIN: 0.02, // premium 2%..4% of bet
+  SHIELD_PREMIUM_MIN: 0.02, // MAD-Shield opt-in fee 2%..4% of stake
   SHIELD_PREMIUM_MAX: 0.04,
+  SHIELD_SAFETY_MARGIN: 0.35, // Premium = Stake·P(win)·σ·0.35 (17-corrections #4 — was 1.05)
   MADX_FIXED_SUPPLY: 888_888_888,
   FURNACE_BURN_CAP: 0.049, // The Furnace burn cap (≤4.9%)
+  LMSR_DEFAULT_B: 1200, // DL-LMSR liquidity parameter (17-corrections #3 — was 100)
+  PERP_TRIGGER_THRESHOLD: 0.60, // perpetual conversion gate (17-corrections #2 — was 0.65)
+  VOTE_POWER_CAP: 240, // votingPower = min(√stake, 240) — cap is 240, not "24×"
+  // GARCH(1,1) canonical parameters — σ_{t+1}=CLAMP(√(ω+α·ε²+β·σ²), 0.09, 0.68)
+  GARCH_OMEGA: 0.0001, // base noise weight
+  GARCH_ALPHA: 0.05, // reaction coefficient
+  GARCH_BETA: 0.90, // persistence coefficient
+  GARCH_AMP_COEFF: 0.8, // amp = 1 + 0.8σ ≤ 1.544
+  SIGMA_MIN: 0.09,
+  SIGMA_MAX: 0.68,
   // ── Card economy constants (source: MADHATs_Gambit_Card_Game_Logic_Code_Reference.docx April 2026) ──
   CARD_PACK_COST: 4.88, // MADx per pack
   CARD_PACK_SIZE: 5, // cards per pack
@@ -316,7 +327,10 @@ export function calculateDLLMSRPrice(qI: number, shares: number[], b: number): n
 /* ====================================================================
  * 4. GARCH(1,1) VOLATILITY  (MAD Shield risk metric)
  *    σ²_{t+1} = ω + α·ε²_t + β·σ²_t
- *    Source: MATH_REPORT §3
+ *    Canon (17-corrections): ω=0.0001 · α=0.05 · β=0.90 · the engine
+ *    STORES σ, not σ² — σ_{t+1} = CLAMP(√(ω+α·ε²+β·σ²), 0.09, 0.68)
+ *    and amplification = 1 + 0.8·σ (≤ 1.544).
+ *    Source: MATH_REPORT §3 · Maths Engine Room (canonical)
  * ==================================================================== */
 export function garchUpdate(
   omega: number,
@@ -325,13 +339,29 @@ export function garchUpdate(
   prevVariance: number,
   prevShock: number
 ): number {
-  const o = Number.isFinite(omega) ? omega : 0.01;
-  const a = Number.isFinite(alpha) ? alpha : 0.1;
-  const b = Number.isFinite(beta) ? beta : 0.8;
+  const o = Number.isFinite(omega) ? omega : PLATFORM.GARCH_OMEGA;
+  const a = Number.isFinite(alpha) ? alpha : PLATFORM.GARCH_ALPHA;
+  const b = Number.isFinite(beta) ? beta : PLATFORM.GARCH_BETA;
   const pv = Number.isFinite(prevVariance) ? prevVariance : 0.02;
   const ps = Number.isFinite(prevShock) ? prevShock : 0.0;
   const result = o + a * Math.pow(ps, 2) + b * pv;
   return Number.isFinite(result) ? result : 0.02;
+}
+
+/** Canonical GARCH tick — takes/returns σ (not σ²), clamped to [0.09, 0.68].
+ *  σ_{t+1} = CLAMP(√(ω + α·ε²_t + β·σ²_t), SIGMA_MIN, SIGMA_MAX) */
+export function garchSigma(prevSigma: number, prevShock: number): number {
+  const variance = garchUpdate(
+    PLATFORM.GARCH_OMEGA, PLATFORM.GARCH_ALPHA, PLATFORM.GARCH_BETA,
+    Math.pow(Math.max(prevSigma, 0), 2), prevShock,
+  );
+  return Math.min(PLATFORM.SIGMA_MAX, Math.max(PLATFORM.SIGMA_MIN, Math.sqrt(variance)));
+}
+
+/** Volatility amplification: 1 + 0.8·σ — capped at 1.544 by the σ clamp. */
+export function garchAmplification(sigma: number): number {
+  const s = Math.min(PLATFORM.SIGMA_MAX, Math.max(0, sigma));
+  return 1 + PLATFORM.GARCH_AMP_COEFF * s;
 }
 
 /* ====================================================================
@@ -364,22 +394,33 @@ export interface FeeSplit {
   communityCut: number;
   protocolCut: number;
 }
-export function splitFee(volume: number, isCreatorMarket: boolean): FeeSplit {
+/** Split the 1.88% fee. `creatorShareBps` is the creator's CREATOR_LADDER rung
+ *  (2880 User / 4000 MinorCreator / 6000 CR8TR) and applies ONLY on that
+ *  creator's own market — pass 0 for platform-made markets. */
+export function splitFee(volume: number, creatorShareBps: number = 0): FeeSplit {
   const grossFee = volume * bpsToPct(PLATFORM.FEE_BPS);
-  const creatorCut = isCreatorMarket ? grossFee * bpsToPct(PLATFORM.CREATOR_SHARE_BPS) : 0;
+  const safeBps = Math.min(6000, Math.max(0, creatorShareBps));
+  const creatorCut = grossFee * bpsToPct(safeBps);
   const communityCut = grossFee * bpsToPct(PLATFORM.COMMUNITY_SHARE_BPS);
   const protocolCut = grossFee - creatorCut - communityCut;
   return { grossFee, creatorCut, communityCut, protocolCut };
 }
 
 /* ====================================================================
- * 7. TEABAG / MAD SHIELD — premium + recovery
- *    Premium Φ = Stake · P_win · sqrt(σ²_{t+1}) · 1.05
- *    Recovery = 28.8% of loss (40% base / 60% VIP per system state)
- *    Source: README §4 (teaBag), MATH_AND_FORMULAS_REFERENCE §3
+ * 7. MAD SHIELD — opt-in fee + recovery (loss mitigation, opt-in only)
+ *    Opt-in fee Φ = Stake · P_win · σ · 0.35, where σ = √(σ²_{t+1}),
+ *    clamped to [2%, 4%] of stake (17-corrections #4/#5 — was ·1.05,
+ *    unclamped). Recovery = staking-tier cap (28.8%→40%, VIP 60%).
+ *    Source: Maths Engine Room (canonical) · MATH_AND_FORMULAS_REFERENCE §3
  * ==================================================================== */
 export function shieldPremium(stake: number, pWin: number, nextVariance: number): number {
-  return stake * pWin * Math.sqrt(Math.max(nextVariance, 0)) * 1.05;
+  const safeStake = Number.isFinite(stake) && stake > 0 ? stake : 0;
+  const sigma = Math.sqrt(Math.max(nextVariance, 0));
+  const raw = safeStake * pWin * sigma * PLATFORM.SHIELD_SAFETY_MARGIN;
+  return Math.min(
+    safeStake * PLATFORM.SHIELD_PREMIUM_MAX,
+    Math.max(safeStake * PLATFORM.SHIELD_PREMIUM_MIN, raw),
+  );
 }
 export function shieldRecovery(loss: number, vip = false): number {
   // Canonical pool recovery 28.8%; loss-recovery tier 40% base / 60% VIP.
@@ -393,6 +434,8 @@ export function shieldRecovery(loss: number, vip = false): number {
  *    Source: MATH_AND_FORMULAS_REFERENCE §4
  * ==================================================================== */
 export const VRS_TRIGGERS = [5, 8, 13, 21, 34] as const;
+/** Fibonacci in → Fibonacci out: reward magnitude at each trigger (17-corrections). */
+export const VRS_REWARDS: Record<number, number> = { 5: 8, 8: 13, 13: 21, 21: 34, 34: 55 };
 export const LOSS_AVERSION = 2.5;
 
 /** True when the current action count lands on a Fibonacci reward node. */
@@ -726,13 +769,21 @@ export function quadraticMatch(contributions: number[]): number {
   return sqrtSum * sqrtSum - linearSum;
 }
 
+/** Governance voting power = min(√stake, 240) — the cap is 240, not "24×"
+ *  (17-corrections). Whale-resistance via square root, hard-capped. */
+export function votingPower(stake: number): number {
+  const safe = Number.isFinite(stake) && stake > 0 ? stake : 0;
+  return Math.min(PLATFORM.VOTE_POWER_CAP, Math.sqrt(safe));
+}
+
 /* ====================================================================
  * 15. Z-LIAR METER — composite narrative-credibility instrument
  *     Combines BS Index (Sentinel) with GARCH volatility + lunar tilt.
  *     Output 0..100 "Z-Liar score" + verdict band.
  *     Derived from: Sentinel BS Index, README "Liar Meter", lunar L_θ
  * ==================================================================== */
-export type ZLiarVerdict = 'STRAIGHT SHOOTER' | 'SPIN ZONE' | 'SUS' | 'CAP DETECTED' | 'TOTAL FABRICATION';
+// Canonical band names (17-corrections #1) — UI labels, DB comments, everywhere.
+export type ZLiarVerdict = 'STRAIGHT SHOOTER' | 'MOSTLY CANDID' | 'SLIPPERY' | 'SERIAL EMBELLISHER' | 'TOTAL FABRICATION';
 export interface ZLiarReading {
   score: number; // 0..100
   verdict: ZLiarVerdict;
@@ -749,15 +800,18 @@ export function zLiarMeter(params: {
   nowMs?: number;
 }): ZLiarReading {
   const bs = bsIndex(params.narrativeVariance, params.sourceCredibility, params.corroboration);
-  const variance = garchUpdate(0.01, 0.1, 0.8, params.prevVariance ?? 0.02, params.prevShock ?? 0);
+  const variance = garchUpdate(
+    PLATFORM.GARCH_OMEGA, PLATFORM.GARCH_ALPHA, PLATFORM.GARCH_BETA,
+    params.prevVariance ?? 0.02, params.prevShock ?? 0,
+  );
   const volPenalty = Math.min(20, Math.sqrt(variance) * 100); // volatility inflates doubt
   const lunarTilt = (getLunarPhaseMultiplier(params.nowMs) - 1.0) * 100; // 0..15 lunacy bump
   const score = Math.min(100, Math.max(0, bs + volPenalty + lunarTilt * 0.5));
   let verdict: ZLiarVerdict = 'STRAIGHT SHOOTER';
   if (score >= 80) verdict = 'TOTAL FABRICATION';
-  else if (score >= 60) verdict = 'CAP DETECTED';
-  else if (score >= 40) verdict = 'SUS';
-  else if (score >= 20) verdict = 'SPIN ZONE';
+  else if (score >= 60) verdict = 'SERIAL EMBELLISHER';
+  else if (score >= 40) verdict = 'SLIPPERY';
+  else if (score >= 20) verdict = 'MOSTLY CANDID';
   return { score, verdict, bs, volatility: variance, lunarTilt };
 }
 

@@ -17,11 +17,13 @@ import { ShieldAlert, Search, Activity, Moon } from "lucide-react";
 import AnalogDial from "@/components/analog-dial";
 import SentimentEqualizer from "@/components/sentiment-equalizer";
 
+// Canonical band names (17-corrections #1): STRAIGHT SHOOTER → MOSTLY CANDID
+// → SLIPPERY → SERIAL EMBELLISHER → TOTAL FABRICATION.
 const VERDICT_COLOR: Record<ZLiarVerdict, string> = {
   "STRAIGHT SHOOTER": "#7cffc7",
-  "SPIN ZONE": "#fbbf24",
-  "SUS": "#f59e0b",
-  "CAP DETECTED": "#f43f5e",
+  "MOSTLY CANDID": "#fbbf24",
+  "SLIPPERY": "#f59e0b",
+  "SERIAL EMBELLISHER": "#f43f5e",
   "TOTAL FABRICATION": "#ff00f0",
 };
 
@@ -29,10 +31,10 @@ const VERDICT_COLOR: Record<ZLiarVerdict, string> = {
 // Tri-Agent (Agent A: Sentinel) with the AGENTS.md system instruction.
 const QUIPS: Record<ZLiarVerdict, string> = {
   "STRAIGHT SHOOTER": "Ayo, this one's legit, kid. Cleaner than my Sunday fedora.",
-  "SPIN ZONE": "Eh, a little spin on it — like meatballs, rolled just enough.",
-  "SUS": "Somethin' smells off, and it ain't the cannolis. Watch ya wallet.",
-  "CAP DETECTED": "Cap. Big cap. This guy's lyin' like a politician on a Tuesday.",
-  "TOTAL FABRICATION": "Fuhgeddaboudit. Total fabrication. Pure woketurd fan-fiction.",
+  "MOSTLY CANDID": "Mostly candid — a little spin, like meatballs, rolled just enough.",
+  "SLIPPERY": "Slippery. Somethin' smells off, and it ain't the cannolis. Watch ya wallet.",
+  "SERIAL EMBELLISHER": "A serial embellisher — every retelling gains a zero and loses a witness.",
+  "TOTAL FABRICATION": "Fuhgeddaboudit. Total fabrication. Pure fan-fiction.",
 };
 
 export default function ZLiarMeter() {

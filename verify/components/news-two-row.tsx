@@ -199,7 +199,18 @@ export default function NewsTwoRow() {
       {cards === null ? (
         <div style={{ fontSize: 9, color: skin.muted, padding: "18px 2px" }}>Loading the scandal wire…</div>
       ) : list.length === 0 ? (
-        <div style={{ fontSize: 9, color: skin.muted, padding: "18px 2px" }}>No headlines in {active ? LABEL[active] : "this feed"} yet.</div>
+        <div style={{ fontSize: 9, color: skin.muted, padding: "18px 2px", display: "flex", alignItems: "center", gap: 8 }}>
+          <span>No headlines in {active ? LABEL[active] : "this feed"} yet.</span>
+          {/* §5 matrix: the empty-category state resolves to the markets-all node
+              (event-dispatched so this component stays provider-agnostic). */}
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("mg:open-node", { detail: "markets-all" }))}
+            style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: skin.gold, background: `${skin.gold}18`, border: `1px solid ${skin.gold}55`, borderRadius: 7, padding: "3px 8px", cursor: "pointer", fontFamily: INSTRUMENT_FONT }}
+          >
+            Browse markets →
+          </button>
+        </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <MarqueeRow cards={rowA.length ? rowA : list} dir="l" />
