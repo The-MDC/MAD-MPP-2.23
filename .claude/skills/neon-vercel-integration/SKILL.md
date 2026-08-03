@@ -61,7 +61,28 @@ Use when the team already has a Neon account/project and wants to keep Neon as t
 
 **Known failure mode (hit in this repo, Aug 2026):** `NEON_API_KEY` returning 401 blocks the `create_neon_branch` job for every open PR. Fix: rotate the key at console.neon.tech → Account → API keys → update the `NEON_API_KEY` repo secret. Both `create_neon_branch` and `delete_neon_branch` jobs should carry `continue-on-error: true` so an expired key degrades to "no preview DB branch this PR" instead of red-flagging an otherwise-mergeable PR — that fix already shipped here (`ci(fix): Neon PR-branch jobs are non-blocking`).
 
-**Migrations-as-code retrofit** (the N3 story in `docs/TACTICAL_PLAN_REMAINING.md`): add a step after `create_neon_branch` that runs `psql "$DATABASE_URL" -f db/migrations/*.sql` (numbered, idempotent, `IF NOT EXISTS` everywhere) against the fresh branch, and the same against `main`'s branch on merge-to-main. This retires "paste SQL into the Neon console" as a workflow step, matching what Path A gets for free via its build-command override.
+**Migrations-as-code — already shipped here.** `neon-pr-branch.yml` runs `npm run migrate` (→ `verify/scripts/migrate.mjs`) and then `npm run db:smoke` against the freshly-created branch. The runner applies every `verify/sql/*.sql` in sorted order, each in its own transaction, tracked in a `_migrations` table so re-runs are no-ops. "Paste SQL into the Neon console" is already retired — do not re-plan it.
+
+## Runbook — deployment failure caused by Neon credentials
+
+Symptom: `Create Neon Branch` fails (typically 401), or a deployed route falls back to demo data because it can't reach Postgres. Work these in order; **never paste a key into chat, a commit, a PR body, or an issue.**
+
+**1 · Rotate the key at Neon.** [console.neon.tech](https://console.neon.tech) → Account settings → **API keys** → create a new key (and revoke the old one once step 4 is green). Copy it straight into step 2 — it is shown once.
+
+**2 · Update the GitHub Actions credentials.** Repo → Settings → Secrets and variables → Actions.
+
+| Name | Where it goes | Why |
+|---|---|---|
+| `NEON_API_KEY` | **Secret** tab | Read as `secrets.NEON_API_KEY` by both jobs |
+| `NEON_PROJECT_ID` | **Variables** tab | Read as `vars.NEON_PROJECT_ID` |
+
+⚠️ **`NEON_PROJECT_ID` must be a repository _variable_, not a secret, in this repo.** Both jobs are gated on `if: ... && vars.NEON_PROJECT_ID != ''`. Put it in Secrets only and `vars.NEON_PROJECT_ID` evaluates empty, so the jobs **silently skip** — the PR goes green with no Neon branch, no migrations, and no smoke test. That reads as "fixed" and isn't. Neon's own guide says "variable or secret" generically; here it is specifically a variable.
+
+**3 · Vercel runtime stays on canonical `DATABASE_URL`.** [Project → Settings → Environment Variables](https://vercel.com/madgambit/mad-mpp-2.23/settings/environment-variables). `verify/lib/db.ts` reads `process.env.DATABASE_URL` and nothing else — no `POSTGRES_*` aliases, no `DATABASE_URL_UNPOOLED` fallback. It also auto-enforces TLS (`rejectUnauthorized: true`) when the string carries no `sslmode=`, so a Neon URL works with or without the parameter. This variable is what the *deployed backend* reads; the Actions secrets in step 2 only affect *preview-branch provisioning*. They are independent failure domains — fixing one does not fix the other.
+
+**4 · Verify before revoking the old key.** Reopen any PR (or open a throwaway one) and confirm `Create Neon Branch` goes green *and* that its `Apply migrations` + `Live DB smoke` steps ran. A skipped job is not a pass — check the job actually executed. Both jobs carry `continue-on-error: true`, so a still-broken key shows as a green PR with a failed job inside it. Only then revoke the old Neon key.
+
+> Note: steps 1–3 are all dashboard actions on external services. They cannot be performed from a Claude Code session — repository settings writes, including Actions secrets, are refused by the agent proxy (`403 Repository settings writes are not permitted through this proxy`).
 
 ## Choosing between them (decision framing, not a mandate)
 
