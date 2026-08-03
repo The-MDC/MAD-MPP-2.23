@@ -75,6 +75,7 @@ export default function ZLiarMeter() {
             label="Z-LIAR SCORE"
             unit="ZL"
             subLabel={reading.verdict}
+            accentColor={color}
             dialId="zliar"
           />
         </div>

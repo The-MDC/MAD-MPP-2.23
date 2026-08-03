@@ -6,7 +6,7 @@
  * Used by: Z-Liar Meter (verdict spectrum), Workbench retention dial (cognition gradient)
  */
 
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 
 export interface DialGradientStop {
   offset: string;
@@ -19,6 +19,9 @@ export interface AnalogDialProps {
   label?: string;
   unit?: string;
   subLabel?: string;
+  /** Hub ring, LCD glow, unit + subLabel color. Pass the live verdict color
+   *  to make the whole instrument shift with the reading. */
+  accentColor?: string;
   /** Must be unique per page — used to namespace SVG gradient/filter IDs */
   dialId?: string;
   className?: string;
@@ -47,6 +50,7 @@ export default function AnalogDial({
   label = "Score",
   unit = "ZL",
   subLabel = "",
+  accentColor = "#f43f5e",
   dialId = "ad",
   className = "",
 }: AnalogDialProps) {
@@ -72,7 +76,7 @@ export default function AnalogDial({
   const p = dialId; // short prefix for SVG IDs
 
   return (
-    <div className={`relative inline-block ${className}`}>
+    <div className={`relative w-full ${className}`}>
       <svg viewBox="0 0 280 168" className="block w-full">
         <defs>
           {/* verdict / cognition arc gradient */}
@@ -162,18 +166,22 @@ export default function AnalogDial({
         </g>
 
         {/* ── hub cap ── */}
-        <circle cx={CX} cy={CY} r="14" fill={`url(#${p}-hub)`} stroke="#f43f5e" strokeWidth="1.5" />
+        <circle cx={CX} cy={CY} r="14" fill={`url(#${p}-hub)`} stroke={accentColor} strokeWidth="1.5" />
         <circle cx={CX} cy={CY} r="14" fill="none" stroke="rgba(255,255,255,.12)" strokeWidth="1" />
         <circle cx={CX - 4} cy={CY - 4} r="3"   fill="rgba(255,255,255,.28)" />
       </svg>
 
-      {/* ── LCD readout panel ── */}
+      {/* ── LCD readout panel ──
+          Pulled up into the dial well with a *percentage* margin so it tracks
+          the dial at any width (% margins resolve against container width;
+          the SVG is 280×168, so the hub sits 10% of the width above the
+          bottom edge — 11% seats the LCD's top edge just over the hub). */}
       <div
-        className="absolute bottom-1.5 left-1/2 -translate-x-1/2 text-center px-5 py-2.5 rounded-[14px] whitespace-nowrap pointer-events-none"
+        className="mx-auto w-fit -mt-[11%] relative text-center px-5 py-2.5 rounded-[14px] whitespace-nowrap pointer-events-none"
         style={{
           background: "linear-gradient(180deg,rgba(0,0,0,.9),rgba(8,10,16,.9))",
           border: "1px solid rgba(120,130,160,.14)",
-          boxShadow: "inset 0 2px 10px rgba(0,0,0,.8), 0 0 24px rgba(244,63,94,.14)",
+          boxShadow: `inset 0 2px 10px rgba(0,0,0,.8), 0 0 24px ${accentColor}24`,
         }}
       >
         <div className="font-mono text-[7px] uppercase tracking-[0.28em] text-[#5a6070]">
@@ -181,13 +189,16 @@ export default function AnalogDial({
         </div>
         <div
           className="font-mono text-[26px] font-black text-white leading-none mt-0.5"
-          style={{ textShadow: "0 0 18px rgba(244,63,94,.55)" }}
+          style={{ textShadow: `0 0 18px ${accentColor}8c` }}
         >
           {Math.round(v)}{" "}
-          <span className="text-[11px] text-[#ff5d76]">{unit}</span>
+          <span className="text-[11px]" style={{ color: accentColor }}>{unit}</span>
         </div>
         {subLabel && (
-          <div className="font-mono text-[7px] uppercase tracking-[0.2em] text-[#ff5d76] mt-0.5">
+          <div
+            className="font-mono text-[7px] uppercase tracking-[0.2em] mt-0.5"
+            style={{ color: accentColor }}
+          >
             {subLabel}
           </div>
         )}

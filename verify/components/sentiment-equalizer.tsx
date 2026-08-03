@@ -46,7 +46,12 @@ export default function SentimentEqualizer({
   const lastRef = useRef(0);
   const frameMs = 1000 / FPS;
 
+  // Only self-animate when no external feed is driving the bars — otherwise
+  // the loop would re-render 24×/sec for values it never uses.
+  const selfDriven = !externalBars;
+
   useEffect(() => {
+    if (!selfDriven) return;
     function loop(ts: number) {
       if (ts - lastRef.current >= frameMs) {
         setTick((t) => t + 1);
@@ -56,11 +61,11 @@ export default function SentimentEqualizer({
     }
     rafRef.current = requestAnimationFrame(loop);
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, [frameMs]);
+  }, [frameMs, selfDriven]);
 
   const bars = Array.from({ length: BAR_COUNT }, (_, i) => {
-    if (externalBars) return Math.max(5, Math.min(100, externalBars[i] ?? 50));
-    return barHeight(i, tick) * amplitude;
+    const raw = externalBars ? (externalBars[i] ?? 50) : barHeight(i, tick) * amplitude;
+    return Math.max(5, Math.min(100, raw)); // clamp *after* scaling
   });
 
   return (
