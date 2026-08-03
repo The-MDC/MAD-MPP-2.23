@@ -14,6 +14,8 @@ import React, { useMemo, useState } from "react";
 import { useGame } from "@/context/game-context";
 import { ZLiarVerdict } from "@/lib/gambit-game-math";
 import { ShieldAlert, Search, Activity, Moon } from "lucide-react";
+import AnalogDial from "@/components/analog-dial";
+import SentimentEqualizer from "@/components/sentiment-equalizer";
 
 const VERDICT_COLOR: Record<ZLiarVerdict, string> = {
   "STRAIGHT SHOOTER": "#7cffc7",
@@ -45,8 +47,6 @@ export default function ZLiarMeter() {
     [variance, credibility, corroboration]
   );
 
-  // needle: 0..100 → -120°..+120°
-  const angle = -120 + (reading.score / 100) * 240;
   const color = VERDICT_COLOR[reading.verdict];
 
   return (
@@ -67,40 +67,17 @@ export default function ZLiarMeter() {
         </span>
       </header>
 
-      <div className="relative grid md:grid-cols-[320px_1fr] gap-8 items-center">
-        {/* gauge */}
-        <div className="mx-auto">
-          <svg viewBox="0 0 280 200" className="w-[280px] max-w-full">
-            <defs>
-              <linearGradient id="zl-arc" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#7cffc7" /><stop offset="40%" stopColor="#fbbf24" />
-                <stop offset="70%" stopColor="#f43f5e" /><stop offset="100%" stopColor="#ff00f0" />
-              </linearGradient>
-              <filter id="zl-glow" x="-40%" y="-40%" width="180%" height="180%">
-                <feGaussianBlur stdDeviation="4" /><feComponentTransfer><feFuncA type="linear" slope="1.4" /></feComponentTransfer>
-              </filter>
-            </defs>
-            {/* arc track */}
-            <path d="M 30 170 A 110 110 0 0 1 250 170" fill="none" stroke="#11151c" strokeWidth="18" strokeLinecap="round" />
-            <path d="M 30 170 A 110 110 0 0 1 250 170" fill="none" stroke="url(#zl-arc)" strokeWidth="6" strokeLinecap="round" opacity="0.85" />
-            {/* ticks */}
-            {Array.from({ length: 11 }).map((_, i) => {
-              const a = (-120 + (i / 10) * 240) * (Math.PI / 180);
-              const x1 = 140 + Math.cos(a - Math.PI / 2) * 92;
-              const y1 = 170 + Math.sin(a - Math.PI / 2) * 92;
-              const x2 = 140 + Math.cos(a - Math.PI / 2) * 100;
-              const y2 = 170 + Math.sin(a - Math.PI / 2) * 100;
-              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#334155" strokeWidth="1.5" />;
-            })}
-            {/* needle */}
-            <g transform={`rotate(${angle} 140 170)`} style={{ transition: "transform 0.6s cubic-bezier(0.16,1,0.3,1)" }}>
-              <line x1="140" y1="170" x2="140" y2="78" stroke={color} strokeWidth="3.5" strokeLinecap="round" filter="url(#zl-glow)" />
-              <circle cx="140" cy="170" r="9" fill="#05070c" stroke={color} strokeWidth="2.5" />
-            </g>
-            {/* score readout */}
-            <text x="140" y="150" textAnchor="middle" fontFamily="ui-monospace,monospace" fontSize="34" fontWeight="900" fill={color}>{Math.round(reading.score)}</text>
-            <text x="140" y="166" textAnchor="middle" fontFamily="ui-monospace,monospace" fontSize="8" letterSpacing="2" fill="#64748b">Z-LIAR SCORE</text>
-          </svg>
+      <div className="relative grid md:grid-cols-[340px_1fr] gap-8 items-center">
+        {/* ultra-fidelity gauge — glass bezel · glow arc · 21-tick ring · precision needle · LCD */}
+        <div className="mx-auto w-[340px] max-w-full">
+          <AnalogDial
+            value={reading.score}
+            label="Z-LIAR SCORE"
+            unit="ZL"
+            subLabel={reading.verdict}
+            accentColor={color}
+            dialId="zliar"
+          />
         </div>
 
         {/* analysis + controls */}
@@ -125,6 +102,9 @@ export default function ZLiarMeter() {
             <Metric icon={<Activity className="w-3.5 h-3.5" />} label="GARCH σ²" value={reading.volatility.toFixed(3)} color="#58a6ff" />
             <Metric icon={<Moon className="w-3.5 h-3.5" />} label="Lunar Tilt" value={`+${reading.lunarTilt.toFixed(1)}`} color="#c98aff" />
           </div>
+
+          {/* live sentiment equalizer */}
+          <SentimentEqualizer amplitude={reading.score / 100} />
 
           {/* knobs */}
           <div className="space-y-2.5 pt-1">
