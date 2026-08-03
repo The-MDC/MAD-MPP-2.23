@@ -29,7 +29,10 @@ export const FEED_SOURCES: FeedSource[] = [
   { id: "coindesk",     name: "Crypto News (CoinDesk)", url: "https://www.coindesk.com/arc/outboundfeeds/rss/", category: "crypto", trust_score: 8, satire_flag: false, virality_weight: 1.2 },
   { id: "cointelegraph",name: "Crypto News (Cointelegraph)", url: "https://cointelegraph.com/rss", category: "crypto", trust_score: 8, satire_flag: false, virality_weight: 1.2 },
   { id: "theonion",     name: "The Onion", url: "https://www.theonion.com/rss", category: "satire", trust_score: 1, satire_flag: true, virality_weight: 3.0 },
-  { id: "babylonbee",   name: "The Potato (Babylon Bee)", url: "https://babylonbee.com/feed", category: "satire", trust_score: 1, satire_flag: true, virality_weight: 3.0 },
+  { id: "babylonbee",   name: "Babylon Bee", url: "https://babylonbee.com/feed", category: "satire", trust_score: 1, satire_flag: true, virality_weight: 3.0 },
+  { id: "cryptopotato", name: "CryptoPotato", url: "https://cryptopotato.com/feed/", category: "crypto", trust_score: 6, satire_flag: false, virality_weight: 1.6 },
+  { id: "ew",           name: "Entertainment Weekly", url: "https://ew.com/feed/", category: "entertainment", trust_score: 7, satire_flag: false, virality_weight: 1.7 },
+  { id: "si",           name: "Sports Illustrated", url: "https://www.si.com/rss/si_topstories.rss", category: "news", trust_score: 8, satire_flag: false, virality_weight: 1.5 },
   { id: "redditviral",  name: "Social Viral Media (Reddit)", url: "https://www.reddit.com/r/ViralNews/.rss", category: "viral", trust_score: 5, satire_flag: false, virality_weight: 2.5 },
   // Top-source expansion across the 4 display buckets (Entertainment · Celebrity · Crypto · Political).
   { id: "variety",      name: "Variety", url: "https://variety.com/feed/", category: "entertainment", trust_score: 7, satire_flag: false, virality_weight: 1.6 },
@@ -55,21 +58,47 @@ export interface FeedItem {
   title: string;
   link: string;
   published: string;
+  /** Best single image (back-compat — equals images[0] when present). */
   image?: string;
+  /** Up to 2 candidate images from the feed item itself, best-first. The
+   *  satire engine tops these up from the article page when the feed is thin. */
+  images: string[];
   trust_score: number;
   satire_flag: boolean;
   virality_weight: number;
 }
 
-/** Best-effort image URL from an RSS/Atom item (media:*, enclosure, or inline img). */
-function extractImage(block: string): string | undefined {
-  const media = block.match(/<media:(?:content|thumbnail)[^>]*url=["']([^"']+)["']/i);
-  if (media) return media[1];
-  const enc = block.match(/<enclosure[^>]*url=["']([^"']+)["'][^>]*type=["']image/i);
-  if (enc) return enc[1];
-  const img = block.match(/<img[^>]*src=["']([^"']+)["']/i);
-  if (img) return img[1];
-  return undefined;
+/** Junk-image heuristics — tracking pixels, sprites, logos, share icons. */
+const IMAGE_DENY = /(?:sprite|logo|avatar|icon|favicon|pixel|1x1|blank|spacer|placeholder|advert)/i;
+
+/**
+ * Up to `max` image URLs from an RSS/Atom item, best-first:
+ * media:content/thumbnail → enclosure → inline <img> in content:encoded.
+ * Deduped and junk-filtered. Feeds vary wildly, so all three are scanned
+ * rather than returning on the first hit.
+ */
+function extractImages(block: string, max = 2): string[] {
+  const out: string[] = [];
+  const seen: Record<string, boolean> = {};
+  const push = (u: string | undefined) => {
+    if (!u || out.length >= max) return;
+    const url = u.trim();
+    if (!url || seen[url] || IMAGE_DENY.test(url)) return;
+    seen[url] = true;
+    out.push(url);
+  };
+
+  const mediaRe = /<media:(?:content|thumbnail)[^>]*url=["']([^"']+)["']/gi;
+  let m: RegExpExecArray | null;
+  while ((m = mediaRe.exec(block)) !== null && out.length < max) push(m[1]);
+
+  const encRe = /<enclosure[^>]*url=["']([^"']+)["'][^>]*type=["']image/gi;
+  while ((m = encRe.exec(block)) !== null && out.length < max) push(m[1]);
+
+  const imgRe = /<img[^>]*src=["']([^"']+)["']/gi;
+  while ((m = imgRe.exec(block)) !== null && out.length < max) push(m[1]);
+
+  return out;
 }
 
 // Minimal, dependency-free RSS/Atom extraction (titles + links + dates).
@@ -86,6 +115,7 @@ function extractItems(xml: string, source: FeedSource): FeedItem[] {
     const published =
       matchTag(block, "pubDate") || matchTag(block, "published") || matchTag(block, "updated") || "";
     if (title) {
+      const images = extractImages(block, 2);
       items.push({
         source: source.name,
         sourceId: source.id,
@@ -93,7 +123,8 @@ function extractItems(xml: string, source: FeedSource): FeedItem[] {
         title: title.trim(),
         link: (link || "").trim(),
         published: published.trim(),
-        image: extractImage(block),
+        image: images[0],
+        images,
         trust_score: source.trust_score,
         satire_flag: source.satire_flag,
         virality_weight: source.virality_weight,
