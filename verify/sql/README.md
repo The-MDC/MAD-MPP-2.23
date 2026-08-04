@@ -16,3 +16,4 @@ the build or the demo.
 | File | Adds |
 |---|---|
 | `0001_data_platform.sql` | `events_stream`, `cdp_profiles`, `agg_platform_hourly`, `agg_user_daily` (V1 Data Platform) |
+| `0010_customer_auth_profiles.sql` | `siwe_nonces`, `customer_accounts`, `customer_login_events`, `customer_profile_audit` (SIWE auth + customer profile backbone) |

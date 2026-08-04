@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifySiwe, EXPECTED_CHAIN_ID } from "@/lib/siwe-verify";
 import { createSession, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/session";
 import { enforceRateLimit } from "@/lib/rate-limit";
+import { recordSuccessfulLogin } from "@/lib/customer-store";
 
 export async function POST(req: NextRequest) {
   const limited = enforceRateLimit(req, "auth-verify", 10, 60_000); // 10/min/IP
@@ -26,6 +27,10 @@ export async function POST(req: NextRequest) {
       warning: "SESSION_SECRET not set — signed session cookie not issued",
     });
   }
+
+  await recordSuccessfulLogin(result.address!, EXPECTED_CHAIN_ID, req).catch((error) => {
+    console.error("customer login audit failed:", error);
+  });
 
   const res = NextResponse.json({ ok: true, address: result.address, session: true });
   res.cookies.set(SESSION_COOKIE, token, {
