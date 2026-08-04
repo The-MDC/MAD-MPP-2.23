@@ -117,7 +117,12 @@ Two behaviours worth knowing:
 - **API key ≠ connection string.** The MCP server and the CI branch action need the
   **API key**; the app needs the **connection string**. Conflating them is the most
   common failure. Vercel's Neon integration syncs the connection string and never the
-  API key — which is why a CI 401 cannot be fixed from the Vercel dashboard.
+  API key — so no amount of Vercel dashboard work fixes a bad key.
+- **Read the status code before blaming the key.** `401` = the key is bad or revoked.
+  `422` = the key authenticated fine and Neon rejected the request (as of Aug 2026 in
+  this repo, that's the orphaned-preview-branch quota wall, not a credential problem —
+  see `neon-vercel-integration`). `404` = wrong project ID. Rotating a key on a 422 is
+  wasted work, and the same triage applies to MCP calls that fail.
 - **MCP servers attach at session start.** Adding one mid-session does not load its
   tools; restart.
 - **All Neon hosts are blocked from this sandbox** (403 CONNECT). Hand console and API
