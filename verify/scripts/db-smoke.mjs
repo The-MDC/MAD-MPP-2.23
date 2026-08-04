@@ -142,6 +142,47 @@ async function main() {
       "madx_supply singleton present",
     );
 
+    // SIWE nonce store. This is the table whose migration was missing, which
+    // broke sign-in on every preview branch — cover it so that can't recur
+    // silently. Exercises the real single-use contract, not just a write:
+    // consumeNonce()'s DELETE ... RETURNING must match exactly once.
+    await client.query(`INSERT INTO siwe_nonces (nonce) VALUES ('smoke_nonce')`);
+    assert(
+      (await client.query(
+        `DELETE FROM siwe_nonces WHERE nonce='smoke_nonce'
+           AND issued_at > now() - interval '5 minutes' RETURNING nonce`,
+      )).rowCount === 1,
+      "siwe_nonces issue + single-use consume",
+    );
+    assert(
+      (await client.query(
+        `DELETE FROM siwe_nonces WHERE nonce='smoke_nonce' RETURNING nonce`,
+      )).rowCount === 0,
+      "siwe_nonces second consume is a no-op (replay protection)",
+    );
+
+    await client.query(
+      `INSERT INTO user_profiles (wallet_address, display_name, email) VALUES ($1, 'smoke player', 'smoke@example.test')`,
+      [ZERO],
+    );
+    assert(
+      (await client.query(`SELECT count(*)::int AS n FROM user_profiles WHERE wallet_address=$1`, [ZERO])).rows[0].n === 1,
+      "user_profiles write+read",
+    );
+    // Case-insensitive uniqueness must actually bite — a differently-cased
+    // duplicate email is how you'd otherwise squat another player's address.
+    let dupeRejected = false;
+    await client.query("SAVEPOINT sp_dupe");
+    try {
+      await client.query(
+        `INSERT INTO user_profiles (wallet_address, email) VALUES ('0x00000000000000000000000000000000000000ff', 'SMOKE@EXAMPLE.TEST')`,
+      );
+    } catch {
+      dupeRejected = true;
+      await client.query("ROLLBACK TO SAVEPOINT sp_dupe");
+    }
+    assert(dupeRejected, "user_profiles rejects case-variant duplicate email");
+
     console.log("✅ DB smoke passed — live read/write verified across all core tables");
   } catch (err) {
     console.error(`❌ smoke failed: ${err.message}`);
