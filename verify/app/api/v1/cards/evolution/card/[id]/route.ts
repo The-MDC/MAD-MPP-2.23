@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { getCardStats, evolve } from "@/lib/card-evolution";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 /**
  * GET /api/v1/cards/evolution/card/<id>?madconv= — a card's stats plus a live
@@ -11,7 +12,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const { id } = await params;
   const madconv = Math.max(0, Number(new URL(req.url).searchParams.get("madconv")) || 0);
 
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: true, card: null, preview: null, source: "demo" });
   }
 

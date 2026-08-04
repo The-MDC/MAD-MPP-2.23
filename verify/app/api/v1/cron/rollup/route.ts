@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 /**
  * Rollup cron — folds events_stream into the analytics aggregates
@@ -11,7 +12,7 @@ async function run(req: Request) {
   if (secret && req.headers.get("authorization") !== `Bearer ${secret}`) {
     return NextResponse.json({ success: false, error: "unauthorized" }, { status: 401 });
   }
-  if (!process.env.DATABASE_URL)
+  if (!hasDatabaseUrl())
     return NextResponse.json({ success: false, error: "DATABASE_URL not set" }, { status: 503 });
 
   try {

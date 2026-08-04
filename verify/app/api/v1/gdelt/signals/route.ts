@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 /**
  * GET /api/v1/gdelt/signals — recent scored GDELT scandal signals (Part S),
@@ -11,7 +12,7 @@ export async function GET(req: Request) {
   const min = Math.max(0, Math.min(1, Number(params.get("min")) || 0));
   const limit = Math.max(1, Math.min(100, Math.floor(Number(params.get("limit")) || 25)));
 
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: true, signals: [], source: "demo" });
   }
 

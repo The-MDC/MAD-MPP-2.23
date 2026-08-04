@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { momentumIndex } from "@/lib/joy-engineering";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 interface DopamineMetrics {
   activeMarkets: number;
@@ -31,7 +32,7 @@ const DEMO: DopamineMetrics = {
  * Degrades to a zeroed "demo" object so the carousel always renders.
  */
 export async function GET() {
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: true, metrics: DEMO });
   }
   try {

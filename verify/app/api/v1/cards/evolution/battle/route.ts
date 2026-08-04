@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { recordBattleResult, applyEvolution } from "@/lib/card-evolution";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 interface BattleBody {
   id?: unknown;
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error: "win (boolean) required" }, { status: 400 });
   }
 
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: false, error: "card evolution needs DATABASE_URL" }, { status: 503 });
   }
 

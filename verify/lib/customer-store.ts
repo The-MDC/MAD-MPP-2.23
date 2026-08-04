@@ -1,5 +1,6 @@
 import { createHash } from "crypto";
 import { getDbPool } from "./db";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 function normalizeWallet(address: string): `0x${string}` {
   return address.toLowerCase() as `0x${string}`;
@@ -16,7 +17,7 @@ function sha256OrNull(value: string | null): string | null {
  * this audit write fails, so callers intentionally catch/log errors.
  */
 export async function recordSuccessfulLogin(address: string, chainId: number, req: Request): Promise<void> {
-  if (!process.env.DATABASE_URL) return;
+  if (!hasDatabaseUrl()) return;
 
   const wallet = normalizeWallet(address);
   const domain = req.headers.get("host")?.slice(0, 255) ?? null;

@@ -5,6 +5,7 @@ import { enforceRateLimit } from "@/lib/rate-limit";
 import { emitEvent, queryEvents } from "@/lib/data-platform/events";
 import { upsertProfileFromEvent } from "@/lib/data-platform/cdp";
 import type { PlatformEvent } from "@/lib/data-platform/types";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 /**
  * POST /api/v1/data/events  — append one event to the stream (rate-limited).
@@ -13,7 +14,7 @@ import type { PlatformEvent } from "@/lib/data-platform/types";
 export async function POST(req: Request) {
   const limited = enforceRateLimit(req, "data-events", 120, 60_000);
   if (limited) return limited;
-  if (!process.env.DATABASE_URL)
+  if (!hasDatabaseUrl())
     return NextResponse.json({ success: false, error: "DATABASE_URL not set" }, { status: 503 });
 
   const body = await req.json().catch(() => ({}));
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  if (!process.env.DATABASE_URL)
+  if (!hasDatabaseUrl())
     return NextResponse.json({ success: false, error: "DATABASE_URL not set" }, { status: 503 });
   const session = getSessionFromRequest(req);
   if (!session) return NextResponse.json({ success: false, error: "unauthorized" }, { status: 401 });

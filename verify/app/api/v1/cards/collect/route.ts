@@ -3,6 +3,7 @@ import { getDbPool } from "@/lib/db";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { RARITY_ORDER, type Rarity } from "@/lib/gambit-game-math";
 import { insertCard } from "@/lib/cards";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 interface CollectBody {
   walletAddress?: unknown;
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
     earnsCount: Math.max(0, Number(body.earnsCount) || 0),
   };
 
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: true, persisted: false, card });
   }
 

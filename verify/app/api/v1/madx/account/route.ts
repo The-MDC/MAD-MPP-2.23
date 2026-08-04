@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { getAccount, getSupply, MADX_BETA } from "@/lib/madx-web2";
 import { isAuthResponse, requireMadxRouteAuth } from "@/lib/madx-route-auth";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 /**
  * GET /api/v1/madx/account — signed-in wallet web2 $MADx (Beta) account + supply.
@@ -11,7 +12,7 @@ export async function GET(req: Request) {
   const auth = requireMadxRouteAuth(req, "madx-account", 60, 60_000);
   if (isAuthResponse(auth)) return auth;
 
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({
       success: true,
       source: "demo",

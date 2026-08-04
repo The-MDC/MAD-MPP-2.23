@@ -1,10 +1,11 @@
 import { Pool } from 'pg';
+import { ensureDatabaseUrlEnv } from '@/lib/database-url';
 
 let pool: Pool | undefined;
 
 export function getDbPool() {
   if (!pool) {
-    const connectionString = process.env.DATABASE_URL;
+    const connectionString = ensureDatabaseUrlEnv();
     // Neon requires TLS. If the connection string doesn't already request an SSL
     // mode, enforce a verified TLS connection (Neon presents valid certs).
     const needsSsl = !!connectionString && !/sslmode=/.test(connectionString);

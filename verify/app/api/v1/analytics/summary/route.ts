@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import type { PlatformSummary } from "@/lib/data-platform/types";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 const DEMO: PlatformSummary = {
   windowHours: 24,
@@ -17,7 +18,7 @@ const DEMO: PlatformSummary = {
  * or the migration isn't present, so the dashboard always renders.
  */
 export async function GET() {
-  if (!process.env.DATABASE_URL) return NextResponse.json({ success: true, summary: DEMO });
+  if (!hasDatabaseUrl()) return NextResponse.json({ success: true, summary: DEMO });
 
   try {
     const pool = getDbPool();

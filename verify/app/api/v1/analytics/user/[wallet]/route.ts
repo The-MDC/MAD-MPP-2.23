@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { getProfile } from "@/lib/data-platform/cdp";
 import type { UserIntelligence } from "@/lib/data-platform/types";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 /** GET /api/v1/analytics/user/<wallet> — per-wallet intelligence from the CDP + daily rollups. */
 export async function GET(_req: Request, { params }: { params: Promise<{ wallet: string }> }) {
@@ -18,7 +19,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ wallet:
     daily: [],
     source: "demo",
   };
-  if (!process.env.DATABASE_URL) return NextResponse.json({ success: true, intelligence: demo });
+  if (!hasDatabaseUrl()) return NextResponse.json({ success: true, intelligence: demo });
 
   try {
     const pool = getDbPool();

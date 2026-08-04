@@ -8,6 +8,7 @@ import {
   type WhaleEligibilityInput,
 } from "@/lib/gambit-game-math";
 import { insertShieldPosition } from "@/lib/shield";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 interface OptInBody {
   walletAddress?: unknown;
@@ -68,7 +69,7 @@ export async function POST(req: Request) {
     );
   }
 
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: true, persisted: false, info });
   }
 

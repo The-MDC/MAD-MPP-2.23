@@ -3,6 +3,7 @@ import { getDbPool } from "@/lib/db";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { parseGdeltField, scoreGdeltRecord, type EmotionScores, type Emotion } from "@/lib/gdelt";
 import { getWhitelist } from "@/lib/whitelist";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 interface IngestBody {
   headline?: unknown;
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
   const headline = typeof body.headline === "string" ? body.headline : null;
   const url = typeof body.url === "string" ? body.url : null;
 
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     const score = scoreGdeltRecord({ persons, themes, emotions, whitelist: new Set() });
     return NextResponse.json({ success: true, persisted: false, score });
   }

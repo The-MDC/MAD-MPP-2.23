@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { rankBySatire } from "@/lib/satire-metrics";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 /**
  * GET /api/v1/madhatr/satire — ranks recent headlines by satire metrics
@@ -26,7 +27,7 @@ export async function GET(req: Request) {
   const throttleRaw = Number(url.searchParams.get("throttle"));
   const roastThrottle = Number.isFinite(throttleRaw) ? Math.min(1, Math.max(0, throttleRaw)) : 1;
 
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({
       success: true,
       source: "demo",

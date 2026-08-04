@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { decideForRows, summarizeDecisions, type SignalRow } from "@/lib/gdelt-scandal";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 /**
  * GET /api/v1/scandal/decide — runs the Scandal Scraper 5-gate decision tree over
@@ -54,7 +55,7 @@ function asStringArray(v: unknown): string[] {
 export async function GET(req: Request) {
   const limit = Math.min(50, Math.max(1, Number(new URL(req.url).searchParams.get("limit")) || 20));
 
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     const decisions = decideForRows(DEMO_ROWS).slice(0, limit);
     return NextResponse.json({
       success: true,

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { createMarket, listMarkets, type Market, type MarketStatus } from "@/lib/markets";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 const STATUSES: MarketStatus[] = ["open", "resolving", "resolved", "disputed"];
 
@@ -23,7 +24,7 @@ export async function GET(req: Request) {
   const limit = Math.max(1, Math.min(100, Math.floor(Number(params.get("limit")) || 50)));
 
   const empty: Market[] = [];
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: true, markets: empty, source: "demo" });
   }
   try {
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
   if (!body || typeof body.title !== "string" || body.title.trim() === "") {
     return NextResponse.json({ success: false, error: "title required" }, { status: 400 });
   }
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: false, error: "markets need DATABASE_URL" }, { status: 503 });
   }
 

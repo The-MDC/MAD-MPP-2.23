@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { stake } from "@/lib/madx-web2";
 import { isAuthResponse, requireMadxRouteAuth } from "@/lib/madx-route-auth";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 /** POST /api/v1/madx/stake { amount } — stake signed-in wallet beta credits into STAKING_TIERS. */
 export async function POST(req: Request) {
   const auth = requireMadxRouteAuth(req, "madx-stake", 30, 60_000);
   if (isAuthResponse(auth)) return auth;
 
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: false, error: "MADx credits need DATABASE_URL" }, { status: 503 });
   }
   try {

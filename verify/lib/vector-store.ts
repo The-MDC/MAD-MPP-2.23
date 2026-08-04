@@ -13,6 +13,7 @@
  * Untyped `pool.query()` + typed mappers (pg generic constraint avoidance).
  */
 import type { Pool } from "pg";
+import { hasDatabaseUrl } from "@/lib/database-url";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 
 const EMBED_MODEL = "text-embedding-004"; // 768-dim → matches market_intelligence.embedding
@@ -30,7 +31,7 @@ function getEmbedder(): GoogleGenerativeAIEmbeddings {
 
 /** True when both the DB and the embedding key are configured. */
 export function vectorSearchAvailable(): boolean {
-  return Boolean(process.env.DATABASE_URL) && Boolean(process.env.GOOGLE_API_KEY);
+  return hasDatabaseUrl() && Boolean(process.env.GOOGLE_API_KEY);
 }
 
 /** Embed a single string into a 768-dim vector via Gemini. */

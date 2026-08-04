@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { placeBet, listBetsByWallet, type Bet, type BetSide } from "@/lib/markets";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 interface BetBody {
   marketId?: unknown;
@@ -17,7 +18,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ success: false, error: "valid ?wallet= required" }, { status: 400 });
   }
   const empty: Bet[] = [];
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: true, bets: empty, source: "demo" });
   }
   try {
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
   if (!Number.isFinite(amount) || amount <= 0)
     return NextResponse.json({ success: false, error: "amount must be positive" }, { status: 400 });
 
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: false, error: "bets need DATABASE_URL" }, { status: 503 });
   }
 

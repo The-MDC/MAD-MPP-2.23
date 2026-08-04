@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { listCardStatsByOwner, type CardStats } from "@/lib/card-evolution";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 /**
  * GET /api/v1/cards/evolution/owner/<owner> — a wallet/user's living-card
@@ -13,7 +14,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ owner: 
   }
 
   const empty: CardStats[] = [];
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: true, cards: empty, source: "demo" });
   }
 
