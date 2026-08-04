@@ -34,7 +34,7 @@ const PUBLIC_PATHS = new Set([
   "/sitemap.xml",
 ]);
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   if (PUBLIC_PATHS.has(req.nextUrl.pathname)) {
     return NextResponse.next();
   }
@@ -66,6 +66,6 @@ export function middleware(req: NextRequest) {
 
 export const config = {
   // Gate all pages. Exclude Next internals and /api; exact public liveness and
-  // metadata paths are allowlisted inside middleware.
+  // metadata paths are allowlisted inside proxy.
   matcher: ["/((?!api|_next/static|_next/image).*)"],
 };
