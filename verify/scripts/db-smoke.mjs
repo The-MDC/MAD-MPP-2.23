@@ -183,6 +183,41 @@ async function main() {
     }
     assert(dupeRejected, "user_profiles rejects case-variant duplicate email");
 
+    // System-asserted account state (0011). Deliberately coexists with
+    // user_profiles above: same wallet key, different writer. user_profiles is
+    // user-written; these three are written only by the auth path. See the
+    // "One identity key, many projections" section in verify/sql/README.md.
+    await client.query(
+      `INSERT INTO customer_accounts (wallet_address, chain_id, last_login_at, login_count)
+       VALUES ($1, 42170, now(), 1)
+       ON CONFLICT (wallet_address) DO UPDATE SET last_login_at=now(), login_count=customer_accounts.login_count + 1`,
+      [ZERO],
+    );
+    assert(
+      (await client.query(`SELECT count(*)::int AS n FROM customer_accounts WHERE wallet_address=$1`, [ZERO])).rows[0].n === 1,
+      "customer_accounts upsert+read",
+    );
+
+    await client.query(
+      `INSERT INTO customer_login_events (wallet_address, chain_id, domain, user_agent_hash)
+       VALUES ($1, 42170, 'smoke.local', 'smoke_hash')`,
+      [ZERO],
+    );
+    assert(
+      (await client.query(`SELECT count(*)::int AS n FROM customer_login_events WHERE wallet_address=$1`, [ZERO])).rows[0].n >= 1,
+      "customer_login_events write+read",
+    );
+
+    await client.query(
+      `INSERT INTO customer_profile_audit (wallet_address, actor_wallet, action, changes)
+       VALUES ($1, $1, 'smoke', '{"smoke":true}')`,
+      [ZERO],
+    );
+    assert(
+      (await client.query(`SELECT count(*)::int AS n FROM customer_profile_audit WHERE wallet_address=$1`, [ZERO])).rows[0].n >= 1,
+      "customer_profile_audit write+read",
+    );
+
     console.log("✅ DB smoke passed — live read/write verified across all core tables");
   } catch (err) {
     console.error(`❌ smoke failed: ${err.message}`);

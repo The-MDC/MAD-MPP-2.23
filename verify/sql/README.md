@@ -24,7 +24,19 @@ the build or the demo.
 | `0007_markets.sql` | `markets`, `bets`, `audit_log` — prediction-market backbone |
 | `0008_madx_web2.sql` | `madx_accounts`, `madx_ledger`, `madx_supply` — Web2 $MADx beta credit ledger |
 | `0009_gdelt_url_unique.sql` | Partial unique index on `gdelt_signals(url)` for idempotent ingest |
-| `0010_auth_identity.sql` | `siwe_nonces` (SIWE replay protection), `user_profiles` (customer-supplied identity) |
+| `0010_auth_identity.sql` | `siwe_nonces` (SIWE replay protection), `user_profiles` (user-asserted identity) |
+| `0011_customer_accounts.sql` | `customer_accounts`, `customer_login_events`, `customer_profile_audit` (system-asserted account state + ledgers) |
+
+## One migration owns each table
+
+A table is created by **exactly one** migration file. `CREATE TABLE IF NOT
+EXISTS` makes a second definition of the same table a silent no-op — whichever
+runs first wins, and any divergence in the losing definition disappears without
+an error. Two files defining the same table is a bug even when both appear to
+work.
+
+Corollary: never reuse a sequence number. Two files numbered `0010` have no
+defined apply order.
 
 ## Auth model
 
@@ -34,7 +46,39 @@ passwords and no OAuth providers, so there is no password/hash column and no
 `accounts` table. Sessions are **stateless HMAC tokens** (`lib/session.ts`), so
 there is no `sessions` table either.
 
-Do not layer an Auth.js/NextAuth schema on top of this. It keys identity on a
-`SERIAL` integer and uses foreign keys, while every table here keys on
-`VARCHAR(42)` and is deliberately FK-free — adopting it would create a second,
-parallel identity system rather than extending the existing one.
+### One identity key, many projections
+
+The rule is **one identity key**, not one identity table. Every table keys on
+the same lowercased `VARCHAR(42)` wallet address and is deliberately FK-free.
+Identity data is split across tables by **who is entitled to write it**:
+
+| Table | Writer | Mutability | Holds |
+|---|---|---|---|
+| `user_profiles` | the user | mutable | `display_name`, `avatar_url`, `bio`, `email`, `notification_prefs` |
+| `customer_accounts` | the system (SIWE verify path) | mutable | `chain_id`, `status`, `first_seen`, `last_login_at`, `login_count` |
+| `customer_login_events` | the system | append-only | auth event ledger |
+| `customer_profile_audit` | the system | append-only | who mutated `user_profiles`, and how |
+
+A user may assert their own display name. A user may not assert their own
+`login_count`, and must not be able to assert `status='active'` when an operator
+set `'suspended'`. Different write authority is why these are separate tables —
+not different identities.
+
+`customer_accounts` is created by the login path on first successful verify, so
+it may exist without a `user_profiles` row (a player who never filled anything
+in). The reverse should not happen.
+
+**Profile fields have exactly one home: `user_profiles`.** An earlier draft of
+`customer_accounts` carried `profile`/`preferences` JSONB columns; they were
+removed because they duplicated `user_profiles` and created a second source of
+truth for the same fields.
+
+### What is actually forbidden
+
+Do not introduce a **second identity key**. Auth.js/NextAuth is the concrete
+example: it keys identity on a `SERIAL` integer and uses foreign keys, which
+would sit alongside the wallet address as a rival primary identity. That is a
+parallel identity system, and it is what this directive exists to prevent.
+
+Adding a table that keys on the same wallet address, for data with a different
+writer, is not — it is another projection of the one identity.
