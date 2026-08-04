@@ -25,6 +25,21 @@ https://console.neon.tech/app/projects/patient-wave-95491458). Most MCP calls wa
 Remote server: `https://mcp.neon.tech/mcp`, HTTP transport. Prefer it to the local
 stdio server — no install, and npm is partly blocked here anyway.
 
+### `npx neon@latest init` — Neon's recommended one-command setup
+
+```bash
+npx neon@latest init
+```
+
+Authenticates via OAuth, **mints an API key for you**, configures the Claude Code CLI,
+and installs Neon's own agent skills. Restart Claude afterwards, then ask "Get started
+with Neon".
+
+Two consequences worth planning around: it needs an interactive browser for OAuth, so
+it can't run in a headless session; and because it installs Neon-authored skills, check
+for overlap afterwards rather than assuming this skill is the only Neon guidance
+present.
+
 ### API key header — the only path that works non-interactively
 
 ```bash
