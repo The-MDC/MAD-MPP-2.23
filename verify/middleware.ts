@@ -65,7 +65,7 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // Gate all pages. Exclude Next internals and /api; exact public liveness and
-  // metadata paths are allowlisted inside middleware.
-  matcher: ["/((?!api|_next/static|_next/image).*)"],
+  // Gate pages and API routes. Exact public liveness and metadata paths are
+  // allowlisted inside middleware; Next internals remain excluded.
+  matcher: ["/((?!_next/static|_next/image).*)"],
 };
