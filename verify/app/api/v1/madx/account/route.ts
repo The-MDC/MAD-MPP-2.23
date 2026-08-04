@@ -1,20 +1,23 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { getAccount, getSupply, MADX_BETA } from "@/lib/madx-web2";
+import { isAuthResponse, requireMadxRouteAuth } from "@/lib/madx-route-auth";
 
 /**
- * GET /api/v1/madx/account?owner=<id> — web2 $MADx (Beta) account + supply.
- * Degrades to a zeroed demo account so the wallet UI always renders.
+ * GET /api/v1/madx/account — signed-in wallet web2 $MADx (Beta) account + supply.
+ * Degrades to a zeroed demo account so the wallet UI always renders after auth.
  */
 export async function GET(req: Request) {
-  const owner = new URL(req.url).searchParams.get("owner")?.trim() ?? "";
+  const auth = requireMadxRouteAuth(req, "madx-account", 60, 60_000);
+  if (isAuthResponse(auth)) return auth;
+
   if (!process.env.DATABASE_URL) {
     return NextResponse.json({
       success: true,
       source: "demo",
       meta: MADX_BETA,
       account: {
-        owner,
+        owner: auth.owner,
         balance: 0,
         staked: 0,
         rewardAccrued: 0,
@@ -30,7 +33,7 @@ export async function GET(req: Request) {
   try {
     const pool = getDbPool();
     const supply = await getSupply(pool);
-    const account = owner ? await getAccount(pool, owner) : null;
+    const account = await getAccount(pool, auth.owner);
     return NextResponse.json({ success: true, source: "live", meta: MADX_BETA, account, supply });
   } catch (e) {
     console.error("madx/account error:", e);
