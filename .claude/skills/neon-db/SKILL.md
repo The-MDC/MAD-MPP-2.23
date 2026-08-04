@@ -1,48 +1,38 @@
 ---
 name: neon-db
-description: Connect to and operate the Neon Postgres MCP server for this repo — minting API keys, wiring the remote MCP into Claude Code/Cursor/VS Code, scoping it read-only, running SQL, and managing per-PR database branches. Use when the user mentions Neon, NEON_API_KEY, NEON_PROJECT_ID, DATABASE_URL, the "Create Neon Branch" CI job, per-PR database branches, Postgres migrations for this project, or hits a 401/403 from the Neon API. Also use when wiring THE WIRE ingestion tables (headlines_raw / headlines_scored) or any Neon-backed schema work.
+description: Connect and operate the Neon MCP server as an MCP client — wiring https://mcp.neon.tech/mcp into Claude Code/Cursor/VS Code, authenticating by API key header vs OAuth, scoping it read-only or by tool category, and which tools exist. Use when the user wants an agent to talk to Neon directly, mentions the Neon MCP server, mcp.neon.tech, "add-mcp", or asks to run SQL / inspect schema / create a Neon branch from inside an agent session. For how this repo's Neon+Vercel preview-branch integration works, NEON_API_KEY rotation, the neon-pr-branch.yml 401, or DATABASE_URL behavior, use neon-vercel-integration instead.
 ---
 
-# Neon for MAD Gambit
+# Neon MCP server
 
-Operating the Neon Postgres MCP server and this repo's Neon integration.
+Wiring an MCP client to Neon and operating it safely.
 
-**Sourcing note:** built from Neon's published docs via web search plus first-hand
+**Scope.** This skill is about the **MCP client connection**. The sibling skill
+`neon-vercel-integration` owns the integration itself — the three Neon+Vercel paths,
+`neon-pr-branch.yml`, `NEON_API_KEY` rotation and the Aug-2026 401, migrations-as-code,
+and the injected env-var table. Don't duplicate that here; link to it.
+
+**Sourcing.** Assembled from Neon's published docs via web search plus first-hand
 verification in this sandbox. `neon.com`, `neon.tech`, and `mcp.neon.tech` are all
-blocked by this environment's egress proxy (403 CONNECT), so the primary docs could
-not be read directly. Tool names and parameters below should be confirmed against a
-live connection before being relied on for anything destructive.
+blocked by this environment's egress proxy (403 CONNECT), so the primary docs were not
+read directly. Confirm tool names against a live connection before destructive use.
 
-## This project's Neon facts
-
-| Thing | Value |
-|---|---|
-| Neon project ID | `patient-wave-95491458` |
-| Console | https://console.neon.tech/app/projects/patient-wave-95491458 |
-| CI workflow | `.github/workflows/neon-pr-branch.yml` |
-| Repo secret | `NEON_API_KEY` (Settings → Secrets → Actions) |
-| Repo variable | `NEON_PROJECT_ID` |
-| Default DB / role | `neondb` / `neondb_owner` |
-| Consumed by | `verify/lib/db.ts` → `getDbPool()` via `DATABASE_URL` (plain `pg`, provider-agnostic) |
-
-The CI workflow creates a database branch per PR (`preview/pr-<n>-<branch>`) on open and
-deletes it on close, using `neondatabase/create-branch-action@v6`.
+Project for this repo: **`patient-wave-95491458`** (console:
+https://console.neon.tech/app/projects/patient-wave-95491458). Most MCP calls want it.
 
 ## Connecting
 
-Remote server: `https://mcp.neon.tech/mcp` (HTTP transport). Prefer it over the local
-stdio server — no npm install, and this sandbox's npm registry blocks `add-mcp` and
-`@neondatabase/mcp-server-neon` anyway.
+Remote server: `https://mcp.neon.tech/mcp`, HTTP transport. Prefer it to the local
+stdio server — no install, and npm is partly blocked here anyway.
 
-### API key auth — use this for headless/CI/non-interactive sessions
+### API key header — the only path that works non-interactively
 
 ```bash
 claude mcp add --transport http neon https://mcp.neon.tech/mcp \
   --header "Authorization: Bearer <NEON_API_KEY>"
 ```
 
-This is the path that works when OAuth can't run (remote containers, CI, any
-non-interactive session). Equivalent `~/.claude.json`:
+Equivalent `~/.claude.json`:
 
 ```json
 { "mcpServers": { "neon": {
@@ -52,109 +42,85 @@ non-interactive session). Equivalent `~/.claude.json`:
 } } }
 ```
 
-### OAuth — interactive desktop/IDE only
+Use this for remote containers, CI, and any headless session. It's the same key the
+CI workflow uses — see `neon-vercel-integration` for where to mint it.
+
+### OAuth — interactive clients only
 
 ```bash
 claude mcp add --transport http neon https://mcp.neon.tech/mcp
 ```
 
-Then `/mcp` in an interactive session to authorize in the browser. Without the
-`Authorization` header, `claude mcp list` reports `! Needs authentication` and no
-tools attach. **A non-interactive session cannot complete this** — use the API key.
+then `/mcp` to authorize in a browser. Without the header, `claude mcp list` reports
+`! Needs authentication` and no tools attach. **A non-interactive session cannot
+complete this flow** — don't try, and don't ask the user for tokens or callback URLs.
+Use the API key form instead.
 
-### Do not use `npx add-mcp` here
-
-`npx -y add-mcp https://mcp.neon.tech/mcp -a claude-code` fails in this sandbox with
-npm `E403` on the `add-mcp` tarball. `claude mcp add` needs no npm and is the
-reliable path.
-
-### Older clients without HTTP transport
+### Clients without HTTP transport
 
 ```bash
 npx -y mcp-remote https://mcp.neon.tech/mcp
 ```
 
-## Scoping and safety
+### `npx add-mcp` does not work here
 
-Restrict the server at connect time — cheaper and safer than trusting prompt discipline.
+`npx -y add-mcp https://mcp.neon.tech/mcp -a claude-code` fails with npm `E403` under
+this sandbox's egress policy (the same policy that blocks `npm install`).
+`claude mcp add` needs no npm — verified working.
 
-- **`?readonly=true`** — SELECT and schema inspection stay; branch creation, migrations,
-  and auth-config writes are disabled.
-- **`x-read-only: true`** header — same effect, header form.
-- **`?category=<name>`** (repeatable) — restrict which tool groups load:
-  `https://mcp.neon.tech/mcp?category=querying&category=schema`
-- OAuth also offers a read-only scope during the consent flow.
+## Scoping
 
-Neon's own guidance: **MCP is for development and testing — do not point MCP agents at
-production databases.** For this repo that means prefer a PR/preview branch over the
-`main` Neon branch when an agent is running SQL.
+Constrain at connect time rather than trusting prompt discipline.
 
-Inspect the active tool set for a config without authenticating:
+| Control | Effect |
+|---|---|
+| `?readonly=true` | SELECT + schema inspection only; no branch creation, migrations, or auth writes |
+| `x-read-only: true` header | same, header form |
+| `?category=<name>` (repeatable) | load only those tool groups |
+
+```
+https://mcp.neon.tech/mcp?category=querying&category=schema
+```
+
+OAuth also offers a read-only scope at consent time.
+
+Neon's guidance: **MCP is for development and testing — never point MCP agents at
+production databases.** Here that means prefer a PR/preview branch over the project's
+`main` Neon branch when an agent runs SQL.
+
+Check which tools a config activates, without authenticating:
 
 ```bash
 curl "https://mcp.neon.tech/api/list-tools?readonly=true&category=querying"
 ```
 
-(Blocked from this sandbox; run it locally.)
+(Blocked from this sandbox — run locally.)
 
-## Tool categories
+## Tools
 
-| Category | Covers |
-|---|---|
-| `projects` | create/list/manage projects |
-| `branches` | create, reset, delete branches |
-| `schema` | tables, columns, indexes |
-| `querying` | run SQL, explain plans |
-| `auth` | Neon Auth users and sessions |
-| `data-api` | RESTful data endpoints |
-| `observability` | function and storage logs |
-| `docs` | search and fetch Neon docs |
+Categories: `projects`, `branches`, `schema`, `querying`, `auth`, `data-api`,
+`observability`, `docs`.
 
-Commonly used tools: `list_projects`, `run_sql`, `create_branch`,
-`describe_table_schema`, `prepare_database_migration`, `complete_database_migration`.
+Commonly used: `list_projects`, `run_sql`, `create_branch`, `describe_table_schema`,
+`prepare_database_migration`, `complete_database_migration`.
 
-`list_projects` returns only the first 10 by default — raise `limit` if a project
-seems missing.
+Two behaviours worth knowing:
 
-**Migrations are two-phase.** `prepare_database_migration` applies the change to a
-temporary branch for verification; `complete_database_migration` promotes it. Don't
-treat prepare as done — always verify, then complete.
-
-## Recipes
-
-### Rotate a dead `NEON_API_KEY` (401 on the CI job)
-
-A 401 from `create-branch-action` means the key is revoked or expired — not a project
-or workflow problem. Vercel's Neon integration syncs the **connection string**, not the
-**API key**, so this cannot be fixed from Vercel.
-
-1. Neon Console → **Organization settings → API keys** → create key (shown once)
-2. Set it as repo secret `NEON_API_KEY`
-3. Confirm repo variable `NEON_PROJECT_ID` = `patient-wave-95491458`
-4. Re-run the failed workflow
-
-A wrong project ID gives 404, not 401 — use the status code to tell them apart.
-
-### Don't let a rotated key red every PR
-
-The per-PR branch is a convenience, not a merge gate. Keep those jobs
-`continue-on-error` so a key rotation can't block unrelated work.
-
-### Refresh `DATABASE_URL`
-
-Take the **pooled** connection string from the console (or the Vercel integration's
-synced env var). `verify/lib/db.ts` uses plain `pg` with no provider coupling, so any
-Postgres URL works. Set it in Vercel for Production and Preview.
+- **`list_projects` returns only the first 10** by default. Raise `limit` before
+  concluding a project is missing.
+- **Migrations are two-phase.** `prepare_database_migration` applies to a temporary
+  branch for verification; `complete_database_migration` promotes it. Prepare is not
+  done — verify, then complete.
 
 ## Gotchas
 
-- **API key ≠ connection string.** The MCP server and `create-branch-action` need the
-  API key; the app needs the connection string. Confusing them is the most common
-  failure here.
-- **MCP servers attach at session start.** Adding one mid-session doesn't load its
-  tools — restart.
-- **Neon hosts are blocked from this sandbox** (`neon.com`, `neon.tech`,
-  `mcp.neon.tech` → 403 CONNECT). Don't try to route around it; hand console/API steps
-  to the user, or run them from a machine with open egress.
-- **Branch deletion is destructive** and per-PR branches carry an `expires_at`
-  (14 days in this workflow). Don't park data you care about on one.
+- **API key ≠ connection string.** The MCP server and the CI branch action need the
+  **API key**; the app needs the **connection string**. Conflating them is the most
+  common failure. Vercel's Neon integration syncs the connection string and never the
+  API key — which is why a CI 401 cannot be fixed from the Vercel dashboard.
+- **MCP servers attach at session start.** Adding one mid-session does not load its
+  tools; restart.
+- **All Neon hosts are blocked from this sandbox** (403 CONNECT). Hand console and API
+  steps to the user rather than trying to route around the proxy.
+- **Branch deletion is destructive**, and per-PR branches in this repo carry a 14-day
+  `expires_at`. Don't park anything you care about on one.
