@@ -190,6 +190,49 @@ The constraint binds on one track only, so the design splits rather than degrade
 - EMERGENT RARITY SURVIVES — the Slip, the Crowning and the leg index are market events recorded on-chain independently of the payload, so a Slip-leg portrait is still provably a Slip-leg portrait. What erasure removes is WHOSE it was, which is exactly the property that should be removable and the only one that should
 - PER-SUBJECT keys, not per-token: one erasure request must reach every portrait of that person across every leg, in one operation. Per-token keys would turn a single request into an unbounded sweep and guarantee a miss
 
+### 6.2.2 STANDING UP THE REGISTRY — what "live" actually requires
+
+The registry gates Phase 4, so "live" needs a definition somebody can sign off against rather than a vibe. Six workstreams, all of which must be complete and TESTED before the first named-subject portrait mints.
+
+| # | Workstream | Done means |
+|---|---|---|
+| 1 | Key custody | Envelope encryption: a per-subject AES-256-GCM data key wrapped by a KEK in an HSM-backed KMS. Requires FIPS 140-2 L3 (or better) backing, an irreversible destroy primitive, and immutable audit logging of every destruction |
+| 2 | Ciphertext store | Deletable object storage — object-lock OFF, versioning off or lifecycle-purged, no CDN edge caching of payloads. Explicitly NOT IPFS, Arweave or any content-addressed immutable store, which would recreate the exact problem on a different substrate |
+| 3 | Registry contract | MADPortraitKeyRegistry.sol deployed: subjectId ↔ keyRef binding plus a KeyDestroyed(subjectId, timestamp, reason) event. References and events only — never key material |
+| 4 | Subject identity map | The real-person ↔ subjectId binding, off-chain and mutable, WITH ITS OWN ERASURE PATH. Easy to miss and fatal if missed: destroying the payload key while retaining the identity map still leaves personal data on the books |
+| 5 | Legal instruments | DPIA (Art. 35 — systematic profiling of individuals at scale using novel technology is squarely in scope), Art. 30 records, a named controller, a documented lawful basis with an LIA, and a written retention schedule |
+| 6 | Tested destruction drill | A full erasure executed end-to-end in staging, producing an auditor-readable log. Untested destruction is not destruction |
+
+ONE HONEST CONSTRAINT ON THE SLA. Managed KMS destroy primitives carry a mandatory waiting period — roughly 7–30 days on AWS, 24 hours on GCP — before key material is actually gone. That window is a deliberate safety net against accidental or malicious destruction, and it is not removable. So the published erasure SLA must state a window rather than promise instant erasure, and the audit log must record both the request time and the irreversible-destruction time. Promising "immediate" would be a commitment the infrastructure cannot honour.
+
+### 6.2.3 THE LAPSE — the hold-then-release failsafe
+
+The governing principle inverts the usual default: SILENCE DESTROYS. Most retention systems fail open — data lingers because nobody remembered to delete it, and the failure mode of neglect is accumulation. THE LAPSE fails closed, so the failure mode of neglect is erasure.
+
+- BORN WITH AN EXPIRY — every per-subject key is created with a TTL and a scheduled destruction date. There is no such thing as a key that lives by default
+- HOLD — the key is RENEWED, once per lunar leg, only while an affirmative condition still holds: the subject clears the §9.1 eligibility bar, the market is live, and the retention basis still applies. Renewal is an action someone or something must take
+- RELEASE — destruction fires automatically on ANY of: TTL expiry without renewal · subject delisted · erasure request upheld · the renewal service failing beyond a set number of cycles
+- Renewal is per-leg, so a subject who drops out of eligibility has their key expire within at most one leg (59.061 days) rather than lingering indefinitely
+- Destruction emits an on-chain event — the EVENT, never the data — so the audit trail is as durable as the token it refers to
+
+THE ABANDONMENT CASE, which most designs miss entirely. If MAD Gambit stops operating — funding ends, the team disperses, the renewal job is switched off — the keys are not renewed and the payloads self-erase on schedule. The data does not sit in a forgotten bucket forever waiting for a breach. A retention design that only works while the company is healthy is not a retention design; THE LAPSE is specified so that the correct thing happens precisely when nobody is watching.
+
+### 6.2.4 THE INTERLOCK — redundancy against the sequencing slip
+
+The slip to prevent: a named-subject portrait mints BEFORE the registry is live, putting personal data on a public chain permanently. The asymmetry that justifies every barrier below is simple and absolute — OFF-CHAIN DATA CAN BE CRYPTO-SHREDDED; ON-CHAIN DATA CANNOT BE DELETED, EVER. THE LAPSE protects the off-chain payload. Nothing protects a payload that reaches the chain. So the barrier must live on the side where recovery is impossible, and it must not be procedural.
+
+| Layer | Barrier | Enforced by |
+|---|---|---|
+| 1 — primary | MADPortrait.mint() REVERTS for any subject flagged as a named individual unless MADPortraitKeyRegistry returns a non-zero keyRef. Registry unset, unreachable or zero → the mint cannot succeed | The chain itself |
+| 2 | The portrait metadata builder takes a discriminated union — InstitutionalSubject \| NamedIndividualSubject — where the named variant requires a branded CiphertextPointer that only portrait-vault.ts can construct, and only after a confirmed key write | The type checker (won't compile) |
+| 3 | CI on every PR: (a) for every named-individual fixture, assert the on-chain payload contains no name, no persona label and no persona values; (b) a canary that attempts a named mint with the registry disabled and asserts revert | CI (blocks merge) |
+| 4 | The Phase-4 deploy script refuses to deploy MADPortrait.sol unless MADPortraitKeyRegistry is already deployed and answering on the target chain | Deploy tooling (ordering, not runbook discipline) |
+| 5 — last resort | PAUSE_GUARDIAN halts new conviction platform-wide (§9.1) | A separate key, not timelocked |
+
+A REVERT, NOT A WARNING. Layer 1 is specified to fail the transaction rather than log and continue, because a mint that succeeds with a warning attached is a mint that has already put personal data on a public chain — at which point the warning is a record of the harm, not a prevention of it. Layers 2 through 4 exist so that the chain-level revert is the LAST line rather than the only one: a barrier that only fires in production is a barrier that gets discovered by an incident.
+
+Layers 1, 2 and 3 are automated and independent — a single human error, a single bad deploy or a single missed review cannot clear all three. Layer 4 removes ordering from the runbook, which is the step most likely to be skipped under launch pressure. That is the redundancy: not one strong control, but four that fail differently.
+
 ### 6.3 L3 — ATTESTATIONS (ERC-5192 soulbound; POAP-compatible)
 
 - Non-transferable proof of conviction history — the reputation layer: "held the permanent Saint through the Slip of Leg 14", "called the Divergence within 5%", "crowned the same face 8 legs running"
@@ -312,7 +355,8 @@ Counsel review moves from a Phase 5 gate to a LAUNCH gate, and covers the eligib
 - NEW persona-codex.ts — five faces carrying codexName, broadcastName and catchphrase, plus ρ⃗, γ⃗, α per face, δ and Kelly bounds. catchphrase is type-level excluded from every stakeable-label render path (§2.1); mirrors the QUIPS map in zliar-meter.tsx
 - NEW persona-decompose.ts — per-face CGARCH, simplex re-projection and renormalisation, H_perm/H_trans, D, implied-τ Newton inversion
 - NEW tradeable-registry.ts — id derivation for (subject, leg, face, layer), portrait metadata builder, attestation milestone evaluator
-- NEW portrait-vault.ts — per-subject AES-256 key lifecycle, ciphertext pointer derivation, irreversible destruction with an audit record (§6.2.1). Keys never touch the chain and never touch a log line
+- NEW portrait-vault.ts — per-subject AES-256 key lifecycle, branded CiphertextPointer construction (the §6.2.4 layer-2 barrier), THE LAPSE renewal/expiry scheduler, and irreversible destruction with an audit record. Keys never touch the chain and never touch a log line
+- NEW subject-identity-map.ts — the real-person ↔ subjectId binding with its own erasure path (§6.2.2 workstream 4). Kept deliberately separate from portrait-vault.ts so that neither can be erased while the other is forgotten
 - NEW position-exit.ts — the §5.1 valve: request/cooldown/redeem state machine composed from #requestShieldUnstake, #calculateShieldReturnWindow, #isShieldUnstakeComplete and #shieldReturnCountdown, plus the leg-decaying exit penalty over #calculateMppPrice
 - NEW param-commit.ts — EIP-712 typed-data construction for (ρ⃗, γ⃗, α⃗, version, nonce), commitment hashing, and the epoch guard that refuses to sign against a superseded commitment
 - NEW registrar-queue.ts — eligibility pre-screen, LLM-as-judge escalation, human queue, listing/delisting SLA timers, and the DSA notice-and-action + trusted-flagger intake (§9.1)
@@ -336,7 +380,7 @@ Counsel review moves from a Phase 5 gate to a LAUNCH gate, and covers the eligib
 - Phase 1 — persona-codex + classifier extension + parimutuel decomposed markets, with the EXACT capped-simplex projection from the start. Named public figures are in scope from Phase 1 per the Aug 2026 decision, which makes the §9.1 controls (eligibility bar, right of reply, delisting path, Codex Registrar, PAUSE_GUARDIAN) Phase 1 deliverables rather than later hardening. Ship the Codex and the Waterline first; they are the product
 - Phase 2 — MPP bonding maker, lunar legs, Crowning, Shield integration, D as a readout, the §5.1 exit valve (it ships WITH the bond, since the bond is its counterparty), and §4.5 commit-and-freeze
 - Phase 3 — D as a TRADEABLE book, implied-τ surface, Slip events
-- Phase 4 — tradeable stack: ERC-1155 positions (closed transfer first), portrait mint, soulbound attestations, and the zkML upgrade to §4.5. GATE: the §6.2.1 portrait key registry must be LIVE before the first named-subject portrait mints — it is a precondition of this phase, not a task inside it
+- Phase 4 — tradeable stack: ERC-1155 positions (closed transfer first), portrait mint, soulbound attestations, and the zkML upgrade to §4.5. HARD GATE: all six §6.2.2 workstreams complete and the destruction drill PASSED before the first named-subject portrait mints. This is a precondition of the phase, not a task inside it, and §6.2.4 layer 4 enforces the ordering in the deploy script so it cannot be skipped under launch pressure
 - Phase 5 — open transfer on positions (counsel-gated), 4.8% ERC-2981 royalty goes live, ERC-6551 card accounts, Divergence baskets
 
 ## 11. Success Metrics
@@ -344,7 +388,9 @@ Counsel review moves from a Phase 5 gate to a LAUNCH gate, and covers the eligib
 - Five Faces volume ≥ 20% of platform by Y2, measured in net-new wallets rather than share, so cannibalisation of Gossip-Cop is visible
 - Average VOLUNTARY hold > 60 days — the denominator is positions that COULD have exited via §5.1 and chose not to. The unqualified version of this metric was unfalsifiable: with transfer closed and 59-day legs, a long hold measured the lockup rather than conviction. Once the exit valve exists the number means something, and it only means something if measured this way
 - Exit-valve usage between 5% and 25% of positions per leg. Below 5% suggests the penalty curve is punitive; above 25% suggests conviction is not forming and the market is being used as a trade
-- Key-destruction SLA: 100% of upheld erasure requests executed within the published window, with an auditable log entry per subject (§6.2.1). This is pass/fail, not a target
+- Key-destruction SLA: 100% of upheld erasure requests executed within the published window, with an auditable log entry per subject recording BOTH request time and irreversible-destruction time (§6.2.2). Pass/fail, not a target
+- THE LAPSE renewal integrity: zero keys outliving their renewal basis. Any key still readable for a delisted or ineligible subject is a failed leg, not a warning — the whole design rests on silence destroying
+- Interlock canary green on every PR (§6.2.4 layer 3): a named mint attempted against a disabled registry must revert. If that test ever goes green-by-passing rather than green-by-reverting, the barrier is gone
 - Registrar queue: listing decisions and appeals both inside published SLA; moderation error rate published per §9.1 rather than held internally
 - Shield opt-in ≥ 55%, the platform's highest, on the §7 low-P(win) premium argument
 - Divergence book ≥ 25% of family volume by Y2 — if D is not being traded, the thesis has not landed
@@ -372,6 +418,9 @@ Counsel review moves from a Phase 5 gate to a LAUNCH gate, and covers the eligib
 | Audit 4 — exit valve | Request → cooldown → redeem against the bond | Reuses the Shield unstake lifecycle wholesale; penalty decays across the leg — §5.1 |
 | Audit 5 — operations | Codex Registrar + DSA-shaped intake + PAUSE_GUARDIAN | The guardian is a separate key and is NOT timelocked — §9.1 |
 | Audit 6 — portraits | Two-track: institutions on-chain, named individuals pseudonymous + crypto-shredded | EDPB v2.0 (7 Jul 2026) disfavours even hashed personal data on-chain — §6.2.1 |
+| Phase-4 gate | Six workstreams + a passed destruction drill define "live" | Signed off against a checklist, not a vibe — §6.2.2 |
+| Retention failsafe | THE LAPSE — keys born with a TTL, renewed per leg, self-destructing on silence | Fails closed. Also self-erases if the platform is ever abandoned — §6.2.3 |
+| Sequencing redundancy | THE INTERLOCK — five barriers, four automated, layer 1 chain-enforced | On-chain data can never be deleted, so the primary barrier is a REVERT — §6.2.4 |
 
 ### 12.1 Note carried forward
 
