@@ -65,7 +65,7 @@ User bets $100 → $1.88 fee collected
 | 60% TeaBag | WhitePaper v1.8 (older sections) | **28.8%** (MAD Shield) |
 | $2.4M-$3M seed | Pitch Deck v1.5, strategic investor offer | **$1M-$2M** |
 | $42M Y3 revenue | Pitch Deck v1.5 | **$154.5M (bull) / $121.4M (midpoint)** |
-| Base L2 as primary | about-me.md v1 | **Arbitrum One is primary (deployed)** |
+| Base L2 as primary | about-me.md v1 | **Arbitrum Nova `42170` primary for gameplay; Arbitrum One `42161` for MAD Shield vaults + $MADx; HyperLiquid (HyperEVM) secondary venue only.** Locked by founder sign-off Aug 2026 — MASTER_MATHS §13 item 4 |
 
 ## BRAND RULES (CANONICAL)
 
