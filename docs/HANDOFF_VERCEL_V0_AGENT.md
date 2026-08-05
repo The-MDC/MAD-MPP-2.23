@@ -31,6 +31,16 @@ GET  /api/v1/epiphany/models          catalog · region + search
 
 POST /api/v1/perps/roll               settle matured legs, open the next
 POST /api/v1/perps/convict            authed · ZEITGEIST + EPIPHANY positions
+
+GET  /api/v1/registrar/status         Phase-4 gate · SLAs · error rate
+GET  /api/v1/registrar/queue          the listing queue + SLA breaches
+POST /api/v1/registrar/queue          submit a named subject (runs triage)
+GET  /api/v1/registrar/pause          pause state (public)
+POST /api/v1/registrar/pause          PAUSE_GUARDIAN · separate credential
+GET  /api/v1/registrar/reply          the subject's replies
+POST /api/v1/registrar/reply          post one · unauthenticated, unmoderated
+POST /api/v1/registrar/complaint      notice-and-action · delist · appeal
+POST /api/v1/registrar/lapse          THE LAPSE scheduler
 ```
 
 ### Front-end surfaces (all mounted on `/preview`)
@@ -127,17 +137,35 @@ Worth probing, in rough order of how much a mistake would cost:
 
 ---
 
-## 5. Known gaps — not in PR #58
+## 5. The registrar surfaces
 
-- `portrait-vault.ts` / `subject-identity-map.ts` / `registrar-queue.ts` — the Phase-4 registrar
-  internals. Schema and interlock are in place; the service is the next increment.
+`registrar-panel.tsx` exports two components, both launch-gating rather than backlog:
+
+- **`RegistrarStatusPanel`** (`#mg-registrar` on `/preview`) — the Phase-4 gate and the transparency
+  report. Whether the registry is live, which of the six workstreams are outstanding, the pause
+  banner, the published SLAs, and our own error rate. With no database it reports NOT LIVE with
+  everything outstanding, which is the correct default: a readiness check that returns "fine" when
+  it cannot see the checklist is worse than no check.
+- **`SubjectReplyPanel`** — the §9.1 right of reply, rendered inside each named-individual Waterline
+  card and **not** behind the expand toggle.
+
+**Please check on the reply panel specifically:** it has no collapse, no "show more", no report
+button, no moderation badge, and no muted style — each of those renders the reply while diminishing
+it, and diminished is the same as filtered for the purpose this surface serves. Its body text is at
+the same 9px scale as a market card. If a layout change makes it visually subordinate to the price
+beside it, that is a regression against §9.1, not a styling preference.
+
+## 6. Known gaps — not in PR #58
+
 - Slot auction room (Dutch clock, commit-reveal) — specified in ZEITGEIST §11.3, not built.
 - The succession flow ribbon in the Almanac — the API returns the matrix; the Almanac currently
   renders slate + lifecycle only.
+- `MADPortraitKeyRegistry.sol` and INTERLOCK layers 1 and 4 (the chain-level revert and the
+  deploy-ordering guard). Layers 2, 3 and 5 are live in this PR; 1 and 4 land with the contracts.
 
 ---
 
-## 6. Verification note
+## 7. Verification note
 
 CI is the authoritative check for this branch. A local `npm ci` cannot run in the authoring
 environment — the registry returns 403 on tarball fetches — so `type-check`, `build`, `lint` and
