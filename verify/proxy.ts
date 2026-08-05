@@ -27,6 +27,7 @@ if (process.env.GUEST_USER && process.env.GUEST_PASS) {
 
 const PUBLIC_PATHS = new Set([
   "/api/health",
+  "/api/v1/health/db",
   "/health",
   "/favicon.ico",
   "/favicon.png",
@@ -65,7 +66,7 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  // Gate pages and API routes. Exact public liveness and metadata paths are
+  // Gate pages and API routes. Exact public health/liveness and metadata paths are
   // allowlisted inside proxy; Next internals remain excluded.
   matcher: ["/((?!_next/static|_next/image).*)"],
 };
