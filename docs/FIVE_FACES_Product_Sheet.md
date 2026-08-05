@@ -28,7 +28,9 @@ Classifier: new primary type="faces", gated on perpEligible && horizonDays >= 36
 | THE NARCISSIST | The mirror is the audience. Cannot act unless the room is watching. |
 | THE PROSTITUTE | The Sell-Out archetype: monetises access, principle, platform or endorsement to the highest bidder. Never a claim about anyone's sexual conduct. |
 
-The Codex is not flavour text — it is a compliance primitive. The definition ships on-chain with the market criteria and renders on every surface where conviction can be staked, at NO LESS THAN the visual weight of the persona label itself, never collapsed, and never behind a hover, tap or scroll. Adjacency is not prominence: a disclaimer that requires an interaction to reveal is a footnote, and a footnote is what a plaintiff reads aloud. §9.1 already demands equal prominence for the right-of-reply; the Codex gets the same standard for the same reason. Every face carries codexName and broadcastName; PERSONA_DISPLAY_MODE="broadcast" swaps THE PROSTITUTE → THE SELLOUT, WHITE RICE → THE THERMOSTAT and THE MEGALOMANIAC → TOO BIG TO FAIL for app stores, ad networks and restrictive jurisdictions without forking the product.
+The Codex is not flavour text — it is a compliance primitive, and it binds to the NUMBER, not to the label. A persona price and its Codex definition render as ONE INDIVISIBLE UNIT — "THE PROSTITUTE 68%" is never displayed without the definition attached to it. This is enforced at type level rather than by style guide: the price component takes a CodexDefinition prop and will not compile without one. Every face carries codexName and broadcastName;PERSONA_DISPLAY_MODE="broadcast" swaps THE PROSTITUTE → THE SELLOUT, WHITE RICE → THE THERMOSTAT and THE MEGALOMANIAC → TOO BIG TO FAIL for app stores, ad networks and restrictive jurisdictions without forking the product.
+
+WHY THE NUMBER AND NOT THE LABEL. The quantification is the actionable assertion. "Some people think he sold out" is opinion; "THE PROSTITUTE 68%" reads as a finding, and a finding is what gets read aloud in a courtroom. The FTC's four P's — prominence, presentation, placement, proximity — measure proximity against THE CLAIM, and here the claim is the figure. "Unavoidable" is the operative word: never behind a click, tap, hover, expansion or scroll. Courts through 2026 have been scrutinising algorithmic output directly rather than assuming platform immunity covers it, so a disclaimer that is technically present but practically skippable buys nothing. A snapshot test enforces the binding so it cannot regress silently.
 
 Two of the three aliases are better names on the merits, not merely safer ones, because they name the MEASURED BEHAVIOUR rather than the judgement. THE THERMOSTAT is an instrument that takes the room's temperature and matches it — exactly the near-zero sentiment intensity and non-answer act-class that define White Rice. TOO BIG TO FAIL is the same trick on the risk class: the Megalomaniac must concentrate (single-market cap per leg, all-in, no diversification) and takes the Shield recovery haircut to the 28.8% floor — maximum concentration against minimum backstop, which IS too-big-to-fail structure. The alias and the risk class are the same object.
 
@@ -71,7 +73,8 @@ Nothing here changes a canonical constant. Five Faces is additive: a new market 
 Run bayesian-conviction.ts#cgarchUpdate PER FACE. CGARCH separates long-run from short-run variance: q_t = ω + ρ(q_t−1 − ω) + φ(ε² − σ²), then σ²_t = q_t + α(ε² − q_t−1) + β(σ²_t−1 − q_t−1). Project each face's permanent component q back onto the simplex and renormalise, and the transitory shell is what remains:
 
 - p⃗(t) = p⃗_perm(t) + p⃗_trans(t), with Σ p⃗ = 1 preserved through re-projection
-- PROJECT ONTO THE CAPPED SIMPLEX — one operation, not two. Clamping to [0.02, 0.88] and then renormalising is NOT idempotent: renormalisation pushes clamped coordinates back outside the band, and iterating clamp-renormalise is not guaranteed to converge. The correct primitive is a single projection onto {p : Σp = 1, 0.02 ≤ pᵢ ≤ 0.88}, solved by bisection on the water-filling level. Specify it as one function; do not let it emerge from two
+- PROJECT ONTO THE CAPPED SIMPLEX — one operation, not two. Clamping to [0.02, 0.88] and then renormalising is NOT idempotent: renormalisation pushes clamped coordinates back outside the band, and iterating clamp-renormalise is not guaranteed to converge. The correct primitive is a single exact projection onto {p : Σp = 1, 0.02 ≤ pᵢ ≤ 0.88}
+- USE THE EXACT ALGORITHM — Wang & Carreira-Perpiñán, "Projection onto the capped simplex" (arXiv:1503.01002), which solves it exactly with reference MATLAB and C++ implementations. It is O(D²) against O(D log D) for the uncapped simplex, and at D = 5 that distinction is meaningless: exactness is free here, so there is no argument for approximating. The Foundry invariant asserts EXACTNESS, not convergence — a projection that only converges is a projection that can fail to
 - THE RECORD book — long the permanent layer. Pays if the trait embeds
 - THE PHASE book — long the transitory layer. Pays if it burns off
 
@@ -109,6 +112,22 @@ The asymmetry vector γ⃗ comes free: bayesian-conviction.ts#egarchLogVar alrea
 - Invert it (Newton solve) against each observed layer for τ_perm and τ_trans — implied volatility, for persona markets
 - That yields a τ surface across subjects, a τ term structure across legs, and a τ smile across the five faces. The platform currently has NO volatility product; this is one
 
+### 4.5 COMMIT-AND-FREEZE — the settlement parameters
+
+ρ⃗ and γ⃗ decide which side of THE RECORD book wins. They are set by the house, in a market the house takes 1.88% from. Left secret AND mutable, that is not a prediction market — it is a house game with a settlement dial, and it is the single largest structural objection anyone can raise against this product.
+
+The fix does not require publishing them. It requires making them UNCHANGEABLE and PROVABLY SO:
+
+- AT MARKET OPEN — commit keccak256(abi.encode(ρ⃗, γ⃗, α⃗, version, nonce)) on-chain. The commitment is public; the values stay proprietary and server-side
+- AT EVERY CROWNING — settlement submits an EIP-712 typed, signed parameter set. The contract verifies BOTH the signature and the hash-match before it will settle. A mismatched parameter set cannot settle at all
+- FROZEN FOR THE LIFE OF THE POSITION — every position opened under a commitment settles under that commitment. A revised parameter set opens a NEW market epoch and can never apply retroactively to open positions
+- REVEAL ON DISPUTE OR AT CLOSE — reuse contracts/src/MADOptimisticOracle.sol unchanged: assertOutcome with a $MADx bond, a liveness window, dispute, then settle. The disputer's bond is the thing that makes the commitment worth checking
+- FOUNDRY INVARIANT — no settlement may execute against a parameter hash other than the one committed at position open. This is the invariant that carries the whole argument, so it is fuzzed, not merely unit-tested
+
+WHY THIS IS NOT OPTIONAL POLISH. The CFTC's proposed prediction-market rule (published 10 June 2026) is aimed at contracts vulnerable to manipulation, and eleven states have live proceedings against prediction-market operators. A contract whose settlement parameter is secret and house-changeable is close to the paradigm case of what that rule is written to catch. Commit-and-freeze moves this family from arguably-manipulable to provably-not, at the cost of one hash and one signature check per leg.
+
+PHASE 4 UPGRADE — zkML. Commit-and-freeze proves the parameters did not change; it does not prove the decomposition was computed correctly on them. A zero-knowledge proof of the per-face CGARCH, entropy pair and τ inversion closes that gap without revealing ρ⃗ at all. Feasibility is not speculative: production zkML shipped through 2026 for sub-1B-parameter models, and a full GPT-2 inference has been proven end to end. Five faces and a handful of scalar operations sits orders of magnitude below that ceiling — this family is an unusually good fit for the technique, not a stretch application of it.
+
 ## 5. Market Structure & Cadence
 
 - Bonding, not LMSR: P = P_floor · (1 + slope·ln(1+C)) · M^2.23 · S(t) — mpp-math.ts#calculateMppPrice
@@ -124,6 +143,18 @@ The asymmetry vector γ⃗ comes free: bayesian-conviction.ts#egarchLogVar alrea
 - Kelly: half-Kelly default — #kellyFraction(pWin, netOdds, 0.5); the neglected faces naturally carry the fat odds
 - Perpetual invariant: no face may price below 0.02 or above 0.88 in either layer. A persona market that fully resolves has stopped being perpetual — the floor and ceiling are what keep every face permanently tradeable
 - THE CEILING ARBITRAGE — say it out loud rather than discover it. When the honest read is 0.97 on one face, the book shows 0.88 and the residual 0.12 sits on faces nobody believes in. That gap is free money to whoever takes the other side, and while transfer is closed (§9) the BOND funds it. This is the running cost of the perpetual invariant, not a bug in it: the alternative is a market that resolves and therefore stops being a perp. Size it before Phase 2, cap total boundary exposure per subject, and monitor it as a line item rather than letting it surface as unexplained bond drawdown
+
+### 5.1 THE EXIT VALVE — redemption against the bond
+
+Two good decisions combine into a bad one. Lunar legs run 59.061 days and ERC-1155 transfer is closed at launch (§9), so without a third mechanism a launch user cannot leave a position for up to two months, in a market whose settlement they cannot follow. That is a churn engine, and it also quietly corrupts the headline retention metric (§11).
+
+The valve is REQUEST → COOLDOWN → REDEEM AGAINST THE BOND, and almost all of it already exists.
+
+- WRAPPER — reuse the Shield unstake lifecycle verbatim: #requestShieldUnstake, #calculateShieldReturnWindow (2–24h, scaled by position size), #isShieldUnstakeComplete, #shieldReturnCountdown and the ShieldStatus union. Same state machine, same countdown UI, price locked at request time. Nothing new is invented; the exit reads exactly like the unstake users already know
+- THE COOLDOWN IS THE GUARD — a size-scaled delay between requesting and redeeming is what stops the valve becoming a flash-exit vector across a Slip. Larger positions wait longer, which is already how #calculateShieldReturnWindow behaves
+- MECHANISM — redeem against the MPP bond at #calculateMppPrice, minus an exit penalty that DECAYS ACROSS THE LEG: steep at open, approaching zero near the Crowning. Early exit is expensive because early exit is the one that free-rides on other people's conviction; late exit is nearly free because by then you have carried the leg
+- THE BOND IS THE COUNTERPARTY — which is the whole point. An order book thins exactly when everyone wants out; a bonding curve cannot. Exit is always available at SOME price, and the price is a published function rather than whoever happens to be bidding
+- This does not reopen the transfer question. Redemption burns the position against the bond; it does not make positions transferable to third parties. §9's closed-transfer ruling stands untouched
 
 ## 6. THE TRADEABLE STACK
 
@@ -141,7 +172,23 @@ Four layers, three token standards, one rule: positions are liquid and open, rep
 - At each leg close the subject's full state mints as a portrait: permanent simplex, transitory shell, D, τ_perm/τ_trans, crowned face, leg index, and lunar illumination at settlement
 - One per subject per leg. FOREVER — the series never stops minting and has no cap
 - Rarity is EMERGENT, NOT ASSIGNED. A Slip leg is rare because Slips are rare; a leg where H_perm collapsed to near zero is rare because coherence is rare. Scarcity is a measured market event, never a trait table — the most honest rarity model available to an NFT series
-- Because the mint is deterministic from settlement state, the portrait is independently verifiable against chain history. Provenance needs no trust in the issuer
+- Because the mint is deterministic from settlement state, the portrait is independently verifiable against chain history — for as long as its payload remains readable. See 6.2.1: for named individuals that qualifier is load-bearing, and the weaker claim is the honest one
+
+### 6.2.1 TWO-TRACK PORTRAITS — the EDPB constraint
+
+EDPB Guidelines 02/2025, version 2.0 adopted 7 July 2026, recommend not registering clear text, ENCRYPTED, or HASHED personal data on a blockchain — encrypted personal data is still personal data, and the store-a-hash-on-chain pattern that most NFT projects assume is safe is explicitly disfavoured. A portrait of a NAMED LIVING PERSON'S character reading, minted permanently to a public chain, is squarely what that guidance is written about.
+
+The constraint binds on one track only, so the design splits rather than degrades:
+
+| Subject class | Portrait design | Rationale |
+|---|---|---|
+| Brands · institutions · models · industries · indices | UNCHANGED — full payload on-chain, fully verifiable forever | No personal data, therefore no GDPR surface. Emergent rarity works exactly as specified |
+| NAMED LIVING INDIVIDUALS | On-chain: opaque subjectId, leg index, ciphertext pointer, token id — and nothing else. No name, no likeness, no persona label, no persona values. Off-chain: the payload under AES-256, one key PER SUBJECT | Keeps the token, the series and the provenance while holding no personal data on a public chain |
+
+- ERASURE = KEY DESTRUCTION. An upheld erasure request destroys that subject's key, with an auditable destruction log. The token survives, its position in the series survives, its provenance survives — the link to the person does not. EDPB, the UK ICO and CNIL all recognise crypto-shredding as valid erasure given strong encryption, irreversible destruction and auditability
+- THE HONEST QUALIFIER — for named-subject portraits, "independently verifiable against chain history" holds only while the key lives. After erasure the token is provably part of the series and provably unreadable. Say that plainly rather than leaving the stronger claim standing; a collector who discovers the limitation later is a collector who stops trusting the whole series
+- EMERGENT RARITY SURVIVES — the Slip, the Crowning and the leg index are market events recorded on-chain independently of the payload, so a Slip-leg portrait is still provably a Slip-leg portrait. What erasure removes is WHOSE it was, which is exactly the property that should be removable and the only one that should
+- PER-SUBJECT keys, not per-token: one erasure request must reach every portrait of that person across every leg, in one operation. Per-token keys would turn a single request into an unbounded sweep and guarantee a miss
 
 ### 6.3 L3 — ATTESTATIONS (ERC-5192 soulbound; POAP-compatible)
 
@@ -192,6 +239,8 @@ THE CONSTRAINT THAT DECIDES THE SPLIT — ERC-6551. A token-bound account can on
 
 Two smaller notes. The ERC-6551 registry is a CREATE2 singleton at an identical address on every EVM chain, which makes multi-chain addressing trivial but does NOT solve the cross-chain asset problem above. And provenance must never fragment: when HyperLiquid comes online as a venue, portraits and attestations still resolve to Arbitrum One as the source of truth, or a collector's history becomes chain-dependent and therefore unverifiable.
 
+CONSEQUENCE OF §6.2.1 — the topology ruling is unaffected, but WHAT THE TOKEN CARRIES changes. Arbitrum One is public, so for named individuals it holds only the pseudonymous subjectId and a ciphertext pointer; the payload lives off-chain under a per-subject key. This does not move the token stack off One and does not weaken the ERC-6551 argument — a token-bound account holds the token, and the token is still on One. It does mean the portrait key registry is infrastructure that must exist BEFORE the first named-subject portrait mints, which puts it in front of Phase 4 rather than inside it.
+
 ## 7. MAD Shield on a decomposed simplex
 
 - Premium: Stake × P(win) × √Volatility × SafetyMargin(0.35), clamped 2–4% — #calculateShieldPremium, unchanged
@@ -232,6 +281,13 @@ Gossip-Cop names people because it asks about EVENTS. Five Faces assigns CHARACT
 - ELIGIBILITY BAR — a named subject qualifies only on an objective, auditable threshold recorded with the market: holds or seeks public office, is an officer or director of a public company, or has a sustained national-media public role. The bar is published, the evidence is stored with the market criteria, and a subject who falls below it is delisted at the next Crowning rather than mid-leg
 - RIGHT OF REPLY — every named-subject market carries a standing, unmoderated response surface the subject (or a verified representative) can post to, rendered adjacent to the Waterline at equal prominence. A market that reads someone's character while giving them no channel to answer is the version of this product that gets sued
 - DELISTING AND APPEAL PATH — a named subject may request review; substantiated complaints halt new conviction immediately and settle open positions at the last Crowning price rather than voiding them. The path, its SLA and its outcomes are published. Complaint volume and resolution time are tracked as launch metrics, not incident reports
+- THE CODEX REGISTRAR — the fourth control, and the one that is a PERSON rather than a feature. The first three describe what the product does; none of them says who decides that a named subject clears the bar, at volume, with legal consequence. Every other perp on this platform is classified algorithmically by market-classifier.ts; this one is not, and pretending otherwise is how the queue ends up owned by nobody. One accountable in-house owner, a published LISTING SLA to sit alongside the delisting SLA, and a staffed queue
+
+TRIAGE ARCHITECTURE — cheap classifier pre-screen on the objective eligibility criteria, LLM-as-judge on the ambiguous remainder, humans on the genuinely hard cases and on EVERY appeal. That is the 2026 consensus shape for trust-and-safety operations and it keeps this under one FTE at launch scale. Cost it openly: a fully-loaded moderation FTE runs roughly £30–40k in the UK and materially more in the US, so the operating cost of the named-subject decision is a real number that should appear on the day the decision is made rather than a year later.
+
+DSA-SHAPED FROM DAY ONE — build the notice-and-action mechanism, a trusted-flagger priority lane, and published moderation statistics including error rates, before the thresholds bind. Two reasons beyond compliance: the EU becomes a switch-flip rather than a re-architecture, and the transparency report doubles as the contemporaneous audit trail that defends the product if a complaint ever escalates. A platform that can show its own error rate is in a very different position from one that cannot.
+
+PAUSE_GUARDIAN — a role that halts new conviction platform-wide, deliberately NOT behind the governance timelock. Timelocks exist to delay parameter changes so the community can react; an emergency stop must not be delayed for the same reason a fire alarm is not on a timer. Precedent exists but is insufficient: contracts/src/MADMarketFactory.sol already inherits OpenZeppelin Pausable with pause()/unpause() gated onlyOwner. That couples the emergency stop to the owner key, which is both a single point of failure and the wrong custody model. This needs a SEPARATE role with a separate key, able to halt but not to change anything.
 
 Counsel review moves from a Phase 5 gate to a LAUNCH gate, and covers the eligibility bar, the Codex text, the resolution copy, and the right-of-reply design before the first named market opens. THE PROSTITUTE applied to a named living person remains the single highest-risk cell in the product; the broadcastName THE SELLOUT ships as the default display for named subjects.
 
@@ -244,23 +300,32 @@ Counsel review moves from a Phase 5 gate to a LAUNCH gate, and covers the eligib
 - MADPositionToken.sol — ERC-1155 conditional positions, one id per (subject, leg, face, layer)
 - MADPortrait.sol — ERC-721, deterministic mint from settlement state at each Crowning
 - MADAttestation.sol — ERC-5192 soulbound, Fibonacci milestone ladder
+- NEW MADParamCommit.sol — parameter-hash registry (§4.5): commit at market open, EIP-712 verify at each Crowning, epoch rollover on revision, reveal path wired to MADOptimisticOracle
+- NEW PAUSE_GUARDIAN role (§9.1) — halts new conviction platform-wide, separate key from owner, NOT timelocked. MADMarketFactory's existing onlyOwner Pausable is the precedent to extend, not to reuse as-is
+- NEW MADPortraitKeyRegistry.sol — per-subject key references and an auditable destruction log for §6.2.1 erasure. Holds references and events only; never key material
 - ERC-6551 registry integration for MADCard token-bound accounts (registry is a deployed public singleton; the work is the account implementation and the card wiring)
 - Reuse: MADMarketFactory, MADStaking, MADShieldVault, RiskOracle, MADOptimisticOracle
-- Foundry fuzz + invariants: Σp ≈ 1 after re-projection · monotonic cost · never insolvent · no face outside [0.02, 0.88] in either layer · permanent component never negative · D finite and signed on both sides · 1155 supply conservation across transfer AND settlement
+- Foundry fuzz + invariants: capped-simplex projection is EXACT (not merely convergent) · Σp ≈ 1 after re-projection · monotonic cost · never insolvent · no face outside [0.02, 0.88] in either layer · permanent component never negative · D finite and signed on both sides · 1155 supply conservation across redemption AND settlement · NO SETTLEMENT AGAINST A PARAMETER HASH OTHER THAN THE ONE COMMITTED AT POSITION OPEN · exit redemption always available at some price while a leg is open · PAUSE_GUARDIAN can halt but can never alter state
 
 ### 10.2 Backend
 
 - NEW persona-codex.ts — five faces carrying codexName, broadcastName and catchphrase, plus ρ⃗, γ⃗, α per face, δ and Kelly bounds. catchphrase is type-level excluded from every stakeable-label render path (§2.1); mirrors the QUIPS map in zliar-meter.tsx
 - NEW persona-decompose.ts — per-face CGARCH, simplex re-projection and renormalisation, H_perm/H_trans, D, implied-τ Newton inversion
 - NEW tradeable-registry.ts — id derivation for (subject, leg, face, layer), portrait metadata builder, attestation milestone evaluator
+- NEW portrait-vault.ts — per-subject AES-256 key lifecycle, ciphertext pointer derivation, irreversible destruction with an audit record (§6.2.1). Keys never touch the chain and never touch a log line
+- NEW position-exit.ts — the §5.1 valve: request/cooldown/redeem state machine composed from #requestShieldUnstake, #calculateShieldReturnWindow, #isShieldUnstakeComplete and #shieldReturnCountdown, plus the leg-decaying exit penalty over #calculateMppPrice
+- NEW param-commit.ts — EIP-712 typed-data construction for (ρ⃗, γ⃗, α⃗, version, nonce), commitment hashing, and the epoch guard that refuses to sign against a superseded commitment
+- NEW registrar-queue.ts — eligibility pre-screen, LLM-as-judge escalation, human queue, listing/delisting SLA timers, and the DSA notice-and-action + trusted-flagger intake (§9.1)
 - market-classifier.ts — add type="faces" + personaEligible ahead of gossipcop; extend MarketType, buildTitle, buildResolution
 - Reused unchanged: mpp-math.ts (calculateMppPrice, calculateSlippageCushion, calculateConviction) · bayesian-conviction.ts (cgarchUpdate, egarchLogVar, sequentialLogOddsUpdate, brierScore, logScore) · gambit-game-math.ts (calculateSoftmax, calculateDeltaLimit, kellyFraction, lunar, Shield, splitFee, streakReward) · card-evolution.ts
-- APIs: POST /api/v1/faces/{codex,classify,open,allocate,decompose,divergence,slip,crown,roll,shield} · /api/v1/tradeables/{position,portrait,attestation,basket}
+- APIs: POST /api/v1/faces/{codex,classify,open,allocate,decompose,divergence,slip,crown,roll,shield,exit} · /api/v1/tradeables/{position,portrait,attestation,basket} · /api/v1/registrar/{propose,screen,appeal,delist,stats} · /api/v1/params/{commit,verify,reveal}
 
 ### 10.3 Frontend / app
 
 - THE WATERLINE — the hero instrument. Permanent simplex rendered below the line, transitory shell above, D as the visible gap, τ_perm/τ_trans on the bezel. Analog-dial language inherited from the Z-Liar Meter
-- Codex popover on every stakeable label (compliance-required, not optional)
+- PersonaPrice — the single component that renders a face's price. It takes a CodexDefinition prop and will not compile without one, so a price can never appear on screen detached from its definition (§2). Not a popover: a popover is exactly the skippable-disclosure pattern the FTC standard rules out
+- Exit drawer — request/cooldown/redeem with the live countdown and the current decaying penalty shown before commit, reusing the Shield unstake countdown component
+- Parameter-commitment badge on every market: the committed hash, the epoch, and whether this leg's settlement verified against it. A commitment nobody can see is a commitment nobody trusts
 - Half-life readout per face, in legs and in lunations
 - Slip takeover: full-bleed alert when D breaks its band, with the cap-unlock countdown
 - Crowning ceremony at leg close — permanent face crowned, portrait mint animation, Golden Aura and Affliction reveals
@@ -268,16 +333,19 @@ Counsel review moves from a Phase 5 gate to a LAUNCH gate, and covers the eligib
 
 ### 10.4 Phased build
 
-- Phase 1 — persona-codex + classifier extension + parimutuel decomposed markets. Named public figures are in scope from Phase 1 per the Aug 2026 decision, which makes the §9.1 controls (eligibility bar, right of reply, delisting path) Phase 1 deliverables rather than later hardening. Ship the Codex and the Waterline first; they are the product
-- Phase 2 — MPP bonding maker, lunar legs, Crowning, Shield integration, D as a readout
+- Phase 1 — persona-codex + classifier extension + parimutuel decomposed markets, with the EXACT capped-simplex projection from the start. Named public figures are in scope from Phase 1 per the Aug 2026 decision, which makes the §9.1 controls (eligibility bar, right of reply, delisting path, Codex Registrar, PAUSE_GUARDIAN) Phase 1 deliverables rather than later hardening. Ship the Codex and the Waterline first; they are the product
+- Phase 2 — MPP bonding maker, lunar legs, Crowning, Shield integration, D as a readout, the §5.1 exit valve (it ships WITH the bond, since the bond is its counterparty), and §4.5 commit-and-freeze
 - Phase 3 — D as a TRADEABLE book, implied-τ surface, Slip events
-- Phase 4 — tradeable stack: ERC-1155 positions (closed transfer first), portrait mint, soulbound attestations
+- Phase 4 — tradeable stack: ERC-1155 positions (closed transfer first), portrait mint, soulbound attestations, and the zkML upgrade to §4.5. GATE: the §6.2.1 portrait key registry must be LIVE before the first named-subject portrait mints — it is a precondition of this phase, not a task inside it
 - Phase 5 — open transfer on positions (counsel-gated), 4.8% ERC-2981 royalty goes live, ERC-6551 card accounts, Divergence baskets
 
 ## 11. Success Metrics
 
 - Five Faces volume ≥ 20% of platform by Y2, measured in net-new wallets rather than share, so cannibalisation of Gossip-Cop is visible
-- Average hold > 60 days — longer than Gossip-Cop (30d) and Epiphanies (45d); the lunar leg and conviction compounding both push that way
+- Average VOLUNTARY hold > 60 days — the denominator is positions that COULD have exited via §5.1 and chose not to. The unqualified version of this metric was unfalsifiable: with transfer closed and 59-day legs, a long hold measured the lockup rather than conviction. Once the exit valve exists the number means something, and it only means something if measured this way
+- Exit-valve usage between 5% and 25% of positions per leg. Below 5% suggests the penalty curve is punitive; above 25% suggests conviction is not forming and the market is being used as a trade
+- Key-destruction SLA: 100% of upheld erasure requests executed within the published window, with an auditable log entry per subject (§6.2.1). This is pass/fail, not a target
+- Registrar queue: listing decisions and appeals both inside published SLA; moderation error rate published per §9.1 rather than held internally
 - Shield opt-in ≥ 55%, the platform's highest, on the §7 low-P(win) premium argument
 - Divergence book ≥ 25% of family volume by Y2 — if D is not being traded, the thesis has not landed
 - Portrait secondary: ≥ 40% of Slip-leg portraits change hands within two legs of mint
@@ -298,6 +366,12 @@ Counsel review moves from a Phase 5 gate to a LAUNCH gate, and covers the eligib
 | ρ⃗ / γ⃗ values | Ship the §4.3 proposal | Calibrate on live data before Phase 2. Proprietary, server-side |
 | Face floor / ceiling | 0.02 / 0.88 locked at canonical tier | Changing it now requires founder sign-off like any PLATFORM constant |
 | Prostitute fee treatment | Royalty share at 4.8% | ERC-2981, best-effort, dormant until Phase 5 — §6.5 |
+| Audit 1 — settlement parameters | COMMIT-AND-FREEZE; zkML at Phase 4 | Values stay secret, commitment is public and immutable per position — §4.5 |
+| Audit 2 — simplex projection | EXACT algorithm (Wang & Carreira-Perpiñán) | At D=5 exactness is free; invariant asserts exactness, not convergence — §4.1 |
+| Audit 3 — Codex binding | Bind to the NUMBER, type-enforced | PersonaPrice will not compile without a CodexDefinition — §2 |
+| Audit 4 — exit valve | Request → cooldown → redeem against the bond | Reuses the Shield unstake lifecycle wholesale; penalty decays across the leg — §5.1 |
+| Audit 5 — operations | Codex Registrar + DSA-shaped intake + PAUSE_GUARDIAN | The guardian is a separate key and is NOT timelocked — §9.1 |
+| Audit 6 — portraits | Two-track: institutions on-chain, named individuals pseudonymous + crypto-shredded | EDPB v2.0 (7 Jul 2026) disfavours even hashed personal data on-chain — §6.2.1 |
 
 ### 12.1 Note carried forward
 
