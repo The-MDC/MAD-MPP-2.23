@@ -19,7 +19,9 @@ import ScandalVelocityMeter from "@/components/scandal-velocity-meter";
 import ZLiarMeter from "@/components/zliar-meter";
 import SeikoFlipClock from "@/components/seiko-flip-clock";
 
-type MarketType = "progression" | "saga" | "zliar" | "perp" | "gossipcop";
+// Imported, never redeclared — see market-type-carousels.tsx for why.
+import { type MarketType } from "@/lib/market-classifier";
+
 interface Proposal { type: MarketType; title: string; score: number; perpProbability: number }
 interface Resp { success: boolean; source?: string; proposals: Proposal[] }
 

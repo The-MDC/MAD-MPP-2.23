@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
-import { proposalsForToday, type MarketType, type Signal } from "@/lib/market-classifier";
+import {
+  proposalsForToday,
+  emptyTypeTally,
+  type MarketType,
+  type Signal,
+} from "@/lib/market-classifier";
 import { hasDatabaseUrl } from "@/lib/database-url";
 
 /**
@@ -20,7 +25,9 @@ const DEMO_HEADLINES = [
 ];
 
 function countByType(proposals: { type: MarketType }[]): Record<MarketType, number> {
-  const c: Record<MarketType, number> = { progression: 0, saga: 0, zliar: 0, perp: 0, gossipcop: 0 };
+  // Built from MARKET_TYPES rather than a hand-listed literal, so adding a
+  // market type can never silently leave a key missing here again.
+  const c = emptyTypeTally();
   for (const p of proposals) c[p.type] += 1;
   return c;
 }

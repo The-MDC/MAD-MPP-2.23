@@ -21,7 +21,84 @@ import { scoreSentiment, type Sentiment } from "@/lib/sentiment";
 import { zLiarMeter, PLATFORM } from "@/lib/gambit-game-math";
 import { perpTriggerProbability } from "@/lib/gdelt";
 
-export type MarketType = "progression" | "saga" | "zliar" | "perp" | "gossipcop";
+/**
+ * Every market type, in cascade-evaluation order. The union is DERIVED from this
+ * array rather than declared alongside it, so the two can never disagree — and
+ * any consumer needing a value per type (a counter, a label map, a carousel)
+ * should iterate MARKET_TYPES instead of hand-listing keys. Hand-listed
+ * `Record<MarketType, T>` literals silently rot every time a type is added.
+ */
+export const MARKET_TYPES = [
+  "progression",
+  "saga",
+  "zliar",
+  "perp",
+  "gossipcop",
+  "faces",
+  "zeitgeist",
+  "epiphany",
+] as const;
+
+export type MarketType = (typeof MARKET_TYPES)[number];
+
+/** Build a zero-initialised tally over every market type. */
+export function emptyTypeTally(): Record<MarketType, number> {
+  const out = {} as Record<MarketType, number>;
+  for (const t of MARKET_TYPES) out[t] = 0;
+  return out;
+}
+
+// FIVE FACES = the persona-decomposition family. A persona-bearing subject with a
+// perpetual horizon graduates here rather than to a binary gossip perp, because
+// the interesting question is WHICH FACE, not whether the storyline is alive.
+// Evaluated AHEAD of gossipcop for exactly that reason.
+// Deliberately narrow: ROLE nouns that denote a persona-bearing subject, plus
+// explicit character framing. Generic words that merely co-occur with personas
+// ("empire", "legacy", "image", "brand") are excluded — they over-capture, and
+// in a first-match cascade a greedy list steals markets from the family that
+// should own them. Under-routing is recoverable; misrouting is not.
+const PERSONA_TERMS = [
+  "ceo", "founder", "president", "senator", "governor", "minister", "chairman",
+  "billionaire", "mogul", "executive", "politician", "candidate", "tycoon",
+  "persona", "hypocrisy", "sincerity", "sell-out", "sellout", "moral high ground",
+];
+
+// ZEITGEIST = the trend-succession family. The subject is a media / social /
+// influencer TREND, never a person — which is why this family has effectively no
+// defamation surface and is the safest in the set.
+const TREND_TERMS = [
+  "trend", "creator economy", "influencer", "virality", "algorithm", "feed",
+  "social commerce", "engagement", "monetisation", "monetization", "cohort",
+  "generative ai", "synthetic", "authenticity", "backlash", "adoption curve",
+];
+
+// EPIPHANY = mental models, adages, laws of life, urban legends, wives' tales.
+// NOTE the absence of a bare "law". As a substring it matches "lawsuit",
+// "lawyer", "lawmaker" and "outlaw" — and since epiphany is evaluated FIRST,
+// a bare "law" would hijack every legal headline in the feed. Named laws and
+// the possessive form are specific enough to be safe.
+const EPIPHANY_TERMS = [
+  "'s law", "s' law", "law of ", "principle", "adage", "proverb", "maxim",
+  "folklore", "wives' tale", "wives tale", "urban legend", "mental model",
+  "rule of thumb", "aphorism", "murphy", "hofstadter", "littlewood", "finagle",
+];
+
+const hasTerm = (headline: string, terms: readonly string[]): boolean => {
+  const t = (headline ?? "").toLowerCase();
+  return terms.some((w) => t.includes(w));
+};
+
+function isPersona(headline: string): boolean {
+  return hasTerm(headline, PERSONA_TERMS);
+}
+
+function isTrend(headline: string): boolean {
+  return hasTerm(headline, TREND_TERMS);
+}
+
+function isEpiphany(headline: string): boolean {
+  return hasTerm(headline, EPIPHANY_TERMS);
+}
 
 // GossipCop = the celebrity/entertainment historical-vault perp family. A long-arc
 // gossip storyline tracked continuously (never a clean binary resolution).
@@ -82,6 +159,12 @@ function horizonLabel(days: number): string {
 function buildTitle(headline: string, type: MarketType, days: number): string {
   const h = headline.length > 90 ? `${headline.slice(0, 87)}…` : headline;
   switch (type) {
+    case "faces":
+      return `Five Faces: which face is "${h}" permanently wearing?`;
+    case "zeitgeist":
+      return `Zeitgeist: what kind of thing is "${h}"?`;
+    case "epiphany":
+      return `Epiphany: does "${h}" still hold?`;
     case "gossipcop":
       return `Gossip Perp: is "${h}" a forever-saga? (continuous)`;
     case "perp":
@@ -97,6 +180,12 @@ function buildTitle(headline: string, type: MarketType, days: number): string {
 
 function buildResolution(type: MarketType, days: number): string {
   switch (type) {
+    case "faces":
+      return "Continuous persona decomposition — the permanent simplex is crowned each lunar leg; positions roll and never terminally resolve. Prices a reading of public conduct, never a factual allegation.";
+    case "zeitgeist":
+      return "Continuous trend succession — scored on the five-face axis; at each Turning positions transmigrate along a measured succession matrix rather than settling.";
+    case "epiphany":
+      return "Continuous market on the cultural persistence of a mental model — positions roll while the model stays culturally active.";
     case "gossipcop":
       return "Continuous MAD Gossip perp — historical-pattern (GossipCop-style) tracked; positions roll while the saga stays live.";
     case "perp":
@@ -138,7 +227,13 @@ export function classifySignal(sig: Signal): MarketProposal {
   // Primary type — priority order documented above. A long-arc, celebrity/gossip
   // perp graduates to the GossipCop class (its own carousel + dashboard surface).
   let type: MarketType;
-  if (perpEligible && horizonDays >= 365 && isGossip(headline)) type = "gossipcop";
+  // Epiphany first: an abstract pattern is never a persona or a trend, and the
+  // match is lexically specific enough that it will not steal from the others.
+  if (isEpiphany(headline)) type = "epiphany";
+  // Then FIVE FACES, deliberately ahead of gossipcop — see PERSONA_TERMS.
+  else if (perpEligible && horizonDays >= 365 && isPersona(headline)) type = "faces";
+  else if (perpEligible && horizonDays >= 365 && isTrend(headline)) type = "zeitgeist";
+  else if (perpEligible && horizonDays >= 365 && isGossip(headline)) type = "gossipcop";
   else if (perpEligible && horizonDays >= 365) type = "perp";
   else if (zliarEligible && horizonDays <= 45) type = "zliar";
   else if (horizonDays > 60) type = "saga";
