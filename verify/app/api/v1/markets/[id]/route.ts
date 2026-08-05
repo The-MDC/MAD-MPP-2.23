@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { getMarket } from "@/lib/markets";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 /** GET /api/v1/markets/<id> — a single prediction market (Part W). */
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: true, market: null, source: "demo" });
   }
   try {

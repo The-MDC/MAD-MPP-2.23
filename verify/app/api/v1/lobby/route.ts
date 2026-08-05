@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 /**
  * MAD Gambit — Game Lobby API  (chat channels + Wall)
@@ -35,7 +36,7 @@ const EXPIRY = "16 days";
 const MAX_BODY = 280;
 
 export async function GET(req: Request) {
-  if (!process.env.DATABASE_URL) return NextResponse.json({ success: false, error: "DATABASE_URL not set" }, { status: 503 });
+  if (!hasDatabaseUrl()) return NextResponse.json({ success: false, error: "DATABASE_URL not set" }, { status: 503 });
   const pool = getDbPool();
   const channel = new URL(req.url).searchParams.get("channel");
   try {
@@ -58,7 +59,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  if (!process.env.DATABASE_URL) return NextResponse.json({ success: false, error: "DATABASE_URL not set" }, { status: 503 });
+  if (!hasDatabaseUrl()) return NextResponse.json({ success: false, error: "DATABASE_URL not set" }, { status: 503 });
   const pool = getDbPool();
   try {
     const b = await req.json();

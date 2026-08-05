@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { getWhitelist, addToWhitelist } from "@/lib/whitelist";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 interface WhitelistBody {
   name?: unknown;
@@ -10,7 +11,7 @@ interface WhitelistBody {
 
 /** GET /api/v1/gdelt/whitelist — list the celebrity whitelist (Part S). */
 export async function GET() {
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: true, whitelist: [], source: "demo" });
   }
   try {
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
   if (!body || typeof body.name !== "string" || body.name.trim() === "") {
     return NextResponse.json({ success: false, error: "name required" }, { status: 400 });
   }
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json(
       { success: false, error: "whitelist unavailable (needs DATABASE_URL)" },
       { status: 503 },

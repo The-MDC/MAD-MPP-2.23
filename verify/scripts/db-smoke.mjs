@@ -23,7 +23,7 @@ function assert(cond, msg) {
 }
 
 async function main() {
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = process.env.DATABASE_URL ?? process.env.NEON_SKY_PARK_DATABASE_URL ?? process.env.NEO_DATABASE_URL;
   if (!connectionString) {
     console.error("❌ DATABASE_URL not set — cannot smoke-test.");
     process.exit(1);

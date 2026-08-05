@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { listShieldPositions, type ShieldPositionRow } from "@/lib/shield";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 /**
  * GET /api/v1/shield/positions/<wallet> — a wallet's Shield positions (Part P,
@@ -14,7 +15,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ wallet:
   }
 
   const empty: ShieldPositionRow[] = [];
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: true, positions: empty, source: "demo" });
   }
 

@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { getProfile } from "@/lib/data-platform/cdp";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 /** GET /api/v1/data/cdp/<wallet> — the wallet's CDP profile. */
 export async function GET(_req: Request, { params }: { params: Promise<{ wallet: string }> }) {
   const { wallet } = await params;
   if (!/^0x[0-9a-fA-F]{40}$/.test(wallet))
     return NextResponse.json({ success: false, error: "invalid wallet" }, { status: 400 });
-  if (!process.env.DATABASE_URL)
+  if (!hasDatabaseUrl())
     return NextResponse.json({ success: false, error: "DATABASE_URL not set" }, { status: 503 });
 
   try {

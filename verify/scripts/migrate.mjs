@@ -17,7 +17,7 @@ const { Client } = pg;
 const SQL_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "sql");
 
 async function main() {
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = process.env.DATABASE_URL ?? process.env.NEON_SKY_PARK_DATABASE_URL ?? process.env.NEO_DATABASE_URL;
   if (!connectionString) {
     console.error("❌ DATABASE_URL not set — nothing to migrate against.");
     process.exit(1);

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { buildScandalGraph, type GraphSignal } from "@/lib/scandal-graph";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 /**
  * GET /api/v1/scandal/graph — the scandal co-occurrence graph (in-app GraphRAG
@@ -31,7 +32,7 @@ function asStringArray(v: unknown): string[] {
 }
 
 export async function GET() {
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: true, source: "demo", graph: buildScandalGraph(DEMO) });
   }
   try {

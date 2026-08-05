@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { ingestGdelt, fetchGdeltDoc, scoreArticle } from "@/lib/gdelt-ingest";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 /**
  * GET|POST /api/v1/ingest/gdelt — pull the latest celebrity chaos from GDELT DOC
@@ -13,7 +14,7 @@ import { ingestGdelt, fetchGdeltDoc, scoreArticle } from "@/lib/gdelt-ingest";
 export const dynamic = "force-dynamic"; // a live scrape must never be cached
 
 async function run() {
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     const articles = await fetchGdeltDoc().catch(() => []);
     const sample = articles.slice(0, 5).map((a) => scoreArticle(a.title, a.url, new Set<string>()));
     return { success: true, source: "demo", fetched: articles.length, inserted: 0, sample };

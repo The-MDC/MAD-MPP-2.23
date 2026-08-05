@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 interface AuditEntry {
   id: number;
@@ -20,7 +21,7 @@ interface AuditEntry {
 export async function GET(req: Request) {
   const limit = Math.max(1, Math.min(100, Math.floor(Number(new URL(req.url).searchParams.get("limit")) || 20)));
   const empty: AuditEntry[] = [];
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: true, entries: empty, source: "demo" });
   }
   try {

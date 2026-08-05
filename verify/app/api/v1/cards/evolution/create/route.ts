@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { createCardStats } from "@/lib/card-evolution";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 interface CreateBody {
   id?: unknown;
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error: "owner required" }, { status: 400 });
   }
 
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     return NextResponse.json(
       { success: false, error: "card evolution needs DATABASE_URL" },
       { status: 503 },

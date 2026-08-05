@@ -15,6 +15,7 @@
  */
 import { randomBytes } from 'crypto';
 import { getDbPool } from './db';
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 const NONCE_TTL_MS = 5 * 60 * 1000;
 const TTL_SQL = '5 minutes';
@@ -23,7 +24,7 @@ const TTL_SQL = '5 minutes';
 const mem = new Map<string, number>();
 
 function useDb(): boolean {
-  return !!process.env.DATABASE_URL;
+  return hasDatabaseUrl();
 }
 
 /** Issue a fresh, server-side nonce. */

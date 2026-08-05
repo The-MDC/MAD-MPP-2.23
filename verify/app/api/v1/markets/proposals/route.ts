@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { proposalsForToday, type MarketType, type Signal } from "@/lib/market-classifier";
+import { hasDatabaseUrl } from "@/lib/database-url";
 
 /**
  * GET /api/v1/markets/proposals — auto-generated, classified market proposals
@@ -27,7 +28,7 @@ function countByType(proposals: { type: MarketType }[]): Record<MarketType, numb
 export async function GET(req: Request) {
   const limit = Math.min(30, Math.max(1, Number(new URL(req.url).searchParams.get("limit")) || 12));
 
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseUrl()) {
     const proposals = proposalsForToday(DEMO_HEADLINES.map((headline) => ({ headline })), limit);
     return NextResponse.json({ success: true, source: "demo", proposals, byType: countByType(proposals) });
   }
