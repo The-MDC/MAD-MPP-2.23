@@ -64,7 +64,8 @@ MASK_CODEX = ("table", [
     ["THE PROSTITUTE", "The Sell-Out archetype: monetises access, principle, platform or endorsement to the highest bidder. Never a claim about anyone's sexual conduct."],
 ])
 
-CODEX_NOTE = ("p", "The Codex is not flavour text — it is a compliance primitive. The definition renders adjacent to the label on every surface where conviction can be staked, and ships on-chain with the market criteria, so the product is unambiguously an archetype-perception market and never a factual allegation. Every face carries codexName and broadcastName; PERSONA_DISPLAY_MODE=\"broadcast\" swaps THE PROSTITUTE → THE SELLOUT and WHITE RICE → THE THERMOSTAT for app stores, ad networks and restrictive jurisdictions without forking the product. THE THERMOSTAT is the better name on the merits, not merely the safer one: it names the measured behaviour — an instrument that takes the room's temperature and matches it, which is exactly the near-zero sentiment intensity and non-answer act-class that define the face.")
+CODEX_NOTE = ("p", "The Codex is not flavour text — it is a compliance primitive. The definition ships on-chain with the market criteria and renders on every surface where conviction can be staked, at NO LESS THAN the visual weight of the persona label itself, never collapsed, and never behind a hover, tap or scroll. Adjacency is not prominence: a disclaimer that requires an interaction to reveal is a footnote, and a footnote is what a plaintiff reads aloud. §9.1 already demands equal prominence for the right-of-reply; the Codex gets the same standard for the same reason. Every face carries codexName and broadcastName; PERSONA_DISPLAY_MODE=\"broadcast\" swaps THE PROSTITUTE → THE SELLOUT, WHITE RICE → THE THERMOSTAT and THE MEGALOMANIAC → TOO BIG TO FAIL for app stores, ad networks and restrictive jurisdictions without forking the product.")
+CODEX_NOTE_2 = ("p", "Two of the three aliases are better names on the merits, not merely safer ones, because they name the MEASURED BEHAVIOUR rather than the judgement. THE THERMOSTAT is an instrument that takes the room's temperature and matches it — exactly the near-zero sentiment intensity and non-answer act-class that define White Rice. TOO BIG TO FAIL is the same trick on the risk class: the Megalomaniac must concentrate (single-market cap per leg, all-in, no diversification) and takes the Shield recovery haircut to the 28.8% floor — maximum concentration against minimum backstop, which IS too-big-to-fail structure. The alias and the risk class are the same object.")
 
 LUNAR_CADENCE = [
     ("li", "Leg = 2 synodic months = 59.061 days (LUNAR_CYCLE_MS × 2). Dead centre of the 45–90d band and clear of the 30-day minimum-maturity floor, and it never calendar-drifts because it is astronomical"),
@@ -97,6 +98,19 @@ FIVE_FACES = [
     ("h1", "2. The Mask Codex (locked definitions — rendered at bet time)"),
     MASK_CODEX,
     CODEX_NOTE,
+    CODEX_NOTE_2,
+
+    ("h2", "2.1 Broadcast aliases and catchphrases"),
+    ("table", [
+        ["Face (codex — canon, on-chain)", "Broadcast alias", "Catchphrase (flavour only)"],
+        ["THE SAINT", "—", "\"I'd like to thank myself for being so brave.\""],
+        ["WHITE RICE", "THE THERMOSTAT", "\"I think everyone makes a great point.\""],
+        ["THE MEGALOMANIAC", "TOO BIG TO FAIL", "\"Aaaand it's gone.\""],
+        ["THE NARCISSIST", "—", "\"Anyway, back to me.\""],
+        ["THE PROSTITUTE", "THE SELLOUT", "\"This roast is sponsored by—\""],
+    ]),
+    ("p", "The codex name in column one is canon: it is what ships on-chain with the market criteria and what the Codex definition attaches to. The alias is a display swap only. TOO BIG TO FAIL and its catchphrase are founder-confirmed (Aug 2026); the other four catchphrases are proposed to complete the set and are trivially swappable without touching anything structural."),
+    ("p", "CATCHPHRASES ARE FLAVOUR ONLY and the boundary is load-bearing: they render in the roast feed, on card art and in the MADHAT'r's voice, but NEVER on a stakeable label, never in resolution copy, and never on-chain. They therefore sit outside the Codex compliance surface entirely and carry no legal weight — which is exactly why they are allowed to be funny. Implementation mirrors the existing QUIPS map in zliar-meter.tsx: a per-key string map rendered adjacent to an instrument, not part of it."),
 
     ("h1", "3. Canonical Constants (unchanged — gambit-game-math.ts#PLATFORM)"),
     CANONICAL_CONSTANTS,
@@ -106,6 +120,7 @@ FIVE_FACES = [
     ("h2", "4.1 Splitting the simplex"),
     ("p", "Run bayesian-conviction.ts#cgarchUpdate PER FACE. CGARCH separates long-run from short-run variance: q_t = ω + ρ(q_t−1 − ω) + φ(ε² − σ²), then σ²_t = q_t + α(ε² − q_t−1) + β(σ²_t−1 − q_t−1). Project each face's permanent component q back onto the simplex and renormalise, and the transitory shell is what remains:"),
     ("li", "p⃗(t) = p⃗_perm(t) + p⃗_trans(t), with Σ p⃗ = 1 preserved through re-projection"),
+    ("li", "PROJECT ONTO THE CAPPED SIMPLEX — one operation, not two. Clamping to [0.02, 0.88] and then renormalising is NOT idempotent: renormalisation pushes clamped coordinates back outside the band, and iterating clamp-renormalise is not guaranteed to converge. The correct primitive is a single projection onto {p : Σp = 1, 0.02 ≤ pᵢ ≤ 0.88}, solved by bisection on the water-filling level. Specify it as one function; do not let it emerge from two"),
     ("li", "THE RECORD book — long the permanent layer. Pays if the trait embeds"),
     ("li", "THE PHASE book — long the transitory layer. Pays if it burns off"),
     ("p", "Perpetual by construction, not by fiat: ρ < 1 means the permanent component mean-reverts toward ω asymptotically and never arrives in finite time. There is no terminal value, therefore no terminal market. That is the mathematics, not a product decision — and it is the cleanest compliance position available to a perpetual."),
@@ -143,6 +158,7 @@ FIVE_FACES = [
     ("li", "Position cap per face: δ = π × Multiplier × √ConvictionStake — #calculateDeltaLimit, applied PER FACE PER LAYER so no single holder can own the portrait"),
     ("li", "Kelly: half-Kelly default — #kellyFraction(pWin, netOdds, 0.5); the neglected faces naturally carry the fat odds"),
     ("li", "Perpetual invariant: no face may price below 0.02 or above 0.88 in either layer. A persona market that fully resolves has stopped being perpetual — the floor and ceiling are what keep every face permanently tradeable"),
+    ("li", "THE CEILING ARBITRAGE — say it out loud rather than discover it. When the honest read is 0.97 on one face, the book shows 0.88 and the residual 0.12 sits on faces nobody believes in. That gap is free money to whoever takes the other side, and while transfer is closed (§9) the BOND funds it. This is the running cost of the perpetual invariant, not a bug in it: the alternative is a market that resolves and therefore stops being a perp. Size it before Phase 2, cap total boundary exposure per subject, and monitor it as a line item rather than letting it surface as unexplained bond drawdown"),
 
     ("h1", "6. THE TRADEABLE STACK"),
     ("p", "Four layers, three token standards, one rule: positions are liquid and open, reputation is soulbound. Money moves; character does not."),
@@ -246,7 +262,7 @@ FIVE_FACES = [
     ("li", "Reuse: MADMarketFactory, MADStaking, MADShieldVault, RiskOracle, MADOptimisticOracle"),
     ("li", "Foundry fuzz + invariants: Σp ≈ 1 after re-projection · monotonic cost · never insolvent · no face outside [0.02, 0.88] in either layer · permanent component never negative · D finite and signed on both sides · 1155 supply conservation across transfer AND settlement"),
     ("h2", "10.2 Backend"),
-    ("li", "NEW persona-codex.ts — five faces, codex/broadcast names, ρ⃗, γ⃗, α per face, δ and Kelly bounds"),
+    ("li", "NEW persona-codex.ts — five faces carrying codexName, broadcastName and catchphrase, plus ρ⃗, γ⃗, α per face, δ and Kelly bounds. catchphrase is type-level excluded from every stakeable-label render path (§2.1); mirrors the QUIPS map in zliar-meter.tsx"),
     ("li", "NEW persona-decompose.ts — per-face CGARCH, simplex re-projection and renormalisation, H_perm/H_trans, D, implied-τ Newton inversion"),
     ("li", "NEW tradeable-registry.ts — id derivation for (subject, leg, face, layer), portrait metadata builder, attestation milestone evaluator"),
     ("li", "market-classifier.ts — add type=\"faces\" + personaEligible ahead of gossipcop; extend MarketType, buildTitle, buildResolution"),
@@ -278,7 +294,7 @@ FIVE_FACES = [
     ("h1", "12. Decision Log — founder sign-off, August 2026"),
     ("table", [
         ["Decision", "Ruling", "Consequence"],
-        ["Persona names", "All five codex names UNCHANGED — Saint · White Rice · Megalomaniac · Narcissist · Prostitute", "No meme display mode. Only White Rice's broadcastName moves: THE BEIGE → THE THERMOSTAT"],
+        ["Persona names", "All five codex names UNCHANGED — Saint · White Rice · Megalomaniac · Narcissist · Prostitute", "No meme display mode. Three broadcast aliases: WHITE RICE → THE THERMOSTAT, THE MEGALOMANIAC → TOO BIG TO FAIL, THE PROSTITUTE → THE SELLOUT. Catchphrase layer added, flavour-only — §2.1"],
         ["Megalomaniac scope", "Sharpened to office-holders, boardrooms and the structurally entitled", "Codex line now names impunity, not just ambition — §2"],
         ["Prostitute broadcast name", "THE SELLOUT retained", "Default display for named subjects — §9.1"],
         ["Ship order", "FIVE FACES first, ahead of Zeitgeist", "Reverses the sheet's prior recommendation. See risk note below"],
@@ -339,6 +355,7 @@ ZEITGEIST = [
     ("h1", "4. The Persona Lens"),
     MASK_CODEX,
     CODEX_NOTE,
+    CODEX_NOTE_2,
     ("p", "Applied to trends rather than people, the Codex reads as cultural criticism rather than character assessment — which is exactly why Zeitgeist is the safest surface in the family (§10)."),
 
     ("h1", "5. THE TURNING — the core new maths"),
@@ -452,7 +469,7 @@ ZEITGEIST = [
         ["Succession blend w_m / w_v", "CROWD-LED, 0.3 / 0.7", "Vote decides where conviction goes; the 0.3 corpus term keeps it plausible — §5.1"],
         ["Slot count policy", "VOI-driven 2-or-3 from LAUNCH", "Moved out of Phase 4 into Phase 1 — §7, §11.4"],
         ["Turning cadence", "Hard-coded to the lunar year", "354.367d, not governance-adjustable. An adjustable reseed date is an attack surface"],
-        ["Persona axis", "All five codex names unchanged", "Shared with Five Faces; White Rice broadcast name is THE THERMOSTAT"],
+        ["Persona axis", "All five codex names unchanged", "Shared with Five Faces; broadcast aliases THE THERMOSTAT, TOO BIG TO FAIL, THE SELLOUT — Five Faces §2.1"],
         ["Chain", "Arbitrum Nova (42170) + Arbitrum One (42161); HyperLiquid secondary", "Slate and vintage records follow the Five Faces §6.7 topology — canonical on One"],
         ["Comeback vintaging", "Comebacks ALLOWED, issued a NEW vintage", "Restoring the old vintage would let a holder buy provenance — see below"],
         ["Year-1 nomination curation", "Curated longlist (~8) with holder vote selecting the slots", "Centralised on the menu, decentralised on the pick"],
