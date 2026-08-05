@@ -46,10 +46,13 @@ export async function POST(req: Request) {
     if (action === "redeem") {
       const redeemed = await redeemPosition(pool, positionId);
       if (!redeemed) {
+        const readyAt = position.exitReadyAt ? Date.parse(position.exitReadyAt) : 0;
         return NextResponse.json(
-          { success: false, error: "not redeemable yet", countdown: exitCountdown(
-            { status: position.exitStatus, readyAt: new Date(position.exitReadyAt ?? 0).getTime() },
-          ) },
+          {
+            success: false,
+            error: "not redeemable yet",
+            countdown: exitCountdown({ status: position.exitStatus, readyAt }),
+          },
           { status: 409 },
         );
       }

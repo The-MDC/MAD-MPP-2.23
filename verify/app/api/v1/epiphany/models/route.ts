@@ -31,10 +31,22 @@ export async function GET(req: Request) {
   const region = REGIONS.includes(regionParam as ModelRegion) ? (regionParam as ModelRegion) : undefined;
   const limit = Math.min(100, Math.max(1, Number(url.searchParams.get("limit")) || 50));
 
+  // One wire shape for both paths. The catalog carries `persistencePrior` and
+  // the database carries the live `persistence` reading; a client that had to
+  // know which field to read would be a client that renders a blank number the
+  // first time a market goes live.
   const staticModels = () => {
     let models = q ? searchModels(q) : region ? modelsByRegion(region) : [...MENTAL_MODELS];
     if (q && region) models = models.filter((m) => m.region === region);
-    return models.slice(0, limit);
+    return models.slice(0, limit).map((m) => ({
+      id: m.id,
+      name: m.name,
+      statement: m.statement,
+      region: m.region,
+      original: m.original ?? null,
+      persistence: m.persistencePrior,
+      domains: [...m.domains],
+    }));
   };
 
   const catalog = () =>

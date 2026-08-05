@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   LEGS_PER_TURNING,
   LEG_DAYS,
+  LEG_MS,
   TURNING_DAYS,
   currentLeg,
   legCountdown,
@@ -22,7 +23,7 @@ export function GET() {
   const now = Date.now();
   const leg = currentLeg(now);
   const legsLeft = legsToTurning(now);
-  const turningAt = leg.openedAt + legsLeft * (TURNING_DAYS / LEGS_PER_TURNING) * 86_400_000;
+  const turningAt = leg.openedAt + legsLeft * LEG_MS;
   const GREGORIAN_YEAR_DAYS = 365.2425;
 
   return NextResponse.json({
