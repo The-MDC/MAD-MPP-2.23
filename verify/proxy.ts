@@ -11,7 +11,7 @@ import type { NextRequest } from "next/server";
  *
  * NOTE: this is an application-level gate. It only takes effect once Vercel
  * Deployment Protection is turned OFF for this project — otherwise Vercel's own
- * SSO gate blocks the request before middleware runs.
+ * SSO gate blocks the request before proxy runs.
  */
 // Shared guest logins (intentionally shareable). Multiple pairs are accepted;
 // the primary pair can also be overridden/added via env (GUEST_USER/GUEST_PASS).
@@ -34,7 +34,7 @@ const PUBLIC_PATHS = new Set([
   "/sitemap.xml",
 ]);
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   if (PUBLIC_PATHS.has(req.nextUrl.pathname)) {
     return NextResponse.next();
   }
@@ -66,6 +66,6 @@ export function middleware(req: NextRequest) {
 
 export const config = {
   // Gate pages and API routes. Exact public liveness and metadata paths are
-  // allowlisted inside middleware; Next internals remain excluded.
+  // allowlisted inside proxy; Next internals remain excluded.
   matcher: ["/((?!_next/static|_next/image).*)"],
 };
