@@ -219,13 +219,16 @@ FOUNDER DECISION (Aug 2026): Five Faces ships FIRST regardless, with named publi
 | Slot count policy | VOI-driven 2-or-3 from LAUNCH | Moved out of Phase 4 into Phase 1 — §7, §11.4 |
 | Turning cadence | Hard-coded to the lunar year | 354.367d, not governance-adjustable. An adjustable reseed date is an attack surface |
 | Persona axis | All five codex names unchanged | Shared with Five Faces; White Rice broadcast name is THE THERMOSTAT |
-| Chain family | EVM | Specific chain still open (MASTER_MATHS §13 item 4) |
+| Chain | Arbitrum Nova (42170) + Arbitrum One (42161); HyperLiquid secondary | Slate and vintage records follow the Five Faces §6.7 topology — canonical on One |
+| Comeback vintaging | Comebacks ALLOWED, issued a NEW vintage | Restoring the old vintage would let a holder buy provenance — see below |
+| Year-1 nomination curation | Curated longlist (~8) with holder vote selecting the slots | Centralised on the menu, decentralised on the pick |
 
-### 13.1 Still open
+### 13.1 Notes on the two governance rulings
 
-- COMEBACK VINTAGING — whether a re-slated trend restores its old vintage or is issued a new one was returned without a ruling. APPLIED PENDING OVERRIDE: comebacks are allowed, and they receive a NEW vintage. Restoring the old one would let a holder buy provenance by acquiring a dormant position cheaply and waiting for the comeback, which breaks the one thing vintage is supposed to certify — that you were actually there. One word flips it
-- YEAR-1 NOMINATION CURATION — under review. The constraint: #calculateEigenTrustScore weights nominators by whether their past nominations proved out, so at the first Turning every nominator carries identical zero-information weight, and the first slate is either whoever-shows-up (the most manipulable moment in the product's life) or curated. Four options were put to the founder — founder-curated, open-from-day-one, trust bootstrapped from heat-score or existing Brier/log-score calibration, or a curated longlist with crowd-picked slots
-- RECOMMENDATION ON THE ABOVE — curated longlist (~8 candidates) with holder vote selecting the 2-3 slots. Centralised on the menu, decentralised on the pick, so manipulation is bounded to a vetted set. It composes with the crowd-led succession blend already decided. Ships with plain in-product labelling: "Year 1 longlist curated by MAD Gambit; slot selection by holder vote. Open nominations from the 2027 Turning"
+- WHY NEW VINTAGES ON A COMEBACK — vintage certifies one thing: that you were actually there. Restoring a retired trend's original vintage would let someone acquire a dormant position cheaply, wait for the re-slate, and inherit provenance they never earned. A new vintage keeps the certificate honest; the comeback is still tradeable, it simply does not backdate
+- WHY A CURATED LONGLIST IN YEAR 1 — #calculateEigenTrustScore weights nominators by whether their past nominations proved out, so at the FIRST Turning every nominator carries identical zero-information weight. Open nomination at that moment is the single most manipulable event in the product's life: build a position, organise the vote, capture the slate. A vetted ~8-candidate menu bounds manipulation to trends that already cleared review, while the holder vote keeps slot selection genuinely open — and it composes with the crowd-led succession blend (§5.1)
+- LABELLING IS PART OF THE RULING — in-product copy reads plainly: "Year 1 longlist curated by MAD Gambit; slot selection by holder vote. Open nominations from the 2027 Turning." A curated slate that presents itself as algorithmic is a credibility problem the first time somebody disagrees with it
+- SUNSET — open nominations with EigenTrust weighting land at Phase 4 (§11.4), by which point the trust graph has a Turning's worth of resolved nominations to score against
 
 ## 14. Sources for the 2026 Slate
 

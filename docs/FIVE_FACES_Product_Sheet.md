@@ -162,6 +162,18 @@ Two honest notes on the 4.8%. It sits deliberately under the 4.9% Furnace burn c
 | Attestations | ERC-5192 (+ POAP mirror) | No — soulbound | Reputation that cannot be bought |
 | Cards | ERC-721 + ERC-6551 TBA | Yes, with history attached | Identity container; carries the other three |
 
+### 6.7 Deployment topology (chain ruling, Aug 2026)
+
+| Chain | Carries | Why |
+|---|---|---|
+| Arbitrum Nova (42170) | Gameplay — leg state machine, conviction accounting, decomposition settlement, Crownings, Slips | High-frequency, low-value writes. AnyTrust economics suit a market that re-settles every utterance |
+| Arbitrum One (42161) | The ENTIRE token stack — positions, portraits, attestations, cards + TBAs — alongside MADShieldVault, MADStaking and $MADx | Value and provenance live together. See the constraint below |
+| HyperLiquid (HyperEVM) | Secondary distribution and liquidity venue, Phase 5+ alongside open transfer | EVM-compatible so the standards port unchanged. A venue, never the canonical record |
+
+THE CONSTRAINT THAT DECIDES THE SPLIT — ERC-6551. A token-bound account can only hold assets on its own chain. If cards and their TBAs live on One while attestations mint on Nova, the card CANNOT own its own history, and the headline property of L4 silently breaks. So the four token layers stay together on Arbitrum One, gameplay runs on Nova, and Nova emits settlement events that trigger the One-side mints. Splitting the token stack across chains to save gas would cost the single most valuable structural property in the product.
+
+Two smaller notes. The ERC-6551 registry is a CREATE2 singleton at an identical address on every EVM chain, which makes multi-chain addressing trivial but does NOT solve the cross-chain asset problem above. And provenance must never fragment: when HyperLiquid comes online as a venue, portraits and attestations still resolve to Arbitrum One as the source of truth, or a collector's history becomes chain-dependent and therefore unverifiable.
+
 ## 7. MAD Shield on a decomposed simplex
 
 - Premium: Stake × P(win) × √Volatility × SafetyMargin(0.35), clamped 2–4% — #calculateShieldPremium, unchanged
@@ -264,12 +276,12 @@ Counsel review moves from a Phase 5 gate to a LAUNCH gate, and covers the eligib
 | Ship order | FIVE FACES first, ahead of Zeitgeist | Reverses the sheet's prior recommendation. See risk note below |
 | Named public figures | IN at launch | §9.1 controls become Phase 1 deliverables; counsel review moves to a launch gate |
 | ERC-1155 open transfer | OUT at launch | Ships non-transferable, opens Phase 5. The main exposure lever while named subjects are live |
-| Chain family | EVM | Unblocks the whole token stack (1155/721/5192/6551/2981 are all EVM). Specific chain still open — see below |
+| Chain | Arbitrum Nova (42170) to start + Arbitrum One (42161); HyperLiquid secondary | Resolves MASTER_MATHS §13 item 4. Drives the §6.7 topology |
 | ρ⃗ / γ⃗ values | Ship the §4.3 proposal | Calibrate on live data before Phase 2. Proprietary, server-side |
 | Face floor / ceiling | 0.02 / 0.88 locked at canonical tier | Changing it now requires founder sign-off like any PLATFORM constant |
 | Prostitute fee treatment | Royalty share at 4.8% | ERC-2981, best-effort, dormant until Phase 5 — §6.5 |
 
-### 12.1 Still open
+### 12.1 Note carried forward
 
-- SPECIFIC EVM CHAIN — "EVM" settles the standards question but not the deployment target. MASTER_MATHS §13 item 4 still holds three conflicting answers (Base L2 in CLAUDE.md; Arbitrum Nova 42170 + One 42161 in the canonical-numbers skill; Arbitrum One in CANONICAL_NUMBERS.md). Contract addresses, gas assumptions and the ERC-6551 registry address all depend on it. Not blocking the sheets; blocking the first deploy
 - RISK NOTE ON THE SHIP ORDER — Five Faces first plus named public figures is the highest-exposure configuration in the family: the character-assigning product, on real people, before Zeitgeist has proven the Codex on subjects that cannot sue. Recorded as decided, not re-litigated. The §9.1 controls and closed transfer are the mitigations that make it shippable, and they are therefore not optional scope
+- MASTER_MATHS §13 item 4 IS NOW ANSWERED — the chain ruling above matches the canonical-numbers skill (Nova 42170 gameplay + One 42161 vaults/$MADx) and adds HyperLiquid as a secondary venue. That doc still carries the contradiction and should be updated separately under its own governance rule; it is not edited from this sheet
