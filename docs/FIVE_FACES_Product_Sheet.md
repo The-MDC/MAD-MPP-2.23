@@ -24,11 +24,11 @@ Classifier: new primary type="faces", gated on perpEligible && horizonDays >= 36
 |---|---|
 | THE SAINT | Performed virtue. Claims the moral high ground and invites the halo — sincerity neither assumed nor denied. |
 | WHITE RICE | Flavourless by strategy. Offends no one, commits to nothing, survives everything. |
-| THE MEGALOMANIAC | Empire over everything. Scale, dominion, and the conviction that only they can fix it. |
+| THE MEGALOMANIAC | Empire over everything. Scale, dominion, and the certainty that the rules were priced for other people. Aimed at office-holders, boardrooms and the structurally entitled — the face that expects exemption. |
 | THE NARCISSIST | The mirror is the audience. Cannot act unless the room is watching. |
 | THE PROSTITUTE | The Sell-Out archetype: monetises access, principle, platform or endorsement to the highest bidder. Never a claim about anyone's sexual conduct. |
 
-The Codex is not flavour text — it is a compliance primitive. The definition renders adjacent to the label on every surface where conviction can be staked, and ships on-chain with the market criteria, so the product is unambiguously an archetype-perception market and never a factual allegation. Every face carries codexName and broadcastName; PERSONA_DISPLAY_MODE="broadcast" swaps THE PROSTITUTE → THE SELLOUT and WHITE RICE → THE BEIGE for app stores, ad networks and restrictive jurisdictions without forking the product.
+The Codex is not flavour text — it is a compliance primitive. The definition renders adjacent to the label on every surface where conviction can be staked, and ships on-chain with the market criteria, so the product is unambiguously an archetype-perception market and never a factual allegation. Every face carries codexName and broadcastName; PERSONA_DISPLAY_MODE="broadcast" swaps THE PROSTITUTE → THE SELLOUT and WHITE RICE → THE THERMOSTAT for app stores, ad networks and restrictive jurisdictions without forking the product. THE THERMOSTAT is the better name on the merits, not merely the safer one: it names the measured behaviour — an instrument that takes the room's temperature and matches it, which is exactly the near-zero sentiment intensity and non-answer act-class that define the face.
 
 ## 3. Canonical Constants (unchanged — gambit-game-math.ts#PLATFORM)
 
@@ -149,7 +149,9 @@ Yes, it is possible, and the position layer should be genuinely open. Three cons
 | Open secondary arbitrages the bond | Free 1155 trading lets external price diverge from the MPP curve | Treat as healthy — arbitrage keeps the bond honest and deepens liquidity — but #calculateSlippageCushion must be parameterised for it. This is a live risk-engine question, not a footnote |
 | The compliance surface widens | Freely transferable outcome positions on open venues read differently to regulators than closed in-app conviction | Counsel review before the position layer opens. Do not assume the in-app framing transfers |
 
-One knock-on: open tradeability dissolves the Prostitute class's exclusive right to sell a position mid-leg, since everyone can. Replace the privilege with FEE TREATMENT — the Prostitute face pays zero platform fee on secondary transfer and takes a share of realised royalty flow. The archetype survives contact with open markets, expressed economically instead of by gatekeeping.
+One knock-on: open tradeability dissolves the Prostitute class's exclusive right to sell a position mid-leg, since everyone can. Replace the privilege with FEE TREATMENT — secondary royalty is set at 4.8% (ERC-2981), and the Prostitute face takes the royalty share on positions it originated. The archetype survives contact with open markets, expressed economically instead of by gatekeeping: selling out still pays, it just costs the card economy.
+
+Two honest notes on the 4.8%. It sits deliberately under the 4.9% Furnace burn cap so the two never invert, keeping the eights-and-nines numerology intact. And per the table above it is BEST-EFFORT — venues that ignore ERC-2981 pay nothing, so 4.8% is the ceiling of what may be realised, never a revenue line to forecast against. Since transfer is closed at launch (§9), this parameter is dormant until Phase 5 and can be retuned before it ever binds.
 
 ### 6.6 What each layer is actually for
 
@@ -178,17 +180,30 @@ One knock-on: open tradeability dissolves the Prostitute class's exclusive right
 - A sports franchise ownership group through a relocation fight — Slip candidate
 - DIVERGENCE BASKET — long D across the twenty highest-volume subjects, as a single bundled position
 
+These are written as subject CLASSES. Named current public figures are in scope from launch (§9.1), and named markets are expected to carry the majority of volume — the classes above are how the sheet stays readable, not a scope limit. Every named subject must clear the §9.1 eligibility bar with its evidence stored alongside the market criteria.
+
 ## 9. Compliance rails
 
-This family is intentionally provocative; that is a product decision. Provocation is priced in, legal exposure is not. Four of the five names are opinion-coded archetypes with long satirical precedent. One is not: applied to a named living person, THE PROSTITUTE carries materially more defamation and harassment exposure than the other four combined. These rails are load-bearing.
+This family is intentionally provocative; that is a product decision. Provocation is priced in, legal exposure is not. Four of the five names are opinion-coded archetypes with long satirical precedent. One is not: applied to a named living person, THE PROSTITUTE carries materially more defamation and harassment exposure than the other four combined.
+
+FOUNDER DECISION (Aug 2026): named current public figures ARE in scope at launch, and Five Faces ships ahead of Zeitgeist. That is the highest-exposure configuration available — the character-assigning product, on real named people, first, without Zeitgeist having first proven the Codex on subjects that cannot sue. The decision is recorded as made; the rails below are correspondingly tightened from advisory to launch-gating, and §9.1 adds three controls that did not exist when named subjects were out of scope.
 
 - CODEX AT BET TIME — the locked definition renders adjacent to every stakeable label and ships on-chain with the criteria. THE PROSTITUTE is defined in-product as the Sell-Out archetype and explicitly disclaimed as a claim about sexual conduct
 - OPINION FRAMING IN RESOLUTION — criteria read "measured persona-perception decomposition", never "did X do Y". The market prices a reading, not a fact, and no leg may resolve on an unadjudicated allegation
-- SUBJECT GATE — public figures acting in a public capacity, brands, and institutions only. Hard-blocked: private individuals, minors, and any persona-to-protected-class mapping
+- SUBJECT GATE — public figures acting in a PUBLIC capacity, brands, and institutions. Hard-blocked with no override: private individuals, minors, any persona-to-protected-class mapping, and any conduct outside the subject's public role (family, health, sexuality, private relationships) regardless of how widely it has been reported
 - DISPLAY-MODE TOGGLE — PERSONA_DISPLAY_MODE swaps to broadcastName for app stores, ad networks and restrictive jurisdictions without forking the product
-- NAMED-SUBJECT LAUNCH IS A SEPARATE DECISION — recommend launching on institutions, brands, models and indices, adding named public figures only under counsel review once the Codex has a track record. Gossip-Cop names people because it asks about events; Five Faces assigns character, which is a different legal object
-- OPEN TRADEABILITY IS ALSO A SEPARATE DECISION — see §6.5. The position layer can ship closed first and open later; the reverse is not possible
+- TRANSFER CLOSED AT LAUNCH (decided) — ERC-1155 positions are non-transferable at launch and open only in Phase 5 under counsel review. Closed-to-open is reversible; open-to-closed is not. This is the one lever that materially reduces exposure while named subjects are live
 - UNCHANGED RAILS — Shield is loss mitigation only; no real-world illegal outcome prediction; all criteria on-chain and in UI; 30-day minimum maturity on every leg; entertainment conviction and satire throughout
+
+### 9.1 Named-subject controls (required by the Aug 2026 decision)
+
+Gossip-Cop names people because it asks about EVENTS. Five Faces assigns CHARACTER, which is a different legal object and needs three controls Gossip-Cop never required. All three are launch-gating, not backlog.
+
+- ELIGIBILITY BAR — a named subject qualifies only on an objective, auditable threshold recorded with the market: holds or seeks public office, is an officer or director of a public company, or has a sustained national-media public role. The bar is published, the evidence is stored with the market criteria, and a subject who falls below it is delisted at the next Crowning rather than mid-leg
+- RIGHT OF REPLY — every named-subject market carries a standing, unmoderated response surface the subject (or a verified representative) can post to, rendered adjacent to the Waterline at equal prominence. A market that reads someone's character while giving them no channel to answer is the version of this product that gets sued
+- DELISTING AND APPEAL PATH — a named subject may request review; substantiated complaints halt new conviction immediately and settle open positions at the last Crowning price rather than voiding them. The path, its SLA and its outcomes are published. Complaint volume and resolution time are tracked as launch metrics, not incident reports
+
+Counsel review moves from a Phase 5 gate to a LAUNCH gate, and covers the eligibility bar, the Codex text, the resolution copy, and the right-of-reply design before the first named market opens. THE PROSTITUTE applied to a named living person remains the single highest-risk cell in the product; the broadcastName THE SELLOUT ships as the default display for named subjects.
 
 ## 10. Technical Development Scope
 
@@ -223,11 +238,11 @@ This family is intentionally provocative; that is a product decision. Provocatio
 
 ### 10.4 Phased build
 
-- Phase 1 — persona-codex + classifier extension + parimutuel decomposed markets on institution/brand subjects. Ship the Codex and the Waterline first; they are the product
+- Phase 1 — persona-codex + classifier extension + parimutuel decomposed markets. Named public figures are in scope from Phase 1 per the Aug 2026 decision, which makes the §9.1 controls (eligibility bar, right of reply, delisting path) Phase 1 deliverables rather than later hardening. Ship the Codex and the Waterline first; they are the product
 - Phase 2 — MPP bonding maker, lunar legs, Crowning, Shield integration, D as a readout
 - Phase 3 — D as a TRADEABLE book, implied-τ surface, Slip events
 - Phase 4 — tradeable stack: ERC-1155 positions (closed transfer first), portrait mint, soulbound attestations
-- Phase 5 — open transfer on positions (counsel-gated), ERC-6551 card accounts, Divergence baskets, named-public-figure subjects under review
+- Phase 5 — open transfer on positions (counsel-gated), 4.8% ERC-2981 royalty goes live, ERC-6551 card accounts, Divergence baskets
 
 ## 11. Success Metrics
 
@@ -239,11 +254,22 @@ This family is intentionally provocative; that is a product decision. Provocatio
 - Attestations earned per active wallet ≥ 3 per year; zero successful transfer attempts (soulbound holds)
 - Zero substantiated defamation complaints. This is a metric, and it is the one that closes the product if it moves
 
-## 12. Open Decisions for Founder Sign-Off
+## 12. Decision Log — founder sign-off, August 2026
 
-- Open transfer on ERC-1155 positions — in or out at launch. Recommendation: ship closed, open in Phase 5 under counsel review. Closed-to-open is reversible; open-to-closed is not
-- Named public figures as subjects — recommendation: out at launch, pending Codex track record
-- ρ⃗ and γ⃗ tuning — the values in §4.3 are a proposal and need a live-data calibration pass. Proprietary, server-side, never in external materials
-- Face floor/ceiling (0.02 / 0.88) — this invariant defines "perpetual" for the family and should be locked at canonical-constant governance tier
-- Whether the Prostitute fee treatment (§6.5) is zero-fee on secondary, a royalty share, or both
-- Chain target for the tradeable stack — the §13 chain question in MASTER_MATHS is still open and this family cannot ship a token stack until it is settled
+| Decision | Ruling | Consequence |
+|---|---|---|
+| Persona names | All five codex names UNCHANGED — Saint · White Rice · Megalomaniac · Narcissist · Prostitute | No meme display mode. Only White Rice's broadcastName moves: THE BEIGE → THE THERMOSTAT |
+| Megalomaniac scope | Sharpened to office-holders, boardrooms and the structurally entitled | Codex line now names impunity, not just ambition — §2 |
+| Prostitute broadcast name | THE SELLOUT retained | Default display for named subjects — §9.1 |
+| Ship order | FIVE FACES first, ahead of Zeitgeist | Reverses the sheet's prior recommendation. See risk note below |
+| Named public figures | IN at launch | §9.1 controls become Phase 1 deliverables; counsel review moves to a launch gate |
+| ERC-1155 open transfer | OUT at launch | Ships non-transferable, opens Phase 5. The main exposure lever while named subjects are live |
+| Chain family | EVM | Unblocks the whole token stack (1155/721/5192/6551/2981 are all EVM). Specific chain still open — see below |
+| ρ⃗ / γ⃗ values | Ship the §4.3 proposal | Calibrate on live data before Phase 2. Proprietary, server-side |
+| Face floor / ceiling | 0.02 / 0.88 locked at canonical tier | Changing it now requires founder sign-off like any PLATFORM constant |
+| Prostitute fee treatment | Royalty share at 4.8% | ERC-2981, best-effort, dormant until Phase 5 — §6.5 |
+
+### 12.1 Still open
+
+- SPECIFIC EVM CHAIN — "EVM" settles the standards question but not the deployment target. MASTER_MATHS §13 item 4 still holds three conflicting answers (Base L2 in CLAUDE.md; Arbitrum Nova 42170 + One 42161 in the canonical-numbers skill; Arbitrum One in CANONICAL_NUMBERS.md). Contract addresses, gas assumptions and the ERC-6551 registry address all depend on it. Not blocking the sheets; blocking the first deploy
+- RISK NOTE ON THE SHIP ORDER — Five Faces first plus named public figures is the highest-exposure configuration in the family: the character-assigning product, on real people, before Zeitgeist has proven the Codex on subjects that cannot sue. Recorded as decided, not re-litigated. The §9.1 controls and closed transfer are the mitigations that make it shippable, and they are therefore not optional scope

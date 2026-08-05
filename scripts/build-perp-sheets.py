@@ -59,12 +59,12 @@ MASK_CODEX = ("table", [
     ["Face", "Codex definition (canon, verbatim)"],
     ["THE SAINT", "Performed virtue. Claims the moral high ground and invites the halo — sincerity neither assumed nor denied."],
     ["WHITE RICE", "Flavourless by strategy. Offends no one, commits to nothing, survives everything."],
-    ["THE MEGALOMANIAC", "Empire over everything. Scale, dominion, and the conviction that only they can fix it."],
+    ["THE MEGALOMANIAC", "Empire over everything. Scale, dominion, and the certainty that the rules were priced for other people. Aimed at office-holders, boardrooms and the structurally entitled — the face that expects exemption."],
     ["THE NARCISSIST", "The mirror is the audience. Cannot act unless the room is watching."],
     ["THE PROSTITUTE", "The Sell-Out archetype: monetises access, principle, platform or endorsement to the highest bidder. Never a claim about anyone's sexual conduct."],
 ])
 
-CODEX_NOTE = ("p", "The Codex is not flavour text — it is a compliance primitive. The definition renders adjacent to the label on every surface where conviction can be staked, and ships on-chain with the market criteria, so the product is unambiguously an archetype-perception market and never a factual allegation. Every face carries codexName and broadcastName; PERSONA_DISPLAY_MODE=\"broadcast\" swaps THE PROSTITUTE → THE SELLOUT and WHITE RICE → THE BEIGE for app stores, ad networks and restrictive jurisdictions without forking the product.")
+CODEX_NOTE = ("p", "The Codex is not flavour text — it is a compliance primitive. The definition renders adjacent to the label on every surface where conviction can be staked, and ships on-chain with the market criteria, so the product is unambiguously an archetype-perception market and never a factual allegation. Every face carries codexName and broadcastName; PERSONA_DISPLAY_MODE=\"broadcast\" swaps THE PROSTITUTE → THE SELLOUT and WHITE RICE → THE THERMOSTAT for app stores, ad networks and restrictive jurisdictions without forking the product. THE THERMOSTAT is the better name on the merits, not merely the safer one: it names the measured behaviour — an instrument that takes the room's temperature and matches it, which is exactly the near-zero sentiment intensity and non-answer act-class that define the face.")
 
 LUNAR_CADENCE = [
     ("li", "Leg = 2 synodic months = 59.061 days (LUNAR_CYCLE_MS × 2). Dead centre of the 45–90d band and clear of the 30-day minimum-maturity floor, and it never calendar-drifts because it is astronomical"),
@@ -179,7 +179,8 @@ FIVE_FACES = [
         ["Open secondary arbitrages the bond", "Free 1155 trading lets external price diverge from the MPP curve", "Treat as healthy — arbitrage keeps the bond honest and deepens liquidity — but #calculateSlippageCushion must be parameterised for it. This is a live risk-engine question, not a footnote"],
         ["The compliance surface widens", "Freely transferable outcome positions on open venues read differently to regulators than closed in-app conviction", "Counsel review before the position layer opens. Do not assume the in-app framing transfers"],
     ]),
-    ("p", "One knock-on: open tradeability dissolves the Prostitute class's exclusive right to sell a position mid-leg, since everyone can. Replace the privilege with FEE TREATMENT — the Prostitute face pays zero platform fee on secondary transfer and takes a share of realised royalty flow. The archetype survives contact with open markets, expressed economically instead of by gatekeeping."),
+    ("p", "One knock-on: open tradeability dissolves the Prostitute class's exclusive right to sell a position mid-leg, since everyone can. Replace the privilege with FEE TREATMENT — secondary royalty is set at 4.8% (ERC-2981), and the Prostitute face takes the royalty share on positions it originated. The archetype survives contact with open markets, expressed economically instead of by gatekeeping: selling out still pays, it just costs the card economy."),
+    ("p", "Two honest notes on the 4.8%. It sits deliberately under the 4.9% Furnace burn cap so the two never invert, keeping the eights-and-nines numerology intact. And per the table above it is BEST-EFFORT — venues that ignore ERC-2981 pay nothing, so 4.8% is the ceiling of what may be realised, never a revenue line to forecast against. Since transfer is closed at launch (§9), this parameter is dormant until Phase 5 and can be retuned before it ever binds."),
 
     ("h2", "6.6 What each layer is actually for"),
     ("table", [
@@ -205,16 +206,24 @@ FIVE_FACES = [
     ("li", "A crypto exchange twelve months after a regulatory settlement — γ⃗ asymmetry in live testing"),
     ("li", "A sports franchise ownership group through a relocation fight — Slip candidate"),
     ("li", "DIVERGENCE BASKET — long D across the twenty highest-volume subjects, as a single bundled position"),
+    ("p", "These are written as subject CLASSES. Named current public figures are in scope from launch (§9.1), and named markets are expected to carry the majority of volume — the classes above are how the sheet stays readable, not a scope limit. Every named subject must clear the §9.1 eligibility bar with its evidence stored alongside the market criteria."),
 
     ("h1", "9. Compliance rails"),
-    ("p", "This family is intentionally provocative; that is a product decision. Provocation is priced in, legal exposure is not. Four of the five names are opinion-coded archetypes with long satirical precedent. One is not: applied to a named living person, THE PROSTITUTE carries materially more defamation and harassment exposure than the other four combined. These rails are load-bearing."),
+    ("p", "This family is intentionally provocative; that is a product decision. Provocation is priced in, legal exposure is not. Four of the five names are opinion-coded archetypes with long satirical precedent. One is not: applied to a named living person, THE PROSTITUTE carries materially more defamation and harassment exposure than the other four combined."),
+    ("p", "FOUNDER DECISION (Aug 2026): named current public figures ARE in scope at launch, and Five Faces ships ahead of Zeitgeist. That is the highest-exposure configuration available — the character-assigning product, on real named people, first, without Zeitgeist having first proven the Codex on subjects that cannot sue. The decision is recorded as made; the rails below are correspondingly tightened from advisory to launch-gating, and §9.1 adds three controls that did not exist when named subjects were out of scope."),
     ("li", "CODEX AT BET TIME — the locked definition renders adjacent to every stakeable label and ships on-chain with the criteria. THE PROSTITUTE is defined in-product as the Sell-Out archetype and explicitly disclaimed as a claim about sexual conduct"),
     ("li", "OPINION FRAMING IN RESOLUTION — criteria read \"measured persona-perception decomposition\", never \"did X do Y\". The market prices a reading, not a fact, and no leg may resolve on an unadjudicated allegation"),
-    ("li", "SUBJECT GATE — public figures acting in a public capacity, brands, and institutions only. Hard-blocked: private individuals, minors, and any persona-to-protected-class mapping"),
+    ("li", "SUBJECT GATE — public figures acting in a PUBLIC capacity, brands, and institutions. Hard-blocked with no override: private individuals, minors, any persona-to-protected-class mapping, and any conduct outside the subject's public role (family, health, sexuality, private relationships) regardless of how widely it has been reported"),
     ("li", "DISPLAY-MODE TOGGLE — PERSONA_DISPLAY_MODE swaps to broadcastName for app stores, ad networks and restrictive jurisdictions without forking the product"),
-    ("li", "NAMED-SUBJECT LAUNCH IS A SEPARATE DECISION — recommend launching on institutions, brands, models and indices, adding named public figures only under counsel review once the Codex has a track record. Gossip-Cop names people because it asks about events; Five Faces assigns character, which is a different legal object"),
-    ("li", "OPEN TRADEABILITY IS ALSO A SEPARATE DECISION — see §6.5. The position layer can ship closed first and open later; the reverse is not possible"),
+    ("li", "TRANSFER CLOSED AT LAUNCH (decided) — ERC-1155 positions are non-transferable at launch and open only in Phase 5 under counsel review. Closed-to-open is reversible; open-to-closed is not. This is the one lever that materially reduces exposure while named subjects are live"),
     ("li", "UNCHANGED RAILS — Shield is loss mitigation only; no real-world illegal outcome prediction; all criteria on-chain and in UI; 30-day minimum maturity on every leg; entertainment conviction and satire throughout"),
+
+    ("h2", "9.1 Named-subject controls (required by the Aug 2026 decision)"),
+    ("p", "Gossip-Cop names people because it asks about EVENTS. Five Faces assigns CHARACTER, which is a different legal object and needs three controls Gossip-Cop never required. All three are launch-gating, not backlog."),
+    ("li", "ELIGIBILITY BAR — a named subject qualifies only on an objective, auditable threshold recorded with the market: holds or seeks public office, is an officer or director of a public company, or has a sustained national-media public role. The bar is published, the evidence is stored with the market criteria, and a subject who falls below it is delisted at the next Crowning rather than mid-leg"),
+    ("li", "RIGHT OF REPLY — every named-subject market carries a standing, unmoderated response surface the subject (or a verified representative) can post to, rendered adjacent to the Waterline at equal prominence. A market that reads someone's character while giving them no channel to answer is the version of this product that gets sued"),
+    ("li", "DELISTING AND APPEAL PATH — a named subject may request review; substantiated complaints halt new conviction immediately and settle open positions at the last Crowning price rather than voiding them. The path, its SLA and its outcomes are published. Complaint volume and resolution time are tracked as launch metrics, not incident reports"),
+    ("p", "Counsel review moves from a Phase 5 gate to a LAUNCH gate, and covers the eligibility bar, the Codex text, the resolution copy, and the right-of-reply design before the first named market opens. THE PROSTITUTE applied to a named living person remains the single highest-risk cell in the product; the broadcastName THE SELLOUT ships as the default display for named subjects."),
 
     ("h1", "10. Technical Development Scope"),
     ("h2", "10.1 Smart contracts"),
@@ -241,11 +250,11 @@ FIVE_FACES = [
     ("li", "Crowning ceremony at leg close — permanent face crowned, portrait mint animation, Golden Aura and Affliction reveals"),
     ("li", "Tradeables drawer: positions held, portraits owned, attestations earned (visibly non-transferable), and the card TBA contents"),
     ("h2", "10.4 Phased build"),
-    ("li", "Phase 1 — persona-codex + classifier extension + parimutuel decomposed markets on institution/brand subjects. Ship the Codex and the Waterline first; they are the product"),
+    ("li", "Phase 1 — persona-codex + classifier extension + parimutuel decomposed markets. Named public figures are in scope from Phase 1 per the Aug 2026 decision, which makes the §9.1 controls (eligibility bar, right of reply, delisting path) Phase 1 deliverables rather than later hardening. Ship the Codex and the Waterline first; they are the product"),
     ("li", "Phase 2 — MPP bonding maker, lunar legs, Crowning, Shield integration, D as a readout"),
     ("li", "Phase 3 — D as a TRADEABLE book, implied-τ surface, Slip events"),
     ("li", "Phase 4 — tradeable stack: ERC-1155 positions (closed transfer first), portrait mint, soulbound attestations"),
-    ("li", "Phase 5 — open transfer on positions (counsel-gated), ERC-6551 card accounts, Divergence baskets, named-public-figure subjects under review"),
+    ("li", "Phase 5 — open transfer on positions (counsel-gated), 4.8% ERC-2981 royalty goes live, ERC-6551 card accounts, Divergence baskets"),
 
     ("h1", "11. Success Metrics"),
     ("li", "Five Faces volume ≥ 20% of platform by Y2, measured in net-new wallets rather than share, so cannibalisation of Gossip-Cop is visible"),
@@ -256,13 +265,23 @@ FIVE_FACES = [
     ("li", "Attestations earned per active wallet ≥ 3 per year; zero successful transfer attempts (soulbound holds)"),
     ("li", "Zero substantiated defamation complaints. This is a metric, and it is the one that closes the product if it moves"),
 
-    ("h1", "12. Open Decisions for Founder Sign-Off"),
-    ("li", "Open transfer on ERC-1155 positions — in or out at launch. Recommendation: ship closed, open in Phase 5 under counsel review. Closed-to-open is reversible; open-to-closed is not"),
-    ("li", "Named public figures as subjects — recommendation: out at launch, pending Codex track record"),
-    ("li", "ρ⃗ and γ⃗ tuning — the values in §4.3 are a proposal and need a live-data calibration pass. Proprietary, server-side, never in external materials"),
-    ("li", "Face floor/ceiling (0.02 / 0.88) — this invariant defines \"perpetual\" for the family and should be locked at canonical-constant governance tier"),
-    ("li", "Whether the Prostitute fee treatment (§6.5) is zero-fee on secondary, a royalty share, or both"),
-    ("li", "Chain target for the tradeable stack — the §13 chain question in MASTER_MATHS is still open and this family cannot ship a token stack until it is settled"),
+    ("h1", "12. Decision Log — founder sign-off, August 2026"),
+    ("table", [
+        ["Decision", "Ruling", "Consequence"],
+        ["Persona names", "All five codex names UNCHANGED — Saint · White Rice · Megalomaniac · Narcissist · Prostitute", "No meme display mode. Only White Rice's broadcastName moves: THE BEIGE → THE THERMOSTAT"],
+        ["Megalomaniac scope", "Sharpened to office-holders, boardrooms and the structurally entitled", "Codex line now names impunity, not just ambition — §2"],
+        ["Prostitute broadcast name", "THE SELLOUT retained", "Default display for named subjects — §9.1"],
+        ["Ship order", "FIVE FACES first, ahead of Zeitgeist", "Reverses the sheet's prior recommendation. See risk note below"],
+        ["Named public figures", "IN at launch", "§9.1 controls become Phase 1 deliverables; counsel review moves to a launch gate"],
+        ["ERC-1155 open transfer", "OUT at launch", "Ships non-transferable, opens Phase 5. The main exposure lever while named subjects are live"],
+        ["Chain family", "EVM", "Unblocks the whole token stack (1155/721/5192/6551/2981 are all EVM). Specific chain still open — see below"],
+        ["ρ⃗ / γ⃗ values", "Ship the §4.3 proposal", "Calibrate on live data before Phase 2. Proprietary, server-side"],
+        ["Face floor / ceiling", "0.02 / 0.88 locked at canonical tier", "Changing it now requires founder sign-off like any PLATFORM constant"],
+        ["Prostitute fee treatment", "Royalty share at 4.8%", "ERC-2981, best-effort, dormant until Phase 5 — §6.5"],
+    ]),
+    ("h2", "12.1 Still open"),
+    ("li", "SPECIFIC EVM CHAIN — \"EVM\" settles the standards question but not the deployment target. MASTER_MATHS §13 item 4 still holds three conflicting answers (Base L2 in CLAUDE.md; Arbitrum Nova 42170 + One 42161 in the canonical-numbers skill; Arbitrum One in CANONICAL_NUMBERS.md). Contract addresses, gas assumptions and the ERC-6551 registry address all depend on it. Not blocking the sheets; blocking the first deploy"),
+    ("li", "RISK NOTE ON THE SHIP ORDER — Five Faces first plus named public figures is the highest-exposure configuration in the family: the character-assigning product, on real people, before Zeitgeist has proven the Codex on subjects that cannot sue. Recorded as decided, not re-litigated. The §9.1 controls and closed transfer are the mitigations that make it shippable, and they are therefore not optional scope"),
 ]
 
 # ── PERP 2 — ZEITGEIST ───────────────────────────────────────────────────────
@@ -280,7 +299,7 @@ ZEITGEIST = [
     ("p", "Tagline: \"The slate changes. Your conviction doesn't.\""),
     ("p", "Core Loop: DETECT → NOMINATE → AUCTION SLOTS → SCORE ON FIVE FACES → CONVICT → ROLL LEGS → THE TURNING → TRANSMIGRATE → CONTINUE"),
 
-    ("h1", "2. The 2026 Slate (researched — see §13)"),
+    ("h1", "2. The 2026 Slate (researched — sources at §14)"),
     ("table", [
         ["Slot", "Trend", "The persona question"],
         ["I", "THE AUTHENTICITY REVOLT — anti-AI positioning as consumer strategy", "SAINT or PROSTITUTE?"],
@@ -318,7 +337,8 @@ ZEITGEIST = [
     ("p", "S[i][j] is the share of retiring trend i's conviction that inherits into new trend j. It is MEASURED, not decreed:"),
     ("li", "LINEAGE (measured) — heat-score.ts#computeHeatForPool already implements cross-source clustering: two headlines are \"the same story\" when they share ≥ 2 significant tokens. Run it between the retiring trend's corpus and each candidate's corpus to get an overlap score. The trend engine already exists; it was simply built for headline ranking"),
     ("li", "CROWD (voted) — quadratic: #votingPower (√stake, capped 240) aggregated by #quadraticMatch, so many small holders outweigh one whale"),
-    ("li", "BLEND — S = w_m·L_measured + w_v·V_quadratic, then ROW-NORMALISED so Σ_j S[i][j] = 1"),
+    ("li", "BLEND — S = w_m·L_measured + w_v·V_quadratic, then ROW-NORMALISED so Σ_j S[i][j] = 1. FOUNDER DECISION (Aug 2026): CROWD-LED, w_m = 0.3 / w_v = 0.7. The crowd's read of lineage outranks the measured corpus overlap"),
+    ("li", "Why not w_v = 1.0. Measured lineage is retained at 0.3 as a manipulation floor: the Turning is the single highest-incentive moment in the product, and a purely voted succession lets whoever organises best redirect the entire inherited conviction pool into a trend they are positioned in. Quadratic voting (√stake, capped 240) makes that expensive but not impossible; the 0.3 corpus term makes it also have to be PLAUSIBLE. Vote decides where conviction goes; measurement keeps it inside the realm of trends that actually share a story"),
     ("p", "That normalisation is the whole invariant: CONVICTION IS CONSERVED ACROSS A TURNING. Nothing is destroyed at a reseed, nothing is minted from nothing, and no position is ever force-settled. Your stake reincarnates along measured lineage."),
     ("h2", "5.2 Cadence — the Turning rides the lunar year"),
     ("li", "Leg = 2 synodic months = 59.061 days"),
@@ -352,7 +372,7 @@ ZEITGEIST = [
     ("h1", "7. Market Structure"),
     *MPP_PRICING,
     ("li", "Each slot is a five-face simplex on that trend, so Zeitgeist inherits the Five Faces decomposition where useful — a trend also has a permanent component and a phase"),
-    ("li", "Slot count is 2 or 3, decided annually by #voiEstimate against the nomination pool. Three is the default; two when the year is genuinely dominated"),
+    ("li", "Slot count is 2 or 3, decided annually by #voiEstimate against the nomination pool — VOI-driven from LAUNCH per the Aug 2026 decision, not deferred to Phase 4. Three when the year is genuinely contested; two when one or two trends dominate and a third slot would buy no information"),
     ("li", "Position cap per slot: δ = π × Multiplier × √ConvictionStake — #calculateDeltaLimit"),
     ("li", "The Turning window is the highest-manipulation-incentive moment in the product; the slippage cushion tightens across it and slot-auction bids are commit-reveal"),
 
@@ -371,7 +391,8 @@ ZEITGEIST = [
     ("li", "One supplies evidence, the other supplies legitimacy. They are a pair, not two products sharing a brand"),
 
     ("h1", "10. Compliance — and the compliance dividend"),
-    ("p", "The subjects here are TRENDS, not people. \"Is the Authenticity Revolt a Saint or a Prostitute?\" is commentary on a market phenomenon, not a claim about any person. That gives Zeitgeist a near-zero defamation surface and makes it the safest thing in the family — which is why it should ship FIRST, ahead of Five Faces, and establish the Codex's track record on subjects that cannot sue."),
+    ("p", "The subjects here are TRENDS, not people. \"Is the Authenticity Revolt a Saint or a Prostitute?\" is commentary on a market phenomenon, not a claim about any person. That gives Zeitgeist a near-zero defamation surface and makes it the safest thing in the family."),
+    ("p", "FOUNDER DECISION (Aug 2026): Five Faces ships FIRST regardless, with named public figures in scope. Zeitgeist therefore no longer serves as the Codex's low-risk proving ground — it follows a product that will already have established the Codex on named people. The practical consequence for this sheet: Zeitgeist inherits a Codex whose public reception is already set, so its slate copy and persona scoring should be reviewed against whatever the Five Faces launch actually produces rather than written in advance of it."),
     ("li", "Codex renders at bet time, on-chain with criteria, same as Five Faces"),
     ("li", "Named individuals are never the subject of a slot. Where a trend is strongly associated with a person or brand, the market is on the TREND and the criteria must say so explicitly"),
     ("li", "Trend nominations are moderated against the same subject gate: no protected-class mapping, no minors, no real-world illegal outcome prediction"),
@@ -399,10 +420,10 @@ ZEITGEIST = [
     ("li", "Slot auction room — Dutch clock, commit-reveal state, nomination pool with EigenTrust-weighted nominators"),
     ("li", "Per-slot corpus viewer: the actual headlines and figures behind a trend, with sources"),
     ("h2", "11.4 Phased build"),
-    ("li", "Phase 1 — hardcoded 2026 slate, five-face scoring, parimutuel markets. Ship the Almanac and the three slots"),
+    ("li", "Phase 1 — 2026 slate, five-face scoring, parimutuel markets, and #voiEstimate driving the 2-or-3 slot count from the start. Ship the Almanac and the slate"),
     ("li", "Phase 2 — MPP bonding, lunar legs, Shield, trend-lifecycle curves as readouts"),
     ("li", "Phase 3 — THE TURNING: succession matrix, transmigration, vintage ledger. This is the phase that makes it a perpetual"),
-    ("li", "Phase 4 — nomination pool, slot auction, EigenTrust weighting, VOI-driven slot count"),
+    ("li", "Phase 4 — open nominations, slot auction, EigenTrust weighting. Until this phase lands the slate longlist is curated (§13.1), which must be labelled as such in-product"),
     ("li", "Phase 5 — Five Faces interlock: shared tradeable stack, vintage as a portrait attribute, cross-product priors"),
 
     ("h1", "12. Success Metrics"),
@@ -412,15 +433,22 @@ ZEITGEIST = [
     ("li", "Nomination participation ≥ 25% of active wallets per Turning"),
     ("li", "Succession matrix agreement: measured lineage and quadratic vote agree on the dominant edge in ≥ 70% of rows. Persistent disagreement means w_m/w_v needs retuning"),
     ("li", "Slot auction clears above floor in every seat; no seat goes unbid"),
-    ("li", "Zero defamation complaints — expected to be structurally trivial here, which is the point of shipping this one first"),
+    ("li", "Zero defamation complaints — should be structurally trivial here, since the subjects are trends. If Zeitgeist ever generates one, the slate copy has drifted from commenting on a phenomenon to accusing a person, and that is the signal to pull the slot"),
 
-    ("h1", "13. Open Decisions for Founder Sign-Off"),
-    ("li", "Ship order. Recommendation: Zeitgeist FIRST — near-zero defamation surface, it proves the Codex and the lunar cadence on subjects that cannot sue, and Five Faces inherits a working tradeable stack"),
-    ("li", "w_m / w_v blend weights in the succession matrix — measured lineage versus crowd vote. Proposal: start 0.6 / 0.4 and calibrate after the first Turning"),
-    ("li", "Slot count policy — hard 3, or VOI-driven 2-or-3. Proposal: VOI-driven from Phase 4, hard 3 before that"),
-    ("li", "Whether a trend may be re-slated after retiring (a comeback), and whether its old vintage is restored or a new one issued"),
-    ("li", "Who curates the nomination pool in Phase 1 before EigenTrust has data — founder-curated is the honest answer, and should be labelled as such in-product"),
-    ("li", "Whether the Turning is hard-coded to the lunar year or governance-adjustable. Recommendation: hard-coded. An adjustable reseed date is an attack surface"),
+    ("h1", "13. Decision Log — founder sign-off, August 2026"),
+    ("table", [
+        ["Decision", "Ruling", "Consequence"],
+        ["Ship order", "FIVE FACES first", "Zeitgeist no longer the Codex's proving ground — §10"],
+        ["Succession blend w_m / w_v", "CROWD-LED, 0.3 / 0.7", "Vote decides where conviction goes; the 0.3 corpus term keeps it plausible — §5.1"],
+        ["Slot count policy", "VOI-driven 2-or-3 from LAUNCH", "Moved out of Phase 4 into Phase 1 — §7, §11.4"],
+        ["Turning cadence", "Hard-coded to the lunar year", "354.367d, not governance-adjustable. An adjustable reseed date is an attack surface"],
+        ["Persona axis", "All five codex names unchanged", "Shared with Five Faces; White Rice broadcast name is THE THERMOSTAT"],
+        ["Chain family", "EVM", "Specific chain still open (MASTER_MATHS §13 item 4)"],
+    ]),
+    ("h2", "13.1 Still open"),
+    ("li", "COMEBACK VINTAGING — whether a re-slated trend restores its old vintage or is issued a new one was returned without a ruling. APPLIED PENDING OVERRIDE: comebacks are allowed, and they receive a NEW vintage. Restoring the old one would let a holder buy provenance by acquiring a dormant position cheaply and waiting for the comeback, which breaks the one thing vintage is supposed to certify — that you were actually there. One word flips it"),
+    ("li", "YEAR-1 NOMINATION CURATION — under review. The constraint: #calculateEigenTrustScore weights nominators by whether their past nominations proved out, so at the first Turning every nominator carries identical zero-information weight, and the first slate is either whoever-shows-up (the most manipulable moment in the product's life) or curated. Four options were put to the founder — founder-curated, open-from-day-one, trust bootstrapped from heat-score or existing Brier/log-score calibration, or a curated longlist with crowd-picked slots"),
+    ("li", "RECOMMENDATION ON THE ABOVE — curated longlist (~8 candidates) with holder vote selecting the 2-3 slots. Centralised on the menu, decentralised on the pick, so manipulation is bounded to a vetted set. It composes with the crowd-led succession blend already decided. Ships with plain in-product labelling: \"Year 1 longlist curated by MAD Gambit; slot selection by holder vote. Open nominations from the 2027 Turning\""),
 
     ("h1", "14. Sources for the 2026 Slate"),
     ("li", "Influencer Marketing Factory — Creator Economy Report 2026: theinfluencermarketingfactory.com/creator-economy-report/"),

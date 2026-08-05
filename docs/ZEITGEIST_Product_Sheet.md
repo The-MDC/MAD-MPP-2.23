@@ -18,7 +18,7 @@ Tagline: "The slate changes. Your conviction doesn't."
 
 Core Loop: DETECT → NOMINATE → AUCTION SLOTS → SCORE ON FIVE FACES → CONVICT → ROLL LEGS → THE TURNING → TRANSMIGRATE → CONTINUE
 
-## 2. The 2026 Slate (researched — see §13)
+## 2. The 2026 Slate (researched — sources at §14)
 
 | Slot | Trend | The persona question |
 |---|---|---|
@@ -70,11 +70,11 @@ Core Loop: DETECT → NOMINATE → AUCTION SLOTS → SCORE ON FIVE FACES → CON
 |---|---|
 | THE SAINT | Performed virtue. Claims the moral high ground and invites the halo — sincerity neither assumed nor denied. |
 | WHITE RICE | Flavourless by strategy. Offends no one, commits to nothing, survives everything. |
-| THE MEGALOMANIAC | Empire over everything. Scale, dominion, and the conviction that only they can fix it. |
+| THE MEGALOMANIAC | Empire over everything. Scale, dominion, and the certainty that the rules were priced for other people. Aimed at office-holders, boardrooms and the structurally entitled — the face that expects exemption. |
 | THE NARCISSIST | The mirror is the audience. Cannot act unless the room is watching. |
 | THE PROSTITUTE | The Sell-Out archetype: monetises access, principle, platform or endorsement to the highest bidder. Never a claim about anyone's sexual conduct. |
 
-The Codex is not flavour text — it is a compliance primitive. The definition renders adjacent to the label on every surface where conviction can be staked, and ships on-chain with the market criteria, so the product is unambiguously an archetype-perception market and never a factual allegation. Every face carries codexName and broadcastName; PERSONA_DISPLAY_MODE="broadcast" swaps THE PROSTITUTE → THE SELLOUT and WHITE RICE → THE BEIGE for app stores, ad networks and restrictive jurisdictions without forking the product.
+The Codex is not flavour text — it is a compliance primitive. The definition renders adjacent to the label on every surface where conviction can be staked, and ships on-chain with the market criteria, so the product is unambiguously an archetype-perception market and never a factual allegation. Every face carries codexName and broadcastName; PERSONA_DISPLAY_MODE="broadcast" swaps THE PROSTITUTE → THE SELLOUT and WHITE RICE → THE THERMOSTAT for app stores, ad networks and restrictive jurisdictions without forking the product. THE THERMOSTAT is the better name on the merits, not merely the safer one: it names the measured behaviour — an instrument that takes the room's temperature and matches it, which is exactly the near-zero sentiment intensity and non-answer act-class that define the face.
 
 Applied to trends rather than people, the Codex reads as cultural criticism rather than character assessment — which is exactly why Zeitgeist is the safest surface in the family (§10).
 
@@ -88,7 +88,8 @@ S[i][j] is the share of retiring trend i's conviction that inherits into new tre
 
 - LINEAGE (measured) — heat-score.ts#computeHeatForPool already implements cross-source clustering: two headlines are "the same story" when they share ≥ 2 significant tokens. Run it between the retiring trend's corpus and each candidate's corpus to get an overlap score. The trend engine already exists; it was simply built for headline ranking
 - CROWD (voted) — quadratic: #votingPower (√stake, capped 240) aggregated by #quadraticMatch, so many small holders outweigh one whale
-- BLEND — S = w_m·L_measured + w_v·V_quadratic, then ROW-NORMALISED so Σ_j S[i][j] = 1
+- BLEND — S = w_m·L_measured + w_v·V_quadratic, then ROW-NORMALISED so Σ_j S[i][j] = 1. FOUNDER DECISION (Aug 2026): CROWD-LED, w_m = 0.3 / w_v = 0.7. The crowd's read of lineage outranks the measured corpus overlap
+- Why not w_v = 1.0. Measured lineage is retained at 0.3 as a manipulation floor: the Turning is the single highest-incentive moment in the product, and a purely voted succession lets whoever organises best redirect the entire inherited conviction pool into a trend they are positioned in. Quadratic voting (√stake, capped 240) makes that expensive but not impossible; the 0.3 corpus term makes it also have to be PLAUSIBLE. Vote decides where conviction goes; measurement keeps it inside the realm of trends that actually share a story
 
 That normalisation is the whole invariant: CONVICTION IS CONSERVED ACROSS A TURNING. Nothing is destroyed at a reseed, nothing is minted from nothing, and no position is ever force-settled. Your stake reincarnates along measured lineage.
 
@@ -132,7 +133,7 @@ Zeitgeist deliberately draws on a WIDE span of the canonical library rather than
 - Conviction accrues C(t) = C_max·(1 − e^(−αt)) — #calculateConviction, with α set per face (Perp 1) or per trend (Perp 2)
 - Deliberately NOT DL-LMSR. Gossip-Cop and Perpetual Epiphanies are both LMSR families; changing the market maker is what makes this a structurally different instrument rather than a re-themed one
 - Each slot is a five-face simplex on that trend, so Zeitgeist inherits the Five Faces decomposition where useful — a trend also has a permanent component and a phase
-- Slot count is 2 or 3, decided annually by #voiEstimate against the nomination pool. Three is the default; two when the year is genuinely dominated
+- Slot count is 2 or 3, decided annually by #voiEstimate against the nomination pool — VOI-driven from LAUNCH per the Aug 2026 decision, not deferred to Phase 4. Three when the year is genuinely contested; two when one or two trends dominate and a third slot would buy no information
 - Position cap per slot: δ = π × Multiplier × √ConvictionStake — #calculateDeltaLimit
 - The Turning window is the highest-manipulation-incentive moment in the product; the slippage cushion tightens across it and slot-auction bids are commit-reveal
 
@@ -154,7 +155,9 @@ Zeitgeist deliberately draws on a WIDE span of the canonical library rather than
 
 ## 10. Compliance — and the compliance dividend
 
-The subjects here are TRENDS, not people. "Is the Authenticity Revolt a Saint or a Prostitute?" is commentary on a market phenomenon, not a claim about any person. That gives Zeitgeist a near-zero defamation surface and makes it the safest thing in the family — which is why it should ship FIRST, ahead of Five Faces, and establish the Codex's track record on subjects that cannot sue.
+The subjects here are TRENDS, not people. "Is the Authenticity Revolt a Saint or a Prostitute?" is commentary on a market phenomenon, not a claim about any person. That gives Zeitgeist a near-zero defamation surface and makes it the safest thing in the family.
+
+FOUNDER DECISION (Aug 2026): Five Faces ships FIRST regardless, with named public figures in scope. Zeitgeist therefore no longer serves as the Codex's low-risk proving ground — it follows a product that will already have established the Codex on named people. The practical consequence for this sheet: Zeitgeist inherits a Codex whose public reception is already set, so its slate copy and persona scoring should be reviewed against whatever the Five Faces launch actually produces rather than written in advance of it.
 
 - Codex renders at bet time, on-chain with criteria, same as Five Faces
 - Named individuals are never the subject of a slot. Where a trend is strongly associated with a person or brand, the market is on the TREND and the criteria must say so explicitly
@@ -191,10 +194,10 @@ The subjects here are TRENDS, not people. "Is the Authenticity Revolt a Saint or
 
 ### 11.4 Phased build
 
-- Phase 1 — hardcoded 2026 slate, five-face scoring, parimutuel markets. Ship the Almanac and the three slots
+- Phase 1 — 2026 slate, five-face scoring, parimutuel markets, and #voiEstimate driving the 2-or-3 slot count from the start. Ship the Almanac and the slate
 - Phase 2 — MPP bonding, lunar legs, Shield, trend-lifecycle curves as readouts
 - Phase 3 — THE TURNING: succession matrix, transmigration, vintage ledger. This is the phase that makes it a perpetual
-- Phase 4 — nomination pool, slot auction, EigenTrust weighting, VOI-driven slot count
+- Phase 4 — open nominations, slot auction, EigenTrust weighting. Until this phase lands the slate longlist is curated (§13.1), which must be labelled as such in-product
 - Phase 5 — Five Faces interlock: shared tradeable stack, vintage as a portrait attribute, cross-product priors
 
 ## 12. Success Metrics
@@ -205,16 +208,24 @@ The subjects here are TRENDS, not people. "Is the Authenticity Revolt a Saint or
 - Nomination participation ≥ 25% of active wallets per Turning
 - Succession matrix agreement: measured lineage and quadratic vote agree on the dominant edge in ≥ 70% of rows. Persistent disagreement means w_m/w_v needs retuning
 - Slot auction clears above floor in every seat; no seat goes unbid
-- Zero defamation complaints — expected to be structurally trivial here, which is the point of shipping this one first
+- Zero defamation complaints — should be structurally trivial here, since the subjects are trends. If Zeitgeist ever generates one, the slate copy has drifted from commenting on a phenomenon to accusing a person, and that is the signal to pull the slot
 
-## 13. Open Decisions for Founder Sign-Off
+## 13. Decision Log — founder sign-off, August 2026
 
-- Ship order. Recommendation: Zeitgeist FIRST — near-zero defamation surface, it proves the Codex and the lunar cadence on subjects that cannot sue, and Five Faces inherits a working tradeable stack
-- w_m / w_v blend weights in the succession matrix — measured lineage versus crowd vote. Proposal: start 0.6 / 0.4 and calibrate after the first Turning
-- Slot count policy — hard 3, or VOI-driven 2-or-3. Proposal: VOI-driven from Phase 4, hard 3 before that
-- Whether a trend may be re-slated after retiring (a comeback), and whether its old vintage is restored or a new one issued
-- Who curates the nomination pool in Phase 1 before EigenTrust has data — founder-curated is the honest answer, and should be labelled as such in-product
-- Whether the Turning is hard-coded to the lunar year or governance-adjustable. Recommendation: hard-coded. An adjustable reseed date is an attack surface
+| Decision | Ruling | Consequence |
+|---|---|---|
+| Ship order | FIVE FACES first | Zeitgeist no longer the Codex's proving ground — §10 |
+| Succession blend w_m / w_v | CROWD-LED, 0.3 / 0.7 | Vote decides where conviction goes; the 0.3 corpus term keeps it plausible — §5.1 |
+| Slot count policy | VOI-driven 2-or-3 from LAUNCH | Moved out of Phase 4 into Phase 1 — §7, §11.4 |
+| Turning cadence | Hard-coded to the lunar year | 354.367d, not governance-adjustable. An adjustable reseed date is an attack surface |
+| Persona axis | All five codex names unchanged | Shared with Five Faces; White Rice broadcast name is THE THERMOSTAT |
+| Chain family | EVM | Specific chain still open (MASTER_MATHS §13 item 4) |
+
+### 13.1 Still open
+
+- COMEBACK VINTAGING — whether a re-slated trend restores its old vintage or is issued a new one was returned without a ruling. APPLIED PENDING OVERRIDE: comebacks are allowed, and they receive a NEW vintage. Restoring the old one would let a holder buy provenance by acquiring a dormant position cheaply and waiting for the comeback, which breaks the one thing vintage is supposed to certify — that you were actually there. One word flips it
+- YEAR-1 NOMINATION CURATION — under review. The constraint: #calculateEigenTrustScore weights nominators by whether their past nominations proved out, so at the first Turning every nominator carries identical zero-information weight, and the first slate is either whoever-shows-up (the most manipulable moment in the product's life) or curated. Four options were put to the founder — founder-curated, open-from-day-one, trust bootstrapped from heat-score or existing Brier/log-score calibration, or a curated longlist with crowd-picked slots
+- RECOMMENDATION ON THE ABOVE — curated longlist (~8 candidates) with holder vote selecting the 2-3 slots. Centralised on the menu, decentralised on the pick, so manipulation is bounded to a vetted set. It composes with the crowd-led succession blend already decided. Ships with plain in-product labelling: "Year 1 longlist curated by MAD Gambit; slot selection by holder vote. Open nominations from the 2027 Turning"
 
 ## 14. Sources for the 2026 Slate
 
