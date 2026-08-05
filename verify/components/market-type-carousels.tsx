@@ -12,7 +12,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 
-type MarketType = "progression" | "saga" | "zliar" | "perp" | "gossipcop";
+// Imported, never redeclared. A local copy of this union silently drops any new
+// market type the classifier starts emitting — the API keeps returning them and
+// the carousel just never renders them, with no compile error to catch it.
+import { MARKET_TYPES, type MarketType } from "@/lib/market-classifier";
 
 interface Proposal {
   type: MarketType;
@@ -30,14 +33,29 @@ interface Resp {
   byType: Record<MarketType, number>;
 }
 
-const ORDER: MarketType[] = ["progression", "saga", "zliar", "perp", "gossipcop"];
-const LABEL: Record<MarketType, string> = { progression: "Progression", saga: "Saga", zliar: "Z-Liar Meter", perp: "Perp", gossipcop: "GossipCop Perp" };
+// Order follows the classifier's cascade, so a new type appears automatically.
+const ORDER: readonly MarketType[] = MARKET_TYPES;
+// Typed Record — a new market type becomes a COMPILE ERROR here rather than a
+// blank label at runtime.
+const LABEL: Record<MarketType, string> = {
+  progression: "Progression",
+  saga: "Saga",
+  zliar: "Z-Liar Meter",
+  perp: "Perp",
+  gossipcop: "GossipCop Perp",
+  faces: "Five Faces",
+  zeitgeist: "Zeitgeist",
+  epiphany: "Perpetual Epiphanies",
+};
 const BLURB: Record<MarketType, string> = {
   progression: "Short A→B→C arcs (≤ ~45d)",
   saga: "Weeks-to-years evolving narratives",
   zliar: "Satire-quality-filtered specialty markets",
   perp: "Continuous · no terminal date",
   gossipcop: "Celebrity long-arc · historical-pattern (GossipCop) tracked",
+  faces: "Persona decomposition · permanent face vs the one worn today",
+  zeitgeist: "Trend succession · the slate reseeds, conviction transmigrates",
+  epiphany: "Mental models · conviction on cultural persistence",
 };
 
 function Carousel({ type, items, live }: { type: MarketType; items: Proposal[]; live: boolean }) {

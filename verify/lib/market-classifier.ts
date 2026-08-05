@@ -21,15 +21,32 @@ import { scoreSentiment, type Sentiment } from "@/lib/sentiment";
 import { zLiarMeter, PLATFORM } from "@/lib/gambit-game-math";
 import { perpTriggerProbability } from "@/lib/gdelt";
 
-export type MarketType =
-  | "progression"
-  | "saga"
-  | "zliar"
-  | "perp"
-  | "gossipcop"
-  | "faces"
-  | "zeitgeist"
-  | "epiphany";
+/**
+ * Every market type, in cascade-evaluation order. The union is DERIVED from this
+ * array rather than declared alongside it, so the two can never disagree — and
+ * any consumer needing a value per type (a counter, a label map, a carousel)
+ * should iterate MARKET_TYPES instead of hand-listing keys. Hand-listed
+ * `Record<MarketType, T>` literals silently rot every time a type is added.
+ */
+export const MARKET_TYPES = [
+  "progression",
+  "saga",
+  "zliar",
+  "perp",
+  "gossipcop",
+  "faces",
+  "zeitgeist",
+  "epiphany",
+] as const;
+
+export type MarketType = (typeof MARKET_TYPES)[number];
+
+/** Build a zero-initialised tally over every market type. */
+export function emptyTypeTally(): Record<MarketType, number> {
+  const out = {} as Record<MarketType, number>;
+  for (const t of MARKET_TYPES) out[t] = 0;
+  return out;
+}
 
 // FIVE FACES = the persona-decomposition family. A persona-bearing subject with a
 // perpetual horizon graduates here rather than to a binary gossip perp, because
