@@ -4,6 +4,7 @@ import { hasDatabaseUrl } from "@/lib/database-url";
 import { isAuthResponse, requireMadxRouteAuth } from "@/lib/madx-route-auth";
 import { getPerpMarket, stakeConviction } from "@/lib/perp-store";
 import { vintageAt } from "@/lib/lunar-legs";
+import { getPauseState } from "@/lib/registrar-queue";
 
 /**
  * POST /api/v1/perps/convict { marketId, conviction }
@@ -37,6 +38,17 @@ export async function POST(req: Request) {
     }
 
     const pool = getDbPool();
+
+    // PAUSE_GUARDIAN halts new conviction platform-wide — every family, not
+    // just the one with named subjects on it.
+    const pause = await getPauseState(pool);
+    if (pause.paused) {
+      return NextResponse.json(
+        { success: false, error: "new conviction is halted", reason: pause.reason },
+        { status: 503 },
+      );
+    }
+
     const market = await getPerpMarket(pool, marketId);
     if (!market) return NextResponse.json({ success: false, error: "market not found" }, { status: 404 });
     if (market.family === "faces") {

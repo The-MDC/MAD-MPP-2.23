@@ -21,6 +21,7 @@ import React, { useEffect, useState } from "react";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import { PersonaPriceRow } from "@/components/persona-price";
+import { SubjectReplyPanel } from "@/components/registrar-panel";
 import type { StakeableLabel } from "@/lib/persona-codex";
 
 interface Reading {
@@ -39,7 +40,15 @@ interface Labels {
   transitory: StakeableLabel[];
 }
 interface Entry {
-  market: { id: string; title: string; legIndex: number; legClosesAt: string; status: string };
+  market: {
+    id: string;
+    title: string;
+    legIndex: number;
+    legClosesAt: string;
+    status: string;
+    subjectRef: string;
+    subjectClass: string;
+  };
   countdown: string;
   crowned: string | null;
   reading: Reading | null;
@@ -147,6 +156,13 @@ export default function FacesWaterline() {
 
               {m.reading ? <DivergenceBar reading={m.reading} slip={m.slip} /> : (
                 <div style={{ fontSize: 8, color: skin.muted }}>No decomposition on this leg yet.</div>
+              )}
+
+              {/* §9.1: adjacent to the Waterline at equal prominence. Deliberately
+                  NOT behind the expand toggle — a reply you have to click to find
+                  is not rendered at equal prominence to a price you cannot miss. */}
+              {m.market.subjectClass === "named_individual" && (
+                <SubjectReplyPanel subjectRef={m.market.subjectRef} />
               )}
 
               <button

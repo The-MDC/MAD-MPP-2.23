@@ -31,6 +31,7 @@ import MarketTypeCarousels from "@/components/market-type-carousels";
 import FacesWaterline from "@/components/faces-waterline";
 import ZeitgeistAlmanac from "@/components/zeitgeist-almanac";
 import EpiphanyCatalog from "@/components/epiphany-catalog";
+import { RegistrarStatusPanel } from "@/components/registrar-panel";
 import CategoryRail from "@/components/category-rail";
 import AccountRail from "@/components/account-rail";
 import PlatformExplorer from "@/components/platform-explorer";
@@ -237,6 +238,10 @@ function PreviewInner() {
             {/* The three custom perpetual families, each with its own instrument. */}
             <div id="mg-faces" style={{ scrollMarginTop: 72 }}>
               <FacesWaterline />
+            </div>
+            {/* The Phase-4 gate and the transparency report, in public (§9.1). */}
+            <div id="mg-registrar" style={{ scrollMarginTop: 72 }}>
+              <RegistrarStatusPanel />
             </div>
             <div id="mg-zeitgeist" style={{ scrollMarginTop: 72 }}>
               <ZeitgeistAlmanac />

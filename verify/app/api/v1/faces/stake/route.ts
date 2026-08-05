@@ -9,6 +9,7 @@ import {
   type PositionLayer,
 } from "@/lib/perp-store";
 import { toFaceId } from "@/lib/persona-codex";
+import { getPauseState, isSubjectApproved, readReadiness } from "@/lib/registrar-queue";
 
 /**
  * POST /api/v1/faces/stake { marketId, face, layer, conviction }
@@ -48,6 +49,18 @@ export async function POST(req: Request) {
     }
 
     const pool = getDbPool();
+
+    // PAUSE_GUARDIAN halts NEW conviction platform-wide (§9.1, INTERLOCK layer
+    // 5). Checked before anything else, because a last-resort stop that only
+    // applies to some of the paths is not a stop.
+    const pause = await getPauseState(pool);
+    if (pause.paused) {
+      return NextResponse.json(
+        { success: false, error: "new conviction is halted", reason: pause.reason },
+        { status: 503 },
+      );
+    }
+
     const market = await getPerpMarket(pool, marketId);
     if (!market) return NextResponse.json({ success: false, error: "market not found" }, { status: 404 });
     if (market.status !== "open") {
@@ -55,10 +68,34 @@ export async function POST(req: Request) {
     }
 
     if (market.subjectClass === "named_individual") {
-      const eligible = await isSubjectPortraitEligible(pool, market.subjectRef);
-      if (!eligible) {
+      // Three independent conditions, all live queries. Each one has failed
+      // differently in somebody's incident report: the registry was never stood
+      // up, the subject was never actually approved, or the key lapsed while
+      // the market kept trading.
+      const [registry, approved, keyHeld] = await Promise.all([
+        readReadiness(pool),
+        isSubjectApproved(pool, market.subjectRef),
+        isSubjectPortraitEligible(pool, market.subjectRef),
+      ]);
+      if (!registry.live) {
         return NextResponse.json(
-          { success: false, error: "portrait key not registered — market is interlocked" },
+          {
+            success: false,
+            error: "portrait key registry is not live — named subjects are interlocked",
+            outstanding: registry.outstanding,
+          },
+          { status: 409 },
+        );
+      }
+      if (!approved) {
+        return NextResponse.json(
+          { success: false, error: "subject has not cleared the §9.1 eligibility bar" },
+          { status: 409 },
+        );
+      }
+      if (!keyHeld) {
+        return NextResponse.json(
+          { success: false, error: "portrait key not registered or lapsed — market is interlocked" },
           { status: 409 },
         );
       }
