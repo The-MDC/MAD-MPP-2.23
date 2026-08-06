@@ -23,6 +23,7 @@
 
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-stencil: "Allerta Stencil", Impact, Haettenschweiler, "Arial Narrow Bold", var(--font-sans);
 
   /* Dopamine color ramp — temperature rises with excitement */
   --dopamine-calm:    #00f0ff;   /* blue-cyan — resting state */

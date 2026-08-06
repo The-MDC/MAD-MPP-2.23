@@ -12,6 +12,8 @@ import {
 } from "@/lib/succession";
 import { SEED_SLATE, corporaOf } from "@/lib/trend-slate";
 import { vintageAt } from "@/lib/lunar-legs";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import { isAuthResponse, requireMadxRouteAuth } from "@/lib/madx-route-auth";
 
 /**
  * GET  /api/v1/zeitgeist/succession?from=&to= — the stored matrix for a Turning.
@@ -52,6 +54,9 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const limited = enforceRateLimit(req, "zeitgeist-succession", 30, 60_000);
+  if (limited) return limited;
+
   try {
     const body = (await req.json().catch(() => ({}))) as Body;
     const fromVintage = Number.isFinite(body.fromVintage as number)
@@ -90,7 +95,12 @@ export async function POST(req: Request) {
     });
 
     let persisted = 0;
-    if (body.persist && hasDatabaseUrl()) {
+    if (body.persist) {
+      const auth = requireMadxRouteAuth(req, "zeitgeist-succession-persist", 10, 60_000);
+      if (isAuthResponse(auth)) return auth;
+      if (!hasDatabaseUrl()) {
+        return NextResponse.json({ success: false, error: "persistence needs DATABASE_URL" }, { status: 503 });
+      }
       if (!s.conserved || error > 1e-9) {
         return NextResponse.json(
           { success: false, error: "matrix fails conservation — refusing to persist", conservationError: error },

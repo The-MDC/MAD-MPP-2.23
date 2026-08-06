@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { hasDatabaseUrl } from "@/lib/database-url";
+import { requireBearerSecret } from "@/lib/bearer-secret";
 
 /**
  * Rollup cron — folds events_stream into the analytics aggregates
@@ -8,10 +9,8 @@ import { hasDatabaseUrl } from "@/lib/database-url";
  * CRON_SECRET (Bearer) when set. Idempotent (ON CONFLICT upserts).
  */
 async function run(req: Request) {
-  const secret = process.env.CRON_SECRET;
-  if (secret && req.headers.get("authorization") !== `Bearer ${secret}`) {
-    return NextResponse.json({ success: false, error: "unauthorized" }, { status: 401 });
-  }
+  const auth = requireBearerSecret(req, "CRON_SECRET");
+  if (auth) return auth;
   if (!hasDatabaseUrl())
     return NextResponse.json({ success: false, error: "DATABASE_URL not set" }, { status: 503 });
 

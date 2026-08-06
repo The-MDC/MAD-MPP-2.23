@@ -27,7 +27,7 @@ function useCountdown(ms: number): string {
   useEffect(() => {
     const t = setInterval(() => setRemaining(r => Math.max(0, r - 1000)), 1000);
     return () => clearInterval(t);
-  }, []);
+  }, [setRemaining]);
   const h = Math.floor(remaining / 3600000);
   const m = Math.floor((remaining % 3600000) / 60000);
   const s = Math.floor((remaining % 60000) / 1000);
@@ -109,7 +109,7 @@ export default function TournamentArena() {
 
         {userRank > 0 && (
           <div className="mt-4 rounded-lg border border-cyan-500/30 bg-cyan-500/5 px-3 py-2 text-center">
-            <p className="font-mono text-[10px] text-cyan-400">You're rank #{userRank} · projected prize {userPrize > 0 ? `${userPrize.toLocaleString()} MΛĐ` : "outside payout band"}</p>
+            <p className="font-mono text-[10px] text-cyan-400">You&apos;re rank #{userRank} · projected prize {userPrize > 0 ? `${userPrize.toLocaleString()} MΛĐ` : "outside payout band"}</p>
           </div>
         )}
       </div>

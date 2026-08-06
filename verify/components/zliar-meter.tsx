@@ -94,7 +94,7 @@ export default function ZLiarMeter() {
 
           {/* MADHAT'r quip */}
           <div className="rounded-xl border px-4 py-3" style={{ borderColor: color + "33", background: "#03050880" }}>
-            <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-500 mb-1">🎩 The MADHAT'r reads it</p>
+            <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-500 mb-1">🎩 The MADHAT&apos;r reads it</p>
             <p className="text-sm text-neutral-200 italic leading-relaxed">{QUIPS[reading.verdict]}</p>
           </div>
 

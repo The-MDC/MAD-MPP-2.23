@@ -198,7 +198,7 @@ export default function RoastShare({
 
       {/* Roast line */}
       <p className="font-mono text-[10px] text-neutral-400 italic leading-relaxed">
-        "{convictionTake || meta.roastLine}"
+        &ldquo;{convictionTake || meta.roastLine}&rdquo;
       </p>
 
       {/* Action buttons */}

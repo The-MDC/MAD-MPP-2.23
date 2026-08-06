@@ -23,14 +23,14 @@ const TTL_SQL = '5 minutes';
 // Fallback store when no database is configured (dev/demo, single instance).
 const mem = new Map<string, number>();
 
-function useDb(): boolean {
+function shouldUseDb(): boolean {
   return hasDatabaseUrl();
 }
 
 /** Issue a fresh, server-side nonce. */
 export async function issueNonce(): Promise<string> {
   const nonce = randomBytes(16).toString('hex');
-  if (useDb()) {
+  if (shouldUseDb()) {
     const pool = getDbPool();
     await pool.query(
       `INSERT INTO siwe_nonces (nonce) VALUES ($1)
@@ -55,7 +55,7 @@ export async function issueNonce(): Promise<string> {
  */
 export async function consumeNonce(nonce: string): Promise<boolean> {
   if (!nonce) return false;
-  if (useDb()) {
+  if (shouldUseDb()) {
     const pool = getDbPool();
     const res = await pool.query(
       `DELETE FROM siwe_nonces

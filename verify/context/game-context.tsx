@@ -383,7 +383,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       adjustCredits(baseReturn + shieldReturn);
       return { ...pos, resolved: true, outcome: won ? "won" : "lost", payout };
     }));
-  }, [adjustCredits]);
+  }, [adjustCredits, cards, eigenTrustScore, madCredits]);
 
   const shieldTogglePosition = useCallback((id: string) => {
     setPositions(p => p.map(pos => {
@@ -439,7 +439,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
        adjustCredits, tournamentPool, ladder, userMmr, runPvpMatch, zLiarHistory, runZLiar,
        positions, openPosition, resolvePosition, shieldTogglePosition,
        socialAccounts, linkSocialAccount, socialAmplification,
-       socialAuth, walletAuth]);
+       socialAuth, walletAuth, setSocialAuth, setWalletAuth, setCards, requestShieldUnstakePos, getShieldReturnCountdown, saverTokens, useSaverToken, xp, addXp, eigenTrustScore]);
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }

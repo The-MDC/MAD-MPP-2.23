@@ -166,7 +166,7 @@ export default function PositionsDashboard() {
                           <Brain className="w-2.5 h-2.5" /> Vector DB Context:
                         </p>
                         <p className="font-mono text-[8px] italic text-neutral-400 leading-relaxed line-clamp-2">
-                          "{trade.newsContext[0].content}"
+                          &ldquo;{trade.newsContext[0].content}&rdquo;
                         </p>
                       </div>
                     )}
