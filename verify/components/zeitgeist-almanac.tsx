@@ -20,6 +20,7 @@ import React, { useEffect, useState } from "react";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import { PersonaPriceRow } from "@/components/persona-price";
+import SuccessionRibbon from "@/components/succession-ribbon";
 import type { StakeableLabel } from "@/lib/persona-codex";
 
 interface Life {
@@ -122,6 +123,12 @@ export default function ZeitgeistAlmanac() {
       )}
 
       {slate === null && <div style={{ fontSize: 9, color: skin.muted }}>Reading the slate…</div>}
+
+      {/* Where conviction goes at the Turning. Drawn, not tabulated — the
+          conservation is the reassurance, and a picture carries it. */}
+      <div style={{ background: skin.panel, border: `1px solid ${skin.border}`, borderRadius: 14, padding: 14 }}>
+        <SuccessionRibbon labels={slots.map((s) => s.trendName)} />
+      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 12 }}>
         {slots.map((s) => {
