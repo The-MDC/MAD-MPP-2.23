@@ -217,22 +217,26 @@ contract MADPortraitTest is Test {
 
     /* ═══ Access control and the pause ════════════════════════════ */
 
+    // NOTE on the two tests below: the role getter is read into a local BEFORE
+    // vm.prank. Reading it inside the expectRevert argument is an external call,
+    // and an external call consumes the prank — so the call under test would run
+    // as the test contract rather than as `collector`, and the assertion would
+    // fail against an address nobody wrote down. Cheap mistake, confusing
+    // failure; worth the two extra lines.
     function test_OnlyMinterCanMint() public {
+        bytes32 minterRole = portrait.MINTER_ROLE();
         vm.prank(collector);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector, collector, portrait.MINTER_ROLE()
-            )
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, collector, minterRole)
         );
         portrait.mintInstitutional(collector, _institutional());
     }
 
     function test_OnlyRegistrarCanRegister() public {
+        bytes32 registrarRole = registry.REGISTRAR_ROLE();
         vm.prank(collector);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector, collector, registry.REGISTRAR_ROLE()
-            )
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, collector, registrarRole)
         );
         registry.registerKey(SUBJECT, KEY_REF);
     }
