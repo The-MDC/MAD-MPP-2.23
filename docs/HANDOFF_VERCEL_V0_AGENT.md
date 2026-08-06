@@ -155,13 +155,32 @@ it, and diminished is the same as filtered for the purpose this surface serves. 
 the same 9px scale as a market card. If a layout change makes it visually subordinate to the price
 beside it, that is a regression against §9.1, not a styling preference.
 
-## 6. Known gaps — not in PR #58
+## 6. Contracts and the auction room (PR #59)
 
-- Slot auction room (Dutch clock, commit-reveal) — specified in ZEITGEIST §11.3, not built.
-- The succession flow ribbon in the Almanac — the API returns the matrix; the Almanac currently
-  renders slate + lifecycle only.
-- `MADPortraitKeyRegistry.sol` and INTERLOCK layers 1 and 4 (the chain-level revert and the
-  deploy-ordering guard). Layers 2, 3 and 5 are live in this PR; 1 and 4 land with the contracts.
+All four INTERLOCK layers are now live. Layers 1 and 4 are Solidity:
+
+- `MADPortrait.mintNamed` reverts unless `MADPortraitKeyRegistry` returns a non-zero keyRef.
+  The read is a `staticcall` with explicit code-length **and** returndata-length checks — a plain
+  interface call against a codeless address *succeeds with empty returndata*, which is the silent
+  failure the gate exists to refuse.
+- `DeployPortrait.s.sol` cannot reach the portrait deploy unless the registry is deployed and
+  answering, probed through that same path.
+
+Two front-end surfaces came with it:
+
+- **Slot auction room** — `/api/v1/zeitgeist/auction`. Phase is derived from the clock, never from
+  a stored flag. If you build UI against it, do not cache the phase: the whole point is that a down
+  scheduler cannot leave the commit window open into the reveal window.
+- **`succession-ribbon.tsx`** — mounted inside the Almanac. The conservation error is printed on
+  purpose; if it ever renders non-zero, that is the most important number on the page and not a
+  rounding artefact to hide.
+
+## 7. Known gaps
+
+- `vercel-agent/migrate-middleware-to-proxy` (`b2d9cf9`) still needs deleting by hand — the git
+  proxy 403s on delete-ref from this environment.
+- The registrar's KMS and object-store adapters are interfaces with local stand-ins. A production
+  deploy injects real ones; `assertProductionKms` refuses the local adapter for named subjects.
 
 ---
 
