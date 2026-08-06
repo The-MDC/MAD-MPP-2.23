@@ -15,6 +15,10 @@ on:
     paths:
       - "contracts/src/**"
       - "contracts/test/**"
+      # `forge build` compiles script/ too, so a deploy script that stops
+      # compiling is a red build — but without this path it never ran.
+      # DeployPortrait.s.sol is INTERLOCK layer 4; it must be gated.
+      - "contracts/script/**"
       - "contracts/foundry.toml"
       - "contracts/lib/**"
       - ".github/workflows/foundry.yml"
@@ -22,6 +26,10 @@ on:
     paths:
       - "contracts/src/**"
       - "contracts/test/**"
+      # `forge build` compiles script/ too, so a deploy script that stops
+      # compiling is a red build — but without this path it never ran.
+      # DeployPortrait.s.sol is INTERLOCK layer 4; it must be gated.
+      - "contracts/script/**"
       - "contracts/foundry.toml"
       - "contracts/lib/**"
       - ".github/workflows/foundry.yml"
