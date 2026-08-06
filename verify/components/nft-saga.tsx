@@ -117,7 +117,7 @@ export default function NftSaga() {
           <Layers className="w-5 h-5 text-cyan-400" />
           <div>
             <h2 className="font-mono text-xs uppercase tracking-[0.3em] text-neutral-400 font-bold">Card Vault</h2>
-            <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-600">{cards.length} of 992 · MADHAT's Gambit deck</p>
+            <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-600">{cards.length} of 992 · MADHAT&apos;s Gambit deck</p>
           </div>
         </header>
 

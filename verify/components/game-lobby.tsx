@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, ImagePlus, Hash, StickyNote, Users, X } from "lucide-react";
 import { INK } from "@/lib/gambit-design-tokens";
 import { celebrate } from "@/components/joy-layer";
+import Image from "next/image";
 
 const EXPIRY_MS = 16 * 24 * 60 * 60 * 1000; // 16 days
 const MAX_TWEET = 280;
@@ -144,7 +145,7 @@ export default function GameLobby() {
               </div>
               {m.subject && <p className="font-mono text-[11px] font-black uppercase tracking-wide mb-0.5" style={{ color: INK.gold }}>{m.subject}</p>}
               {m.text && <p className="font-sans text-[12px]" style={{ color: INK.white }}>{m.text}</p>}
-              {m.img && <img src={m.img} alt="attachment" className="mt-1.5 rounded-lg max-h-40 w-auto" />}
+              {m.img && <Image src={m.img} alt="attachment" width={160} height={160} unoptimized className="mt-1.5 rounded-lg max-h-40 w-auto" />}
               <div className="flex gap-1 mt-1.5">
                 {REACTIONS.map((e) => (
                   <button key={e} type="button" onClick={() => react(m.id, e)}
@@ -172,7 +173,7 @@ export default function GameLobby() {
         )}
         {img && (
           <div className="relative inline-block">
-            <img src={img} alt="preview" className="h-16 rounded-lg" />
+            <Image src={img} alt="preview" width={64} height={64} unoptimized className="h-16 w-auto rounded-lg" />
             <button type="button" onClick={() => setImg(null)} aria-label="Remove image"
               className="absolute -top-1.5 -right-1.5 rounded-full p-0.5" style={{ background: INK.pink, color: "#fff" }}><X className="w-3 h-3" /></button>
           </div>

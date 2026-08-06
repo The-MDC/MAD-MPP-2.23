@@ -193,7 +193,7 @@ export function SubjectReplyPanel({ subjectRef }: { subjectRef: string }) {
   return (
     <div style={{ background: skin.panel, border: `1px solid ${skin.accent}55`, borderRadius: 14, padding: 14, fontFamily: INSTRUMENT_FONT }}>
       <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1, color: skin.accent, textTransform: "uppercase" }}>
-        The subject's reply
+        The subject&apos;s reply
       </div>
       <div style={{ fontSize: 7.5, color: skin.muted, marginTop: 4, lineHeight: 1.5 }}>
         A standing, unmoderated channel for the subject or a verified representative. Nothing posted here is

@@ -12,6 +12,7 @@ import { FACE_ORDER, type FaceId } from "@/lib/persona-codex";
 import { decompose, detectSlip, type SimplexState } from "@/lib/persona-decompose";
 import { fromFaceRecord } from "@/lib/persona-simplex";
 import { enforceRateLimit } from "@/lib/rate-limit";
+import { requireBearerSecret } from "@/lib/bearer-secret";
 
 /**
  * POST /api/v1/perps/roll — settle every matured leg and open the next one.
@@ -31,6 +32,9 @@ import { enforceRateLimit } from "@/lib/rate-limit";
  *   "everyone is suddenly forgiven".
  */
 export async function POST(req: Request) {
+  const auth = requireBearerSecret(req, "CRON_SECRET");
+  if (auth) return auth;
+
   const limited = enforceRateLimit(req, "perps-roll", 6, 60_000);
   if (limited) return limited;
 

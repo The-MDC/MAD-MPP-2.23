@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { hasDatabaseUrl } from "@/lib/database-url";
 import { enforceRateLimit } from "@/lib/rate-limit";
+import { requireBearerSecret } from "@/lib/bearer-secret";
 import {
   confirmKeyDestroyed,
   listLapsedKeys,
@@ -41,6 +42,9 @@ import { LEG_MS, globalLegIndex } from "@/lib/lunar-legs";
  * while the company is healthy is not a retention design.
  */
 export async function POST(req: Request) {
+  const auth = requireBearerSecret(req, "CRON_SECRET");
+  if (auth) return auth;
+
   const limited = enforceRateLimit(req, "registrar-lapse", 12, 60_000);
   if (limited) return limited;
 

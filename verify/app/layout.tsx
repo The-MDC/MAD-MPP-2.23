@@ -1,6 +1,5 @@
 import React from "react";
 import type { Metadata, Viewport } from "next";
-import { Allerta_Stencil } from "next/font/google";
 import "./globals.css";
 import { WorkspaceProvider } from "@/context/workspace-context";
 import { MppProvider } from "@/context/mpp-context";
@@ -9,15 +8,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import Script from "next/script";
 import LunarVars from "@/components/lunar-vars";
 
-// The canonical stencil display face (one weight — tokens.css sets
-// font-synthesis-weight: none so the cut-gaps are never faux-bolded over).
-const allertaStencil = Allerta_Stencil({
-  weight: "400",
-  subsets: ["latin"],
-  variable: "--font-stencil",
-  display: "swap",
-});
-
+// Display typography uses local/system fallbacks so builds do not depend on Google Fonts availability.
 export const metadata: Metadata = {
   title: "Mad Gambit Conviction Workspace",
   description: "High-fidelity neon quantitative workspace with custom mathematical models.",
@@ -38,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={allertaStencil.variable}>
+    <html lang="en">
       <body className="font-sans antialiased text-neutral-100 min-h-screen" style={{ backgroundColor: "var(--mg-bg, #030303)" }}>
         <LunarVars />
         <ThemeProvider>

@@ -5,7 +5,7 @@
  * ------------------------------------------------------------------
  * Ported from MainActivity.kt DutchAuctionPackPanel + GambitViewModel.
  * Live price timer: decrements by 5 every 5 seconds (floor at 10 $MADx).
- * Includes Founder's Golden Ticket claim flow (isGoldenTicketClaimed).
+ * Includes Founder&apos;s Golden Ticket claim flow (isGoldenTicketClaimed).
  * Pack cards: 7 named satirical NFTs from GambitViewModel.satiricalCardsPool.
  */
 
@@ -28,7 +28,7 @@ const CARD_POOL: SatiricalCard[] = [
   { id:"c1", name:"The Hallucinating LLM",    rarity:"Mythic",  fact:"Confidently outputs 2+2=5 with peer-reviewed mathematical proofs.", power:99, color:"#ffd700", emoji:"🤖" },
   { id:"c2", name:"The 3AM Liquidator",       rarity:"Exotic",  fact:"Nourished exclusively by margin-call tears and hot energy drinks.",  power:88, color:"#c084fc", emoji:"⚡" },
   { id:"c3", name:"Whampoa Twitter Hypebot", rarity:"Rare",    fact:"Fires 8,000 automated bullish remarks per minute about chaotic startups.", power:76, color:"#60a5fa", emoji:"📢" },
-  { id:"c4", name:"Founder's Golden Ticket", rarity:"Genesis", fact:"Allows access to the vault. Backed by nothing but infinite optimism.", power:100, color:"#f472b6", emoji:"🎟️" },
+  { id:"c4", name:"Founder&apos;s Golden Ticket", rarity:"Genesis", fact:"Allows access to the vault. Backed by nothing but infinite optimism.", power:100, color:"#f472b6", emoji:"🎟️" },
   { id:"c5", name:"The Rogue Oracle Node",    rarity:"Mythic",  fact:"Pipes cultural chaos directly into predictive smart contracts.",     power:95, color:"#ffd700", emoji:"🔮" },
   { id:"c6", name:"Dutch Auction Sniper Bot", rarity:"Rare",    fact:"Patiently waits until price hits 10 $MADx to swipe packs instantly.", power:82, color:"#60a5fa", emoji:"🎯" },
   { id:"c7", name:"The Slideware Champion",   rarity:"Rare",    fact:"Guarantees 10x multiplier in pitch decks, 0.1x in production.",     power:68, color:"#938f99", emoji:"📊" },
@@ -89,7 +89,7 @@ export default function DutchAuctionPanel() {
           <div className="flex items-center gap-2">
             <Ticket className="w-4 h-4 text-pink-400" />
             <div>
-              <p className="font-mono text-xs font-bold text-neutral-200">Founder's Golden Ticket</p>
+              <p className="font-mono text-xs font-bold text-neutral-200">Founder&apos;s Golden Ticket</p>
               <p className="font-mono text-[9px] text-neutral-500">Genesis Core Vault Key</p>
             </div>
           </div>
@@ -107,7 +107,7 @@ export default function DutchAuctionPanel() {
         ) : (
           <button onClick={claimGoldenTicket}
             className="w-full rounded-xl py-2.5 font-mono text-xs uppercase tracking-widest font-bold bg-pink-500/10 border border-pink-500/40 text-pink-400 hover:bg-pink-500/20 transition-all flex items-center justify-center gap-2">
-            <Star className="w-3.5 h-3.5" /> Claim Founder's Golden Ticket
+            <Star className="w-3.5 h-3.5" /> Claim Founder&apos;s Golden Ticket
           </button>
         )}
       </div>
