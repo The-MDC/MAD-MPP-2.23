@@ -13,8 +13,8 @@ import DopamineMetricsCarousel from "@/components/dopamine-metrics-carousel";
 function ReportsInner() {
   const { skin } = useSkin();
   return (
-    <main style={{ minHeight: "100vh", background: skin.bg, color: skin.text, fontFamily: INSTRUMENT_FONT, padding: "18px 16px 60px" }}>
-      <div style={{ maxWidth: 1000, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
+    <main style={{ minHeight: "100vh", background: skin.bg, color: skin.text, fontFamily: INSTRUMENT_FONT, padding: "var(--mg-pad-page-y) var(--mg-pad-page-x) var(--mg-pad-nav)" }}>
+      <div className="mg-sections" style={{ maxWidth: 1000, margin: "0 auto" }}>
         <a href="/mpp2.23" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 9, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: skin.accent, textDecoration: "none" }}>
           <ArrowLeft size={12} /> Back to the Hub
         </a>

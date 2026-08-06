@@ -154,6 +154,59 @@
   }
 }
 
+/* ─────────────────────────────────────────────────────────────────────
+   CONTAINER CONTRACT — global layout seams (see tokens.css)
+   Three primitives own every seam in the app so spacing can never drift:
+     .mg-sections  — a vertical stack of sections   → --mg-gap-section
+     .mg-lateral   — a row of side-by-side panels   → --mg-gap-lateral
+     .mg-split     — a responsive 2-up grid; tight columns, sectioned rows
+   Interior padding stays generous; only the seams between containers are
+   tight. That is the whole point: density between, comfort within.
+───────────────────────────────────────────────────────────────────── */
+.mg-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mg-gap-section);
+  min-width: 0;
+}
+
+.mg-lateral {
+  display: flex;
+  gap: var(--mg-gap-lateral);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+/* Auto-fit 2-up: columns hug at the lateral seam, wrapped rows fall back to
+   the section seam so a reflow on narrow screens still reads as sections. */
+.mg-split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  column-gap: var(--mg-gap-lateral);
+  row-gap: var(--mg-gap-section);
+  align-items: start;
+}
+
+/* The page gutter — one shared value, so every route's edge lines up. */
+.mg-page {
+  padding-left: var(--mg-pad-page-x);
+  padding-right: var(--mg-pad-page-x);
+  padding-top: var(--mg-pad-page-y);
+  padding-bottom: var(--mg-pad-nav);
+}
+
+/* Uniform container exterior border — opt-in class for containers that set
+   their own colour but should inherit the one global hairline width. */
+.mg-container { border-width: var(--mg-border-w); border-style: solid; }
+
+/* Tailwind's `border` utility already resolves to 1px, matching --mg-border-w,
+   so class-based containers are consistent by default. The remaining width
+   outliers were the glow utilities (1.15px) and two card containers (2px);
+   both are routed through --mg-border-w at their source. Intentional
+   non-container strokes are deliberately left alone: the .mg-device phone
+   bezel, active-state indicator rails (borderLeft), selection rings
+   (border-2 / border-4) and the concierge badge ring. */
+
 /* ─── Pre-existing utilities (preserved) ───────────────────────── */
 @utility liquid-gold-sheen {
   position: relative;
@@ -182,17 +235,17 @@
 }
 
 @utility border-glow-gold {
-  border: 1.15px solid rgba(255,215,0,0.85) !important;
+  border: var(--mg-border-w) solid rgba(255,215,0,0.85) !important;
   box-shadow: 0 0 12px rgba(255,215,0,0.4), inset 0 0 6px rgba(255,215,0,0.15) !important;
 }
 
 @utility border-glow-neon {
-  border: 1.15px solid rgba(0,242,254,0.85) !important;
+  border: var(--mg-border-w) solid rgba(0,242,254,0.85) !important;
   box-shadow: 0 0 12px rgba(0,242,254,0.4), inset 0 0 6px rgba(0,242,254,0.15) !important;
 }
 
 @utility border-glow-pink {
-  border: 1.15px solid rgba(255,0,127,0.85) !important;
+  border: var(--mg-border-w) solid rgba(255,0,127,0.85) !important;
   box-shadow: 0 0 12px rgba(255,0,127,0.4), inset 0 0 6px rgba(255,0,127,0.15) !important;
 }
 

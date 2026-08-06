@@ -197,10 +197,12 @@ function GambitInner() {
         )}
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-2 pb-24 lg:pb-2">
+      {/* Section seam: this column is one .mg-sections stack, so every child
+          below is exactly --mg-gap-section apart. Per-child mb-* removed. */}
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-2 pb-24 lg:pb-2 mg-sections">
 
         {/* HERO HEADER */}
-        <header className="text-center mb-4">
+        <header className="text-center">
           <BrandLockup primary={tokens.primary} accent={tokens.accent} />
           <p className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.35em] text-neutral-500 mt-3">
             Predict the Scandal · Own the Culture
@@ -212,13 +214,13 @@ function GambitInner() {
         <MainNav active={tab} onSelect={setTab} hasGoldenHand={hasGoldenHand} />
 
         {/* KAITO TICKER */}
-        <div className="mb-2"><KaitoPriceTicker /></div>
+        <div><KaitoPriceTicker /></div>
 
         {/* RSS WIRE */}
-        <div className="mb-4"><LiveTicker /></div>
+        <div><LiveTicker /></div>
 
-        {/* O-V DECK + SKIN */}
-        <div className="grid sm:grid-cols-[1fr_auto] gap-3 mb-5 items-start">
+        {/* O-V DECK + SKIN — side-by-side, so the lateral seam applies. */}
+        <div className="grid sm:grid-cols-[1fr_auto] items-start" style={{ columnGap: "var(--mg-gap-lateral)", rowGap: "var(--mg-gap-section)" }}>
           <OVDeckSelector selectedDeck={activeDeck} onSelect={setActiveDeck} convictionStake={500} />
           <div className="relative">
             <button onClick={() => setSkinMenuOpen(p => !p)}
@@ -243,7 +245,7 @@ function GambitInner() {
 
         {/* 7 TABS — driven by the shared PLATFORM_FEATURES registry so this bar and
             the premiere theme's PlatformExplorer can never drift out of parity. */}
-        <nav className="flex items-center justify-center flex-wrap gap-2 mb-6">
+        <nav className="flex items-center justify-center flex-wrap gap-2">
           {PLATFORM_FEATURES.map((f) => {
             const locked = !!f.gated && !hasGoldenHand;
             return (
@@ -271,19 +273,23 @@ function GambitInner() {
 
         {/* ── THE FLOOR ── */}
         {tab === "floor" && (
-          <div className="space-y-5">
+          <div className="mg-sections">
             <SeikoDopamineHub />
             <TopMarketsRail />
             <ZLiarSection />
             <MarketRails />
             <ScandalVelocityMeter />
             <MarketFactory />
-            <div className="grid lg:grid-cols-[1.3fr_1fr] gap-5">
-              <div className="space-y-5">
+            {/* Left ↔ right columns: lateral seam across, section seam on wrap. */}
+            <div
+              className="grid lg:grid-cols-[1.3fr_1fr]"
+              style={{ columnGap: "var(--mg-gap-lateral)", rowGap: "var(--mg-gap-section)" }}
+            >
+              <div className="mg-sections">
                 <PredictionCircus activeDeck={activeDeck} />
                 <SwapInterface activeDeck={activeDeck} />
               </div>
-              <div className="space-y-5">
+              <div className="mg-sections">
                 <PositionsDashboard />
                 <EigenTrustWidget />
                 <DopamineEngine />
@@ -296,21 +302,21 @@ function GambitInner() {
         {tab === "saga"   && <NftSaga />}
         {tab === "arena"  && <TournamentArena />}
         {tab === "packs"  && (
-          <div className="space-y-4">
+          <div className="mg-sections">
             <PackShop />
             <PackOpening />
             <DutchAuctionPanel />
           </div>
         )}
         {tab === "portal" && (
-          <div className="space-y-4">
+          <div className="mg-sections">
             <StakingTiersPanel />
             <PortalTab />
           </div>
         )}
         {tab === "casino" && <CasinoPanel />}
         {tab === "logic"  && (
-          <div className="space-y-4">
+          <div className="mg-sections">
             <StateMachineView />
             <FutarchyBoard />
             <BayesianDecisionTree nodes={DECISION_NODES} />
@@ -321,7 +327,7 @@ function GambitInner() {
         </motion.div>
         </AnimatePresence>
 
-        <footer className="mt-12 text-center space-y-2">
+        <footer className="text-center space-y-2">
           <p className="font-mono text-[10px] uppercase tracking-widest text-neutral-600">
             Platform Fee 1.88% · Creator Share 40% · Community 28.8% · $MADx 888,888,888 fixed
           </p>

@@ -13,12 +13,12 @@ import DopamineMetricsCarousel from "@/components/dopamine-metrics-carousel";
 function ProfileInner() {
   const { skin } = useSkin();
   return (
-    <main style={{ minHeight: "100vh", background: skin.bg, color: skin.text, fontFamily: INSTRUMENT_FONT, padding: "18px 16px 60px" }}>
-      <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
+    <main style={{ minHeight: "100vh", background: skin.bg, color: skin.text, fontFamily: INSTRUMENT_FONT, padding: "var(--mg-pad-page-y) var(--mg-pad-page-x) var(--mg-pad-nav)" }}>
+      <div className="mg-sections" style={{ maxWidth: 860, margin: "0 auto" }}>
         <a href="/mpp2.23" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 9, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: skin.accent, textDecoration: "none" }}>
           <ArrowLeft size={12} /> Back to the Hub
         </a>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, background: skin.panel, border: `1px solid ${skin.border}`, borderRadius: 16, padding: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, background: skin.panel, border: `var(--mg-border-w) solid ${skin.border}`, borderRadius: 16, padding: "var(--mg-pad-panel)" }}>
           <UserCircle size={38} strokeWidth={1.5} style={{ color: skin.gold }} />
           <div>
             <div style={{ fontSize: 14, fontWeight: 900, letterSpacing: 1, color: skin.gold, textTransform: "uppercase" }}>Degen Profile</div>

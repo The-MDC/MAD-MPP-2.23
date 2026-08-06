@@ -94,7 +94,7 @@ export default function DopamineCarouselStrip() {
               minWidth: 122,
               flex: "0 0 auto",
               background: skin.card,
-              border: `2px solid ${skin.accent}`,
+              border: `var(--mg-border-w) solid ${skin.accent}`,
               borderRadius: 14,
               padding: "13px 10px",
               textAlign: "center",

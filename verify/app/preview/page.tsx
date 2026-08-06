@@ -129,6 +129,7 @@ function PreviewInner() {
     setReduce(rm.matches);
     const wq = window.matchMedia("(min-width: 1024px)");
     const applyWide = () => {
+      console.log("[v0] applyWide fired, wq.matches =", wq.matches, "innerWidth =", window.innerWidth);
       setWide(wq.matches);
       setLeftOpen(wq.matches);
       setRightOpen(wq.matches);
@@ -196,10 +197,23 @@ function PreviewInner() {
         </header>
 
         {/* Responsive shell: left + right rails on desktop (mockup sidebars), stacked on mobile */}
-        <div style={{ maxWidth: wide ? 1300 : 1040, margin: "0 auto", padding: "8px 12px 96px", display: "flex", gap: 16, alignItems: "flex-start" }}>
+        {/* Lateral seam: the rails and the main column are separated by
+            --mg-gap-lateral so the three columns read as one instrument. */}
+        <div
+          className="mg-lateral"
+          style={{
+            maxWidth: wide ? 1300 : 1040,
+            margin: "0 auto",
+            paddingLeft: "var(--mg-pad-page-x)",
+            paddingRight: "var(--mg-pad-page-x)",
+            paddingTop: "var(--mg-pad-page-y)",
+            paddingBottom: "var(--mg-pad-nav)",
+          }}
+        >
           {wide && leftOpen ? <CategoryRail /> : null}
 
-          <main style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+          {/* Section seam: every stacked section below is --mg-gap-section apart. */}
+          <main className="mg-sections" style={{ flex: 1 }}>
             {/* Worksheet C: the MAD Gambit hero lockup + tagline moved to the
                top-left header (see BrandMark). Worksheet E: the redundant
                "MARKETS · NYSE" panel was removed — the top CryptoTickerDual
@@ -219,14 +233,15 @@ function PreviewInner() {
 
             {/* ── /gambit FLOOR, ported native (GameProvider-powered) ── */}
             <SeikoDopamineHub />
-            <div id="mg-markets" style={{ display: "flex", flexDirection: "column", gap: 16, scrollMarginTop: 72 }}>
+            <div id="mg-markets" className="mg-sections" style={{ scrollMarginTop: 72 }}>
               <TopMarketsRail />
               <MarketRails />
             </div>
             <ZLiarSection />
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: 12 }}>
+            {/* 2-up: tight lateral seam across, section seam when it wraps. */}
+            <div className="mg-split">
               <PositionsDashboard />
-              <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
+              <div className="mg-sections">
                 <EigenTrustWidget />
                 <DopamineEngine />
               </div>

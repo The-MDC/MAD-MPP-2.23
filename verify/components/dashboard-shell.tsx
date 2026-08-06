@@ -14,8 +14,8 @@ function ShellChrome({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <main style={{ minHeight: "100vh", background: skin.bg, padding: "24px 16px", transition: "background .4s ease" }}>
-      <div style={{ maxWidth: 1100, margin: "0 auto 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <main style={{ minHeight: "100vh", background: skin.bg, padding: "var(--mg-pad-page-y) var(--mg-pad-page-x)", transition: "background .4s ease" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto var(--mg-gap-section)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ fontFamily: INSTRUMENT_FONT, fontSize: 12, fontWeight: 900, letterSpacing: 2, color: skin.gold, textTransform: "uppercase" }}>
           MAD Gambit · Dashboard
         </div>
@@ -42,7 +42,19 @@ function ShellChrome({ children }: { children: React.ReactNode }) {
           )}
         </div>
       </div>
-      <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", alignItems: "start" }}>
+      {/* Auto-fit panel grid: lateral seam between columns, section seam
+          between rows — the global container contract (see tokens.css). */}
+      <div
+        style={{
+          maxWidth: 1100,
+          margin: "0 auto",
+          display: "grid",
+          columnGap: "var(--mg-gap-lateral)",
+          rowGap: "var(--mg-gap-section)",
+          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+          alignItems: "start",
+        }}
+      >
         {children}
       </div>
     </main>

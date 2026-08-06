@@ -54,7 +54,7 @@ export default function FeaturedMarketCards() {
             key={m.q}
             style={{
               background: skin.card,
-              border: `2px solid ${neon}`,
+              border: `var(--mg-border-w) solid ${neon}`,
               borderRadius: 16,
               padding: 18,
               boxShadow: `0 0 18px ${neon}44, inset 0 0 24px ${neon}11`,

@@ -59,6 +59,26 @@
   --phi: 1.618;
   --radius: 8px;
 
+  /* ——— CONTAINER CONTRACT — the global seam law (S0.5) ———
+     One hairline, two gaps. Every container's exterior background border is
+     exactly --mg-border-w. Sibling containers sitting side-by-side are
+     separated by --mg-gap-lateral; stacked sections are separated by
+     --mg-gap-section. The 1 : 2.5 ratio is what makes a vertical scroll read
+     as distinct sections while a row reads as one continuous instrument.
+     Do not hand-write gaps at these two seams — use the tokens. */
+  --mg-border-w: 1px;      /* container exterior border — uniform, global */
+  --mg-gap-lateral: 1px;   /* left ↔ right sibling containers */
+  --mg-gap-section: 2.5px; /* section ↕ section (top/bottom) */
+
+  /* ——— PADDING — interior breathing room, Fibonacci-derived ———
+     Containers keep real interior padding even though the seams are tight;
+     the density lives BETWEEN containers, never inside them. */
+  --mg-pad-page-x: var(--s2);  /* 16px — page gutter, left/right */
+  --mg-pad-page-y: var(--s2);  /* 16px — page gutter, top */
+  --mg-pad-panel: var(--s2);   /* 16px — standard container interior */
+  --mg-pad-panel-sm: 10px;     /* dense containers (rails, chips, rows) */
+  --mg-pad-nav: 96px;          /* bottom clearance for the fixed nav */
+
   /* ——— DEPTH — glow, not shadow, on the stage ———
      z: hub 0 · ambient loom −1 · node 100 · joy 200 · toast 300 */
   --z-node: 100;
