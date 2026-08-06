@@ -40,10 +40,22 @@ import { MAX_SLOTS, MIN_SLOTS } from "@/lib/trend-slate";
 
 export type AuctionPhase = "nomination" | "commit" | "reveal" | "cleared";
 
-/** The auction runs inside the last leg before a Turning. */
-export const NOMINATION_MS = LEG_MS * 0.5;
-export const COMMIT_MS = LEG_MS * 0.35;
+/**
+ * The auction runs inside the last leg before a Turning — and FINISHES inside
+ * it, leaving a settlement tail.
+ *
+ * The tail is not padding. `windowForNow` anchors the window to the CURRENT
+ * leg, so if the three active phases summed to a whole leg then `now` would
+ * always fall before `closesAt` and `phaseAt` could never return "cleared" —
+ * the auction would be structurally impossible to settle, with every bidder's
+ * deposit locked behind a phase that never arrives. The tail is the window in
+ * which clearing actually happens.
+ */
+export const NOMINATION_MS = LEG_MS * 0.45;
+export const COMMIT_MS = LEG_MS * 0.3;
 export const REVEAL_MS = LEG_MS * 0.15;
+/** The remainder of the leg, after reveal closes: when the auction is cleared. */
+export const SETTLEMENT_MS = LEG_MS - NOMINATION_MS - COMMIT_MS - REVEAL_MS;
 
 /** Forfeited if a commit is never revealed. Expressed as a share of the bid. */
 export const REVEAL_DEPOSIT_SHARE = 0.1;

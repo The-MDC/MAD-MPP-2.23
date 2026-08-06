@@ -142,19 +142,26 @@ export async function POST(req: Request) {
     const body = (await req.json().catch(() => ({}))) as Body;
     const action = String(body.action ?? "");
 
-    // Phase gating, derived from the clock rather than trusted from the client.
-    const requiredPhase: Record<string, string> = {
+    // Phase gating for the three ACTIVE actions, derived from the clock rather
+    // than trusted from the client.
+    //
+    // `clear` is deliberately NOT gated this way. Clearing is a fact about one
+    // auction — its window has closed and it has not settled — not a fact about
+    // where the current leg happens to be. Gating it on the live clock would
+    // mean an auction that nobody cleared during its own settlement tail could
+    // never be cleared at all, stranding every bidder's deposit permanently.
+    // So `clear` is gated on the stored row, further down.
+    const ACTIVE_PHASE: Record<string, string> = {
       nominate: "nomination",
       commit: "commit",
       reveal: "reveal",
-      clear: "cleared",
     };
-    if (!(action in requiredPhase)) {
+    if (action !== "clear" && !(action in ACTIVE_PHASE)) {
       return NextResponse.json({ success: false, error: "unknown action" }, { status: 400 });
     }
-    if (phase !== requiredPhase[action]) {
+    if (action !== "clear" && phase !== ACTIVE_PHASE[action]) {
       return NextResponse.json(
-        { success: false, error: `${action} is only open in the ${requiredPhase[action]} phase`, phase },
+        { success: false, error: `${action} is only open in the ${ACTIVE_PHASE[action]} phase`, phase },
         { status: 409 },
       );
     }
@@ -269,6 +276,21 @@ export async function POST(req: Request) {
     if (row.cleared_at) {
       return NextResponse.json({ success: false, error: "already cleared" }, { status: 409 });
     }
+    // The real gate: this auction's own reveal window must have closed. Reading
+    // it from the row rather than the live clock is what lets a late clear
+    // succeed instead of leaving deposits locked behind a missed deadline.
+    const auctionClosesAt = new Date(row.closes_at).getTime();
+    if (now < auctionClosesAt) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "auction is still open — clearing begins when reveal closes",
+          closesAt: new Date(auctionClosesAt).toISOString(),
+          phase,
+        },
+        { status: 409 },
+      );
+    }
 
     const bids = await pool.query(`SELECT * FROM slot_bids WHERE auction_id = $1`, [row.id]);
     const sealed: SealedBid[] = bids.rows.map((b) => ({
@@ -288,11 +310,15 @@ export async function POST(req: Request) {
         revealedAt: new Date(b.revealed_at).getTime(),
       }));
 
+    // The reserve at clear time is the clock's floor, read from the auction's
+    // own row. The previous version evaluated the clock against `w` — the
+    // CURRENT leg's window — which is not this auction's window once a clear
+    // arrives late, and would have priced the reserve off the wrong clock.
     const result = clearAuction({
       sealed,
       reveals,
       slots: Number(row.slots) || 3,
-      reservePrice: clockPriceAt(w, { startPrice: Number(row.start_price), reservePrice: Number(row.reserve_price) }, w.closesAt),
+      reservePrice: Number(row.reserve_price) || 0,
     });
 
     await pool.query(

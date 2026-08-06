@@ -9,6 +9,7 @@ import {
   requiredDeposit,
   verifyReveal,
   REVEAL_DEPOSIT_SHARE,
+  SETTLEMENT_MS,
   type RevealedBid,
   type SealedBid,
 } from "@/lib/slot-auction";
@@ -39,7 +40,21 @@ describe("auction window and phases", () => {
     expect(phaseAt(W, W.commitOpensAt)).toBe("commit");
     expect(phaseAt(W, W.revealOpensAt)).toBe("reveal");
     expect(phaseAt(W, W.closesAt)).toBe("cleared");
-    expect(W.closesAt - W.opensAt).toBeCloseTo(LEG_MS, 0);
+  });
+
+  it("leaves a settlement tail INSIDE the leg, so 'cleared' is reachable", () => {
+    // The bug this guards: the route anchors the window to the CURRENT leg, so
+    // if the three active phases summed to a whole leg then `now` would always
+    // fall before closesAt, "cleared" could never be the live phase, and every
+    // bidder's deposit would sit behind a phase that never arrives.
+    expect(W.closesAt - W.opensAt).toBeLessThan(LEG_MS);
+    expect(SETTLEMENT_MS).toBeGreaterThan(0);
+    expect(W.closesAt - W.opensAt + SETTLEMENT_MS).toBeCloseTo(LEG_MS, 0);
+
+    // Concretely: somewhere inside the leg, the live phase is "cleared".
+    const insideTheTail = W.closesAt + SETTLEMENT_MS / 2;
+    expect(insideTheTail).toBeLessThan(W.opensAt + LEG_MS);
+    expect(phaseAt(W, insideTheTail)).toBe("cleared");
   });
 
   it("has no gap or overlap between phases", () => {
