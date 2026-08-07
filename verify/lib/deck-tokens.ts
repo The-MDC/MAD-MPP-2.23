@@ -104,7 +104,9 @@ export const GEO = {
  * The deck grid. Asks for `--cols` columns but refuses to go under the track
  * floor, so it reflows rather than compressing the instruments.
  */
-export const deckGrid = (gap = GEO.gap) =>
+// `gap` is annotated: GEO is `as const`, so GEO.gap alone would infer the
+// literal type 14 and reject any caller passing a real number.
+export const deckGrid = (gap: number = GEO.gap) =>
   `repeat(auto-fit, minmax(max(${GEO.trackFloor}px, calc((100% - (var(--cols,3) - 1) * ${gap}px) / var(--cols,3))), 1fr))`;
 
 /* ── Composite recipes ─────────────────────────────────────────────────── */
