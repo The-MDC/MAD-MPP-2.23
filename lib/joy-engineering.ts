@@ -1,1 +1,0 @@
-Added shaderPerfLink() → ties shader intensity to user joy level for power efficiency.

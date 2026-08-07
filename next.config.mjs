@@ -1,1 +1,0 @@
-Optimized for perfect hydration, aggressive cache control, edge sync stability.

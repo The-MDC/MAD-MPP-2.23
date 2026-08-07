@@ -1,0 +1,53 @@
+4:import androidx.compose.foundation.border
+124:                .border(1.dp, NeonCyan.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+165:                            .border(0.5.dp, BrandGold.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+218:                                        .border(1.dp, if (isSel) NeonPink else Color.DarkGray, RoundedCornerShape(6.dp))
+243:                                        .border(1.dp, if (isSel) BrandGold else Color.DarkGray, RoundedCornerShape(6.dp))
+301:                                        .border(1.dp, if (isSel) NeonCyan else Color.DarkGray, RoundedCornerShape(6.dp))
+320:                            .border(1.dp, if (isLiarMeter) BrandCrimson else Color.DarkGray, RoundedCornerShape(8.dp))
+352:                                        .border(1.dp, NeonGreen.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+450:                .border(1.dp, theme.brandSecondary, RoundedCornerShape(12.dp))
+463:                .border(1.dp, BrandGold.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+503:                    .border(1.dp, com.example.ui.theme.NeonGreen.copy(alpha=0.5f), RoundedCornerShape(8.dp))
+546:                            .border(1.dp, GoldFlakeBrush, RoundedCornerShape(8.dp))
+691:                .border(1.dp, NeonCyan.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
+810:                                .border(1.dp, if (isSelected) chipColor else Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+856:                    .border(1.dp, BrandCrimson.copy(alpha=0.6f), RoundedCornerShape(12.dp))
+890:                        Box(Modifier.weight(1f).background(BrandCrimson.copy(alpha=0.15f), RoundedCornerShape(4.dp)).border(1.dp, BrandCrimson.copy(alpha=0.3f), RoundedCornerShape(4.dp)).padding(8.dp)) {
+898:                        Box(Modifier.weight(1f).background(NeonCyan.copy(alpha=0.15f), RoundedCornerShape(4.dp)).border(1.dp, NeonCyan.copy(alpha=0.3f), RoundedCornerShape(4.dp)).padding(8.dp)) {
+920:                    .border(1.dp, GoldFlakeBrush, RoundedCornerShape(20.dp))
+955:                                            .border(1.dp, BrandCrimson, RoundedCornerShape(4.dp))
+1028:                                .border(1.dp, theme.brandPrimary.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+1043:                                        .border(1.dp, NeonGreen, RoundedCornerShape(4.dp))
+1094:                                            .border(0.5.dp, Color.DarkGray, RoundedCornerShape(6.dp))
+1145:            .border(1.dp, NeonPurple.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+1207:            .border(1.dp, NeonMagenta.copy(alpha=0.6f), RoundedCornerShape(16.dp))
+1236:                        .border(1.dp, BrandCrimson, RoundedCornerShape(4.dp))
+1286:            .border(1.dp, outlineColor.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+1414:            .border(1.dp, NeonMagenta.copy(alpha = 0.25f), RoundedCornerShape(12.dp))
+1446:                        .border(
+1717:                        .border(1.dp, BrandCrimson, RoundedCornerShape(4.dp))
+1924:                    .border(
+1966:                        .border(1.dp, BrandCrimson, RoundedCornerShape(8.dp))
+2273:                        .border(1.dp, BrandCrimson.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+2351:            .border(0.6.dp, GoldFlakeBrush, RoundedCornerShape(4.dp)),
+2409:                        .border(0.6.dp, if (isEnrolled) NeonGreen else BrandCrimson, RoundedCornerShape(4.dp))
+2441:                        .border(0.6.dp, Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(4.dp)),
+2470:                        .border(0.6.dp, NeonCyan.copy(alpha = 0.4f), RoundedCornerShape(4.dp)),
+2499:                        .border(0.6.dp, NeonMagenta.copy(alpha = 0.4f), RoundedCornerShape(4.dp)),
+2528:                        .border(0.6.dp, BrandGold.copy(alpha = 0.4f), RoundedCornerShape(4.dp)),
+2590:            .border(1.dp, color.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+2618:            .border(1.2.dp, theme.borderBrush, RoundedCornerShape(16.dp)),
+2679:                    .border(1.dp, theme.brandAccent.copy(alpha = 0.15f), RoundedCornerShape(10.dp))
+2733:                                    .border(0.5.dp, theme.brandPrimary.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
+2814:                                    .border(0.5.dp, theme.brandSecondary.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
+2884:                                        .border(
+2912:                                .border(0.5.dp, Color.DarkGray, RoundedCornerShape(6.dp))
+3110:                    .border(1.dp, theme.brandSecondary.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+3127:                                border = androidx.compose.foundation.BorderStroke(1.dp, com.example.ui.theme.NeonGreen)
+3138:                                border = androidx.compose.foundation.BorderStroke(1.dp, com.example.ui.theme.BrandCrimson)
+3192:            .border(1.2.dp, GoldFlakeBrush, RoundedCornerShape(20.dp))
+3224:                        .border(0.5.dp, BrandGold, RoundedCornerShape(4.dp))
+3244:                        .border(1.dp, com.example.ui.theme.NeonGreen.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+3306:                                    .border(
+3504:                        .border(0.5.dp, BrandGold.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
