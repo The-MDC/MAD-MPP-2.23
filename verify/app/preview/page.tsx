@@ -40,7 +40,6 @@ import { BrandMark } from "@/components/brand-lockup";
 // /gambit floor components, ported natively (GameProvider below powers them —
 // and fixes the latent useGame() crash in ZLiarMeter inside PerpDials).
 import { GameProvider, useGame } from "@/context/game-context";
-import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
 import TopMarketsRail from "@/components/top-markets-rail";
 import MarketRails from "@/components/market-rails";
 import ZLiarSection from "@/components/zliar-section";
@@ -217,8 +216,11 @@ function PreviewInner() {
             {/* Tickers & Dials — meters row + cluster with the split-flap chrono */}
             <PerpDials />
 
-            {/* ── /gambit FLOOR, ported native (GameProvider-powered) ── */}
-            <SeikoDopamineHub />
+            {/* ── /gambit FLOOR, ported native (GameProvider-powered) ──
+                SeikoDopamineHub removed here: it was the SECOND of two stacked
+                Seiko clocks. The first — the split-flap chrono in
+                GambitInstrumentCluster — lives on at the foot of PerpDials
+                above, per founder direction. */}
             <div id="mg-markets" style={{ display: "flex", flexDirection: "column", gap: 16, scrollMarginTop: 72 }}>
               <TopMarketsRail />
               <MarketRails />
