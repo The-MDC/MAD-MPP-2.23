@@ -1,0 +1,8 @@
+{
+  "name": "Mad Gambit Neon App",
+  "description": "An ultra high-end neon-themed gaming and web3 visualizer workspace.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,350 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "./tokens.css";
+
+/* ─────────────────────────────────────────────────────────────────────
+   MAD GAMBIT — Dopamine Neuroscience Animation System v3
+   Based on Kahneman-Tversky Prospect Theory + VRS Fibonacci + φ-ratio
+   Color temperature rises with excitement:
+     blue (calm) → cyan (active) → pink (peak) → gold (jackpot)
+───────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Global theme tokens — set at runtime by ThemeProvider (context/theme-context.tsx)
+     from the active SKIN_TOKENS skin. Defaults = HolographicGoldLaser so SSR and
+     any pre-hydration paint match the app-wide theme. */
+  --mg-primary: #ffd700;
+  --mg-secondary: #efc76d;
+  --mg-accent: #ff00f0;
+  --mg-bg: #030508;
+  --mg-panel: #05070c;
+  --mg-border: #ffd70033;
+  --mg-glow: #ffd700;
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-stencil: "Allerta Stencil", Impact, Haettenschweiler, "Arial Narrow Bold", var(--font-sans);
+
+  /* Dopamine color ramp — temperature rises with excitement */
+  --dopamine-calm:    #00f0ff;   /* blue-cyan — resting state */
+  --dopamine-active:  #7cffc7;   /* green-cyan — engaged */
+  --dopamine-peak:    #ec4899;   /* pink — VRS near-miss band */
+  --dopamine-jackpot: #ffd700;   /* gold — Fibonacci jackpot hit */
+  --dopamine-chaos:   #ff00f0;   /* magenta — chaos max */
+
+  /* Structural */
+  --bg-deep:   #030508;
+  --bg-panel:  #05070c;
+  --bg-card:   #0b0e14;
+}
+
+/* ─── VRS JACKPOT — Fibonacci node [5,8,13,21,34] hit ─────────────── */
+@keyframes vrsBurst {
+  0%   { transform: scale(1);    opacity: 1; box-shadow: 0 0 0 0 rgba(255,215,0,0); }
+  30%  { transform: scale(1.04); opacity: 1; box-shadow: 0 0 60px 20px rgba(255,215,0,0.5); }
+  60%  { transform: scale(1.01); opacity: 1; box-shadow: 0 0 30px 8px rgba(255,215,0,0.25); }
+  100% { transform: scale(1);    opacity: 1; box-shadow: 0 0 0 0 rgba(255,215,0,0); }
+}
+
+/* ─── NEAR-MISS SHAKE — 0.52–0.58 probability band ───────────────── */
+@keyframes nearMissShake {
+  0%,100% { transform: translateX(0); }
+  15%     { transform: translateX(-3px) rotate(-0.5deg); }
+  30%     { transform: translateX(3px)  rotate(0.5deg); }
+  45%     { transform: translateX(-2px); }
+  60%     { transform: translateX(2px); }
+  75%     { transform: translateX(-1px); }
+}
+
+/* ─── CONVICTION RISE — number sweep on score change ────────────── */
+@keyframes convictionRise {
+  0%   { opacity: 0; filter: blur(6px); transform: translateY(4px); }
+  100% { opacity: 1; filter: blur(0);   transform: translateY(0); }
+}
+
+/* ─── SCANDAL FLASH — hot pink full-screen on major event ─────────── */
+@keyframes scandalFlash {
+  0%   { opacity: 0; }
+  8%   { opacity: 0.18; }
+  100% { opacity: 0; }
+}
+
+/* ─── CHAOS PULSE — ambient glow breathe on background ────────────── */
+@keyframes chaosPulse {
+  0%, 100% { opacity: 0.08; transform: scale(1); }
+  50%       { opacity: 0.18; transform: scale(1.08); }
+}
+
+/* ─── GOLD JACKPOT — foil shimmer on jackpot card ──────────────── */
+@keyframes goldJackpot {
+  0%   { transform: scale(1)    rotate(0deg); filter: brightness(1); }
+  25%  { transform: scale(1.02) rotate(0.3deg); filter: brightness(1.2); }
+  75%  { transform: scale(1.01) rotate(-0.2deg); filter: brightness(1.1); }
+  100% { transform: scale(1)    rotate(0deg); filter: brightness(1); }
+}
+
+/* ─── STREAK FIRE — counter glow shifts cyan→pink→gold ──────────── */
+@keyframes streakFire {
+  0%   { text-shadow: 0 0 12px var(--dopamine-calm),   0 0 24px var(--dopamine-calm); }
+  33%  { text-shadow: 0 0 16px var(--dopamine-active),  0 0 32px var(--dopamine-active); }
+  66%  { text-shadow: 0 0 20px var(--dopamine-peak),   0 0 40px var(--dopamine-peak); }
+  100% { text-shadow: 0 0 24px var(--dopamine-jackpot), 0 0 48px var(--dopamine-jackpot); }
+}
+
+/* ─── DRAMATIC ENTRANCE — from Verdigris flash-ui ────────────────── */
+@keyframes dramaticEntrance {
+  0%   { opacity: 0; filter: blur(20px); transform: translateY(40px) scale(0.95); }
+  100% { opacity: 1; filter: blur(0);    transform: translateY(0)    scale(1); }
+}
+
+/* ─── SHIMMER LOADING — placeholder states ──────────────────────── */
+@keyframes shimmerMove {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* ─── PLACEHOLDER SLIDE UP — cycling input hints ────────────────── */
+@keyframes placeholderSlideUp {
+  0%   { opacity: 0; transform: translateY(10px); filter: blur(5px); }
+  100% { opacity: 0.7; transform: translateY(0); filter: blur(0); }
+}
+
+/* ─── POSITION RESOLVE — green win / red loss ─────────────────── */
+@keyframes resolveWin {
+  0%   { background: transparent; }
+  20%  { background: rgba(16,185,129,0.2); }
+  100% { background: transparent; }
+}
+@keyframes resolveLoss {
+  0%   { background: transparent; }
+  20%  { background: rgba(239,68,68,0.2); }
+  100% { background: transparent; }
+}
+
+/* ─── CASINO CARD FLIP — 3D transform ───────────────────────────── */
+@keyframes cardFlip {
+  0%   { transform: perspective(600px) rotateY(0deg); }
+  50%  { transform: perspective(600px) rotateY(90deg); }
+  100% { transform: perspective(600px) rotateY(0deg); }
+}
+
+/* ─── Utility classes ────────────────────────────────────────────── */
+.animate-dramatic      { animation: dramaticEntrance 1.2s cubic-bezier(0.16,1,0.3,1) forwards; }
+.animate-vrs-burst     { animation: vrsBurst 1.4s ease-out forwards; }
+.animate-near-miss     { animation: nearMissShake 0.22s ease-in-out; }
+.animate-conviction    { animation: convictionRise 0.4s ease-out forwards; }
+.animate-scandal-flash { animation: scandalFlash 0.6s ease-out forwards; }
+.animate-chaos-pulse   { animation: chaosPulse 4s ease-in-out infinite; }
+.animate-gold-jackpot  { animation: goldJackpot 1.5s ease-in-out infinite; }
+.animate-streak-fire   { animation: streakFire 2s linear infinite; }
+.animate-card-flip     { animation: cardFlip 0.6s ease-in-out; }
+.animate-resolve-win   { animation: resolveWin 1.2s ease-out forwards; }
+.animate-resolve-loss  { animation: resolveLoss 1.2s ease-out forwards; }
+
+/* Shimmer utility for loading states */
+.shimmer {
+  position: relative;
+  overflow: hidden;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+    animation: shimmerMove 1.8s ease-in-out infinite;
+  }
+}
+
+/* ─── Pre-existing utilities (preserved) ───────────────────────── */
+@utility liquid-gold-sheen {
+  position: relative;
+  overflow: hidden;
+  &::after {
+    content: "";
+    position: absolute;
+    top: -100%;
+    left: -100%;
+    width: 300%;
+    height: 300%;
+    background: linear-gradient(115deg, transparent 40%, rgba(255,215,0,0.05) 43%, rgba(255,239,150,0.5) 48%, rgba(255,215,0,0.05) 53%, transparent 56%);
+    transform: rotate(-15deg);
+    animation: gold-sheen-move 6s infinite ease-in-out;
+    pointer-events: none;
+    z-index: 10;
+  }
+}
+
+@utility gold-flakes {
+  background-image:
+    radial-gradient(circle, rgba(255,215,0,0.45) 1.2px, transparent 1.2px),
+    radial-gradient(circle, rgba(218,165,32,0.55) 1px, transparent 1px);
+  background-size: 24px 24px, 40px 40px;
+  background-position: 0 0, 12px 12px;
+}
+
+@utility border-glow-gold {
+  border: 1.15px solid rgba(255,215,0,0.85) !important;
+  box-shadow: 0 0 12px rgba(255,215,0,0.4), inset 0 0 6px rgba(255,215,0,0.15) !important;
+}
+
+@utility border-glow-neon {
+  border: 1.15px solid rgba(0,242,254,0.85) !important;
+  box-shadow: 0 0 12px rgba(0,242,254,0.4), inset 0 0 6px rgba(0,242,254,0.15) !important;
+}
+
+@utility border-glow-pink {
+  border: 1.15px solid rgba(255,0,127,0.85) !important;
+  box-shadow: 0 0 12px rgba(255,0,127,0.4), inset 0 0 6px rgba(255,0,127,0.15) !important;
+}
+
+@keyframes gold-sheen-move {
+  0%   { transform: translate(-30%,-30%) rotate(-15deg); }
+  50%  { transform: translate(30%,30%)   rotate(-15deg); }
+  100% { transform: translate(-30%,-30%) rotate(-15deg); }
+}
+
+/* Base resets */
+:root {
+  /*
+   * Stable viewport fallback stack for the DeviceFrame.
+   * 100vh keeps older Safari/Chrome working; newer engines use svh so mobile
+   * browser chrome no longer stretches the frame while scrolling.
+   */
+  --mg-frame-vh: 100vh;
+  --mg-frame-gutter: 28px;
+  --mg-frame-gutter-total: 56px;
+}
+
+@supports (height: 100svh) {
+  :root { --mg-frame-vh: 100svh; }
+}
+
+html { min-height: 100%; }
+
+body {
+  background-color: #030303;
+  color: #f3f4f6;
+  font-family: var(--font-sans), sans-serif;
+  min-height: 100vh;
+  min-height: var(--mg-frame-vh);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Reduced motion — respect user preference always */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   DEVICE FRAME — full-bleed mobile → centered tablet → phone-on-workbench
+   Renders children once; responsive shell is CSS-only. See device-frame.tsx.
+───────────────────────────────────────────────────────────────────── */
+.mg-workbench { display: contents; }
+.mg-device {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Mobile: native full-bleed, shift clear of the notch. */
+@media (max-width: 767px) {
+  .mg-device {
+    min-height: 100vh;
+    min-height: var(--mg-frame-vh);
+    padding-top: env(safe-area-inset-top);
+    -webkit-overflow-scrolling: touch;
+  }
+  /* iOS zooms the page when a <16px input is focused — 16px prevents it
+     without disabling pinch-zoom. */
+  input, select, textarea { font-size: 16px; }
+}
+
+/* Tablet: center with comfortable gutters on a dark field. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .mg-workbench {
+    display: block;
+    min-height: 100vh;
+    min-height: var(--mg-frame-vh);
+    background: radial-gradient(1200px 800px at 50% -10%, #12121a 0%, #050507 60%);
+    padding: 24px 16px;
+    padding: 24px max(16px, env(safe-area-inset-right)) 24px max(16px, env(safe-area-inset-left));
+  }
+  .mg-device {
+    max-width: 680px;
+    min-height: calc(var(--mg-frame-vh) - 48px);
+    margin: 0 auto;
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.8);
+  }
+}
+
+/* Desktop: sleek phone bezel on a dark workbench.
+   transform → .mg-device is the containing block for fixed descendants,
+   so the app's bottom-nav / concierge anchor to the phone. */
+@media (min-width: 1024px) {
+  .mg-workbench {
+    display: flex;
+    min-height: 100vh;
+    min-height: var(--mg-frame-vh);
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(900px 700px at 50% 0%, #14141d 0%, #0a0a10 45%, #050507 100%);
+    padding: var(--mg-frame-gutter);
+  }
+  .mg-device {
+    position: relative;
+    width: 440px;
+    width: clamp(360px, 42vw, 440px);
+    max-width: calc(100vw - var(--mg-frame-gutter-total));
+    height: calc(100vh - var(--mg-frame-gutter-total));
+    height: calc(var(--mg-frame-vh) - var(--mg-frame-gutter-total));
+    max-height: 940px;
+    min-height: 640px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    border-radius: 46px;
+    border: 12px solid #0b0b12;
+    box-shadow:
+      0 0 0 2px #2a2a37,
+      0 50px 90px -25px rgba(0, 0, 0, 0.95),
+      inset 0 0 24px rgba(0, 0, 0, 0.6);
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    contain: layout paint style;
+    isolation: isolate;
+  }
+  .mg-device::-webkit-scrollbar { display: none; }
+}
+
+@media (min-width: 1024px) and (max-height: 760px) {
+  :root {
+    --mg-frame-gutter: 16px;
+    --mg-frame-gutter-total: 32px;
+  }
+  .mg-device {
+    min-height: 0;
+    border-width: 10px;
+    border-radius: 38px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   TACTILE POLISH — app-wide spring press on every button/CTA.
+   Inline transforms (framer-motion) win over this, so animated buttons
+   keep their own behaviour; plain buttons gain a satisfying press.
+───────────────────────────────────────────────────────────────────── */
+button { transition: transform 0.09s cubic-bezier(0.34, 1.56, 0.64, 1); }
+button:active:not(:disabled) { transform: scale(0.955); }
+@media (prefers-reduced-motion: reduce) {
+  button { transition: none; }
+  button:active:not(:disabled) { transform: none; }
+}

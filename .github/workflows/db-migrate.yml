@@ -1,0 +1,48 @@
+name: DB Migrate (production)
+
+# Applies verify/sql/*.sql to the PRODUCTION Neon database. Runs on merge to main
+# (so schema changes land with the code that needs them) and on demand. All
+# migrations are idempotent (CREATE ... IF NOT EXISTS), so re-runs are safe.
+#
+# Requires repo secret DATABASE_URL (the production Neon connection string).
+# If it isn't set, the job no-ops with a clear message instead of failing.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "verify/sql/**"
+      - "verify/scripts/migrate.mjs"
+      - ".github/workflows/db-migrate.yml"
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    name: Apply migrations to prod Neon
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Guard — require DATABASE_URL secret
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::warning::DATABASE_URL secret not set — skipping prod migration. Add it in repo Settings → Secrets to enable."
+            echo "SKIP=1" >> "$GITHUB_ENV"
+          fi
+      - name: Setup Node
+        if: env.SKIP != '1'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install deps (verify/)
+        if: env.SKIP != '1'
+        working-directory: verify
+        run: npm ci
+      - name: Migrate production
+        if: env.SKIP != '1'
+        working-directory: verify
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run migrate
