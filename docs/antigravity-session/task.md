@@ -1,0 +1,3 @@
+- `[x]` **Frontend Configuration**: Create `vercel.json` in `/verify` for optimized deployment and routing.
+- `[x]` **Backend Configuration**: Create `cloudbuild.yaml` in `/ai-backend` for GCP Cloud Run deployment.
+- `[x]` **Domain Placeholders**: Ensure CORS headers and environment variables in the codebase are prepared to accept traffic from a custom domain (using `madgambit.com` as the placeholder).

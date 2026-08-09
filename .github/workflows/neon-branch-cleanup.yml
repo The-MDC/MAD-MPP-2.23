@@ -1,0 +1,167 @@
+name: Neon Branch Cleanup
+
+# Reclaims leaked Neon preview branches.
+#
+# Why this exists: neon-pr-branch.yml names branches `preview/pr-<N>-<branch>`,
+# but earlier branches were created under a scheme WITHOUT the `pr-N-` prefix
+# (e.g. `preview/feat/constellation-s0`). The delete job computes the `pr-N-`
+# name, fails to find the legacy one, and — because it is `continue-on-error` —
+# that failure is invisible at PR level. The orphan is never reclaimed.
+#
+# Every leaked branch counts against the project's branch limit. Once the limit
+# is reached, `create-branch-action` returns **422** for every subsequent PR, so
+# every PR silently loses its preview DB, its migration run and its smoke test.
+# That is exactly what happened here in Aug 2026.
+#
+# Deleting a branch does NOT consume quota, so this workflow still works when
+# the project is already full — it is the way out of that state.
+#
+# Safety rules, in order:
+#   1. Only ever considers branches whose name starts with `preview/`.
+#   2. Never touches the project's default/primary branch.
+#   3. Keeps `preview/pr-<N>-*` when PR <N> is still OPEN.
+#   4. Manual runs default to DRY RUN — nothing is deleted until you re-run
+#      with dry_run=false. The weekly schedule performs real deletions.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "List what would be deleted without deleting it"
+        type: boolean
+        default: true
+  schedule:
+    # Sundays 04:17 UTC. Off-peak, and an odd minute so it doesn't pile up
+    # with everyone else's on-the-hour crons.
+    - cron: "17 4 * * 0"
+
+concurrency:
+  group: neon-branch-cleanup
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  cleanup:
+    name: Reclaim orphaned Neon preview branches
+    runs-on: ubuntu-latest
+    if: vars.NEON_PROJECT_ID != ''
+    steps:
+      - name: Resolve mode
+        id: mode
+        env:
+          # Scheduled runs have no inputs — treat them as live deletions.
+          RAW: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+        run: |
+          if [ "$RAW" = "true" ]; then
+            echo "dry=1" >> "$GITHUB_OUTPUT"
+            echo "::notice::DRY RUN — nothing will be deleted. Re-run with dry_run=false to apply."
+          else
+            echo "dry=0" >> "$GITHUB_OUTPUT"
+            echo "::notice::LIVE — orphaned branches will be deleted."
+          fi
+
+      - name: Reclaim
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          DRY: ${{ steps.mode.outputs.dry }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${NEON_API_KEY:-}" ]; then
+            echo "::error::NEON_API_KEY secret is not set — cannot enumerate branches."
+            exit 1
+          fi
+
+          echo "── Neon branches in $PROJECT_ID ──────────────────────────────"
+          # --output json so we get structured data; `default`/`primary` flags
+          # let us protect the main branch without hardcoding its name.
+          npx -y neonctl@latest branches list \
+            --project-id "$PROJECT_ID" --output json > branches.json
+          jq -r '.[] | "  \(.name)\t(default=\(.default // .primary // false))"' branches.json
+
+          echo
+          echo "── Open pull requests ────────────────────────────────────────"
+          # Paginate defensively; a repo with >100 open PRs would otherwise
+          # silently under-report and we would delete a live branch.
+          : > open_prs.txt
+          page=1
+          while :; do
+            resp=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" \
+                        -H "Accept: application/vnd.github+json" \
+                        "https://api.github.com/repos/$REPO/pulls?state=open&per_page=100&page=$page")
+            count=$(echo "$resp" | jq 'length')
+            echo "$resp" | jq -r '.[].number' >> open_prs.txt
+            [ "$count" -lt 100 ] && break
+            page=$((page + 1))
+          done
+          sort -u open_prs.txt -o open_prs.txt
+          echo "  open PRs: $(tr '\n' ' ' < open_prs.txt)"
+
+          echo
+          echo "── Decisions ─────────────────────────────────────────────────"
+          deleted=0; kept=0; failed=0
+
+          # Read names NUL-safely — Neon branch names legitimately contain
+          # slashes, and may contain spaces.
+          while IFS= read -r name; do
+            [ -n "$name" ] || continue
+
+            is_default=$(jq -r --arg n "$name" \
+              '.[] | select(.name==$n) | (.default // .primary // false)' branches.json)
+            if [ "$is_default" = "true" ]; then
+              echo "  KEEP    $name  (project default branch)"
+              kept=$((kept + 1)); continue
+            fi
+
+            case "$name" in
+              preview/*) ;;
+              *) echo "  KEEP    $name  (not a preview branch)"; kept=$((kept + 1)); continue ;;
+            esac
+
+            # preview/pr-<N>-... → keep while PR <N> is open.
+            pr=$(printf '%s' "$name" | sed -n 's#^preview/pr-\([0-9][0-9]*\)-.*#\1#p')
+            if [ -n "$pr" ] && grep -qx "$pr" open_prs.txt; then
+              echo "  KEEP    $name  (PR #$pr is open)"
+              kept=$((kept + 1)); continue
+            fi
+
+            if [ "$DRY" = "1" ]; then
+              echo "  WOULD DELETE $name"
+              deleted=$((deleted + 1)); continue
+            fi
+
+            echo "  DELETE  $name"
+            # Do not abort the whole sweep on one failure — a branch can vanish
+            # between list and delete, and one bad name must not strand the rest.
+            if npx -y neonctl@latest branches delete "$name" \
+                 --project-id "$PROJECT_ID" >/dev/null 2>&1; then
+              deleted=$((deleted + 1))
+            else
+              echo "  ::warning::failed to delete $name"
+              failed=$((failed + 1))
+            fi
+          done < <(jq -r '.[].name' branches.json)
+
+          echo
+          if [ "$DRY" = "1" ]; then
+            echo "DRY RUN — would delete $deleted, keep $kept. Re-run with dry_run=false to apply."
+          else
+            echo "Reclaimed $deleted, kept $kept, failed $failed."
+          fi
+          {
+            echo "### Neon branch cleanup"
+            echo
+            echo "- mode: $([ "$DRY" = "1" ] && echo 'dry run' || echo 'live')"
+            echo "- $([ "$DRY" = "1" ] && echo 'would delete' || echo 'deleted'): **$deleted**"
+            echo "- kept: **$kept**"
+            [ "$DRY" = "1" ] || echo "- failed: **$failed**"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # A failed delete is worth surfacing, but never fails the sweep.
+          exit 0
