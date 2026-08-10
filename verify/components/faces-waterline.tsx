@@ -19,6 +19,7 @@
  */
 import React, { useEffect, useState } from "react";
 import { useSkin } from "@/components/skin-provider";
+import Carousel, { AutoShowcaseBadge } from "@/components/carousel";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import { PersonaPriceRow } from "@/components/persona-price";
 import { SubjectReplyPanel } from "@/components/registrar-panel";
@@ -123,8 +124,9 @@ export default function FacesWaterline() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12, fontFamily: INSTRUMENT_FONT }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 2, color: skin.gold, textTransform: "uppercase" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 900, letterSpacing: 2, color: skin.gold, textTransform: "uppercase" }}>
           The Waterline <span style={{ color: skin.muted, fontSize: 8, letterSpacing: 1 }}>Five Faces</span>
+          <AutoShowcaseBadge />
         </div>
         {data && (
           <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "2px 6px", borderRadius: 4, color: live ? skin.accent : skin.muted, background: `${live ? skin.accent : skin.muted}18`, border: `1px solid ${live ? skin.accent : skin.muted}40` }}>
@@ -141,11 +143,11 @@ export default function FacesWaterline() {
         <div style={{ fontSize: 9, color: skin.muted }}>No persona markets live yet.</div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 12 }}>
+      <Carousel auto gap={12} ariaLabel="Five Faces markets">
         {markets.map((m) => {
           const expanded = open === m.market.id;
           return (
-            <div key={m.market.id} style={{ background: skin.panel, border: `1px solid ${m.slip.isSlip ? `${skin.gold}66` : skin.border}`, borderRadius: 14, padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+            <div key={m.market.id} style={{ width: 320, maxWidth: "100%", height: "100%", background: skin.panel, border: `1px solid ${m.slip.isSlip ? `${skin.gold}66` : skin.border}`, borderRadius: 14, padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
               <div>
                 <div style={{ fontSize: 10, fontWeight: 900, color: skin.text, lineHeight: 1.35 }}>{m.market.title}</div>
                 <div style={{ fontSize: 7, color: skin.muted, marginTop: 3 }}>
@@ -182,7 +184,7 @@ export default function FacesWaterline() {
             </div>
           );
         })}
-      </div>
+      </Carousel>
     </div>
   );
 }

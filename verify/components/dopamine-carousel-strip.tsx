@@ -19,10 +19,18 @@ import React, { useRef } from "react";
 import { Dices, Flame, type LucideIcon } from "lucide-react";
 import { useSkin } from "@/components/skin-provider";
 import { useAutoShowcase } from "@/components/carousel";
+import {
+  GlyphStyles, ConvictionCube, PredictionCoin, SentimentFaders,
+  ImpressionRings, VelocityOrbit, LiquidityStack,
+} from "@/components/dopamine-glyphs";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
+
+type GlyphKind = "cube" | "coin" | "faders" | "rings" | "orbit" | "stack";
 
 interface DopCard {
   title: string;
+  /** Bespoke CSS-3D glyph — one per platform-wide stat. */
+  glyph?: GlyphKind;
   /** Desk this tile belongs to — rendered as the card's kicker. */
   kicker?: string;
   /** What the stat measures. Surfaced as the tile's tooltip. */
@@ -33,6 +41,27 @@ interface DopCard {
   gauge?: number; // 0..100 → renders the chaos gauge
   gainers?: [string, string][];
 }
+
+/**
+ * Platform-wide pulse — the whole estate in six readings, and the reason the
+ * carousel leads with them: they are the only tiles that describe the platform
+ * rather than a position in it. Each carries its own 3D glyph (see
+ * dopamine-glyphs.tsx) chosen to argue its own stat, not merely to move.
+ */
+const PLATFORM: DopCard[] = [
+  { kicker: "Platform", title: "Platform Conviction", glyph: "cube", value: "72%",
+    sub: "Aggregate conviction weight held across every open market on the platform." },
+  { kicker: "Platform", title: "Platform Prediction", glyph: "coin", value: "64% Yes",
+    sub: "Volume-weighted YES lean across all binary prediction markets." },
+  { kicker: "Platform", title: "Platform Sentiment", glyph: "faders", value: "+0.38",
+    sub: "Net valence across the scandal signal feed, bullish minus bearish." },
+  { kicker: "Platform", title: "Impressions · 24h", glyph: "rings", value: "8.4M",
+    sub: "Total surfaced card, market and headline impressions in the last 24 hours." },
+  { kicker: "Platform", title: "Signal Velocity", glyph: "orbit", value: "137/hr",
+    sub: "New scored signals entering the classifier per hour, recency-weighted." },
+  { kicker: "Platform", title: "Platform Liquidity", glyph: "stack", value: "$18.6M",
+    sub: "Aggregate collateral standing behind every open position, all classes." },
+];
 
 /** The mockup's original four. */
 const VIBE: DopCard[] = [
@@ -106,7 +135,8 @@ const MARKET: DopCard[] = [
     sub: "Daily speculative noise (volume) against durable conviction capital (open interest)." },
 ];
 
-const CARDS: DopCard[] = [...VIBE, ...CONVICTION, ...MARKET];
+// Platform-wide first: the estate before the position inside it.
+const CARDS: DopCard[] = [...PLATFORM, ...VIBE, ...CONVICTION, ...MARKET];
 
 function Gauge({ pct }: { pct: number }) {
   const { skin } = useSkin();
@@ -161,8 +191,21 @@ export default function DopamineCarouselStrip() {
     return base;
   };
 
+  /** Each glyph is bound to its stat, and to the skin's role colours. */
+  const glyphFor = (g: GlyphKind) => {
+    switch (g) {
+      case "cube": return <ConvictionCube color={skin.accent} />;
+      case "coin": return <PredictionCoin color={skin.positive} alt={skin.accent2} />;
+      case "faders": return <SentimentFaders color={skin.accent} alt={skin.accent2} />;
+      case "rings": return <ImpressionRings color={skin.gold} />;
+      case "orbit": return <VelocityOrbit color={skin.accent} alt={skin.gold} />;
+      case "stack": return <LiquidityStack color={skin.positive} />;
+    }
+  };
+
   return (
     <div style={{ position: "relative" }}>
+      <GlyphStyles />
       <button type="button" aria-label="Scroll left" onClick={() => nudge(-1)} style={arrowStyle("l")}>‹</button>
       <button type="button" aria-label="Scroll right" onClick={() => nudge(1)} style={arrowStyle("r")}>›</button>
       <div
@@ -211,6 +254,7 @@ export default function DopamineCarouselStrip() {
                 <c.Icon size={26} strokeWidth={1.75} style={{ color: c.iconColor === "accent2" ? skin.accent2 : skin.accent, filter: `drop-shadow(0 0 6px ${c.iconColor === "accent2" ? skin.accent2 : skin.accent}66)` }} />
               </div>
             ) : null}
+            {c.glyph ? glyphFor(c.glyph) : null}
             {typeof c.gauge === "number" ? <Gauge pct={c.gauge} /> : null}
             {c.gainers ? (
               <div style={{ fontSize: 10, fontWeight: 900, textAlign: "left", lineHeight: 1.6, color: skin.text, marginTop: 8 }}>

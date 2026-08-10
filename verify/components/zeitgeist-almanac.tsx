@@ -18,6 +18,7 @@
  */
 import React, { useEffect, useState } from "react";
 import { useSkin } from "@/components/skin-provider";
+import Carousel, { AutoShowcaseBadge } from "@/components/carousel";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import { PersonaPriceRow } from "@/components/persona-price";
 import SuccessionRibbon from "@/components/succession-ribbon";
@@ -91,8 +92,9 @@ export default function ZeitgeistAlmanac() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12, fontFamily: INSTRUMENT_FONT }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 2, color: skin.gold, textTransform: "uppercase" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 900, letterSpacing: 2, color: skin.gold, textTransform: "uppercase" }}>
           The Almanac <span style={{ color: skin.muted, fontSize: 8, letterSpacing: 1 }}>Zeitgeist</span>
+          <AutoShowcaseBadge />
         </div>
         {slate && (
           <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "2px 6px", borderRadius: 4, color: live ? skin.accent : skin.muted, background: `${live ? skin.accent : skin.muted}18`, border: `1px solid ${live ? skin.accent : skin.muted}40` }}>
@@ -130,13 +132,13 @@ export default function ZeitgeistAlmanac() {
         <SuccessionRibbon labels={slots.map((s) => s.trendName)} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 12 }}>
+      <Carousel auto gap={12} ariaLabel="Zeitgeist slate">
         {slots.map((s) => {
           const expanded = openSlot === s.slotIndex;
           const phaseKey = PHASE_COLOR[s.life.phase] ?? "muted";
           const phaseColor = skin[phaseKey];
           return (
-            <div key={s.trendKey} style={{ background: skin.panel, border: `1px solid ${skin.border}`, borderRadius: 14, padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+            <div key={s.trendKey} style={{ width: 320, maxWidth: "100%", height: "100%", background: skin.panel, border: `1px solid ${skin.border}`, borderRadius: 14, padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
                   <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1, color: skin.text }}>
@@ -180,7 +182,7 @@ export default function ZeitgeistAlmanac() {
             </div>
           );
         })}
-      </div>
+      </Carousel>
     </div>
   );
 }
