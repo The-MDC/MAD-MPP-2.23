@@ -10,7 +10,7 @@
 import React from "react";
 import { Brain, Target, Gavel } from "lucide-react";
 import { INK } from "@/lib/gambit-design-tokens";
-import Carousel from "@/components/carousel";
+import Carousel, { AutoShowcaseBadge } from "@/components/carousel";
 
 interface Mkt { id: string; q: string; a: number; b: number; conviction: number; }
 const CONVICTION: Mkt[] = [
@@ -67,8 +67,9 @@ function Rail({ title, icon, color, data, kind }: { title: string; icon: React.R
       <div className="flex items-center gap-2 mb-3">
         <span style={{ color }}>{icon}</span>
         <h3 className="font-mono text-[12px] font-bold uppercase tracking-widest" style={{ color: INK.white }}>{title}</h3>
+        <AutoShowcaseBadge />
       </div>
-      <Carousel ariaLabel={title}>
+      <Carousel ariaLabel={title} auto>
         {data.map((m) => <Card key={m.id} m={m} kind={kind} />)}
       </Carousel>
     </div>
@@ -105,8 +106,9 @@ export default function MarketRails() {
         <div className="flex items-center gap-2 mb-3">
           <Gavel className="w-4 h-4" style={{ color: INK.gold }} />
           <h3 className="font-mono text-[12px] font-bold uppercase tracking-widest" style={{ color: INK.white }}>Dutch Auctions</h3>
+          <AutoShowcaseBadge />
         </div>
-        <Carousel ariaLabel="Dutch auctions">
+        <Carousel ariaLabel="Dutch auctions" auto>
           {DUTCH.map((d) => <DutchCard key={d.id} d={d} />)}
         </Carousel>
       </div>
