@@ -277,6 +277,179 @@ export function ChipRow({ chips, action = "Open desk ›" }: { chips: string[]; 
   );
 }
 
+/* ── Market anatomy ────────────────────────────────────────────────────── */
+
+/**
+ * One tradeable leg of a prediction or conviction market: name, probability
+ * track, payout. The track is the same recessed groove the instruments use, so
+ * an outcome row reads as part of the hardware rather than as a progress bar.
+ *
+ * Kalshi renders this as a flat percentage and a coloured underline. The
+ * difference here is that the fill is the card's own `--c`, so a skin swap
+ * retunes it, and the percentage sits on an LCD-style plate.
+ */
+export function OutcomeRow({
+  label, prob, multiplier, avatar, onClick,
+}: {
+  label: string; prob: number; multiplier: number; avatar?: string; onClick?: () => void;
+}) {
+  const pct = Math.round(prob * 100);
+  return (
+    <div
+      className={onClick ? "mg-focusable" : undefined}
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", cursor: onClick ? "pointer" : undefined }}
+    >
+      {avatar ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={avatar} alt="" style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "cover", flex: "none" }} />
+      ) : null}
+      <span style={{ flex: "0 0 auto", maxWidth: "38%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 8.5, fontWeight: 700, color: ROLE.text }}>
+        {label}
+      </span>
+      <span style={{ flex: 1, minWidth: 24, height: 5, borderRadius: 99, background: mix(ROLE.text, 8), overflow: "hidden" }}>
+        <span style={{ display: "block", width: `${pct}%`, height: "100%", borderRadius: 99, background: ROLE.c, boxShadow: `0 0 8px ${mix(ROLE.c, 55)}` }} />
+      </span>
+      <span style={{ flex: "none", ...TYPE.tapeMetric, color: ROLE.c, minWidth: 26, textAlign: "right" }}>{pct}%</span>
+      <span style={{ flex: "none", fontSize: 7, fontWeight: 700, color: ENGRAVED, minWidth: 26, textAlign: "right" }}>
+        ×{multiplier.toFixed(2)}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * The two-sided flow bar — Kalshi's "52% Up / 48% Down", rendered as one
+ * continuous instrument rather than two separate figures. Percentages are
+ * printed at the ends so the bar stays readable when a side is too narrow to
+ * label internally.
+ */
+export function SplitBar({
+  upPct, upLabel = "Up", downLabel = "Down", height = 7,
+}: { upPct: number; upLabel?: string; downLabel?: string; height?: number }) {
+  const up = Math.max(0, Math.min(100, Math.round(upPct)));
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 4 }}>
+        <span style={{ ...TYPE.kpiLabel, color: ROLE.positive }}>{up}% {upLabel}</span>
+        <span style={{ ...TYPE.kpiLabel, color: ROLE.accent2 }}>{100 - up}% {downLabel}</span>
+      </div>
+      <div style={{ display: "flex", height, borderRadius: 99, overflow: "hidden", background: mix(ROLE.text, 8) }}>
+        <span style={{ width: `${up}%`, background: ROLE.positive, boxShadow: `0 0 9px ${mix(ROLE.positive, 55)}` }} />
+        <span style={{ width: `${100 - up}%`, background: ROLE.accent2 }} />
+      </div>
+    </div>
+  );
+}
+
+/** A labelled stat block — the 2×2 Volume / OI / Funding / Leverage grid. */
+export function StatGrid({ items, columns = 2 }: { items: Kpi[]; columns?: number }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: `repeat(${columns},1fr)`, gap: "7px 10px", marginTop: 8 }}>
+      {items.map(([label, value, colour]) => (
+        <div key={label} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 6 }}>
+          <span style={{ ...TYPE.kpiLabel, color: ENGRAVED }}>{label}</span>
+          <span style={{ fontSize: 9, fontWeight: 800, color: colour, whiteSpace: "nowrap" }}>{value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * A price history line.
+ *
+ * SVG rather than canvas on purpose. The rest of the deck's instruments are
+ * canvas because they animate; this one does not, and SVG renders during SSR
+ * with no JS at all — which is what keeps a market grid painted when scripts
+ * are slow. `preserveAspectRatio="none"` lets one path stretch to any card
+ * width without recomputing points.
+ */
+export function Sparkline({
+  series, height = 34, tone,
+}: { series: number[]; height?: number; tone?: string }) {
+  // Unique per instance and stable across SSR/hydration. A derived id (e.g.
+  // off series length) would repeat across a grid, and every card would then
+  // resolve url(#…) to the FIRST card's gradient — so all sparklines would
+  // wear one card's accent.
+  const id = React.useId().replace(/:/g, "");
+  if (series.length < 2) return null;
+  const stroke = tone ?? ROLE.c;
+  const n = series.length - 1;
+  // Invert y: series is 0..1 low→high, SVG y grows downward.
+  const pts = series.map((v, i) => `${(i / n) * 100},${(1 - Math.min(1, Math.max(0, v))) * 100}`);
+  return (
+    <svg
+      viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"
+      style={{ display: "block", width: "100%", height }}
+    >
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={stroke} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={stroke} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polygon points={`0,100 ${pts.join(" ")} 100,100`} fill={`url(#${id})`} />
+      <polyline
+        points={pts.join(" ")} fill="none" stroke={stroke}
+        strokeWidth={1.6} vectorEffect="non-scaling-stroke"
+        strokeLinejoin="round" strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+/**
+ * Time remaining against an ISO instant.
+ *
+ * Renders a stable placeholder on the server and fills in after mount. Reading
+ * the clock during render would produce different server and client output and
+ * break hydration — the one thing a countdown must not do.
+ */
+export function Countdown({ iso, prefix = "Closes in" }: { iso?: string | null; prefix?: string }) {
+  const [label, setLabel] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (!iso) return;
+    const tick = () => {
+      const ms = new Date(iso).getTime() - Date.now();
+      if (!Number.isFinite(ms)) return setLabel(null);
+      if (ms <= 0) return setLabel("Closed");
+      const d = Math.floor(ms / 86400000);
+      const h = Math.floor((ms % 86400000) / 3600000);
+      const m = Math.floor((ms % 3600000) / 60000);
+      setLabel(d > 0 ? `${d}d ${h}h` : h > 0 ? `${h}h ${m}m` : `${m}m`);
+    };
+    tick();
+    const t = setInterval(tick, 60000);
+    return () => clearInterval(t);
+  }, [iso]);
+
+  if (!iso) return null;
+  return (
+    <span style={{ ...TYPE.kpiLabel, color: ENGRAVED, whiteSpace: "nowrap" }}>
+      {label ? `${prefix} ${label}` : " "}
+    </span>
+  );
+}
+
+/**
+ * The badge for a market with a live signal but no venue behind it.
+ *
+ * Three of the six perp families (Scandal, Z-Liar, Gossip-Cop) have
+ * instruments and readings but no `perp_markets` rows. Showing them without
+ * this badge would invite a position the backend would reject.
+ */
+export function SignalOnly() {
+  return (
+    <span style={{ ...TYPE.pip, color: ROLE.muted, border: `1px dashed ${mix(ROLE.muted, 40)}`, background: mix(ROLE.muted, 6), borderRadius: 6, padding: "3px 6px", whiteSpace: "nowrap" }}>
+      Signal only
+    </span>
+  );
+}
+
 /** A standalone pill — the footer's canon badges, and any inline stat. */
 export function Pill({ children, tone = ROLE.gold }: { children: React.ReactNode; tone?: string }) {
   return (
