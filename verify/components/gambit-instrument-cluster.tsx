@@ -84,6 +84,18 @@ const DEFAULT_PAIR3_PRESETS: DigitPairStat[] = [
   { label: "SHIELD UTILIZATION", value: "31", color: "#ffcf40" },
 ];
 
+/**
+ * The three pods' preset triplets, in pod order. Exported so the split-flap
+ * chrono can drive its three digit-pairs off the SAME stats the pods use —
+ * the clock and the pods are two renderings of one instrument, and a second
+ * copy of this list would drift the moment either side gained a stat.
+ */
+export const DEFAULT_PAIR_PRESETS: DigitPairStat[][] = [
+  DEFAULT_PAIR1_PRESETS,
+  DEFAULT_PAIR2_PRESETS,
+  DEFAULT_PAIR3_PRESETS,
+];
+
 const DEFAULT_LEFT_DIAL_PRESETS: DialStat[] = [
   { label: "CHAOS",        value: 67, colorA: "#ffd700", colorB: "#ff007f" },
   { label: "SHIELD USE",   value: 41, colorA: "#00e5ff", colorB: "#ffd700" },
