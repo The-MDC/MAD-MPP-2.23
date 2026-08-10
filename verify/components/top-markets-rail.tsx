@@ -11,6 +11,7 @@
 import React, { useMemo } from "react";
 import { Flame, TrendingUp } from "lucide-react";
 import { INK } from "@/lib/gambit-design-tokens";
+import { AutoShowcaseBadge } from "@/components/carousel";
 
 const SUBJECTS = ["ELON", "BTC", "AI", "FED", "SOL", "TAYLOR", "TRUMP", "ETH", "DOGE", "NVDA", "APPLE", "OPENAI", "MESSI", "KANYE", "PEPE"];
 const TEMPLATES = ["{S} to moon this week?", "Is {S} lying?", "{S} rug incoming?", "{S} 10x by EOM?", "{S} scandal drops?", "{S} flips the market?"];
@@ -38,7 +39,10 @@ export default function TopMarketsRail() {
       <div className="flex items-center gap-2 px-4 py-2 border-b" style={{ borderColor: INK.border, background: INK.bgPanel }}>
         <TrendingUp className="w-4 h-4" style={{ color: INK.gold }} />
         <span className="font-mono text-[11px] font-bold uppercase tracking-widest" style={{ color: INK.gold }}>Top 50 Markets · Today</span>
-        <span className="ml-auto font-mono text-[8px] uppercase tracking-wider" style={{ color: INK.muted }}>auto-rotating</span>
+        <span className="ml-auto flex items-center gap-1.5">
+          <span className="font-mono text-[8px] uppercase tracking-wider" style={{ color: INK.muted }}>auto-rotating</span>
+          <AutoShowcaseBadge label="Auto-rotating" />
+        </span>
       </div>
       <div className="mg-marquee-mask py-2" style={{ overflow: "hidden" }}>
         <div className="mg-marquee-track flex" style={{ width: "max-content", gap: 8 }}>

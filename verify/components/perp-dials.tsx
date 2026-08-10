@@ -940,7 +940,7 @@ export default function PerpDials() {
         from app/preview/page.tsx rather than this one being dropped.
       */}
       <div style={{ overflowX: "auto" }}>
-        <GambitInstrumentCluster centerSlot={<SeikoFlipClock label="MAD·TIME UTC" scale={1.2} />} />
+        <GambitInstrumentCluster centerSlot={<SeikoFlipClock label="MAD·STATE · TAP A DOT TO PIN" scale={1.2} />} />
       </div>
 
       {/* Deck footer — the thesis line and the two canon pills. */}

@@ -19,6 +19,7 @@ import React from "react";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import MetricPopover, { type MetricRow } from "@/components/metric-popover";
+import { AutoShowcaseBadge } from "@/components/carousel";
 
 interface Tick {
   symbol: string;
@@ -134,6 +135,7 @@ export default function CryptoTickerDual() {
               <span key={f.key} style={{ width: 5, height: 5, borderRadius: "50%", background: i === idx ? accent : `${skin.muted}66`, boxShadow: i === idx ? `0 0 6px ${accent}` : "none" }} />
             ))}
           </span>
+          <AutoShowcaseBadge label="Auto-cycling ticker" />
           <span style={{ fontSize: 9, color: `${accent}aa`, fontWeight: 900 }}>▸</span>
         </button>
 

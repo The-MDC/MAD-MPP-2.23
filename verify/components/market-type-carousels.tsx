@@ -10,6 +10,7 @@
  */
 import React, { useEffect, useRef, useState } from "react";
 import { useSkin } from "@/components/skin-provider";
+import { AutoShowcaseBadge, useAutoShowcase } from "@/components/carousel";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 
 // Imported, never redeclared. A local copy of this union silently drops any new
@@ -61,6 +62,8 @@ const BLURB: Record<MarketType, string> = {
 function Carousel({ type, items, live }: { type: MarketType; items: Proposal[]; live: boolean }) {
   const { skin } = useSkin();
   const ref = useRef<HTMLDivElement>(null);
+  // Same pause rules as the shared rail primitive — see components/carousel.tsx.
+  const showcase = useAutoShowcase(ref, { gap: 10 });
   const color =
     type === "perp" || type === "gossipcop" ? skin.accent2 : type === "zliar" ? skin.gold : type === "saga" ? skin.accent : skin.positive;
   const nudge = (d: number) => {
@@ -71,8 +74,9 @@ function Carousel({ type, items, live }: { type: MarketType; items: Proposal[]; 
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "0 0 4px 2px" }}>
-        <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 1.5, color, textTransform: "uppercase" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 900, letterSpacing: 1.5, color, textTransform: "uppercase" }}>
           {LABEL[type]} <span style={{ color: skin.muted, fontSize: 9 }}>{items.length}</span>
+          <AutoShowcaseBadge />
         </div>
         <div style={{ display: "flex", gap: 6 }}>
           <button type="button" aria-label="Scroll left" onClick={() => nudge(-1)} style={arrow}>‹</button>
@@ -83,7 +87,7 @@ function Carousel({ type, items, live }: { type: MarketType; items: Proposal[]; 
       {items.length === 0 ? (
         <div style={{ fontSize: 9, color: skin.muted, padding: "8px 2px" }}>No {live ? "live" : "demo"} signals in this class yet.</div>
       ) : (
-        <div ref={ref} style={{ display: "flex", gap: 10, overflowX: "auto", scrollBehavior: "smooth", paddingBottom: 4 }}>
+        <div ref={ref} {...showcase} style={{ display: "flex", gap: 10, overflowX: "auto", scrollBehavior: "smooth", paddingBottom: 4 }}>
           {items.map((p, i) => (
             <div key={i} style={{ minWidth: 232, flex: "0 0 auto", background: skin.card, border: `1px solid ${color}66`, borderRadius: 12, padding: 12, fontFamily: INSTRUMENT_FONT }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: skin.text, lineHeight: 1.35, minHeight: 54 }}>{p.title}</div>

@@ -11,6 +11,7 @@
 import React, { useRef } from "react";
 import { Dices, Flame, type LucideIcon } from "lucide-react";
 import { useSkin } from "@/components/skin-provider";
+import { useAutoShowcase } from "@/components/carousel";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 
 interface DopCard {
@@ -50,6 +51,9 @@ function Gauge({ pct }: { pct: number }) {
 export default function DopamineCarouselStrip() {
   const { skin } = useSkin();
   const ref = useRef<HTMLDivElement>(null);
+  // The circled arrows are the platform's mark for a rail that showcases
+  // itself, so this strip advances on its own — see components/carousel.tsx.
+  const showcase = useAutoShowcase(ref, { gap: 11 });
   const nudge = (dir: number) => {
     if (ref.current) ref.current.scrollBy({ left: dir * 150, behavior: "smooth" });
   };
@@ -85,23 +89,34 @@ export default function DopamineCarouselStrip() {
       <button type="button" aria-label="Scroll right" onClick={() => nudge(1)} style={arrowStyle("r")}>›</button>
       <div
         ref={ref}
+        {...showcase}
         style={{ display: "flex", gap: 11, overflowX: "auto", scrollBehavior: "smooth", paddingBottom: 4, WebkitOverflowScrolling: "touch" }}
       >
         {CARDS.map((c) => (
           <div
             key={c.title}
             style={{
+              position: "relative",
               minWidth: 122,
               flex: "0 0 auto",
               background: skin.card,
-              border: `2px solid ${skin.accent}`,
+              // Gold case, cyan legend — the card is brass with the readout lit
+              // inside it, the same split the Seiko above it uses.
+              border: `2px solid ${skin.gold}`,
               borderRadius: 14,
               padding: "13px 10px",
               textAlign: "center",
-              boxShadow: `0 0 14px ${skin.accent}33`,
+              boxShadow: `0 0 14px ${skin.gold}33, inset 0 0 18px ${skin.gold}0f`,
               fontFamily: INSTRUMENT_FONT,
             }}
           >
+            {/* Grip — this carousel is user-reorderable, and the handle is what says so. */}
+            <span
+              aria-hidden="true"
+              style={{ position: "absolute", top: 7, left: 8, fontSize: 9, fontWeight: 900, lineHeight: 1, color: `${skin.muted}cc`, letterSpacing: -1 }}
+            >
+              ≡
+            </span>
             <div style={{ fontSize: 11, fontWeight: 900, color: skin.accent, letterSpacing: 0.6, textTransform: "uppercase", lineHeight: 1.15, minHeight: 26 }}>
               {c.title}
             </div>
@@ -120,7 +135,7 @@ export default function DopamineCarouselStrip() {
                 ))}
               </div>
             ) : null}
-            {c.value ? <div style={{ fontSize: 10.5, fontWeight: 900, color: skin.text, textTransform: "uppercase" }}>{c.value}</div> : null}
+            {c.value ? <div style={{ fontSize: 10.5, fontWeight: 900, color: skin.gold, textTransform: "uppercase", textShadow: `0 0 8px ${skin.gold}55` }}>{c.value}</div> : null}
           </div>
         ))}
       </div>

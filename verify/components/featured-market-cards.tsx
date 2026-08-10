@@ -9,6 +9,7 @@
  */
 import React from "react";
 import { useSkin } from "@/components/skin-provider";
+import Carousel, { AutoShowcaseBadge } from "@/components/carousel";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 
 interface FeaturedMarket {
@@ -31,6 +32,9 @@ export default function FeaturedMarketCards() {
     <div>
       <div
         style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
           fontSize: 12,
           fontWeight: 900,
           letterSpacing: 2,
@@ -41,18 +45,16 @@ export default function FeaturedMarketCards() {
         }}
       >
         Featured Market Cards
+        <AutoShowcaseBadge />
       </div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))",
-          gap: 14,
-        }}
-      >
+      <Carousel auto gap={14} ariaLabel="Featured market cards">
         {MARKETS.map((m) => (
           <div
             key={m.q}
             style={{
+              width: 260,
+              maxWidth: "100%",
+              height: "100%",
               background: skin.card,
               border: `2px solid ${neon}`,
               borderRadius: 16,
@@ -103,7 +105,7 @@ export default function FeaturedMarketCards() {
             </a>
           </div>
         ))}
-      </div>
+      </Carousel>
     </div>
   );
 }
