@@ -17,11 +17,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import { INK, GOLD_CHISEL_STOPS, INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 
-const BASE_W = 30;
-const BASE_H = 44;
+// Tile proportions follow the brief (taller than wide, ~0.68). Kept deliberately
+// close to the pre-redesign footprint: the clock is flanked by the two analog
+// dials in GambitInstrumentCluster on one centred, wrapping row, and a wider
+// case pushes that row past its wrap threshold and drops the dials underneath.
+const BASE_W = 32;
+const BASE_H = 47;
 const FLIP_MS = 500;
 
 const goldCss = `linear-gradient(160deg, ${GOLD_CHISEL_STOPS.map(([o, c]) => `${c} ${o}%`).join(", ")})`;
+/** Numerals are struck from the same chisel, top-lit — metal, not neon. */
+const goldGlyph = `linear-gradient(180deg, ${GOLD_CHISEL_STOPS.map(([o, c]) => `${c} ${o}%`).join(", ")})`;
 
 function usePrefersReducedMotion(): boolean {
   const [reduce, setReduce] = useState(false);
@@ -39,6 +45,10 @@ interface Metrics {
   w: number;
   h: number;
   fs: number;
+  /** Tile corner radius. */
+  r: number;
+  /** Hinge-pin diameter. */
+  pin: number;
 }
 
 /** One half of a digit card — the glyph clipped to its top or bottom band. */
@@ -51,13 +61,15 @@ function Half({ digit, half, m }: { digit: string; half: "top" | "bottom"; m: Me
         width: m.w,
         height: m.h / 2,
         overflow: "hidden",
-        background: INK.bgCard,
-        borderRadius: isTop ? "5px 5px 0 0" : "0 0 5px 5px",
-        borderTop: isTop ? `1px solid ${INK.borderGold}` : "none",
-        borderBottom: isTop ? "none" : `1px solid ${INK.borderGold}`,
-        borderLeft: `1px solid ${INK.borderGold}`,
-        borderRight: `1px solid ${INK.borderGold}`,
-        boxShadow: isTop ? "inset 0 1px 2px rgba(255,255,255,0.08)" : "inset 0 -2px 4px rgba(0,0,0,0.5)",
+        // Top leaf catches the light, bottom leaf falls into shadow — the
+        // depth cue that makes a flat pair of divs read as one hinged card.
+        background: isTop
+          ? `linear-gradient(180deg, ${INK.bgCardHov}, ${INK.bgCard})`
+          : `linear-gradient(180deg, ${INK.bgPanel}, ${INK.bgDeep})`,
+        borderRadius: isTop ? `${m.r}px ${m.r}px 0 0` : `0 0 ${m.r}px ${m.r}px`,
+        boxShadow: isTop
+          ? "inset 0 1px 1px rgba(255,255,255,0.10)"
+          : "inset 0 -2px 5px rgba(0,0,0,0.62)",
       }}
     >
       {/* Hairline seam between the two leaves */}
@@ -84,11 +96,15 @@ function Half({ digit, half, m }: { digit: string; half: "top" | "bottom"; m: Me
           fontFamily: INSTRUMENT_FONT,
           fontSize: m.fs,
           fontWeight: 900,
-          // Neon-ticker numerals (mockup dopamine-ticker treatment): hot gold core
-          // with layered luminance halo, like the BTC/MADx marquee digits.
+          // Struck metal, not neon: the chisel ramp is clipped to the glyph so
+          // the numeral is lit top-down like the case around it. `color` stays
+          // as the fallback for engines that ignore background-clip:text.
           color: INK.gold,
-          textShadow: `0 0 6px ${INK.gold}, 0 0 14px ${INK.gold}aa, 0 0 28px ${INK.gold}55`,
-          background: "transparent",
+          background: goldGlyph,
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          filter: `drop-shadow(0 0 5px ${INK.gold}55)`,
         }}
       >
         {digit}
@@ -124,6 +140,25 @@ function FlipDigit({ value, m }: { value: string; m: Metrics }) {
       {/* Settled halves: top already shows the new value, bottom still shows old */}
       <Half digit={current} half="top" m={m} />
       <Half digit={flipping ? previous : current} half="bottom" m={m} />
+
+      {/* Hinge pins — the axle the leaves pivot on, one each side at the seam. */}
+      {(["left", "right"] as const).map((side) => (
+        <span
+          key={side}
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: m.h / 2 - m.pin / 2,
+            [side]: -m.pin / 2,
+            width: m.pin,
+            height: m.pin,
+            borderRadius: "50%",
+            background: goldCss,
+            boxShadow: `0 0 3px ${INK.gold}88`,
+            zIndex: 4,
+          }}
+        />
+      ))}
 
       {flipping && (
         <>
@@ -189,7 +224,9 @@ export default function SeikoFlipClock({ label = "MAD·TIME UTC", scale = 1 }: {
   const m: Metrics = {
     w: Math.round(BASE_W * scale),
     h: Math.round(BASE_H * scale),
-    fs: Math.round(30 * scale),
+    fs: Math.round(32 * scale),
+    r: Math.max(4, Math.round(7 * scale)),
+    pin: Math.max(3, Math.round(4 * scale)),
   };
 
   useEffect(() => {
@@ -215,20 +252,37 @@ export default function SeikoFlipClock({ label = "MAD·TIME UTC", scale = 1 }: {
 
   return (
     <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+      {/* Gold case → recessed well → tiles. Three layers, because the case in
+          the brief is a solid milled frame with the display sunk into it, not
+          a gold rectangle with digits sitting on top of it. */}
       <div
         style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: Math.round(3 * scale),
-          padding: Math.round(6 * scale),
-          borderRadius: Math.round(10 * scale),
+          padding: Math.round(9 * scale),
+          borderRadius: Math.round(20 * scale),
           background: goldCss,
-          boxShadow: `0 2px 10px rgba(0,0,0,0.5), inset 0 0 0 1px ${INK.borderGold}`,
+          boxShadow: [
+            `0 0 26px ${INK.gold}33`,
+            "0 6px 18px rgba(0,0,0,0.62)",
+            "inset 0 1px 1px rgba(255,255,255,0.45)",
+            "inset 0 -2px 5px rgba(0,0,0,0.42)",
+          ].join(", "),
         }}
         role="timer"
         aria-label={`Platform clock ${time} UTC`}
       >
-        {cells}
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: Math.round(4 * scale),
+            padding: `${Math.round(6 * scale)}px ${Math.round(7 * scale)}px`,
+            borderRadius: Math.round(13 * scale),
+            background: `linear-gradient(180deg, ${INK.bgDeep}, #000000)`,
+            boxShadow: `inset 0 3px 11px rgba(0,0,0,0.85), inset 0 0 0 1px ${INK.borderGold}`,
+          }}
+        >
+          {cells}
+        </div>
       </div>
       <span
         style={{
