@@ -32,6 +32,9 @@ import PerpDials from "@/components/perp-dials";
 import OVDeckSelector from "@/components/ov-deck-selector";
 import MadhatrConcierge from "@/components/madhatr-concierge";
 import { OV_DECKS, type OVDeck } from "@/lib/gambit-game-math";
+// Dual feature section: Conviction/Prediction beside the deck + Dutch auction.
+import { PredictionCircus } from "@/components/kaito-and-circus";
+import GambitCardsAuctionSection from "@/components/gambit-cards-auction-section";
 import MarketTypeCarousels from "@/components/market-type-carousels";
 import FacesWaterline from "@/components/faces-waterline";
 import ZeitgeistAlmanac from "@/components/zeitgeist-almanac";
@@ -267,6 +270,32 @@ function PreviewInner() {
             </div>
             <div id="mg-epiphanies" style={{ scrollMarginTop: 72 }}>
               <EpiphanyCatalog />
+            </div>
+
+            {/* DUAL FEATURE SECTION — the two halves of the game economy, side
+                by side on desktop and stacked on mobile.
+
+                Left: Conviction + Prediction, where a position is taken.
+                Right: the MADHATs Gambit deck on an auto-advancing carousel
+                with the Dutch auction directly beneath it in the same shell —
+                what you can own, and what it costs right now.
+
+                They are paired rather than scattered because they are one loop:
+                you form a conviction, you buy the cards that back it, the
+                auction sets the price. Apart, they read as three unrelated
+                features. */}
+            <div
+              id="mg-game"
+              style={{
+                display: "grid",
+                gridTemplateColumns: wide ? "1fr 1fr" : "1fr",
+                gap: 16,
+                alignItems: "start",
+                scrollMarginTop: 72,
+              }}
+            >
+              <PredictionCircus activeDeck={activeDeck} />
+              <GambitCardsAuctionSection />
             </div>
 
             <div id="mg-featured">

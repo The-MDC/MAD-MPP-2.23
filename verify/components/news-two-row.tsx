@@ -42,6 +42,40 @@ const LABEL: Record<Kind, string> = {
   zliar: "Z-Liar", gossipcop: "GossipCop",
 };
 
+/**
+ * Every headline on this wire names the instrument it trades as. Row one
+ * carries the two market types; row two carries the perps.
+ *
+ * The split is by instrument, not by index. It used to be `i % 2`, which
+ * interleaved one ranked list into two rows — the rows looked different but
+ * meant nothing, and a perp could surface in either.
+ */
+const PERP_KINDS: ReadonlySet<Kind> = new Set<Kind>(["zliar", "gossipcop"]);
+
+/** Perp instrument names, as they are branded. */
+const PERP_LABEL: Partial<Record<Kind, string>> = {
+  zliar: "Z-LIAR METER",
+  gossipcop: "GOSSIP-COP",
+};
+
+/**
+ * Which market a news category lists as.
+ *
+ * Categories that resolve against a fact — a price, a result, a published
+ * number — list as PREDICTION, because they settle. Categories that resolve
+ * against sentiment list as CONVICTION, because what is traded is the strength
+ * of belief, not the outcome. The mapping is total and deterministic: the same
+ * headline always shows the same instrument, with no randomness to drift
+ * between server and client paint.
+ */
+function marketLabel(kind: Kind): string {
+  const perp = PERP_LABEL[kind];
+  if (perp) return perp;
+  return kind === "crypto" || kind === "sports" || kind === "headlines"
+    ? "PREDICTION"
+    : "CONVICTION";
+}
+
 function ThumbImg({ src }: { src: string }) {
   const [broken, setBroken] = useState(false);
   if (broken) return null;
@@ -80,7 +114,8 @@ function CardView({ c }: { c: Card }) {
       onClick={onClick}
       role="link"
       title={c.link ? "Open" : undefined}
-      style={{ minWidth: 238, width: 238, flex: "0 0 auto", background: skin.card, border: `1px solid ${color}66`, borderRadius: 12, overflow: "hidden", cursor: c.link ? "pointer" : "default", fontFamily: INSTRUMENT_FONT }}
+      // marginRight (not the track's gap) carries the spacing — see MarqueeRow.
+      style={{ minWidth: 238, width: 238, flex: "0 0 auto", marginRight: 10, background: skin.card, border: `1px solid ${color}66`, borderRadius: 12, overflow: "hidden", cursor: c.link ? "pointer" : "default", fontFamily: INSTRUMENT_FONT }}
     >
       <div style={{ height: 76, position: "relative", background: `linear-gradient(135deg, ${color}, ${skin.accent})` }}>
         {c.image ? <ThumbImg src={c.image} /> : null}
@@ -97,9 +132,37 @@ function CardView({ c }: { c: Card }) {
             🔥 {Math.round(c.heat)}
           </button>
         ) : null}
+        {/* The instrument this headline trades as — every card names one. */}
+        <span
+          style={{
+            position: "absolute", bottom: 6, left: 6,
+            fontSize: 6.5, fontWeight: 900, letterSpacing: 0.7, textTransform: "uppercase",
+            color: PERP_KINDS.has(c.kind) ? "#0b0b12" : "#fff",
+            background: PERP_KINDS.has(c.kind) ? skin.gold : "rgba(8,8,14,0.78)",
+            border: `1px solid ${PERP_KINDS.has(c.kind) ? skin.gold : `${color}88`}`,
+            padding: "2px 6px", borderRadius: 5, whiteSpace: "nowrap",
+          }}
+        >
+          {marketLabel(c.kind)}
+        </span>
       </div>
       <div style={{ padding: "8px 10px" }}>
-        <div style={{ fontSize: 9, fontWeight: 700, color: skin.text, lineHeight: 1.3, height: 35, overflow: "hidden" }}>{c.headline}</div>
+        {/* Headline box.
+            Was lineHeight:1.3 (= 11.7px) in a 35px box, so the third line was
+            sliced through the glyphs — the formatting artifact on this wire.
+            An integer 12px line box times exactly 3 lines is 36px, so nothing
+            is ever cut mid-character, and line-clamp ends an over-long
+            headline with an ellipsis instead of a shaved row of letters. */}
+        <div
+          style={{
+            fontSize: 9, fontWeight: 700, color: skin.text,
+            lineHeight: "12px", height: 36,
+            display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
+          {c.headline}
+        </div>
         <div style={{ display: "flex", gap: 6, marginTop: 6, fontSize: 6.5, color: skin.muted }}>
           <span style={{ color, fontWeight: 900 }}>{c.source}</span>
           <span style={{ marginLeft: "auto" }}>Z-Liar <b style={{ color: skin.gold }}>{Math.round(c.z)}</b></span>
@@ -125,7 +188,14 @@ function MarqueeRow({ cards, dir }: { cards: Card[]; dir: "l" | "r" }) {
   const run = cards.concat(cards);
   return (
     <div className="mg-nr-row" style={{ overflow: "hidden" }}>
-      <div className={`mg-nr-track ${dir === "l" ? "mg-nr-l" : "mg-nr-r"}`} style={{ display: "inline-flex", gap: 10, willChange: "transform" }}>
+      {/* No `gap` here, deliberately. The track duplicates the card list and
+          animates to translateX(-50%), so the repeating unit must be exactly
+          half the track. With a flex gap the two copies are separated by one
+          extra gap, making half the track 5px short of one copy and jolting the
+          row every loop. The spacing is carried by each card's own margin
+          instead, so half the track is exactly one copy and the loop is
+          seamless. */}
+      <div className={`mg-nr-track ${dir === "l" ? "mg-nr-l" : "mg-nr-r"}`} style={{ display: "inline-flex", willChange: "transform" }}>
         {run.map((c, i) => (
           <CardView key={i} c={c} />
         ))}
@@ -177,8 +247,14 @@ export default function NewsTwoRow() {
   // then filter in place when a category is active. null = the full two-row wire.
   const all = [...(cards ?? [])].sort((a, b) => b.heat - a.heat);
   const list = active ? all.filter((c) => c.kind === active) : all;
-  const rowA = list.filter((_, i) => i % 2 === 0);
-  const rowB = list.filter((_, i) => i % 2 === 1);
+  // Row 1: the Conviction / Prediction markets. Row 2: the perps.
+  // If one side is empty (a category filter that selects only perps, or the
+  // proposals endpoint being down) the other row carries the whole wire rather
+  // than the section collapsing to a single row.
+  const marketCards = list.filter((c) => !PERP_KINDS.has(c.kind));
+  const perpCards = list.filter((c) => PERP_KINDS.has(c.kind));
+  const rowA = marketCards.length ? marketCards : perpCards;
+  const rowB = perpCards.length && marketCards.length ? perpCards : [];
 
   return (
     <div style={{ fontFamily: INSTRUMENT_FONT }}>
