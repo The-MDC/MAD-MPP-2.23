@@ -11,18 +11,11 @@ import React from "react";
 import { useSkin } from "@/components/skin-provider";
 import Carousel, { AutoShowcaseBadge } from "@/components/carousel";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
+import { FEATURED_DEMO_MARKETS, odds } from "@/lib/demo-markets";
 
-interface FeaturedMarket {
-  q: string;
-  yes: string;
-  no: string;
-}
-
-const MARKETS: FeaturedMarket[] = [
-  { q: "WILL ELON BUY ANOTHER COMPANY IN 2024?", yes: "2.5x", no: "1.4x" },
-  { q: "BITCOIN TO HIT $100K BY EOY?", yes: "1.9x", no: "1.8x" },
-  { q: "AI SURPASS HUMAN IQ BY 2030?", yes: "3.0x", no: "1.2x" },
-];
+// Copy comes from lib/demo-markets — this surface used to carry its own
+// third copy of the same three questions, and it was the one still dated 2024.
+const MARKETS = FEATURED_DEMO_MARKETS;
 
 export default function FeaturedMarketCards() {
   const { skin } = useSkin();
@@ -50,7 +43,7 @@ export default function FeaturedMarketCards() {
       <Carousel auto gap={14} ariaLabel="Featured market cards">
         {MARKETS.map((m) => (
           <div
-            key={m.q}
+            key={m.id}
             style={{
               width: 260,
               maxWidth: "100%",
@@ -66,18 +59,19 @@ export default function FeaturedMarketCards() {
               fontFamily: INSTRUMENT_FONT,
             }}
           >
-            <div style={{ fontSize: 15, fontWeight: 900, color: skin.gold, lineHeight: 1.25, letterSpacing: 0.4 }}>
-              {m.q}
+            {/* Caps are a display choice, applied here — the data stays sentence case. */}
+            <div style={{ fontSize: 15, fontWeight: 900, color: skin.gold, lineHeight: 1.25, letterSpacing: 0.4, textTransform: "uppercase" }}>
+              {m.question}
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 11, fontWeight: 900, color: skin.positive, letterSpacing: 1 }}>YES</div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: skin.text }}>{m.yes}</div>
+                <div style={{ fontSize: 22, fontWeight: 900, color: skin.text }}>{odds(m.yes)}</div>
               </div>
               <div style={{ width: 1, height: 34, background: `${skin.text}22` }} />
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 11, fontWeight: 900, color: skin.accent2, letterSpacing: 1 }}>NO</div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: skin.text }}>{m.no}</div>
+                <div style={{ fontSize: 22, fontWeight: 900, color: skin.text }}>{odds(m.no)}</div>
               </div>
             </div>
             <a

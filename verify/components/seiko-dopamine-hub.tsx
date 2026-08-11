@@ -33,6 +33,7 @@ import PlatformCarousel from "@/components/platform-carousel";
 import UnpackedCardsCarousel from "@/components/unpacked-cards-carousel";
 import SeikoFlipClock from "@/components/seiko-flip-clock";
 import { INK as T } from "@/lib/gambit-design-tokens";
+import { FEATURED_DEMO_MARKETS } from "@/lib/demo-markets";
 
 /* ── DESIGN TOKENS ───────────────────────────────────────────
  * Palette now sourced from lib/gambit-design-tokens.ts (INK), imported above
@@ -50,11 +51,16 @@ const TICKER_BASE = [
 ];
 
 /* ── FEATURED MARKETS — canonical MAD Gambit format ─────────── */
-const FEATURED_MARKETS = [
-  { id: "em1", q: "WILL ELON BUY ANOTHER COMPANY IN 2024?", yes: 2.5, no: 1.4, pool: "142.9K", hot: true },
-  { id: "em2", q: "BITCOIN TO HIT $100K BY EOY?", yes: 1.9, no: 1.8, pool: "88.5K", hot: false },
-  { id: "em3", q: "AI SURPASS HUMAN IQ BY 2030?", yes: 3.0, no: 1.2, pool: "51.2K", hot: true },
-];
+// Copy comes from lib/demo-markets. This panel held the second of three
+// hardcoded copies, and the one that still dated the Elon market to 2024.
+const FEATURED_MARKETS = FEATURED_DEMO_MARKETS.map((m) => ({
+  id: m.id,
+  q: m.question.toUpperCase(),
+  yes: m.yes,
+  no: m.no,
+  pool: m.pool ?? "—",
+  hot: m.hot ?? false,
+}));
 
 /* ── DOPAMINE CAROUSEL TILES config ─────────────────────────── */
 type TileId = "bets" | "streak" | "chaos" | "gainers";

@@ -11,6 +11,7 @@ import React from "react";
 import { Brain, Target, Gavel } from "lucide-react";
 import { INK } from "@/lib/gambit-design-tokens";
 import Carousel, { AutoShowcaseBadge } from "@/components/carousel";
+import { DEMO_PREDICTION_MARKETS, odds } from "@/lib/demo-markets";
 
 interface Mkt { id: string; q: string; a: number; b: number; conviction: number; }
 const CONVICTION: Mkt[] = [
@@ -20,13 +21,11 @@ const CONVICTION: Mkt[] = [
   { id: "c4", q: "Staking APY holds above 24%", a: 1.9, b: 1.9, conviction: 49 },
   { id: "c5", q: "Chaos index stays sub-70 this week", a: 1.7, b: 2.2, conviction: 41 },
 ];
-const PREDICTION: Mkt[] = [
-  { id: "p1", q: "Will Elon buy another company in 2026?", a: 2.5, b: 1.4, conviction: 0 },
-  { id: "p2", q: "Bitcoin to hit $100K by EOY?", a: 1.9, b: 1.8, conviction: 0 },
-  { id: "p3", q: "AI surpasses human IQ by 2030?", a: 3.0, b: 1.2, conviction: 0 },
-  { id: "p4", q: "Major exchange fails this quarter?", a: 3.4, b: 1.2, conviction: 0 },
-  { id: "p5", q: "New meme coin cracks top 10?", a: 2.1, b: 1.7, conviction: 0 },
-];
+// Prediction copy comes from lib/demo-markets so this rail and the featured
+// cards cannot disagree about the same book again.
+const PREDICTION: Mkt[] = DEMO_PREDICTION_MARKETS.map((m) => ({
+  id: m.id, q: m.question, a: m.yes, b: m.no, conviction: 0,
+}));
 
 function Dial({ v, color }: { v: number; color: string }) {
   const cx = 22, cy = 22, r = 17;
@@ -54,8 +53,8 @@ function Card({ m, kind }: { m: Mkt; kind: "conviction" | "prediction" }) {
         </div>
       )}
       <div className="flex items-center gap-1.5">
-        <span className="flex-1 text-center rounded-md py-1 font-mono text-[9px] font-bold" style={{ background: `${INK.green}18`, color: INK.green }}>YES {m.a}x</span>
-        <span className="flex-1 text-center rounded-md py-1 font-mono text-[9px] font-bold" style={{ background: `${INK.pink}18`, color: INK.pink }}>NO {m.b}x</span>
+        <span className="flex-1 text-center rounded-md py-1 font-mono text-[9px] font-bold" style={{ background: `${INK.green}18`, color: INK.green }}>YES {odds(m.a)}</span>
+        <span className="flex-1 text-center rounded-md py-1 font-mono text-[9px] font-bold" style={{ background: `${INK.pink}18`, color: INK.pink }}>NO {odds(m.b)}</span>
       </div>
     </div>
   );
