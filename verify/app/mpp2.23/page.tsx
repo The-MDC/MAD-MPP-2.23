@@ -43,6 +43,8 @@ import PackShop from "@/components/pack-shop";
 import TopMarketsRail from "@/components/top-markets-rail";
 import MarketRails from "@/components/market-rails";
 import DopamineEngine from "@/components/dopamine-engine";
+import LiveTicker from "@/components/live-ticker";
+import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
 import OVDeckSelector from "@/components/ov-deck-selector";
 // Ported from the /preview premiere theme — see docs/HANDOFF_2026-08-11_AUDIT.md §9.
 import MarketTypeCarousels from "@/components/market-type-carousels";
@@ -238,9 +240,9 @@ function GambitInner() {
         <div className="mb-2"><KaitoPriceTicker /></div>
 
         {/* RSS WIRE */}
-        {/* CryptoTickerDual replaces LiveTicker. Both rendered the same
-            BTC/ETH/SOL marquee; the dual is the newer /preview version, and
-            keeping both would be two tickers doing one job. */}
+        {/* LiveTicker stays; CryptoTickerDual is the ported /preview one.
+            Both are here because the port removes nothing. */}
+        <div className="mb-4"><LiveTicker /></div>
         <div className="mb-4"><CryptoTickerDual /></div>
 
         {/* O-V DECK + SKIN */}
@@ -302,17 +304,16 @@ function GambitInner() {
                 main column — the story is the reason a market moves. */}
             <NewsTwoRow />
 
-            {/* SeikoDopamineHub retired here, replaced by the /preview pair
-                below. Both it and PerpDials import GambitInstrumentCluster AND
-                SeikoFlipClock, so mounting both would put two instrument
-                clusters and two Seiko clocks on one page — the exact twin-Seiko
-                fault the founder already ruled on, and which /preview settled
-                by keeping PerpDials and dropping the hub. Porting faithfully
-                means making the same call here.
+            {/* The Seiko clock + dopamine hub. STAYS. Nothing on this route is
+                removed as part of the port — the brief was to port /preview IN,
+                not to take anything out.
 
-                With the hub gone its bets/streak/chaos/gainers tiles go too,
-                so DopamineCarouselStrip is no longer a second carousel — it
-                becomes this route's dopamine strip, as on /preview. */}
+                Note for the founder, not a licence to act on it: this hub and
+                PerpDials below both import GambitInstrumentCluster and
+                SeikoFlipClock, so both are now on the page together. Which of
+                the two survives is your call, and only yours. */}
+            <SeikoDopamineHub />
+
             <DopamineCarouselStrip />
             <PerpDials />
 
