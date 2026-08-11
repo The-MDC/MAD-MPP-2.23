@@ -74,7 +74,6 @@ import LogicLab from "@/components/logic-lab";
 import PackOpening from "@/components/pack-opening";
 import StakingTiersPanel from "@/components/staking-tiers-panel";
 import BottomNav from "@/components/bottom-nav";
-import DeviceFrame from "@/components/device-frame";
 import MainNav from "@/components/main-nav";
 import FutarchyBoard from "@/components/futarchy-board";
 import MarketFactory from "@/components/market-factory";
@@ -104,10 +103,12 @@ const DECISION_NODES = [
 
 export default function GambitPage() {
   return (
+    // No DeviceFrame here any more — the root layout wraps every route in it.
+    // Keeping this one would nest .mg-device inside .mg-device and render a
+    // phone inside a phone, with the inner bezel scrolling independently of the
+    // outer. The frame is not removed from this route, it is inherited.
     <GameProvider>
-      <DeviceFrame>
-        <GambitInner />
-      </DeviceFrame>
+      <GambitInner />
     </GameProvider>
   );
 }

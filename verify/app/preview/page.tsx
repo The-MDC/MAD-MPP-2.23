@@ -32,6 +32,7 @@ import PerpDials from "@/components/perp-dials";
 import OVDeckSelector from "@/components/ov-deck-selector";
 import MadhatrConcierge from "@/components/madhatr-concierge";
 import { OV_DECKS, type OVDeck } from "@/lib/gambit-game-math";
+import { useContainerWide } from "@/hooks/use-container-wide";
 // Dual feature section: Conviction/Prediction beside the deck + Dutch auction.
 import { PredictionCircus } from "@/components/kaito-and-circus";
 import GambitCardsAuctionSection from "@/components/gambit-cards-auction-section";
@@ -119,7 +120,6 @@ function PreviewInner() {
   const { openNode } = useGambitNode();
   const [sy, setSy] = useState(0);
   const [reduce, setReduce] = useState(false);
-  const [wide, setWide] = useState(false);
   // Tray/console state — rails retract and fold out. Desktop: pinned when open,
   // collapses fully on retract. Mobile: slide-in console overlays with backdrop.
   const [leftOpen, setLeftOpen] = useState(false);
@@ -128,35 +128,43 @@ function PreviewInner() {
   // Ported from /mpp2.23: the active O-V deck drives the live conviction math
   // (multiplier → δ-limit, threshold, APY), so it is page state, not card state.
   const [activeDeck, setActiveDeck] = useState<OVDeck>(OV_DECKS[0]);
+  const shellRef = React.useRef<HTMLDivElement>(null);
 
   // Dopamine payoff: full-screen celebration the moment social auth lands.
   useEffect(() => {
     if (socialAuth.isAuthenticated) celebrate({ intensity: 1 });
   }, [socialAuth.isAuthenticated]);
 
+  // Desktop-width test, measured on THIS page's own box rather than on the
+  // window. The app now renders inside DeviceFrame, whose desktop .mg-device is
+  // a 440px phone, so window.matchMedia("(min-width: 1024px)") would answer for
+  // a 1920px monitor and lay out side rails and a 1300px column inside 440px.
+  // The container is the only honest measure once the frame is global.
+  const wide = useContainerWide(shellRef, 1024);
+
+  // The rails follow the container: pinned open when there is room, closed when
+  // there is not. Kept as an effect on `wide` so a resize across the threshold
+  // re-applies it, exactly as the media-query listener used to.
+  useEffect(() => {
+    setLeftOpen(wide);
+    setRightOpen(wide);
+  }, [wide]);
+
   useEffect(() => {
     const rm = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReduce(rm.matches);
-    const wq = window.matchMedia("(min-width: 1024px)");
-    const applyWide = () => {
-      setWide(wq.matches);
-      setLeftOpen(wq.matches);
-      setRightOpen(wq.matches);
-    };
-    applyWide();
-    wq.addEventListener("change", applyWide);
     const onScroll = () => setSy(window.scrollY || 0);
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      wq.removeEventListener("change", applyWide);
-      window.removeEventListener("scroll", onScroll);
-    };
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const par = (factor: number): string => (reduce ? "none" : `translateY(${sy * factor}px)`);
 
   return (
-    <div style={{ position: "relative", minHeight: "100vh", background: skin.bg, color: skin.text, fontFamily: INSTRUMENT_FONT, overflowX: "hidden" }}>
+    // shellRef measures the page root, deliberately, not the inner shell whose
+    // max-width is itself derived from `wide` — observing that would feed the
+    // result back into its own input.
+    <div ref={shellRef} style={{ position: "relative", minHeight: "100vh", background: skin.bg, color: skin.text, fontFamily: INSTRUMENT_FONT, overflowX: "hidden" }}>
       {/* ── /gambit's real backdrop, merged in: WebGL dotted-glow particle field
              (exact props the platform passes at chaos≈67) + its ambient radial glows,
              with the hub's scroll-parallax drift layered on top. */}
