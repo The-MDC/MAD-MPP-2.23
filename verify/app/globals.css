@@ -262,6 +262,19 @@ body {
    Renders children once; responsive shell is CSS-only. See device-frame.tsx.
 ───────────────────────────────────────────────────────────────────── */
 .mg-workbench { display: contents; }
+/* The scrolling layer, at every breakpoint. Separating it from .mg-device is
+   what keeps `position: fixed` chrome — bottom nav, concierge — pinned to the
+   phone instead of riding up with the content. */
+.mg-device-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.mg-device-scroll::-webkit-scrollbar { display: none; }
 .mg-device {
   width: 100%;
   box-sizing: border-box;
@@ -340,12 +353,10 @@ body {
        zoom, where the phone simply renders at 1:1. */
     zoom: var(--mg-device-zoom, 1);
 
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+    /* The device itself does NOT scroll — see .mg-device-scroll. It is the
+       containing block for fixed descendants, and a fixed child of a
+       scrolling element scrolls with that element. */
+    overflow: hidden;
     border-radius: 46px;
     border: 12px solid #0b0b12;
     box-shadow:
@@ -357,7 +368,8 @@ body {
     contain: layout paint style;
     isolation: isolate;
   }
-  .mg-device::-webkit-scrollbar { display: none; }
+  /* .mg-device no longer scrolls; the scrollbar rule lives with
+     .mg-device-scroll in the base block. */
 
   /* Zoom control — pinned to the workbench, never inside .mg-device, so it is
      not scaled by the variable it sets. */
@@ -410,6 +422,46 @@ body {
     border-width: 10px;
     border-radius: 38px;
   }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   INSTRUMENT CLUSTER — dials flank the chrono when there is room, and sit
+   TOGETHER above it when there is not.
+
+   A plain wrapping row broke as dial / chrono / dial on narrow widths: one
+   dial above the chrono and one below, which is the fault seen in
+   production. Ordering fixes the break point instead of leaving it to
+   whatever happens to fit.
+
+   @container, not @media: the app renders inside a 393px device frame on
+   desktop, so a viewport query would report 1920px and lay out a row that
+   cannot fit the box it is actually in.
+───────────────────────────────────────────────────────────────────── */
+.mg-cluster-row {
+  container-type: inline-size;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+}
+/* Narrow (phones, and the device frame): both dials on line one, chrono
+   forced onto line two by a full-width basis. */
+.mg-cluster-l { order: 1; }
+.mg-cluster-r { order: 2; }
+.mg-cluster-c {
+  order: 3;
+  flex-basis: 100%;
+  display: flex;
+  justify-content: center;
+}
+/* Wide enough for dial + chrono + dial on one line: chrono returns to the
+   middle and the right dial moves back to its right. 560px is the measured
+   fit — two 108px dials, the 1.2x chrono, and the two 16px gaps. */
+@container (min-width: 560px) {
+  .mg-cluster-c { order: 2; flex-basis: auto; }
+  .mg-cluster-r { order: 3; }
 }
 
 /* ─────────────────────────────────────────────────────────────────────

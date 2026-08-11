@@ -37,6 +37,7 @@ import { useContainerWide } from "@/hooks/use-container-wide";
 import { PredictionCircus } from "@/components/kaito-and-circus";
 import GambitCardsAuctionSection from "@/components/gambit-cards-auction-section";
 import InstrumentDeckSection from "@/components/instrument-deck-section";
+import OctavianMesh from "@/components/octavian-mesh";
 import { AutoShowcaseBadge } from "@/components/carousel";
 import MarketTypeCarousels from "@/components/market-type-carousels";
 import FacesWaterline from "@/components/faces-waterline";
@@ -60,6 +61,20 @@ import { EigenTrustWidget } from "@/components/virality-eigen";
 import JoyLayer, { celebrate } from "@/components/joy-layer";
 import AuthModal from "@/components/auth-modal";
 import { GambitNodeProvider, useGambitNode } from "@/components/gambit-node";
+
+/**
+ * The four desks in the header rail. Each carries the surface it opens, so the
+ * row reads as destinations rather than four bare nouns.
+ *
+ * Prediction and Conviction both land on the markets block — they are two
+ * instrument types within one market list, not two separate pages.
+ */
+const DESKS: { label: string; sub: string; target: string }[] = [
+  { label: "Prediction", sub: "All & Open markets", target: "mg-markets" },
+  { label: "Conviction", sub: "All markets", target: "mg-markets" },
+  { label: "Affliction", sub: "MADHATs game", target: "mg-game" },
+  { label: "Octavian", sub: "Octavian Live Mesh", target: "mg-octavian" },
+];
 
 /** Dopamine tap — a small celebration burst at the click point. */
 function tap(e: React.MouseEvent, intensity = 0.5) {
@@ -195,19 +210,37 @@ function PreviewInner() {
         <CryptoTickerDual />
 
         <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "11px 14px", maxWidth: 1040, margin: "0 auto", flexWrap: "wrap" }}>
+          {/* The two tray toggles now flank the wordmark, so the controls that
+              open the left and right rails sit on the side they open — the
+              button's position states what it does. */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
             <button type="button" onClick={() => setLeftOpen((o) => !o)} aria-label="Toggle categories tray" title="Categories tray"
               style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, flex: "none", borderRadius: 8, cursor: "pointer", color: leftOpen ? skin.accent : skin.muted, background: skin.card, border: `1px solid ${leftOpen ? `${skin.accent}66` : skin.border}` }}>
               <PanelLeft size={15} strokeWidth={2.25} />
             </button>
-            {/* Worksheet C: official logo + MAD Gambit wordmark + tagline, top-left. */}
-            <BrandMark accent={skin.accent2} gold={skin.gold} />
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flex: "none" }}>
+
+            {/* The lockup is the way home, as a logo is everywhere else on the
+                web. A real <button> rather than a click handler on the mark, so
+                it is keyboard reachable and announces itself. */}
+            <button
+              type="button"
+              onClick={(e) => { tap(e, 0.5); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              aria-label="MAD Gambit — back to top"
+              title="MAD Gambit — back to top"
+              style={{ display: "flex", alignItems: "center", minWidth: 0, padding: 0, background: "transparent", border: "none", cursor: "pointer" }}
+            >
+              <BrandMark accent={skin.accent2} gold={skin.gold} />
+            </button>
+
             <button type="button" onClick={() => setRightOpen((o) => !o)} aria-label="Toggle account console" title="Account console"
               style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, flex: "none", borderRadius: 8, cursor: "pointer", color: rightOpen ? skin.gold : skin.muted, background: skin.card, border: `1px solid ${rightOpen ? `${skin.gold}66` : skin.border}` }}>
               <PanelRight size={15} strokeWidth={2.25} />
             </button>
+          </div>
+
+          {/* Theme + auth, moved off the logo row. At 393px the old single row
+              had six controls fighting for space and wrapped mid-word. */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flex: "none" }}>
             <button type="button" onClick={toggle} style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "6px 11px", borderRadius: 8, cursor: "pointer", color: skin.text, background: skin.card, border: `1px solid ${skin.accent}66`, whiteSpace: "nowrap", fontFamily: INSTRUMENT_FONT }} title="Toggle Gilded Pop-Baroque ⇄ Neon Noir Tabloid">
               {name === "gilded" ? "◑ Gilded" : "◐ Neon Noir"}
             </button>
@@ -216,6 +249,35 @@ function PreviewInner() {
             <Chip label="Sign Up" filled onClick={(e) => { tap(e, 0.7); openNode("beta-gate"); }} />
           </div>
         </header>
+
+        {/* The four desks, as a scrollable rail under the header. Each names
+            the surface it opens rather than being a bare label, so the row
+            reads as a destination list instead of four nouns. */}
+        <nav
+          aria-label="Platform desks"
+          style={{ display: "flex", gap: 8, overflowX: "auto", padding: "0 14px 10px", maxWidth: 1040, margin: "0 auto", scrollbarWidth: "none" }}
+        >
+          {DESKS.map((d) => (
+            <button
+              key={d.label}
+              type="button"
+              onClick={(e) => { tap(e, 0.5); scrollToId(d.target); }}
+              style={{
+                flex: "0 0 auto", textAlign: "left", cursor: "pointer",
+                padding: "7px 11px", borderRadius: 10,
+                background: skin.card, border: `1px solid ${skin.border}`,
+                fontFamily: INSTRUMENT_FONT,
+              }}
+            >
+              <span style={{ display: "block", fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: skin.gold }}>
+                {d.label}
+              </span>
+              <span style={{ display: "block", marginTop: 2, fontSize: 8, color: skin.muted, whiteSpace: "nowrap" }}>
+                {d.sub} ›
+              </span>
+            </button>
+          ))}
+        </nav>
 
         {/* Responsive shell: left + right rails on desktop (mockup sidebars), stacked on mobile */}
         <div style={{ maxWidth: wide ? 1300 : 1040, margin: "0 auto", padding: "8px 12px 96px", display: "flex", gap: 16, alignItems: "flex-start" }}>
@@ -248,6 +310,16 @@ function PreviewInner() {
                 <AutoShowcaseBadge />
               </SectionHeading>
               <DopamineCarouselStrip />
+            </div>
+
+            {/* Octavian live mesh — the target of the Octavian desk button,
+                sized like the Z-Liar meter so the two read as instruments of
+                the same class rather than one dwarfing the other. */}
+            <div id="mg-octavian" style={{ scrollMarginTop: 72 }}>
+              <SectionHeading>Octavian · Live Mesh</SectionHeading>
+              <div style={{ border: `1px solid ${skin.border}`, borderRadius: 14, overflow: "hidden", background: skin.panel }}>
+                <OctavianMesh />
+              </div>
             </div>
 
             {/* O-V deck — ported from /mpp2.23. It is the control that retunes
