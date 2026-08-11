@@ -49,6 +49,7 @@ import OVDeckSelector from "@/components/ov-deck-selector";
 import MarketTypeCarousels from "@/components/market-type-carousels";
 import FeaturedMarketCards from "@/components/featured-market-cards";
 import { SkinProvider } from "@/components/skin-provider";
+import { THEME_SKIN_TO_SKIN_NAME } from "@/lib/skins";
 import MadhatrConcierge from "@/components/madhatr-concierge";
 import { EigenTrustWidget } from "@/components/virality-eigen";
 import AuthModal from "@/components/auth-modal";
@@ -131,6 +132,16 @@ function GambitInner() {
   }, [tab]);
 
   return (
+    // Controlled SkinProvider — the theming bridge for this route.
+    //
+    // This page themes through ThemeProvider/useTheme (3 ThemeSkins, stored
+    // under mad_theme_skin). Components ported from /preview theme through
+    // useSkin() (2 SkinNames, stored under mg_skin). Projecting the active
+    // ThemeSkin through THEME_SKIN_TO_SKIN_NAME and publishing it here is what
+    // makes every ported surface follow THIS page's existing skin menu.
+    // Controlled mode means the provider never writes mg_skin, so driving the
+    // menu here cannot clobber the skin /preview has saved.
+    <SkinProvider value={THEME_SKIN_TO_SKIN_NAME[skin]}>
     <main className="min-h-screen text-neutral-100 relative overflow-hidden pb-16"
       style={{ background: tokens.bg }}>
 
@@ -285,20 +296,11 @@ function GambitInner() {
                 SeikoDopamineHub above already renders its own tile carousel,
                 and stacking a second one repeats the twin-Seiko mistake.
 
-                The SkinProvider wrapper is load-bearing, not decoration. This
-                route themes through useTheme()/SKIN_TOKENS; these two came from
-                /preview, which themes through useSkin()/SKINS. Unwrapped,
-                useSkin() falls back to DEFAULT_SKIN and pins them to one
-                palette. Wrapped, they at least follow the shared `mg_skin`
-                preference. They still will NOT track this page's own skin menu
-                — that needs the two theming systems unified, which is scoped
-                and not done. See docs/HANDOFF_2026-08-11_AUDIT.md §9. */}
-            <SkinProvider>
-              <div className="space-y-5">
-                <MarketTypeCarousels />
-                <FeaturedMarketCards />
-              </div>
-            </SkinProvider>
+                These no longer need a local SkinProvider — the page-level
+                controlled one now drives every useSkin() consumer from this
+                route's own skin menu. */}
+            <MarketTypeCarousels />
+            <FeaturedMarketCards />
             <ScandalVelocityMeter />
             <MarketFactory />
             <div className="grid lg:grid-cols-[1.3fr_1fr] gap-5">
@@ -374,6 +376,7 @@ function GambitInner() {
         />
       )}
     </main>
+    </SkinProvider>
   );
 }
 
