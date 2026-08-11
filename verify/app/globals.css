@@ -212,6 +212,23 @@
   --mg-frame-vh: 100vh;
   --mg-frame-gutter: 28px;
   --mg-frame-gutter-total: 56px;
+
+  /*
+   * The logical phone the desktop bezel presents — the viewport the app
+   * actually lays out against. 393x852 is the modern median (iPhone
+   * 14 Pro/15/16; Pixel 5 393x851). Change these two to present a different
+   * handset; the frame scales whatever they say to fit the workbench.
+   *
+   * Reference range, 2020-2026:
+   *   360x800  Galaxy S20-S24 (narrowest still current)
+   *   375x667  iPhone SE 2/3  (shortest)
+   *   390x844  iPhone 12/13/14
+   *   393x852  iPhone 14 Pro/15/16 · Pixel 5      <- default
+   *   412x915  Pixel 7/8
+   *   440x956  iPhone 16 Pro Max (widest)
+   */
+  --mg-device-w: 393px;
+  --mg-device-h: 852px;
 }
 
 @supports (height: 100svh) {
@@ -298,13 +315,31 @@ body {
   }
   .mg-device {
     position: relative;
-    width: 440px;
-    width: clamp(360px, 42vw, 440px);
-    max-width: calc(100vw - var(--mg-frame-gutter-total));
-    height: calc(100vh - var(--mg-frame-gutter-total));
-    height: calc(var(--mg-frame-vh) - var(--mg-frame-gutter-total));
-    max-height: 940px;
-    min-height: 640px;
+    /* A REAL phone viewport, not a stretched panel. 393x852 is the modern
+       median (iPhone 14 Pro/15/16; Pixel 5 is 393x851), and it is what the app
+       lays out against at every zoom level — so media queries, columns and
+       every padding behave exactly as they do on a handset. The 2020-2026
+       range this represents runs 360x800 (Galaxy S20-S24) to 440x956 (iPhone
+       16 Pro Max); scaling presents all of them without re-flowing any.
+
+       Size is fixed and `zoom` does the fitting. Sizing in vh instead would
+       change the layout box with the window, which is the stretch this
+       deliberately avoids. */
+    /* content-box, deliberately. The base rule is border-box, under which a
+       393px width minus the 12px bezel on each side would hand the app a 369px
+       viewport — not any real phone, and the claim above would be false.
+       content-box makes 393x852 the APP's viewport and puts the bezel outside
+       it, so the number in the variable is the number the layout sees. */
+    box-sizing: content-box;
+    width: var(--mg-device-w, 393px);
+    height: var(--mg-device-h, 852px);
+
+    /* fit x user, set by device-frame.tsx. zoom (not transform) so the scale
+       participates in layout: scroll height, hit targets and fixed descendants
+       all stay correct. Defaults to 1 before hydration and on engines without
+       zoom, where the phone simply renders at 1:1. */
+    zoom: var(--mg-device-zoom, 1);
+
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: none;
@@ -323,6 +358,46 @@ body {
     isolation: isolate;
   }
   .mg-device::-webkit-scrollbar { display: none; }
+
+  /* Zoom control — pinned to the workbench, never inside .mg-device, so it is
+     not scaled by the variable it sets. */
+  .mg-zoombar {
+    position: fixed;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px;
+    border-radius: 12px;
+    background: rgba(10, 10, 16, 0.86);
+    border: 1px solid #2a2a37;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(8px);
+  }
+  .mg-zoombar button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 26px;
+    height: 26px;
+    padding: 0 6px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #c9c9d4;
+    cursor: pointer;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+  .mg-zoombar button:hover:not(:disabled) { background: #1b1b26; color: #fff; }
+  .mg-zoombar button:disabled { opacity: 0.35; cursor: default; }
+  .mg-zoombar button:focus-visible { outline: 2px solid #ffcf40; outline-offset: 1px; }
+  .mg-zoombar-reset { min-width: 58px; }
 }
 
 @media (min-width: 1024px) and (max-height: 760px) {
