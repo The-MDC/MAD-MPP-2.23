@@ -48,6 +48,21 @@ const PHONE = { w: 393, h: 852 };
 /** Share of the workbench the auto-fit targets before any user zoom. */
 const FILL = 0.85;
 
+/**
+ * Desktop-only enlargement, on top of FILL.
+ *
+ * The phone read small on a large monitor, so the fit target is raised by 20%.
+ * The RESULT is then capped at the space actually available (see `maxFit`
+ * below): 0.85 x 1.2 = 1.02 would put the phone slightly taller than the
+ * workbench and crop its top and bottom, which is worse than being 2% smaller
+ * than asked. In practice this lands at ~1.176x — the largest the phone can be
+ * and still be whole. Users who want it bigger still have the zoom control.
+ *
+ * Desktop only by construction: below DESKTOP_MIN the CSS frame is
+ * full-bleed/tablet and never reads the variable this feeds.
+ */
+const DESKTOP_BOOST = 1.2;
+
 /** Below this the CSS frame is full-bleed/tablet and the scale is unused. */
 const DESKTOP_MIN = 1024;
 
@@ -102,9 +117,13 @@ export default function DeviceFrame({ children }: { children: React.ReactNode })
         // Fit against BOTH axes: height governs on a normal monitor, width
         // takes over on short-and-wide or split-screen windows. Whichever binds
         // first is what keeps the whole phone on screen.
-        const byHeight = ((window.innerHeight - gutter) * FILL) / PHONE.h;
-        const byWidth = ((window.innerWidth - gutter) * FILL) / PHONE.w;
-        fitRef.current = Math.min(byHeight, byWidth);
+        const availH = window.innerHeight - gutter;
+        const availW = window.innerWidth - gutter;
+        // The size asked for: FILL of the workbench, enlarged by the boost.
+        const wanted = Math.min((availH * FILL) / PHONE.h, (availW * FILL) / PHONE.w) * DESKTOP_BOOST;
+        // The largest that still fits whole, on whichever axis binds first.
+        const maxFit = Math.min(availH / PHONE.h, availW / PHONE.w);
+        fitRef.current = Math.min(wanted, maxFit);
       }
       publish();
     };
@@ -147,7 +166,16 @@ export default function DeviceFrame({ children }: { children: React.ReactNode })
 
   return (
     <div className="mg-workbench" ref={ref}>
-      <div className="mg-device">{children}</div>
+      {/* .mg-device is the containing block for `position: fixed` descendants
+          (via its transform) — that is what anchors the bottom nav and the
+          concierge to the phone. It must therefore NOT be the thing that
+          scrolls: a fixed child of a scrolling element scrolls with it, which
+          is why the bottom bar and the concierge bubble rode up the screen.
+          The scroll moves to an inner layer, so the phone's chrome stays put
+          while its content moves under it. */}
+      <div className="mg-device">
+        <div className="mg-device-scroll">{children}</div>
+      </div>
 
       {/* Zoom control — desktop only, and outside .mg-device so it is not
           itself zoomed by the variable it sets. */}

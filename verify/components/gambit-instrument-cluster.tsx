@@ -478,23 +478,35 @@ export default function GambitInstrumentCluster({
           : <>3 INDEPENDENT KPI PODS &middot; 2 CUSTOMIZABLE DIALS &middot; TAP ANY DOT TO SWAP</>}
       </div>
 
-      <div style={{
-        display: "flex", alignItems: "flex-start", justifyContent: "center",
-        gap: "16px", flexWrap: "wrap", width: "100%",
-      }}>
-        <AnalogGauge presets={leftDialPresets} idx={dl} onSelect={setDl} uid={`${uid}-l`} />
+      {/* Dial · centre · dial.
+          This was one wrapping flex row, which on a narrow container broke as
+          dial / centre / dial — one dial ABOVE the chrono and one BELOW it,
+          the fault visible in production. The row now reorders instead of
+          wrapping arbitrarily: both dials together on one line above the
+          chrono when space is short, flanking it when there is room. See
+          .mg-cluster-* in globals.css — a CONTAINER query, because the app
+          renders inside a 393px device frame on desktop and a media query
+          would answer for the monitor. */}
+      <div className="mg-cluster-row">
+        <div className="mg-cluster-l">
+          <AnalogGauge presets={leftDialPresets} idx={dl} onSelect={setDl} uid={`${uid}-l`} />
+        </div>
 
-        {centerSlot ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>{centerSlot}</div>
-        ) : (
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
-            <DigitPairPod presets={pair1Presets} idx={p1} onSelect={setP1} uid={`${uid}-p1`} />
-            <DigitPairPod presets={pair2Presets} idx={p2} onSelect={setP2} uid={`${uid}-p2`} />
-            <DigitPairPod presets={pair3Presets} idx={p3} onSelect={setP3} uid={`${uid}-p3`} />
-          </div>
-        )}
+        <div className="mg-cluster-c">
+          {centerSlot ? (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>{centerSlot}</div>
+          ) : (
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+              <DigitPairPod presets={pair1Presets} idx={p1} onSelect={setP1} uid={`${uid}-p1`} />
+              <DigitPairPod presets={pair2Presets} idx={p2} onSelect={setP2} uid={`${uid}-p2`} />
+              <DigitPairPod presets={pair3Presets} idx={p3} onSelect={setP3} uid={`${uid}-p3`} />
+            </div>
+          )}
+        </div>
 
-        <AnalogGauge presets={rightDialPresets} idx={dr} onSelect={setDr} uid={`${uid}-r`} />
+        <div className="mg-cluster-r">
+          <AnalogGauge presets={rightDialPresets} idx={dr} onSelect={setDr} uid={`${uid}-r`} />
+        </div>
       </div>
     </div>
   );

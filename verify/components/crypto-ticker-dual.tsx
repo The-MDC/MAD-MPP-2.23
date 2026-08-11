@@ -35,12 +35,18 @@ const CRYPTO: Tick[] = [
   { symbol: "XRP", value: "$2.1", change: "+1.8%", up: true },
 ];
 /**
- * The three streams are Crypto · Headlines · Commodities, per the brief.
+ * Crypto · Headlines · Commodities · Gambit.
  *
- * The feed this displaced was GAMBIT — the house tape (MADx / DEGEN / CHAOS /
- * VOLUME). It is not gone anywhere else on the platform; it simply is not one
- * of the three the top ticker cycles. Restoring it is one entry in FEEDS below.
+ * The house tape is back as a fourth stream — it was displaced when the brief
+ * named three, and it is the only feed that reports the platform itself rather
+ * than the world outside it, which is worth a place in the cycle.
  */
+const GAMBIT: Tick[] = [
+  { symbol: "MADx", value: "$0.85", change: "+12%", up: true },
+  { symbol: "DEGEN", change: "+8.5%", up: true },
+  { symbol: "CHAOS", value: "67%" },
+  { symbol: "VOLUME", value: "$2.4M" },
+];
 const COMMODITIES: Tick[] = [
   { symbol: "GOLD", value: "$2,412", change: "+0.6%", up: true },
   { symbol: "WTI", value: "$78.40", change: "-1.2%", up: false },
@@ -101,6 +107,17 @@ const FEEDS: Feed[] = [
     rows: [
       { label: "Last", kind: "measured", note: "Front-month settlement price." },
       { label: "Session change", kind: "measured", note: "Move against the previous session's close." },
+    ],
+    ctaLabel: "View featured markets →",
+  },
+  {
+    key: "gambit", label: "Gambit", items: GAMBIT, accentKey: "gold", target: "mg-featured", dur: 26,
+    title: "MAD Gambit house metrics",
+    blurb: "The platform's own tape: token price, degen momentum, the CHAOS index, and total market VOLUME. Beta placeholders until on-chain reads are wired.",
+    rows: [
+      { label: "MADx", kind: "measured", note: "MAD Gambit token spot price." },
+      { label: "CHAOS", kind: "estimated", note: "Composite volatility/heat index across open markets." },
+      { label: "VOLUME", kind: "measured", note: "Total value traded across all markets." },
     ],
     ctaLabel: "View featured markets →",
   },

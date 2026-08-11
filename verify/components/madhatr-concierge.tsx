@@ -143,6 +143,88 @@ export default function MadhatrConcierge({ uid = "concierge" }: { uid?: string }
   const [risk, setRisk] = useState(0.75);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  /* ── Draggable floating widget ──────────────────────────────────────
+     Push the bubble anywhere on screen. Positions are kept relative to the
+     offsetParent — which inside the device frame is .mg-device, not the
+     window — so the bubble stays inside the PHONE rather than escaping onto
+     the workbench, and the same code works framed or unframed. */
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+  const [dragging, setDragging] = useState(false);
+  // Grab offset + whether this gesture has travelled far enough to be a drag.
+  const dragRef = useRef<{ dx: number; dy: number; moved: boolean } | null>(null);
+  // Set on pointerup when the gesture was a drag; read and cleared by the
+  // bubble's onClick, which fires afterwards.
+  const justDraggedRef = useRef(false);
+
+  /** The box the bubble is positioned within: the frame if present, else the window. */
+  const hostRect = useCallback((el: HTMLElement) => {
+    const host = el.offsetParent as HTMLElement | null;
+    return host
+      ? host.getBoundingClientRect()
+      : new DOMRect(0, 0, window.innerWidth, window.innerHeight);
+  }, []);
+
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    const el = rootRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    dragRef.current = { dx: e.clientX - r.left, dy: e.clientY - r.top, moved: false };
+    el.setPointerCapture(e.pointerId);
+    setDragging(true);
+  }, []);
+
+  const onPointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      const d = dragRef.current;
+      const el = rootRef.current;
+      if (!d || !el) return;
+      // 4px of slop, so a tap that wobbles still opens the panel.
+      if (!d.moved && Math.abs(e.movementX) + Math.abs(e.movementY) > 0) {
+        const r = el.getBoundingClientRect();
+        if (Math.abs(e.clientX - (r.left + d.dx)) > 4 || Math.abs(e.clientY - (r.top + d.dy)) > 4) {
+          d.moved = true;
+        }
+      }
+      const host = hostRect(el);
+      // Clamped so the bubble can never be dragged out of reach.
+      const left = Math.max(0, Math.min(host.width - el.offsetWidth, e.clientX - host.left - d.dx));
+      const top = Math.max(0, Math.min(host.height - el.offsetHeight, e.clientY - host.top - d.dy));
+      setPos({ left, top });
+    },
+    [hostRect],
+  );
+
+  const onPointerUp = useCallback((e: React.PointerEvent) => {
+    const el = rootRef.current;
+    if (el?.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+    setDragging(false);
+    // A drag must not also open the panel. `click` fires AFTER `pointerup` and
+    // is a separate event, so stopping propagation here would not reach it —
+    // the button's handler checks this flag instead.
+    justDraggedRef.current = dragRef.current?.moved === true;
+    dragRef.current = null;
+  }, []);
+
+  // Keep the bubble inside its host when the window (or the frame's zoom)
+  // changes, so a resize cannot strand it off-screen.
+  useEffect(() => {
+    const onResize = () => {
+      const el = rootRef.current;
+      if (!el) return;
+      setPos((p) => {
+        if (!p) return p;
+        const host = hostRect(el);
+        return {
+          left: Math.max(0, Math.min(host.width - el.offsetWidth, p.left)),
+          top: Math.max(0, Math.min(host.height - el.offsetHeight, p.top)),
+        };
+      });
+    };
+    window.addEventListener("resize", onResize, { passive: true });
+    return () => window.removeEventListener("resize", onResize);
+  }, [hostRect]);
+
   useEffect(() => {
     if (open) scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, typing, open]);
@@ -219,10 +301,32 @@ export default function MadhatrConcierge({ uid = "concierge" }: { uid?: string }
   }, [tone, risk, messages]);
 
   return (
-    <div style={{ position: "fixed", bottom: "20px", right: "20px", zIndex: 200 }}>
+    <div
+      ref={rootRef}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      style={{
+        position: "fixed",
+        // Undragged, it rests bottom-right. Once moved, left/top take over —
+        // both are set together so the two systems never fight.
+        ...(pos
+          ? { left: pos.left, top: pos.top, right: "auto", bottom: "auto" }
+          : { right: "20px", bottom: "20px" }),
+        zIndex: 200,
+        touchAction: "none", // pointermove must not be eaten by scrolling
+        cursor: dragging ? "grabbing" : "grab",
+      }}
+    >
       {!open && (
         <button
-          onClick={() => setOpen(true)}
+          // Swallow the click that closes a drag gesture, then clear the flag
+          // so the very next genuine tap opens the panel.
+          onClick={() => {
+            if (justDraggedRef.current) { justDraggedRef.current = false; return; }
+            setOpen(true);
+          }}
           aria-label="Open MADHAT'r concierge"
           style={{
             width: "60px", height: "60px", borderRadius: "50%", border: "none",
