@@ -43,13 +43,22 @@ import PackShop from "@/components/pack-shop";
 import TopMarketsRail from "@/components/top-markets-rail";
 import MarketRails from "@/components/market-rails";
 import DopamineEngine from "@/components/dopamine-engine";
-import LiveTicker from "@/components/live-ticker";
 import OVDeckSelector from "@/components/ov-deck-selector";
 // Ported from the /preview premiere theme — see docs/HANDOFF_2026-08-11_AUDIT.md §9.
 import MarketTypeCarousels from "@/components/market-type-carousels";
 import FeaturedMarketCards from "@/components/featured-market-cards";
 import { SkinProvider } from "@/components/skin-provider";
 import { THEME_SKIN_TO_SKIN_NAME } from "@/lib/skins";
+import NewsTwoRow from "@/components/news-two-row";
+import FacesWaterline from "@/components/faces-waterline";
+import ZeitgeistAlmanac from "@/components/zeitgeist-almanac";
+import EpiphanyCatalog from "@/components/epiphany-catalog";
+import PlatformExplorer from "@/components/platform-explorer";
+// Named export, unlike the rest of the ported set.
+import { RegistrarStatusPanel } from "@/components/registrar-panel";
+import CryptoTickerDual from "@/components/crypto-ticker-dual";
+import DopamineCarouselStrip from "@/components/dopamine-carousel-strip";
+import PerpDials from "@/components/perp-dials";
 import MadhatrConcierge from "@/components/madhatr-concierge";
 import { EigenTrustWidget } from "@/components/virality-eigen";
 import AuthModal from "@/components/auth-modal";
@@ -63,7 +72,6 @@ import CasinoPanel from "@/components/casino-panel";
 import LogicLab from "@/components/logic-lab";
 import PackOpening from "@/components/pack-opening";
 import StakingTiersPanel from "@/components/staking-tiers-panel";
-import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
 import BottomNav from "@/components/bottom-nav";
 import DeviceFrame from "@/components/device-frame";
 import MainNav from "@/components/main-nav";
@@ -230,7 +238,10 @@ function GambitInner() {
         <div className="mb-2"><KaitoPriceTicker /></div>
 
         {/* RSS WIRE */}
-        <div className="mb-4"><LiveTicker /></div>
+        {/* CryptoTickerDual replaces LiveTicker. Both rendered the same
+            BTC/ETH/SOL marquee; the dual is the newer /preview version, and
+            keeping both would be two tickers doing one job. */}
+        <div className="mb-4"><CryptoTickerDual /></div>
 
         {/* O-V DECK + SKIN */}
         <div className="grid sm:grid-cols-[1fr_auto] gap-3 mb-5 items-start">
@@ -287,20 +298,35 @@ function GambitInner() {
         {/* ── THE FLOOR ── */}
         {tab === "floor" && (
           <div className="space-y-5">
-            <SeikoDopamineHub />
+            {/* News leads the floor, matching /preview where it heads the
+                main column — the story is the reason a market moves. */}
+            <NewsTwoRow />
+
+            {/* SeikoDopamineHub retired here, replaced by the /preview pair
+                below. Both it and PerpDials import GambitInstrumentCluster AND
+                SeikoFlipClock, so mounting both would put two instrument
+                clusters and two Seiko clocks on one page — the exact twin-Seiko
+                fault the founder already ruled on, and which /preview settled
+                by keeping PerpDials and dropping the hub. Porting faithfully
+                means making the same call here.
+
+                With the hub gone its bets/streak/chaos/gainers tiles go too,
+                so DopamineCarouselStrip is no longer a second carousel — it
+                becomes this route's dopamine strip, as on /preview. */}
+            <DopamineCarouselStrip />
+            <PerpDials />
+
             <TopMarketsRail />
             <ZLiarSection />
             <MarketRails />
             {/* Ported from /preview so both themes carry the same market
                 surfaces. The dopamine strip is deliberately NOT ported here —
-                SeikoDopamineHub above already renders its own tile carousel,
-                and stacking a second one repeats the twin-Seiko mistake.
-
-                These no longer need a local SkinProvider — the page-level
-                controlled one now drives every useSkin() consumer from this
-                route's own skin menu. */}
+                These need no local SkinProvider — the page-level controlled
+                one drives every useSkin() consumer from this route's own skin
+                menu. */}
             <MarketTypeCarousels />
             <FeaturedMarketCards />
+            <FacesWaterline />
             <ScandalVelocityMeter />
             <MarketFactory />
             <div className="grid lg:grid-cols-[1.3fr_1fr] gap-5">
@@ -340,6 +366,13 @@ function GambitInner() {
             <FutarchyBoard />
             <BayesianDecisionTree nodes={DECISION_NODES} />
             <LogicLab activeDeck={activeDeck} />
+            {/* Ported from /preview. These four are analytical/meta surfaces
+                rather than market surfaces, so they belong with the logic
+                instruments rather than on the floor. */}
+            <ZeitgeistAlmanac />
+            <EpiphanyCatalog />
+            <PlatformExplorer />
+            <RegistrarStatusPanel />
           </div>
         )}
 
