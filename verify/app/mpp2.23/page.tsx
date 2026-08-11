@@ -43,7 +43,6 @@ import PackShop from "@/components/pack-shop";
 import TopMarketsRail from "@/components/top-markets-rail";
 import MarketRails from "@/components/market-rails";
 import DopamineEngine from "@/components/dopamine-engine";
-import LiveTicker from "@/components/live-ticker";
 import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
 import OVDeckSelector from "@/components/ov-deck-selector";
 // Ported from the /preview premiere theme — see docs/HANDOFF_2026-08-11_AUDIT.md §9.
@@ -240,9 +239,19 @@ function GambitInner() {
         <div className="mb-2"><KaitoPriceTicker /></div>
 
         {/* RSS WIRE */}
-        {/* LiveTicker stays; CryptoTickerDual is the ported /preview one.
-            Both are here because the port removes nothing. */}
-        <div className="mb-4"><LiveTicker /></div>
+        {/* ONE ticker, not two. Both LiveTicker and CryptoTickerDual are
+            three-feed double-tap cycling marquees over the same BTC/ETH/SOL
+            wire, so the page only ever needed one of them.
+
+            CryptoTickerDual carries it: it adds a left feed pill with three
+            dots — a visible affordance for a double-tap gesture that is
+            otherwise undiscoverable — and every quote is a real <button> with
+            an explainer popup and a jump link, which is both richer and more
+            accessible than a marquee of inert text.
+
+            components/live-ticker.tsx is untouched on disk — only its import
+            and mount are gone, because an unused import fails CI lint. To put
+            it back: re-add the import and mount <LiveTicker /> here. */}
         <div className="mb-4"><CryptoTickerDual /></div>
 
         {/* O-V DECK + SKIN */}
@@ -308,14 +317,19 @@ function GambitInner() {
                 removed as part of the port — the brief was to port /preview IN,
                 not to take anything out.
 
-                Note for the founder, not a licence to act on it: this hub and
-                PerpDials below both import GambitInstrumentCluster and
-                SeikoFlipClock, so both are now on the page together. Which of
-                the two survives is your call, and only yours. */}
+                The hub now carries THE instrument for this page: the chrono
+                sits in the cluster's centre slot, flanked by the two crypto
+                dials, which is how the cluster was designed to be composed. */}
             <SeikoDopamineHub />
 
             <DopamineCarouselStrip />
-            <PerpDials />
+
+            {/* showInstrument={false}: the deck's own cluster+chrono is
+                suppressed here ONLY because the hub above already renders it —
+                one instrument per page, not two. Nothing is deleted; on
+                /preview, where this deck is the only carrier, the default
+                keeps it. */}
+            <PerpDials showInstrument={false} />
 
             <TopMarketsRail />
             <ZLiarSection />

@@ -496,7 +496,22 @@ function Slider({
   );
 }
 
-export default function PerpDials() {
+export default function PerpDials({
+  showInstrument = true,
+}: {
+  /**
+   * Whether to render the instrument cluster + split-flap chrono at the foot
+   * of the deck.
+   *
+   * Defaults to true, so /preview — where this deck is the ONLY carrier of the
+   * instrument — is unaffected. A page that already shows the instrument
+   * elsewhere (e.g. /mpp2.23, where SeikoDopamineHub carries it) passes false,
+   * so the page ends up with one instrument instead of two. Nothing is deleted
+   * either way: this is a mount-site switch, and flipping it back restores the
+   * deck's own instrument immediately.
+   */
+  showInstrument?: boolean;
+} = {}) {
   const { skin, toggle, name } = useSkin();
 
   const [tk, setTk] = useControl(CONTROLS.tk);
@@ -939,9 +954,11 @@ export default function PerpDials() {
         it rendered, measured and sized; the duplicate below has been removed
         from app/preview/page.tsx rather than this one being dropped.
       */}
-      <div style={{ overflowX: "auto" }}>
-        <GambitInstrumentCluster centerSlot={<SeikoFlipClock label="MAD·STATE · TAP A DOT TO PIN" scale={1.2} />} />
-      </div>
+      {showInstrument && (
+        <div style={{ overflowX: "auto" }}>
+          <GambitInstrumentCluster centerSlot={<SeikoFlipClock label="MAD·STATE · TAP A DOT TO PIN" scale={1.2} />} />
+        </div>
+      )}
 
       {/* Deck footer — the thesis line and the two canon pills. */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, paddingTop: 2 }}>

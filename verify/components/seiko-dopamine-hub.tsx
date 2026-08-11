@@ -540,9 +540,13 @@ export default function SeikoDopamineHub() {
       {/* ── 1b. MARKET-ENERGY EQUALIZER — sits below the golden ticker ── */}
       <EqualizerStrip />
 
-      {/* ── 2. HEADER ROW: split-flap flip clock + title ── */}
+      {/* ── 2. HEADER ROW: title ──
+          The split-flap chrono used to sit loose here, with the instrument
+          cluster below it rendering an EMPTY centre. That was one instrument
+          torn in half: the clock is designed to be the cluster's centre slot,
+          flanked by the two dials. It has been moved into that slot in 2b
+          below — moved, not dropped. */}
       <div style={{ padding: "14px 20px 4px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
-        <SeikoFlipClock />
         <div>
           <div style={{
             fontFamily: "ui-monospace, monospace",
@@ -572,7 +576,10 @@ export default function SeikoDopamineHub() {
           Tap any dot beneath a pod/dial to swap what it shows.
           See gambit-instrument-cluster.tsx for the full rationale. */}
       <div style={{ padding: "6px 16px 16px", borderBottom: `1px solid ${T.border}` }}>
-        <GambitInstrumentCluster uid="floor-hero" />
+        <GambitInstrumentCluster
+          uid="floor-hero"
+          centerSlot={<SeikoFlipClock label="MAD·STATE · TAP A DOT TO PIN" scale={1.2} />}
+        />
       </div>
 
       {/* ── 2c. PLATFORM PILLAR CAROUSEL — right-to-left continuous scroll ──
