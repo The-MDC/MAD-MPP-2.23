@@ -27,6 +27,11 @@ import NewsTwoRow from "@/components/news-two-row";
 import FeaturedMarketCards from "@/components/featured-market-cards";
 import DopamineCarouselStrip from "@/components/dopamine-carousel-strip";
 import PerpDials from "@/components/perp-dials";
+// Ported from the /mpp2.23 device theme — see the merge note in
+// docs/HANDOFF_2026-08-11_AUDIT.md §9.
+import OVDeckSelector from "@/components/ov-deck-selector";
+import MadhatrConcierge from "@/components/madhatr-concierge";
+import { OV_DECKS, type OVDeck } from "@/lib/gambit-game-math";
 import MarketTypeCarousels from "@/components/market-type-carousels";
 import FacesWaterline from "@/components/faces-waterline";
 import ZeitgeistAlmanac from "@/components/zeitgeist-almanac";
@@ -117,6 +122,9 @@ function PreviewInner() {
   const [leftOpen, setLeftOpen] = useState(false);
   const [rightOpen, setRightOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  // Ported from /mpp2.23: the active O-V deck drives the live conviction math
+  // (multiplier → δ-limit, threshold, APY), so it is page state, not card state.
+  const [activeDeck, setActiveDeck] = useState<OVDeck>(OV_DECKS[0]);
 
   // Dopamine payoff: full-screen celebration the moment social auth lands.
   useEffect(() => {
@@ -211,6 +219,15 @@ function PreviewInner() {
             <div>
               <SectionHeading>Customizable Dopamine Carousel</SectionHeading>
               <DopamineCarouselStrip />
+            </div>
+
+            {/* O-V deck — ported from /mpp2.23. Sits directly above the
+                instrument deck because it is the control that retunes it:
+                changing deck moves the multiplier, and the δ-limit, threshold
+                and APY the instruments read all follow from it. */}
+            <div>
+              <SectionHeading>O-V Deck</SectionHeading>
+              <OVDeckSelector selectedDeck={activeDeck} onSelect={setActiveDeck} convictionStake={500} />
             </div>
 
             {/* Tickers & Dials — meters row + cluster with the split-flap chrono */}
@@ -319,6 +336,10 @@ function PreviewInner() {
         onProfile={() => (socialAuth.isAuthenticated ? setRightOpen(true) : openNode("profile"))}
       />
       <JoyLayer />
+      {/* MADHAT'r floating concierge — ported from /mpp2.23, where it is
+          page-level and persists across every tab. Fixed bottom-right, so it
+          costs the hub no layout. */}
+      <MadhatrConcierge />
       <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
     </div>
   );

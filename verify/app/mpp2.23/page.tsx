@@ -45,6 +45,10 @@ import MarketRails from "@/components/market-rails";
 import DopamineEngine from "@/components/dopamine-engine";
 import LiveTicker from "@/components/live-ticker";
 import OVDeckSelector from "@/components/ov-deck-selector";
+// Ported from the /preview premiere theme — see docs/HANDOFF_2026-08-11_AUDIT.md §9.
+import MarketTypeCarousels from "@/components/market-type-carousels";
+import FeaturedMarketCards from "@/components/featured-market-cards";
+import { SkinProvider } from "@/components/skin-provider";
 import MadhatrConcierge from "@/components/madhatr-concierge";
 import { EigenTrustWidget } from "@/components/virality-eigen";
 import AuthModal from "@/components/auth-modal";
@@ -276,6 +280,25 @@ function GambitInner() {
             <TopMarketsRail />
             <ZLiarSection />
             <MarketRails />
+            {/* Ported from /preview so both themes carry the same market
+                surfaces. The dopamine strip is deliberately NOT ported here —
+                SeikoDopamineHub above already renders its own tile carousel,
+                and stacking a second one repeats the twin-Seiko mistake.
+
+                The SkinProvider wrapper is load-bearing, not decoration. This
+                route themes through useTheme()/SKIN_TOKENS; these two came from
+                /preview, which themes through useSkin()/SKINS. Unwrapped,
+                useSkin() falls back to DEFAULT_SKIN and pins them to one
+                palette. Wrapped, they at least follow the shared `mg_skin`
+                preference. They still will NOT track this page's own skin menu
+                — that needs the two theming systems unified, which is scoped
+                and not done. See docs/HANDOFF_2026-08-11_AUDIT.md §9. */}
+            <SkinProvider>
+              <div className="space-y-5">
+                <MarketTypeCarousels />
+                <FeaturedMarketCards />
+              </div>
+            </SkinProvider>
             <ScandalVelocityMeter />
             <MarketFactory />
             <div className="grid lg:grid-cols-[1.3fr_1fr] gap-5">
