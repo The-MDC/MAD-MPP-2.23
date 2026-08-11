@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/context/theme-context";
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import Script from "next/script";
 import LunarVars from "@/components/lunar-vars";
+import DeviceFrame from "@/components/device-frame";
 
 // Display typography uses local/system fallbacks so builds do not depend on Google Fonts availability.
 export const metadata: Metadata = {
@@ -35,7 +36,19 @@ export default function RootLayout({
         <ThemeProvider>
           <WorkspaceProvider>
             <MppProvider>
-              {children}
+              {/* DeviceFrame is global, here, for every route — which is what
+                  its own header always described it as: "one responsive
+                  presentation shell for the whole dApp". Until now it wrapped
+                  /mpp2.23 only, so nine of the ten routes rendered unframed.
+
+                  It is a client component taking children; the pages passed
+                  through it stay server components, since children arrive as a
+                  prop rather than being imported into the client boundary.
+
+                  All responsive behaviour is CSS (.mg-workbench / .mg-device in
+                  globals.css): full-bleed under 768px, a centred 680px card on
+                  tablet, and a 440px phone bezel at 1024px+. */}
+              <DeviceFrame>{children}</DeviceFrame>
             </MppProvider>
           </WorkspaceProvider>
         </ThemeProvider>

@@ -61,3 +61,25 @@ export const DEFAULT_SKIN: SkinName = "neonNoir";
 export function isSkinName(v: unknown): v is SkinName {
   return v === "neonNoir" || v === "gilded";
 }
+
+/**
+ * Bridge between the app's two theming systems.
+ *
+ * /mpp2.23 themes through ThemeProvider/useTheme with three ThemeSkins;
+ * /preview themes through SkinProvider/useSkin with the two SkinNames above.
+ * Components written against useSkin() can only follow the /mpp2.23 skin menu
+ * if its skin is first projected onto this smaller space.
+ *
+ * The projection is lossy by construction — three onto two — so it is written
+ * as an exhaustive Record rather than a lookup with a fallback. Adding a fourth
+ * ThemeSkin then fails type-check here instead of silently resolving to the
+ * default skin at runtime, which is the failure this map exists to prevent.
+ */
+export const THEME_SKIN_TO_SKIN_NAME: Record<
+  "HolographicGoldLaser" | "CyberOnyx" | "QuantumCobalt",
+  SkinName
+> = {
+  HolographicGoldLaser: "gilded", // gold-forward -> the gilded palette
+  CyberOnyx: "neonNoir", // near-black ink
+  QuantumCobalt: "neonNoir", // cool/dark; nearer neon noir than gilded
+};

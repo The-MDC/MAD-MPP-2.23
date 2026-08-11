@@ -15,6 +15,7 @@
  */
 import React, { useEffect, useMemo, useState } from "react";
 import { useSkin } from "@/components/skin-provider";
+import Carousel, { AutoShowcaseBadge } from "@/components/carousel";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 
 interface Model {
@@ -80,8 +81,9 @@ export default function EpiphanyCatalog() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12, fontFamily: INSTRUMENT_FONT }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-        <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 2, color: skin.gold, textTransform: "uppercase" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 900, letterSpacing: 2, color: skin.gold, textTransform: "uppercase" }}>
           Perpetual Epiphanies <span style={{ color: skin.muted, fontSize: 8, letterSpacing: 1 }}>mental models</span>
+          <AutoShowcaseBadge />
         </div>
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           {data && (
@@ -125,9 +127,9 @@ export default function EpiphanyCatalog() {
         <div style={{ fontSize: 9, color: skin.muted }}>Nothing in the catalog matches that.</div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))", gap: 10 }}>
+      <Carousel auto gap={10} ariaLabel="Mental model catalog">
         {models.map((m) => (
-          <div key={m.id} style={{ background: skin.card, border: `1px solid ${skin.border}`, borderRadius: 12, padding: 12, display: "flex", flexDirection: "column", gap: 6 }}>
+          <div key={m.id} style={{ width: 260, maxWidth: "100%", height: "100%", background: skin.card, border: `1px solid ${skin.border}`, borderRadius: 12, padding: 12, display: "flex", flexDirection: "column", gap: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
               <span style={{ fontSize: 10, fontWeight: 900, color: skin.text, lineHeight: 1.3 }}>{m.name}</span>
               <span style={{ fontSize: 6.5, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "2px 5px", borderRadius: 4, color: skin.accent2, background: `${skin.accent2}18`, border: `1px solid ${skin.accent2}44`, whiteSpace: "nowrap" }}>
@@ -152,7 +154,7 @@ export default function EpiphanyCatalog() {
             )}
           </div>
         ))}
-      </div>
+      </Carousel>
     </div>
   );
 }

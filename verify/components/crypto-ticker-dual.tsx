@@ -34,11 +34,20 @@ const CRYPTO: Tick[] = [
   { symbol: "SOL", value: "$180", change: "+5%", up: true },
   { symbol: "XRP", value: "$2.1", change: "+1.8%", up: true },
 ];
-const GAMBIT: Tick[] = [
-  { symbol: "MADx", value: "$0.85", change: "+12%", up: true },
-  { symbol: "DEGEN", change: "+8.5%", up: true },
-  { symbol: "CHAOS", value: "67%" },
-  { symbol: "VOLUME", value: "$2.4M" },
+/**
+ * The three streams are Crypto · Headlines · Commodities, per the brief.
+ *
+ * The feed this displaced was GAMBIT — the house tape (MADx / DEGEN / CHAOS /
+ * VOLUME). It is not gone anywhere else on the platform; it simply is not one
+ * of the three the top ticker cycles. Restoring it is one entry in FEEDS below.
+ */
+const COMMODITIES: Tick[] = [
+  { symbol: "GOLD", value: "$2,412", change: "+0.6%", up: true },
+  { symbol: "WTI", value: "$78.40", change: "-1.2%", up: false },
+  { symbol: "SILVER", value: "$31.15", change: "+1.4%", up: true },
+  { symbol: "NATGAS", value: "$2.68", change: "-2.1%", up: false },
+  { symbol: "WHEAT", value: "$604", change: "+0.9%", up: true },
+  { symbol: "COPPER", value: "$4.52", change: "+2.3%", up: true },
 ];
 const SCANDAL: Tick[] = [
   { symbol: "HOT", value: "Royal feud escalates into a docuseries" },
@@ -75,19 +84,8 @@ const FEEDS: Feed[] = [
     ctaLabel: "View featured markets →",
   },
   {
-    key: "gambit", label: "Gambit", items: GAMBIT, accentKey: "accent", target: "mg-featured", dur: 26,
-    title: "MAD Gambit house metrics",
-    blurb: "The platform's own tape: token price, degen momentum, the CHAOS index, and total market VOLUME. Beta placeholders until on-chain reads are wired.",
-    rows: [
-      { label: "MADx", kind: "measured", note: "MAD Gambit token spot price." },
-      { label: "CHAOS", kind: "estimated", note: "Composite volatility/heat index across open markets." },
-      { label: "VOLUME", kind: "measured", note: "Total value traded across all markets." },
-    ],
-    ctaLabel: "View featured markets →",
-  },
-  {
-    key: "scandal", label: "Scandal", items: SCANDAL, accentKey: "accent2", target: "mg-news", dur: 38,
-    title: "Live scandal wire",
+    key: "headlines", label: "Headlines", items: SCANDAL, accentKey: "accent2", target: "mg-news", dur: 38,
+    title: "Live headline wire",
     blurb: "The hottest satirical headlines right now, ranked by Heat — a traffic-value score led by cross-publisher pickup and estimated engagement. Click any card in the News Flow for its full Heat breakdown.",
     rows: [
       { label: "Cross-publisher pickup", kind: "measured", note: "How many distinct publishers ran a similar headline." },
@@ -95,6 +93,16 @@ const FEEDS: Feed[] = [
       { label: "Freshness & satire", kind: "measured", note: "Recency plus the Z-Liar satire score." },
     ],
     ctaLabel: "Open the News Flow →",
+  },
+  {
+    key: "commodities", label: "Commodities", items: COMMODITIES, accentKey: "accent", target: "mg-featured", dur: 30,
+    title: "Commodities tape",
+    blurb: "Metals, energy and agriculture — the macro backdrop the satirical markets price against. Beta placeholders today; wiring to the same oracle feed as the crypto tape.",
+    rows: [
+      { label: "Last", kind: "measured", note: "Front-month settlement price." },
+      { label: "Session change", kind: "measured", note: "Move against the previous session's close." },
+    ],
+    ctaLabel: "View featured markets →",
   },
 ];
 
@@ -124,9 +132,23 @@ export default function CryptoTickerDual() {
         {/* Feed selector pill — click cycles; mirrors the double-tap gesture. */}
         <button
           type="button"
-          onClick={cycle}
-          aria-label={`Ticker: ${feed.label}. Click to cycle feeds.`}
-          title="Cycle tickers (or double-tap the ticker)"
+          // Double-click the legend to change stream, per the brief.
+          //
+          // This used to be onClick={cycle} while the whole row carried
+          // onDoubleClick={cycle}. Double-clicking the legend therefore fired
+          // TWO clicks plus one double-click and advanced three feeds — landing
+          // back where it started with a 3-feed list, which is why it read as
+          // "the legend does nothing". Cycling now happens once, on the double
+          // click, and the pill stops the event so the row handler cannot fire
+          // it a second time.
+          onDoubleClick={(e) => { e.stopPropagation(); cycle(); }}
+          // Pointer users double-click; keyboard users press Enter or Space,
+          // since a double-click has no keyboard equivalent.
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); cycle(); }
+          }}
+          aria-label={`Ticker feed: ${feed.label}. Press Enter to switch feed.`}
+          title="Double-click to change stream"
           style={{ flex: "none", display: "flex", alignItems: "center", gap: 7, padding: "0 12px", background: `${accent}14`, border: "none", borderRight: `1px solid ${accent}44`, cursor: "pointer", fontFamily: INSTRUMENT_FONT }}
         >
           <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.5, textTransform: "uppercase", color: accent, textShadow: `0 0 8px ${accent}66`, whiteSpace: "nowrap" }}>{feed.label}</span>

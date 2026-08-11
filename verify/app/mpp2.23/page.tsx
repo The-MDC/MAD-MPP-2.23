@@ -43,8 +43,24 @@ import PackShop from "@/components/pack-shop";
 import TopMarketsRail from "@/components/top-markets-rail";
 import MarketRails from "@/components/market-rails";
 import DopamineEngine from "@/components/dopamine-engine";
-import LiveTicker from "@/components/live-ticker";
+import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
 import OVDeckSelector from "@/components/ov-deck-selector";
+// Ported from the /preview premiere theme — see docs/HANDOFF_2026-08-11_AUDIT.md §9.
+import MarketTypeCarousels from "@/components/market-type-carousels";
+import FeaturedMarketCards from "@/components/featured-market-cards";
+import { SkinProvider } from "@/components/skin-provider";
+import { THEME_SKIN_TO_SKIN_NAME } from "@/lib/skins";
+import NewsTwoRow from "@/components/news-two-row";
+import FacesWaterline from "@/components/faces-waterline";
+import ZeitgeistAlmanac from "@/components/zeitgeist-almanac";
+import EpiphanyCatalog from "@/components/epiphany-catalog";
+import PlatformExplorer from "@/components/platform-explorer";
+// Named export, unlike the rest of the ported set.
+import { RegistrarStatusPanel } from "@/components/registrar-panel";
+import CryptoTickerDual from "@/components/crypto-ticker-dual";
+import DopamineCarouselStrip from "@/components/dopamine-carousel-strip";
+import { AutoShowcaseBadge } from "@/components/carousel";
+import PerpDials from "@/components/perp-dials";
 import MadhatrConcierge from "@/components/madhatr-concierge";
 import { EigenTrustWidget } from "@/components/virality-eigen";
 import AuthModal from "@/components/auth-modal";
@@ -58,9 +74,7 @@ import CasinoPanel from "@/components/casino-panel";
 import LogicLab from "@/components/logic-lab";
 import PackOpening from "@/components/pack-opening";
 import StakingTiersPanel from "@/components/staking-tiers-panel";
-import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
 import BottomNav from "@/components/bottom-nav";
-import DeviceFrame from "@/components/device-frame";
 import MainNav from "@/components/main-nav";
 import FutarchyBoard from "@/components/futarchy-board";
 import MarketFactory from "@/components/market-factory";
@@ -90,10 +104,12 @@ const DECISION_NODES = [
 
 export default function GambitPage() {
   return (
+    // No DeviceFrame here any more — the root layout wraps every route in it.
+    // Keeping this one would nest .mg-device inside .mg-device and render a
+    // phone inside a phone, with the inner bezel scrolling independently of the
+    // outer. The frame is not removed from this route, it is inherited.
     <GameProvider>
-      <DeviceFrame>
-        <GambitInner />
-      </DeviceFrame>
+      <GambitInner />
     </GameProvider>
   );
 }
@@ -127,6 +143,16 @@ function GambitInner() {
   }, [tab]);
 
   return (
+    // Controlled SkinProvider — the theming bridge for this route.
+    //
+    // This page themes through ThemeProvider/useTheme (3 ThemeSkins, stored
+    // under mad_theme_skin). Components ported from /preview theme through
+    // useSkin() (2 SkinNames, stored under mg_skin). Projecting the active
+    // ThemeSkin through THEME_SKIN_TO_SKIN_NAME and publishing it here is what
+    // makes every ported surface follow THIS page's existing skin menu.
+    // Controlled mode means the provider never writes mg_skin, so driving the
+    // menu here cannot clobber the skin /preview has saved.
+    <SkinProvider value={THEME_SKIN_TO_SKIN_NAME[skin]}>
     <main className="min-h-screen text-neutral-100 relative overflow-hidden pb-16"
       style={{ background: tokens.bg }}>
 
@@ -215,7 +241,20 @@ function GambitInner() {
         <div className="mb-2"><KaitoPriceTicker /></div>
 
         {/* RSS WIRE */}
-        <div className="mb-4"><LiveTicker /></div>
+        {/* ONE ticker, not two. Both LiveTicker and CryptoTickerDual are
+            three-feed double-tap cycling marquees over the same BTC/ETH/SOL
+            wire, so the page only ever needed one of them.
+
+            CryptoTickerDual carries it: it adds a left feed pill with three
+            dots — a visible affordance for a double-tap gesture that is
+            otherwise undiscoverable — and every quote is a real <button> with
+            an explainer popup and a jump link, which is both richer and more
+            accessible than a marquee of inert text.
+
+            components/live-ticker.tsx is untouched on disk — only its import
+            and mount are gone, because an unused import fails CI lint. To put
+            it back: re-add the import and mount <LiveTicker /> here. */}
+        <div className="mb-4"><CryptoTickerDual /></div>
 
         {/* O-V DECK + SKIN */}
         <div className="grid sm:grid-cols-[1fr_auto] gap-3 mb-5 items-start">
@@ -272,10 +311,51 @@ function GambitInner() {
         {/* ── THE FLOOR ── */}
         {tab === "floor" && (
           <div className="space-y-5">
+            {/* News leads the floor, matching /preview where it heads the
+                main column — the story is the reason a market moves. */}
+            <NewsTwoRow />
+
+            {/* The Seiko clock + dopamine hub. STAYS. Nothing on this route is
+                removed as part of the port — the brief was to port /preview IN,
+                not to take anything out.
+
+                The hub now carries THE instrument for this page: the chrono
+                sits in the cluster's centre slot, flanked by the two crypto
+                dials, which is how the cluster was designed to be composed. */}
             <SeikoDopamineHub />
+
+            {/* Same rail, same badge as /preview. The strip auto-advances by
+                default; the badge is the platform's mark that the motion is the
+                rail showcasing itself rather than the user's input. */}
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <span className="font-mono text-[10px] uppercase tracking-widest font-black"
+                  style={{ color: tokens.primary }}>
+                  Customizable Dopamine Carousel
+                </span>
+                <AutoShowcaseBadge />
+              </div>
+              <DopamineCarouselStrip />
+            </div>
+
+            {/* showInstrument={false}: the deck's own cluster+chrono is
+                suppressed here ONLY because the hub above already renders it —
+                one instrument per page, not two. Nothing is deleted; on
+                /preview, where this deck is the only carrier, the default
+                keeps it. */}
+            <PerpDials showInstrument={false} />
+
             <TopMarketsRail />
             <ZLiarSection />
             <MarketRails />
+            {/* Ported from /preview so both themes carry the same market
+                surfaces. The dopamine strip is deliberately NOT ported here —
+                These need no local SkinProvider — the page-level controlled
+                one drives every useSkin() consumer from this route's own skin
+                menu. */}
+            <MarketTypeCarousels />
+            <FeaturedMarketCards />
+            <FacesWaterline />
             <ScandalVelocityMeter />
             <MarketFactory />
             <div className="grid lg:grid-cols-[1.3fr_1fr] gap-5">
@@ -315,6 +395,13 @@ function GambitInner() {
             <FutarchyBoard />
             <BayesianDecisionTree nodes={DECISION_NODES} />
             <LogicLab activeDeck={activeDeck} />
+            {/* Ported from /preview. These four are analytical/meta surfaces
+                rather than market surfaces, so they belong with the logic
+                instruments rather than on the floor. */}
+            <ZeitgeistAlmanac />
+            <EpiphanyCatalog />
+            <PlatformExplorer />
+            <RegistrarStatusPanel />
           </div>
         )}
 
@@ -351,6 +438,7 @@ function GambitInner() {
         />
       )}
     </main>
+    </SkinProvider>
   );
 }
 

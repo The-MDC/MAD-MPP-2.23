@@ -27,6 +27,17 @@ import NewsTwoRow from "@/components/news-two-row";
 import FeaturedMarketCards from "@/components/featured-market-cards";
 import DopamineCarouselStrip from "@/components/dopamine-carousel-strip";
 import PerpDials from "@/components/perp-dials";
+// Ported from the /mpp2.23 device theme — see the merge note in
+// docs/HANDOFF_2026-08-11_AUDIT.md §9.
+import OVDeckSelector from "@/components/ov-deck-selector";
+import MadhatrConcierge from "@/components/madhatr-concierge";
+import { OV_DECKS, type OVDeck } from "@/lib/gambit-game-math";
+import { useContainerWide } from "@/hooks/use-container-wide";
+// Dual feature section: Conviction/Prediction beside the deck + Dutch auction.
+import { PredictionCircus } from "@/components/kaito-and-circus";
+import GambitCardsAuctionSection from "@/components/gambit-cards-auction-section";
+import InstrumentDeckSection from "@/components/instrument-deck-section";
+import { AutoShowcaseBadge } from "@/components/carousel";
 import MarketTypeCarousels from "@/components/market-type-carousels";
 import FacesWaterline from "@/components/faces-waterline";
 import ZeitgeistAlmanac from "@/components/zeitgeist-almanac";
@@ -72,7 +83,9 @@ function Chip({ label, filled, onClick }: { label: string; filled?: boolean; onC
 function SectionHeading({ children, color }: { children: React.ReactNode; color?: string }) {
   const { skin } = useSkin();
   return (
-    <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 2, color: color ?? skin.gold, textTransform: "uppercase", margin: "0 0 12px 2px" }}>
+    // flex so a heading can carry a trailing mark (the auto-showcase badge)
+    // on the same baseline instead of it wrapping beneath the text.
+    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 900, letterSpacing: 2, color: color ?? skin.gold, textTransform: "uppercase", margin: "0 0 12px 2px" }}>
       {children}
     </div>
   );
@@ -111,41 +124,51 @@ function PreviewInner() {
   const { openNode } = useGambitNode();
   const [sy, setSy] = useState(0);
   const [reduce, setReduce] = useState(false);
-  const [wide, setWide] = useState(false);
   // Tray/console state — rails retract and fold out. Desktop: pinned when open,
   // collapses fully on retract. Mobile: slide-in console overlays with backdrop.
   const [leftOpen, setLeftOpen] = useState(false);
   const [rightOpen, setRightOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  // Ported from /mpp2.23: the active O-V deck drives the live conviction math
+  // (multiplier → δ-limit, threshold, APY), so it is page state, not card state.
+  const [activeDeck, setActiveDeck] = useState<OVDeck>(OV_DECKS[0]);
+  const shellRef = React.useRef<HTMLDivElement>(null);
 
   // Dopamine payoff: full-screen celebration the moment social auth lands.
   useEffect(() => {
     if (socialAuth.isAuthenticated) celebrate({ intensity: 1 });
   }, [socialAuth.isAuthenticated]);
 
+  // Desktop-width test, measured on THIS page's own box rather than on the
+  // window. The app now renders inside DeviceFrame, whose desktop .mg-device is
+  // a 440px phone, so window.matchMedia("(min-width: 1024px)") would answer for
+  // a 1920px monitor and lay out side rails and a 1300px column inside 440px.
+  // The container is the only honest measure once the frame is global.
+  const wide = useContainerWide(shellRef, 1024);
+
+  // The rails follow the container: pinned open when there is room, closed when
+  // there is not. Kept as an effect on `wide` so a resize across the threshold
+  // re-applies it, exactly as the media-query listener used to.
+  useEffect(() => {
+    setLeftOpen(wide);
+    setRightOpen(wide);
+  }, [wide]);
+
   useEffect(() => {
     const rm = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReduce(rm.matches);
-    const wq = window.matchMedia("(min-width: 1024px)");
-    const applyWide = () => {
-      setWide(wq.matches);
-      setLeftOpen(wq.matches);
-      setRightOpen(wq.matches);
-    };
-    applyWide();
-    wq.addEventListener("change", applyWide);
     const onScroll = () => setSy(window.scrollY || 0);
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      wq.removeEventListener("change", applyWide);
-      window.removeEventListener("scroll", onScroll);
-    };
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const par = (factor: number): string => (reduce ? "none" : `translateY(${sy * factor}px)`);
 
   return (
-    <div style={{ position: "relative", minHeight: "100vh", background: skin.bg, color: skin.text, fontFamily: INSTRUMENT_FONT, overflowX: "hidden" }}>
+    // shellRef measures the page root, deliberately, not the inner shell whose
+    // max-width is itself derived from `wide` — observing that would feed the
+    // result back into its own input.
+    <div ref={shellRef} style={{ position: "relative", minHeight: "100vh", background: skin.bg, color: skin.text, fontFamily: INSTRUMENT_FONT, overflowX: "hidden" }}>
       {/* ── /gambit's real backdrop, merged in: WebGL dotted-glow particle field
              (exact props the platform passes at chaos≈67) + its ambient radial glows,
              with the hub's scroll-parallax drift layered on top. */}
@@ -208,13 +231,38 @@ function PreviewInner() {
               <NewsTwoRow />
             </div>
 
+            {/* The dials + chrono, lifted out of the foot of the perps deck
+                into a container of their own, directly above the carousel.
+                Below six market cards they read as a footnote to those cards;
+                they are in fact a platform-state instrument, so they lead. */}
+            <InstrumentDeckSection uid="preview-instrument" />
+
             <div>
-              <SectionHeading>Customizable Dopamine Carousel</SectionHeading>
+              <SectionHeading>
+                Customizable Dopamine Carousel
+                {/* The strip has always auto-advanced — useAutoShowcase defaults
+                    to enabled and its handlers are wired to the scroller. What
+                    was missing is this badge, the platform's mark that the
+                    motion is the rail showcasing itself rather than the user's
+                    input. Motion without the mark just reads as drift. */}
+                <AutoShowcaseBadge />
+              </SectionHeading>
               <DopamineCarouselStrip />
             </div>
 
-            {/* Tickers & Dials — meters row + cluster with the split-flap chrono */}
-            <PerpDials />
+            {/* O-V deck — ported from /mpp2.23. It is the control that retunes
+                the instrument deck above: changing deck moves the multiplier,
+                and the δ-limit, threshold and APY the instruments read all
+                follow from it. */}
+            <div>
+              <SectionHeading>O-V Deck</SectionHeading>
+              <OVDeckSelector selectedDeck={activeDeck} onSelect={setActiveDeck} convictionStake={500} />
+            </div>
+
+            {/* showInstrument={false}: the deck's cluster+chrono now lives in
+                InstrumentDeckSection above. The deck keeps its six market
+                cards. */}
+            <PerpDials showInstrument={false} />
 
             {/* ── /gambit FLOOR, ported native (GameProvider-powered) ──
                 SeikoDopamineHub removed here: it was the SECOND of two stacked
@@ -250,6 +298,32 @@ function PreviewInner() {
             </div>
             <div id="mg-epiphanies" style={{ scrollMarginTop: 72 }}>
               <EpiphanyCatalog />
+            </div>
+
+            {/* DUAL FEATURE SECTION — the two halves of the game economy, side
+                by side on desktop and stacked on mobile.
+
+                Left: Conviction + Prediction, where a position is taken.
+                Right: the MADHATs Gambit deck on an auto-advancing carousel
+                with the Dutch auction directly beneath it in the same shell —
+                what you can own, and what it costs right now.
+
+                They are paired rather than scattered because they are one loop:
+                you form a conviction, you buy the cards that back it, the
+                auction sets the price. Apart, they read as three unrelated
+                features. */}
+            <div
+              id="mg-game"
+              style={{
+                display: "grid",
+                gridTemplateColumns: wide ? "1fr 1fr" : "1fr",
+                gap: 16,
+                alignItems: "start",
+                scrollMarginTop: 72,
+              }}
+            >
+              <PredictionCircus activeDeck={activeDeck} />
+              <GambitCardsAuctionSection />
             </div>
 
             <div id="mg-featured">
@@ -319,6 +393,10 @@ function PreviewInner() {
         onProfile={() => (socialAuth.isAuthenticated ? setRightOpen(true) : openNode("profile"))}
       />
       <JoyLayer />
+      {/* MADHAT'r floating concierge — ported from /mpp2.23, where it is
+          page-level and persists across every tab. Fixed bottom-right, so it
+          costs the hub no layout. */}
+      <MadhatrConcierge />
       <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
     </div>
   );
