@@ -59,6 +59,7 @@ import PlatformExplorer from "@/components/platform-explorer";
 import { RegistrarStatusPanel } from "@/components/registrar-panel";
 import CryptoTickerDual from "@/components/crypto-ticker-dual";
 import DopamineCarouselStrip from "@/components/dopamine-carousel-strip";
+import { AutoShowcaseBadge } from "@/components/carousel";
 import PerpDials from "@/components/perp-dials";
 import MadhatrConcierge from "@/components/madhatr-concierge";
 import { EigenTrustWidget } from "@/components/virality-eigen";
@@ -323,7 +324,19 @@ function GambitInner() {
                 dials, which is how the cluster was designed to be composed. */}
             <SeikoDopamineHub />
 
-            <DopamineCarouselStrip />
+            {/* Same rail, same badge as /preview. The strip auto-advances by
+                default; the badge is the platform's mark that the motion is the
+                rail showcasing itself rather than the user's input. */}
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <span className="font-mono text-[10px] uppercase tracking-widest font-black"
+                  style={{ color: tokens.primary }}>
+                  Customizable Dopamine Carousel
+                </span>
+                <AutoShowcaseBadge />
+              </div>
+              <DopamineCarouselStrip />
+            </div>
 
             {/* showInstrument={false}: the deck's own cluster+chrono is
                 suppressed here ONLY because the hub above already renders it —

@@ -36,6 +36,8 @@ import { useContainerWide } from "@/hooks/use-container-wide";
 // Dual feature section: Conviction/Prediction beside the deck + Dutch auction.
 import { PredictionCircus } from "@/components/kaito-and-circus";
 import GambitCardsAuctionSection from "@/components/gambit-cards-auction-section";
+import InstrumentDeckSection from "@/components/instrument-deck-section";
+import { AutoShowcaseBadge } from "@/components/carousel";
 import MarketTypeCarousels from "@/components/market-type-carousels";
 import FacesWaterline from "@/components/faces-waterline";
 import ZeitgeistAlmanac from "@/components/zeitgeist-almanac";
@@ -81,7 +83,9 @@ function Chip({ label, filled, onClick }: { label: string; filled?: boolean; onC
 function SectionHeading({ children, color }: { children: React.ReactNode; color?: string }) {
   const { skin } = useSkin();
   return (
-    <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 2, color: color ?? skin.gold, textTransform: "uppercase", margin: "0 0 12px 2px" }}>
+    // flex so a heading can carry a trailing mark (the auto-showcase badge)
+    // on the same baseline instead of it wrapping beneath the text.
+    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 900, letterSpacing: 2, color: color ?? skin.gold, textTransform: "uppercase", margin: "0 0 12px 2px" }}>
       {children}
     </div>
   );
@@ -227,22 +231,38 @@ function PreviewInner() {
               <NewsTwoRow />
             </div>
 
+            {/* The dials + chrono, lifted out of the foot of the perps deck
+                into a container of their own, directly above the carousel.
+                Below six market cards they read as a footnote to those cards;
+                they are in fact a platform-state instrument, so they lead. */}
+            <InstrumentDeckSection uid="preview-instrument" />
+
             <div>
-              <SectionHeading>Customizable Dopamine Carousel</SectionHeading>
+              <SectionHeading>
+                Customizable Dopamine Carousel
+                {/* The strip has always auto-advanced — useAutoShowcase defaults
+                    to enabled and its handlers are wired to the scroller. What
+                    was missing is this badge, the platform's mark that the
+                    motion is the rail showcasing itself rather than the user's
+                    input. Motion without the mark just reads as drift. */}
+                <AutoShowcaseBadge />
+              </SectionHeading>
               <DopamineCarouselStrip />
             </div>
 
-            {/* O-V deck — ported from /mpp2.23. Sits directly above the
-                instrument deck because it is the control that retunes it:
-                changing deck moves the multiplier, and the δ-limit, threshold
-                and APY the instruments read all follow from it. */}
+            {/* O-V deck — ported from /mpp2.23. It is the control that retunes
+                the instrument deck above: changing deck moves the multiplier,
+                and the δ-limit, threshold and APY the instruments read all
+                follow from it. */}
             <div>
               <SectionHeading>O-V Deck</SectionHeading>
               <OVDeckSelector selectedDeck={activeDeck} onSelect={setActiveDeck} convictionStake={500} />
             </div>
 
-            {/* Tickers & Dials — meters row + cluster with the split-flap chrono */}
-            <PerpDials />
+            {/* showInstrument={false}: the deck's cluster+chrono now lives in
+                InstrumentDeckSection above. The deck keeps its six market
+                cards. */}
+            <PerpDials showInstrument={false} />
 
             {/* ── /gambit FLOOR, ported native (GameProvider-powered) ──
                 SeikoDopamineHub removed here: it was the SECOND of two stacked
