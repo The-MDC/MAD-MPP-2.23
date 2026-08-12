@@ -2,21 +2,25 @@
 pragma solidity ^0.8.24;
 
 import {Test} from "forge-std/Test.sol";
+import {ERC2771Forwarder} from "@openzeppelin/contracts/metatx/ERC2771Forwarder.sol";
 import {MADShieldVault} from "../src/MADShieldVault.sol";
 import {MockMADx} from "./MockMADx.sol";
 
 contract MADShieldVaultTest is Test {
     MADShieldVault public vault;
     MockMADx public token;
+    ERC2771Forwarder public forwarder;
 
     address public owner = address(0x1);
     address public user1 = address(0x2);
     address public user2 = address(0x3);
 
     function setUp() public {
+        forwarder = new ERC2771Forwarder("Test Forwarder");
+
         vm.startPrank(owner);
         token = new MockMADx();
-        vault = new MADShieldVault(address(token));
+        vault = new MADShieldVault(address(token), address(forwarder));
         vm.stopPrank();
 
         // Deal some tokens to users

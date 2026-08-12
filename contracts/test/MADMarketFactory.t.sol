@@ -2,12 +2,14 @@
 pragma solidity ^0.8.24;
 
 import {Test} from "forge-std/Test.sol";
+import {ERC2771Forwarder} from "@openzeppelin/contracts/metatx/ERC2771Forwarder.sol";
 import {MADMarketFactory} from "../src/MADMarketFactory.sol";
 import {MockMADx} from "./MockMADx.sol";
 
 contract MADMarketFactoryTest is Test {
     MADMarketFactory public factory;
     MockMADx public token;
+    ERC2771Forwarder public forwarder;
 
     address public creator = makeAddr("creator");
     address public treasury = makeAddr("treasury");
@@ -16,7 +18,8 @@ contract MADMarketFactoryTest is Test {
 
     function setUp() public {
         token = new MockMADx(); // owner = this; factory owner = this too
-        factory = new MADMarketFactory(address(token), treasury);
+        forwarder = new ERC2771Forwarder("Test Forwarder");
+        factory = new MADMarketFactory(address(token), treasury, address(forwarder));
 
         token.mint(alice, 1_000_000_000 ether);
         token.mint(bob, 1_000_000_000 ether);
