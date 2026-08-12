@@ -61,6 +61,38 @@ credentials can call any of the 35 without holding a *wallet* session. That is a
 privilege-separation gap, not an open door. Still worth closing (§5 STEP 7), but it is not a
 P0 and should not be triaged as one.
 
+### 0.45 MEASURED: the database is unreachable, not merely unmigrated
+
+Queried on a preview built from current `main` (allowlisted, no credentials needed):
+
+    GET /api/v1/health/db  →  503
+    {"ok":false,"latencyMs":10010,"error":"database check failed"}
+
+**`latencyMs: 10010` is the diagnosis.** `verify/lib/db.ts` sets
+`connectionTimeoutMillis: 10_000`; this hit that ceiling exactly. The three failure modes are
+distinguishable by timing:
+
+| Cause | Signature |
+|---|---|
+| `DATABASE_URL` unset | fast fail (ms) |
+| Bad credentials | fast fail — `password authentication failed` |
+| **Host unreachable, connection never establishes** | **~10s timeout** ← observed |
+
+So `DATABASE_URL` **is** set in Preview, and the connection never completed. A missing *schema*
+would connect successfully and then fail on a missing relation — this never connected.
+
+This corroborates the `Connection terminated due to connection timeout` errors in
+`docs/HANDOFF_2026-08-11_AUDIT.md` and points at the **Neon project split (§5 STEP 3)** rather
+than at migrations: most likely a `DATABASE_URL` aimed at the legacy project
+(`patient-wave-95491458`) whose compute is suspended or deleted.
+
+**Scope:** this is the Preview environment. It does not prove Production carries the same
+value, though the audit's production error log makes it likely. Re-run against production after
+STEP 1.
+
+**Order of operations changes because of this.** Applying migrations (STEP 2) against an
+unreachable host will fail regardless. **Resolve the project split (STEP 3) first.**
+
 ### 0.5 `/api/v1/health/db` already exists
 
 A prior draft recommended building it. `verify/app/api/v1/health/db/route.ts` is already in
@@ -196,6 +228,11 @@ A single-origin, phone-shaped prediction-market hub rendered inside a device fra
    production deployment as an incident.
 
 ### STEP 2 🔴 · Apply migrations to production (founder + agent)
+
+> ⚠️ **Do STEP 3 first.** Measured evidence (§0.45) shows the database host is unreachable —
+> a 10s connection timeout, not a schema error. Migrations cannot apply to a host that never
+> answers. Resolve which Neon project is canonical, confirm `/api/v1/health/db` returns
+> `ok:true`, then return here.
 
 Rehearse on a Neon branch first — copy-on-write, costs nothing:
 
