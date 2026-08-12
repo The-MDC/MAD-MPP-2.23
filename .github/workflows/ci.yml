@@ -90,3 +90,7 @@ jobs:
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: "1"
+          # `npm run build` now runs scripts/migrate.mjs first and hard-fails
+          # without a DATABASE_URL. CI has no database — skip loudly here; real
+          # migrations are enforced on Vercel builds, which do have one.
+          SKIP_MIGRATIONS: "1"
