@@ -10,7 +10,8 @@ import {
   requestKeyDestruction,
 } from "@/lib/perp-store";
 import { eraseIdentity } from "@/lib/subject-identity-map";
-import { createLocalKmsAdapter, createLocalObjectStore, erasureSlaCopy } from "@/lib/portrait-vault";
+import { createLocalKmsAdapter, erasureSlaCopy } from "@/lib/portrait-vault";
+import { createVercelBlobObjectStore } from "@/lib/vercel-blob-store";
 import { isSubjectApproved } from "@/lib/registrar-queue";
 import { LEG_MS, globalLegIndex } from "@/lib/lunar-legs";
 
@@ -48,11 +49,10 @@ export async function POST(req: Request) {
   const limited = enforceRateLimit(req, "registrar-lapse", 12, 60_000);
   if (limited) return limited;
 
-  // The local adapter is fine for the scheduler's bookkeeping and the staging
-  // destruction drill. A production deployment injects a real KMS; the
-  // readiness checklist is what asserts one is present before Phase 4.
+  // The object store is production Vercel Blob, not an in-memory placeholder.
+  // KMS integration remains a separate go-live prerequisite for key custody.
   const kms = createLocalKmsAdapter();
-  const store = createLocalObjectStore();
+  const store = createVercelBlobObjectStore();
 
   if (!hasDatabaseUrl()) {
     return NextResponse.json({

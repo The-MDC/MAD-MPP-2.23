@@ -10,16 +10,15 @@
 ───────────────────────────────────────────────────────────────────── */
 
 :root {
-  /* Global theme tokens — set at runtime by ThemeProvider (context/theme-context.tsx)
-     from the active SKIN_TOKENS skin. Defaults = HolographicGoldLaser so SSR and
-     any pre-hydration paint match the app-wide theme. */
-  --mg-primary: #ffd700;
-  --mg-secondary: #efc76d;
-  --mg-accent: #ff00f0;
-  --mg-bg: #030508;
-  --mg-panel: #05070c;
-  --mg-border: #ffd70033;
-  --mg-glow: #ffd700;
+  /* Global theme tokens — CyberOnyx is the dark SSR default. ThemeProvider
+     applies a saved user-selected skin after hydration. */
+  --mg-primary: #00f0ff;
+  --mg-secondary: #7cffc7;
+  --mg-accent: #ec4899;
+  --mg-bg: #01010a;
+  --mg-panel: #03040e;
+  --mg-border: #00f0ff33;
+  --mg-glow: #00f0ff;
 
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
