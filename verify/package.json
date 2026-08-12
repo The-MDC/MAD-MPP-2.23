@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev --port 3000",
-    "build": "next build",
+    "build": "node scripts/migrate.mjs && next build",
     "start": "node .next/standalone/server.js",
     "lint": "eslint app components context hooks lib proxy.ts --ext .js,.jsx,.ts,.tsx",
     "type-check": "tsc --noEmit",

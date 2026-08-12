@@ -110,3 +110,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error: "lapse run failed" }, { status: 500 });
   }
 }
+
+// Vercel Cron invokes with GET. The handler reads only headers (bearer secret,
+// rate-limit key) — never a body — so GET delegates to the same logic.
+export { POST as GET };
