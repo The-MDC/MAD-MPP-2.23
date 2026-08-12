@@ -28,19 +28,44 @@ On current `main`, `verify/app/api/v1/madx/transfer/route.ts` reads:
 rate limiting (30 req / 60s) are both applied via `lib/madx-route-auth.ts`. All seven `madx`
 routes were remediated together. **Closed.**
 
-### 0.2 The guest gate has been removed from `main`
+### 0.2 The guest gate is INTACT — an earlier claim that it was deleted was wrong
 
-`verify/middleware.ts` **no longer exists**. The HTTP Basic "MAD Gambit Guest Access" gate is
-gone from the tree.
+A prior draft of this document stated the Basic-auth gate had been removed and that promoting
+`main` would make the site public. **That was wrong, and the reasoning was bad.** It inferred
+deletion from the absence of `verify/middleware.ts`.
 
-Production still returns `401 Guest access required` — because production is **not running
-`main`** (§1.1). The moment a real `main` build is promoted, **the guest gate disappears and
-the site becomes fully public.** Decide before promoting whether that is intended.
+**Next.js 16 renamed `middleware.ts` to `proxy.ts`.** The gate lives in `verify/proxy.ts`,
+fully intact, and is confirmed live: a preview built from current `main` returns
+`401 Guest access required` with `WWW-Authenticate: Basic realm="MAD Gambit Guest Access"`.
 
-### 0.3 Auth coverage — accurate numbers as of `779ef04`
+No decision is required before promoting. Nothing becomes public.
 
-**53 mutating routes · 35 still unauthenticated.** Improved from 39/41, but the long tail
-remains. See §5.2.
+### 0.3 The gate now covers `/api` — the earlier "APIs are wide open" finding is obsolete
+
+`verify/proxy.ts:71` — `matcher: ["/((?!_next/static|_next/image).*)"]`
+
+The old `middleware.ts` excluded `api` from this pattern. **The current matcher does not.**
+Every API route is behind Basic auth except two explicitly allowlisted in `PUBLIC_PATHS`:
+`/api/health` and `/api/v1/health/db`.
+
+A prior review reported that the guest gate protected pages only and that every API route was
+open on the public internet. **That is no longer true.**
+
+### 0.4 Auth coverage — accurate numbers and accurate severity
+
+**53 mutating routes · 35 without a session check** (improved from 39/41).
+
+Severity is lower than previously stated. These are **not** reachable anonymously — the proxy
+gate stands in front of them. The real exposure is narrower: anyone holding *guest*
+credentials can call any of the 35 without holding a *wallet* session. That is a
+privilege-separation gap, not an open door. Still worth closing (§5 STEP 7), but it is not a
+P0 and should not be triaged as one.
+
+### 0.5 `/api/v1/health/db` already exists
+
+A prior draft recommended building it. `verify/app/api/v1/health/db/route.ts` is already in
+the tree and already allowlisted in `PUBLIC_PATHS`, so it answers without credentials —
+exactly what deploy verification needs. **Do not rebuild it; use it.**
 
 ---
 
@@ -143,13 +168,12 @@ A single-origin, phone-shaped prediction-market hub rendered inside a device fra
 | **Production never migrated** | Entire hub shows demo badges; looks half-built when it is only starved |
 | **Production drifted off `main`** | Reviews of the live site describe code nobody is maintaining |
 | **CLI `--prod` from a dirty tree** | Silently beat the Git deploy; no guard existed |
-| **Guest gate deleted without a decision** | Next promotion makes the site public unannounced |
-| **35 mutating routes still unauthenticated** | `madx` was fixed; the tail was not |
+| **35 mutating routes lack a wallet-session check** | Behind the guest gate, so not anonymous — but any guest-credential holder can call them without a wallet session |
 | **Two Neon projects** | CI targeted `patient-wave-95491458`; app targets sky park — preview branches validated a DB the app never reads |
 | **`NEON_PROJECT_ID` unset** | Branch-cleanup workflow silently `skipped` twice |
 | **`madgambit.io` attached to no project** | DNS reaches Vercel's edge, no project owns the host → 404 |
 | **Git webhook not firing** | Merges to `main` produce zero deployments; every release is manual |
-| **No `/api/v1/health/db`** | "Is production working" has been guesswork all along |
+| **`/api/v1/health/db` exists but is unused in verification** | Deploy checks stayed guesswork despite the endpoint being available and unauthenticated |
 | **No dependency CVE audit** | `npm audit` blocked by egress policy; **still not performed** |
 | **70 of 79 components had no breakpoint** | Fixed-layout by design (device frame), unverified outside it |
 | **Joy disclaimer vs VRS** | `joy-engineering.ts` disclaims a mechanic `session-vrs.ts` implements |
@@ -162,9 +186,11 @@ A single-origin, phone-shaped prediction-market hub rendered inside a device fra
 
 ### STEP 1 🔴 · Get production onto `main` (founder)
 
-1. Decide the guest-gate question (§0.2) — public, or restore a gate, before promoting.
-2. Vercel → Deployments → newest `main` build → **Promote to Production**.
-3. Verify: `git merge-base --is-ancestor <prod-sha> origin/main` exits **0**.
+1. Vercel → Deployments → newest `main` build → **Promote to Production**.
+   *(No guest-gate decision needed — the gate is intact, see §0.2.)*
+2. Verify: `git merge-base --is-ancestor <prod-sha> origin/main` exits **0**.
+3. Verify the app: `curl https://<prod-host>/api/v1/health/db` — allowlisted in `PUBLIC_PATHS`,
+   so it answers without credentials and reports whether the schema is actually there.
 4. Root-cause: Vercel → Settings → Git → restrict production to `main`; stop CLI `--prod`
    deploys, or require `git status --porcelain` empty first. Treat any `gitDirty: "1"`
    production deployment as an incident.
@@ -208,7 +234,11 @@ Vercel → `mad-mpp-2.23` → Settings → Domains → add `madgambit.io` + `www
 DNS already resolves to Vercel. **No wildcard** — it would collide with
 `datahouse.madgambit.io` on `datahouse_mathsengine`.
 
-### STEP 7 🟠 · Gate the remaining 35 mutating routes (agent)
+### STEP 7 🟡 · Add wallet-session checks to the remaining 35 mutating routes (agent)
+
+**Downgraded from 🟠.** The proxy gate (§0.3) means these are not anonymously reachable. This
+is privilege separation — a guest-credential holder should not be able to act without a wallet
+session — not an open door.
 
 Follow the `lib/madx-route-auth.ts` pattern already proven on `madx`. Priority order:
 
@@ -217,11 +247,15 @@ Follow the `lib/madx-route-auth.ts` pattern already proven on `madx`. Priority o
 3. **Content-control:** `gdelt/whitelist` — controls who enters the satire pipeline
 4. Add a CI grep gate so new mutating routes cannot land unauthenticated
 
-### STEP 8 🟡 · Observability (agent)
+### STEP 8 🟡 · Use the health endpoint that already exists (agent)
 
-Add `GET /api/v1/health/db` — borrow the existing pool, `SELECT 1`, return
-`{ ok, latencyMs, migrationsApplied }`. ~15 lines. This is what makes STEP 1 and STEP 2
-verifiable instead of hopeful.
+`/api/v1/health/db` is already built and already allowlisted (§0.5). It does not need writing —
+it needs **wiring into the deploy path** so STEP 1 and STEP 2 stop being hopeful:
+
+- Post-deploy smoke check in CI that asserts `ok: true`
+- A Vercel deployment check, or a scheduled ping that alerts on `ok: false`
+
+That closes the loop that has made "is production working" guesswork all along.
 
 ### STEP 9 🟡 · Unblock the tooling (founder)
 
@@ -261,7 +295,6 @@ not "clean".
 
 - [ ] Promote a clean `main` build to production; restrict prod deploys to `main`
 - [ ] Apply `0001`–`0014` to the production database
-- [ ] Guest-gate decision before promotion
 - [ ] `NEON_PROJECT_ID` repo **Variable**; canonical Neon project; decommission the legacy one
 - [ ] `DATABASE_URL` via the Neon-managed integration
 - [ ] Vercel↔GitHub webhook / Git connection
@@ -292,10 +325,29 @@ mutating routes · `npm audit` has been run at least once.
 
 ## 8 · Provenance
 
-Everything above was verified by reading `origin/main` at `779ef04` and querying the Vercel
-and GitHub APIs. **Not verified:** nothing was executed — `npm` and `*.vercel.app` are blocked
-by this environment's egress policy, so no build, test, query, or screenshot backs any claim
-here. Items sourced from `docs/HANDOFF_2026-08-11_AUDIT.md` (production drift, missing schema,
-runtime error counts) are that document's findings, cited not re-derived.
+Everything above was verified by reading `origin/main` at `779ef04` and querying the Vercel and
+GitHub APIs. Items sourced from `docs/HANDOFF_2026-08-11_AUDIT.md` (production drift, missing
+schema, runtime error counts) are that document's findings, cited not re-derived.
+
+**One live observation backs §0.2–0.3:** a preview deployment built from current `main`
+(PR #72) was fetched and returned `401` with
+`WWW-Authenticate: Basic realm="MAD Gambit Guest Access"`, confirming the gate is live on
+`main` and covers `/api`. `verify/vercel.json` now includes `claude/*` in its `ignoreCommand`,
+which is why that preview built at all.
+
+**Otherwise nothing was executed** — `npm` and direct `*.vercel.app` access are blocked by this
+environment's egress policy, so no build, test, query or screenshot backs the remaining claims.
+
+### A note on how this document was wrong once already
+
+The first published version of §0.2 asserted the guest gate had been deleted, inferred purely
+from `verify/middleware.ts` being absent. It was wrong: **Next.js 16 renamed `middleware.ts` to
+`proxy.ts`**, and the gate was intact the whole time. That error also produced a spurious
+"decide before promoting" blocker and inflated the severity of the unauthenticated-route
+finding.
+
+The lesson is specific and worth carrying: **absence of a file is not evidence of absence of a
+behaviour**, especially across a major framework version. Confirm against runtime — one preview
+fetch settled in seconds what a grep had gotten backwards.
 
 Treat §4 and §5 as a reconciliation of plan against tree, not as observed runtime behaviour.
