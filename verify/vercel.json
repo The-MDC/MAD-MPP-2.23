@@ -14,5 +14,10 @@
       ]
     }
   ],
-  "ignoreCommand": "case \"$VERCEL_GIT_COMMIT_REF\" in main|feat/*|claude/*) exit 1;; *) exit 0;; esac"
+  "ignoreCommand": "case \"$VERCEL_GIT_COMMIT_REF\" in main|feat/*|claude/*) exit 1;; *) exit 0;; esac",
+  "crons": [
+    { "path": "/api/v1/cron/rollup", "schedule": "0 * * * *" },
+    { "path": "/api/v1/perps/roll", "schedule": "0 0 * * *" },
+    { "path": "/api/v1/registrar/lapse", "schedule": "30 0 * * *" }
+  ]
 }

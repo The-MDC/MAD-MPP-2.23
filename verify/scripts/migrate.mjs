@@ -7,6 +7,12 @@
  * repeatedly (CI ephemeral branch, prod, local).
  *
  *   DATABASE_URL=postgres://... node scripts/migrate.mjs
+ *
+ * Runs as part of `npm run build` on Vercel, so every deploy migrates the
+ * environment's database (previews migrate their own Neon preview branch).
+ * Escape hatch: SKIP_MIGRATIONS=1 skips deliberately and loudly — for use only
+ * while the database is unreachable (e.g. Neon quota suspension). Remove it as
+ * soon as the DB is back; a missing DATABASE_URL still fails the build.
  */
 import { readdir, readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -17,6 +23,12 @@ const { Client } = pg;
 const SQL_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "sql");
 
 async function main() {
+  if (process.env.SKIP_MIGRATIONS === "1") {
+    console.warn("⚠️  SKIP_MIGRATIONS=1 — migrations DELIBERATELY SKIPPED for this build.");
+    console.warn("⚠️  Remove the SKIP_MIGRATIONS env var as soon as the database is reachable.");
+    return;
+  }
+
   const connectionString = process.env.DATABASE_URL ?? process.env.NEON_SKY_PARK_DATABASE_URL ?? process.env.NEO_DATABASE_URL;
   if (!connectionString) {
     console.error("❌ DATABASE_URL not set — nothing to migrate against.");
@@ -24,7 +36,15 @@ async function main() {
   }
 
   const client = new Client({ connectionString });
-  await client.connect();
+  try {
+    await client.connect();
+  } catch (err) {
+    console.error(`❌ could not connect to Postgres: ${err.message}`);
+    console.error("   Hint: on Neon, a quota-suspended compute drops connections until the");
+    console.error("   quota resets or the plan is upgraded — check the project's Usage page.");
+    console.error("   To ship a build anyway (deliberately), set SKIP_MIGRATIONS=1.");
+    process.exit(1);
+  }
   console.log("🔌 connected to Postgres");
 
   await client.query(

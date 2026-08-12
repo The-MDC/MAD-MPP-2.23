@@ -3,8 +3,8 @@
 .env.local
 .env*.local
 
-# Vercel CLI link/artifacts
-.vercel/.env*
+# Vercel CLI link/artifacts — never commit project links or pulled env
+.vercel/
 
 # OS noise
 .DS_Store

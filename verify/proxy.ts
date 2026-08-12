@@ -35,8 +35,26 @@ const PUBLIC_PATHS = new Set([
   "/sitemap.xml",
 ]);
 
+// Cron routes verify their own `Authorization: Bearer` secret (lib/bearer-secret.ts),
+// and Vercel Cron sends exactly that header — not Basic auth. Without this
+// pass-through the guest gate would 401 every scheduled invocation before the
+// route's own check runs. Only these paths skip the gate, and only when a Bearer
+// header is present; the route still rejects wrong/missing secrets itself.
+const BEARER_PATHS = new Set([
+  "/api/v1/cron/rollup",
+  "/api/v1/perps/roll",
+  "/api/v1/registrar/lapse",
+]);
+
 export function proxy(req: NextRequest) {
   if (PUBLIC_PATHS.has(req.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
+
+  if (
+    BEARER_PATHS.has(req.nextUrl.pathname) &&
+    req.headers.get("authorization")?.startsWith("Bearer ")
+  ) {
     return NextResponse.next();
   }
 
