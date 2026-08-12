@@ -102,8 +102,8 @@ contract MADDisputeVoting is Ownable, ERC2771Context {
     error StillRevealing();
     error AlreadyFinalized();
     error InvalidBps();
-+    error AlreadyCommitted();
-+    error BadCommit();
+    error AlreadyCommitted();
+    error BadCommit();
 
     constructor(address _oracle, address _staking, uint256 _voteThresholdBond, address trustedForwarder_)
         Ownable(msg.sender)
@@ -153,8 +153,8 @@ contract MADDisputeVoting is Ownable, ERC2771Context {
         address voter = _msgSender();
         (uint256 stake, , ) = staking.stakes(voter);
         if (stake == 0) revert NoStake();
-+        if (commitHash == bytes32(0)) revert BadCommit();
-+        if (commitments[questionId][voter] != bytes32(0)) revert AlreadyCommitted();
+        if (commitHash == bytes32(0)) revert BadCommit();
+        if (commitments[questionId][voter] != bytes32(0)) revert AlreadyCommitted();
 
         commitments[questionId][voter] = commitHash;
         emit Committed(questionId, voter);
