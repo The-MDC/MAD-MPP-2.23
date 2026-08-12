@@ -120,7 +120,7 @@ contract MADOptimisticOracleTest is Test {
         _dispute(disputer, 1000 ether);
         vm.prank(disputer);
         vm.expectRevert(MADOptimisticOracle.NotDisputable.selector);
-        oracle.dispute(Q);
+        oracle.dispute(Q, int256(999));
     }
 
     function testOnlyOwnerResolveDispute() public {
