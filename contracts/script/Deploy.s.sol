@@ -6,14 +6,16 @@ import {console2} from "forge-std/console2.sol";
 import {ERC2771Forwarder} from "@openzeppelin/contracts/metatx/ERC2771Forwarder.sol";
 import {MADStaking} from "../src/MADStaking.sol";
 import {MADMarketFactory} from "../src/MADMarketFactory.sol";
+import {MADShieldVault} from "../src/MADShieldVault.sol";
 
 /**
  * @title Deploy
  * @notice Deploys the ERC-2771 trusted forwarder, then MADStaking +
- *         MADMarketFactory wired to trust it — gasless staking/market/backing
- *         calls relayed through verify/app/api/v1/relay/execute resolve to
- *         the real signer, not the relayer's address (see ERC2771Context in
- *         both contracts). Direct (non-relayed) calls are unaffected.
+ *         MADMarketFactory + MADShieldVault wired to trust it — gasless
+ *         staking/market/backing/shield calls relayed through
+ *         verify/app/api/v1/relay/execute resolve to the real signer, not the
+ *         relayer's address (see ERC2771Context in each contract). Direct
+ *         (non-relayed) calls are unaffected.
  *
  * Env vars:
  *   PRIVATE_KEY        — deployer key (broadcast)
@@ -35,7 +37,12 @@ contract Deploy is Script {
 
     function run()
         external
-        returns (ERC2771Forwarder forwarder, MADStaking staking, MADMarketFactory marketFactory)
+        returns (
+            ERC2771Forwarder forwarder,
+            MADStaking staking,
+            MADMarketFactory marketFactory,
+            MADShieldVault shieldVault
+        )
     {
         uint256 pk = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(pk);
@@ -49,6 +56,7 @@ contract Deploy is Script {
             : new ERC2771Forwarder("MAD Gambit Forwarder");
         staking = new MADStaking(madx, address(forwarder));
         marketFactory = new MADMarketFactory(madx, treasury, address(forwarder));
+        shieldVault = new MADShieldVault(madx, address(forwarder));
         vm.stopBroadcast();
 
         console2.log("MADx token:       ", madx);
@@ -56,5 +64,6 @@ contract Deploy is Script {
         console2.log("ERC2771Forwarder: ", address(forwarder));
         console2.log("MADStaking:       ", address(staking));
         console2.log("MADMarketFactory: ", address(marketFactory));
+        console2.log("MADShieldVault:   ", address(shieldVault));
     }
 }
