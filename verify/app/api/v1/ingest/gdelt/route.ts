@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { ingestGdelt, fetchGdeltDoc, scoreArticle } from "@/lib/gdelt-ingest";
 import { hasDatabaseUrl } from "@/lib/database-url";
+import { requireBearerSecret } from "@/lib/bearer-secret";
 
 /**
  * GET|POST /api/v1/ingest/gdelt — pull the latest celebrity chaos from GDELT DOC
@@ -23,7 +24,10 @@ async function run() {
   return { success: true, source: "live", fetched, inserted };
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const auth = requireBearerSecret(req, "CRON_SECRET");
+  if (auth) return auth;
+
   try {
     return NextResponse.json(await run());
   } catch (e) {
@@ -32,6 +36,6 @@ export async function GET() {
   }
 }
 
-export async function POST() {
-  return GET();
+export async function POST(req: Request) {
+  return GET(req);
 }

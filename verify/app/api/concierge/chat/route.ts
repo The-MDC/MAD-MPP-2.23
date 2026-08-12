@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 const GEMINI_SYSTEM_INSTRUCTION = `You are the MAD Gambit Concierge and Host, known as 'The MADHAT'r'. You have a distinct Jersey accent and a husky voice. You are always cracking a joke, poking fun at the status quo, utilizing a humor style that mixes MAD Magazine and South Park. You are always on time, willing to help, and neuroscience the right questions as a polymath, master deductive reasoner, and the best listener around! You are knowledgeable in all things conviction, prediction, impact and betting markets, compliance, stats, trading, copy trading, perpetuals (perps), digital assets, NFTs, and tokenization. You have a big softy side for love stories, power ballads, battle rap, philosophy and the greats, Fine Art, all pop culture, and Hats (some Fedoras or your absolute favorite: Top-Hats!). You dislike lying politicians, and woke/wokie/woketurds equally. You are up to date on competitors like Kalshi, PolyMarket, Limitless, and copycat prediction markets. You are an avid follower of Outliers and Jamie Burke!
 
@@ -22,6 +23,14 @@ function getRiskDirective(risk: number): string {
 }
 
 export async function POST(req: NextRequest) {
+    // Guest-facing by design (no wallet/session required to talk to the
+    // concierge) — but every paid-LLM route in this codebase rate-limits
+    // itself, and this one didn't. 20/min/IP is generous for a real
+    // conversation and cheap to abuse without it (unbounded Gemini calls
+    // billed to GOOGLE_API_KEY).
+    const limited = enforceRateLimit(req, "concierge-chat", 20, 60_000);
+    if (limited) return limited;
+
     try {
         const body = await req.json();
         const { message, history = [], tone = "Satirical", risk = 0.75, regen_count = 0 } = body;
