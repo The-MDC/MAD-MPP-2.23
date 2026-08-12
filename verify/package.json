@@ -7,14 +7,15 @@
   },
   "scripts": {
     "dev": "next dev --port 3000",
-    "build": "node scripts/migrate.mjs && next build",
+    "build": "next build",
     "start": "node .next/standalone/server.js",
     "lint": "eslint app components context hooks lib proxy.ts --ext .js,.jsx,.ts,.tsx",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "migrate": "node scripts/migrate.mjs",
-    "db:smoke": "node scripts/db-smoke.mjs"
+    "db:smoke": "node scripts/db-smoke.mjs",
+    "migrate:deploy": "node scripts/migrate.mjs"
   },
   "dependencies": {
     "@langchain/community": "^1.1.29",
@@ -25,6 +26,7 @@
     "@react-three/fiber": "^9.6.1",
     "@reduxjs/toolkit": "^2.12.0",
     "@types/three": "^0.185.0",
+    "@vercel/blob": "^2.8.0",
     "@vercel/speed-insights": "^2.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
