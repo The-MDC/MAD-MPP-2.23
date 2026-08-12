@@ -2,12 +2,14 @@
 pragma solidity ^0.8.24;
 
 import {Test} from "forge-std/Test.sol";
+import {ERC2771Forwarder} from "@openzeppelin/contracts/metatx/ERC2771Forwarder.sol";
 import {MADStaking} from "../src/MADStaking.sol";
 import {MockMADx} from "./MockMADx.sol";
 
 contract MADStakingTest is Test {
     MADStaking public staking;
     MockMADx public token;
+    ERC2771Forwarder public forwarder;
 
     address public owner = address(0x1);
     address public alice = address(0xA);
@@ -17,8 +19,10 @@ contract MADStakingTest is Test {
         vm.prank(owner);
         token = new MockMADx();
 
+        forwarder = new ERC2771Forwarder("Test Forwarder");
+
         vm.prank(owner);
-        staking = new MADStaking(address(token));
+        staking = new MADStaking(address(token), address(forwarder));
 
         token.mint(alice, 1_000_000 * 1e18);
         token.mint(bob, 1_000_000 * 1e18);

@@ -5,6 +5,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {ERC2771Context} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 /**
  * @title MADStaking
@@ -22,8 +23,13 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
  *         Rewards accrue linearly per second and are paid from a reward reserve
  *         the owner funds separately from staked principal, so a user's stake is
  *         never used to pay another user's rewards.
+ *
+ *         ERC-2771 (gasless): stake/unstake/claim/fundRewards resolve caller
+ *         identity via _msgSender(), so they work correctly relayed through
+ *         the MAD Gambit forwarder (see verify/app/api/v1/relay/execute) as
+ *         well as called directly.
  */
-contract MADStaking is Ownable, ReentrancyGuard {
+contract MADStaking is Ownable, ReentrancyGuard, ERC2771Context {
     using SafeERC20 for IERC20;
 
     IERC20 public immutable madx;
@@ -60,7 +66,10 @@ contract MADStaking is Ownable, ReentrancyGuard {
     error InsufficientStake();
     error InsufficientRewardReserve();
 
-    constructor(address _madx) Ownable(msg.sender) {
+    constructor(address _madx, address trustedForwarder_)
+        Ownable(msg.sender)
+        ERC2771Context(trustedForwarder_)
+    {
         require(_madx != address(0), "MADStaking: token is zero");
         madx = IERC20(_madx);
 
@@ -118,34 +127,37 @@ contract MADStaking is Ownable, ReentrancyGuard {
     /// @notice Stake `amount` MADx. Settles pending rewards at the old balance first.
     function stake(uint256 amount) external nonReentrant {
         if (amount == 0) revert ZeroAmount();
-        _settle(msg.sender);
+        address user = _msgSender();
+        _settle(user);
 
-        StakeInfo storage s = stakes[msg.sender];
+        StakeInfo storage s = stakes[user];
         s.amount += amount;
         totalStaked += amount;
 
-        madx.safeTransferFrom(msg.sender, address(this), amount);
-        emit Staked(msg.sender, amount, s.amount);
+        madx.safeTransferFrom(user, address(this), amount);
+        emit Staked(user, amount, s.amount);
     }
 
     /// @notice Withdraw `amount` of staked principal. Rewards remain claimable.
     function unstake(uint256 amount) external nonReentrant {
         if (amount == 0) revert ZeroAmount();
-        StakeInfo storage s = stakes[msg.sender];
+        address user = _msgSender();
+        StakeInfo storage s = stakes[user];
         if (amount > s.amount) revert InsufficientStake();
 
-        _settle(msg.sender);
+        _settle(user);
         s.amount -= amount;
         totalStaked -= amount;
 
-        madx.safeTransfer(msg.sender, amount);
-        emit Unstaked(msg.sender, amount, s.amount);
+        madx.safeTransfer(user, amount);
+        emit Unstaked(user, amount, s.amount);
     }
 
     /// @notice Claim all accrued rewards from the reward reserve.
     function claim() external nonReentrant returns (uint256 reward) {
-        _settle(msg.sender);
-        StakeInfo storage s = stakes[msg.sender];
+        address user = _msgSender();
+        _settle(user);
+        StakeInfo storage s = stakes[user];
         reward = s.rewardAccrued;
         if (reward == 0) revert ZeroAmount();
         if (reward > rewardReserve) revert InsufficientRewardReserve();
@@ -153,8 +165,8 @@ contract MADStaking is Ownable, ReentrancyGuard {
         s.rewardAccrued = 0;
         rewardReserve -= reward;
 
-        madx.safeTransfer(msg.sender, reward);
-        emit RewardsClaimed(msg.sender, reward);
+        madx.safeTransfer(user, reward);
+        emit RewardsClaimed(user, reward);
     }
 
     /* ─────────────────────────── owner ─────────────────────────── */
@@ -162,9 +174,10 @@ contract MADStaking is Ownable, ReentrancyGuard {
     /// @notice Fund the reward reserve. Kept separate from staked principal.
     function fundRewards(uint256 amount) external {
         if (amount == 0) revert ZeroAmount();
+        address funder = _msgSender();
         rewardReserve += amount;
-        madx.safeTransferFrom(msg.sender, address(this), amount);
-        emit RewardsFunded(msg.sender, amount);
+        madx.safeTransferFrom(funder, address(this), amount);
+        emit RewardsFunded(funder, amount);
     }
 
     /// @notice Owner may reclaim unused reward reserve (never staked principal).

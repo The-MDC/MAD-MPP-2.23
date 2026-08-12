@@ -6,6 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
+import {ERC2771Context} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 /**
  * @title MADMarketFactory
@@ -30,8 +31,17 @@ import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
  *
  *         Payouts use a pull pattern (each winner calls `claim`); only the two
  *         fee transfers happen at resolution, after all state is final.
+ *
+ *         ERC-2771 (gasless): trades through the deployed MAD Gambit relayer
+ *         (see verify/app/api/v1/relay/execute) resolve to the real signer via
+ *         _msgSender(), never the forwarder's own address. `createMarket`,
+ *         `back`, `claim` and `claimRefund` are the only functions where
+ *         caller identity is economically meaningful, so those are the only
+ *         ones using _msgSender() instead of msg.sender. onlyOwner functions
+ *         need no change — Ownable already resolves identity through
+ *         _msgSender() internally.
  */
-contract MADMarketFactory is Ownable, ReentrancyGuard, Pausable {
+contract MADMarketFactory is Ownable, ReentrancyGuard, Pausable, ERC2771Context {
     using SafeERC20 for IERC20;
 
     IERC20 public immutable madx;
@@ -89,7 +99,10 @@ contract MADMarketFactory is Ownable, ReentrancyGuard, Pausable {
     error AlreadyClaimed();
     error NotCancelled();
 
-    constructor(address _madx, address _treasury) Ownable(msg.sender) {
+    constructor(address _madx, address _treasury, address trustedForwarder_)
+        Ownable(msg.sender)
+        ERC2771Context(trustedForwarder_)
+    {
         require(_madx != address(0), "MADMarketFactory: token is zero");
         require(_treasury != address(0), "MADMarketFactory: treasury is zero");
         madx = IERC20(_madx);
@@ -118,7 +131,7 @@ contract MADMarketFactory is Ownable, ReentrancyGuard, Pausable {
 
     /* ─────────────────────────── UGC create ─────────────────────────── */
 
-    /// @notice Anyone can create a market. `msg.sender` becomes the creator and
+    /// @notice Anyone can create a market. The caller becomes the creator and
     ///         earns the 40% creator share of the fee when it settles.
     function createMarket(int256 threshold, uint64 resolutionTime)
         external
@@ -126,10 +139,11 @@ contract MADMarketFactory is Ownable, ReentrancyGuard, Pausable {
         returns (uint256 marketId)
     {
         if (resolutionTime <= block.timestamp) revert TooLate();
+        address creator = _msgSender();
         marketId = markets.length;
         markets.push(
             Market({
-                creator: msg.sender,
+                creator: creator,
                 threshold: threshold,
                 resolutionTime: resolutionTime,
                 status: Status.Open,
@@ -139,7 +153,7 @@ contract MADMarketFactory is Ownable, ReentrancyGuard, Pausable {
                 distributable: 0
             })
         );
-        emit MarketCreated(marketId, msg.sender, threshold, resolutionTime);
+        emit MarketCreated(marketId, creator, threshold, resolutionTime);
     }
 
     /* ─────────────────────────── backing ─────────────────────────── */
@@ -151,15 +165,16 @@ contract MADMarketFactory is Ownable, ReentrancyGuard, Pausable {
         if (m.status != Status.Open) revert MarketClosed();
         if (block.timestamp >= m.resolutionTime) revert TooLate();
 
+        address backer = _msgSender();
         if (side == Side.Over) {
             m.overPool += amount;
-            overStake[marketId][msg.sender] += amount;
+            overStake[marketId][backer] += amount;
         } else {
             m.underPool += amount;
-            underStake[marketId][msg.sender] += amount;
+            underStake[marketId][backer] += amount;
         }
-        madx.safeTransferFrom(msg.sender, address(this), amount);
-        emit Backed(marketId, msg.sender, side, amount);
+        madx.safeTransferFrom(backer, address(this), amount);
+        emit Backed(marketId, backer, side, amount);
     }
 
     /* ─────────────────────────── resolution ─────────────────────────── */
@@ -201,16 +216,17 @@ contract MADMarketFactory is Ownable, ReentrancyGuard, Pausable {
 
     /// @notice Claim a winning pro-rata payout (pull pattern, once per market).
     function claim(uint256 marketId) external nonReentrant returns (uint256 payout) {
+        address user = _msgSender();
         if (marketId >= markets.length) revert MarketNotFound();
         if (markets[marketId].status != Status.Resolved) revert NotResolved();
-        if (claimed[marketId][msg.sender]) revert AlreadyClaimed();
+        if (claimed[marketId][user]) revert AlreadyClaimed();
 
-        payout = pendingPayout(marketId, msg.sender);
+        payout = pendingPayout(marketId, user);
         if (payout == 0) revert NothingToClaim();
 
-        claimed[marketId][msg.sender] = true;
-        madx.safeTransfer(msg.sender, payout);
-        emit Claimed(marketId, msg.sender, payout);
+        claimed[marketId][user] = true;
+        madx.safeTransfer(user, payout);
+        emit Claimed(marketId, user, payout);
     }
 
     /* ─────────────────────────── cancellation / refunds ─────────────────────────── */
@@ -227,16 +243,17 @@ contract MADMarketFactory is Ownable, ReentrancyGuard, Pausable {
 
     /// @notice Reclaim full stake (both sides) from a cancelled market.
     function claimRefund(uint256 marketId) external nonReentrant returns (uint256 amount) {
+        address user = _msgSender();
         if (marketId >= markets.length) revert MarketNotFound();
         if (markets[marketId].status != Status.Cancelled) revert NotCancelled();
-        if (claimed[marketId][msg.sender]) revert AlreadyClaimed();
+        if (claimed[marketId][user]) revert AlreadyClaimed();
 
-        amount = overStake[marketId][msg.sender] + underStake[marketId][msg.sender];
+        amount = overStake[marketId][user] + underStake[marketId][user];
         if (amount == 0) revert NothingToClaim();
 
-        claimed[marketId][msg.sender] = true;
-        madx.safeTransfer(msg.sender, amount);
-        emit Refunded(marketId, msg.sender, amount);
+        claimed[marketId][user] = true;
+        madx.safeTransfer(user, amount);
+        emit Refunded(marketId, user, amount);
     }
 
     /* ─────────────────────────── admin ─────────────────────────── */

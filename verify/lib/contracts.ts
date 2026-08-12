@@ -52,6 +52,7 @@ const ENV = {
   staking: process.env.NEXT_PUBLIC_STAKING_ADDRESS,
   marketFactory: process.env.NEXT_PUBLIC_MARKET_FACTORY_ADDRESS,
   treasury: process.env.NEXT_PUBLIC_TREASURY_ADDRESS,
+  forwarder: process.env.NEXT_PUBLIC_FORWARDER_ADDRESS,
 };
 
 export interface Deployment {
@@ -59,6 +60,8 @@ export interface Deployment {
   staking: `0x${string}` | null;
   marketFactory: `0x${string}` | null;
   treasury: `0x${string}` | null;
+  /** ERC-2771 trusted forwarder — see script/Deploy.s.sol and lib/meta-tx.ts. */
+  forwarder: `0x${string}` | null;
 }
 
 /**
@@ -73,6 +76,7 @@ export function deploymentFor(chainId: number = DEFAULT_CHAIN_ID): Deployment {
     staking: asAddr(ENV.staking),
     marketFactory: asAddr(ENV.marketFactory),
     treasury: asAddr(ENV.treasury),
+    forwarder: asAddr(ENV.forwarder),
   };
 }
 
