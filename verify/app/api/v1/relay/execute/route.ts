@@ -25,11 +25,11 @@ import { FORWARDER_ABI } from "@/lib/meta-tx";
 
 const MAX_RELAY_GAS = BigInt(2_000_000);
 
-function allowlistedTargets(): Set<`0x${string}`> {
+function allowlistedTargets(): `0x${string}`[] {
   const { staking, marketFactory } = deploymentFor();
-  const targets = new Set<`0x${string}`>();
-  if (staking) targets.add(staking);
-  if (marketFactory) targets.add(marketFactory);
+  const targets: `0x${string}`[] = [];
+  if (staking) targets.push(staking);
+  if (marketFactory) targets.push(marketFactory);
   return targets;
 }
 
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error: "request.from must match your authenticated wallet" }, { status: 403 });
   }
 
-  if (!allowlistedTargets().has(to)) {
+  if (!allowlistedTargets().some((t) => isAddressEqual(t, to))) {
     return NextResponse.json({ success: false, error: "target contract is not relayable" }, { status: 403 });
   }
 
