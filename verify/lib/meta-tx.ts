@@ -117,7 +117,7 @@ export async function signMetaTx(params: {
     message: {
       from: account,
       to,
-      value: 0n,
+      value: BigInt(0),
       gas,
       nonce: currentNonce,
       deadline,
@@ -125,5 +125,5 @@ export async function signMetaTx(params: {
     },
   });
 
-  return { from: account, to, value: 0n, gas, deadline, data, signature };
+  return { from: account, to, value: BigInt(0), gas, deadline, data, signature };
 }

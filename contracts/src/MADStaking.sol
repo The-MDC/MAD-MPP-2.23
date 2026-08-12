@@ -6,6 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {ERC2771Context} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
 /**
  * @title MADStaking
@@ -191,5 +192,23 @@ contract MADStaking is Ownable, ReentrancyGuard, ERC2771Context {
 
     function tierCount() external view returns (uint256) {
         return tiers.length;
+    }
+
+    /* ─────────────────────────── ERC-2771 diamond resolution ───────────
+     * Ownable and ERC2771Context both derive from Context, so the compiler
+     * needs an explicit pick for which _msgSender/_msgData/_contextSuffixLength
+     * wins — this is the standard OZ resolution, not custom logic.
+     */
+
+    function _msgSender() internal view override(Context, ERC2771Context) returns (address) {
+        return ERC2771Context._msgSender();
+    }
+
+    function _msgData() internal view override(Context, ERC2771Context) returns (bytes calldata) {
+        return ERC2771Context._msgData();
+    }
+
+    function _contextSuffixLength() internal view override(Context, ERC2771Context) returns (uint256) {
+        return ERC2771Context._contextSuffixLength();
     }
 }

@@ -7,6 +7,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {ERC2771Context} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
 /**
  * @title MADMarketFactory
@@ -270,5 +271,23 @@ contract MADMarketFactory is Ownable, ReentrancyGuard, Pausable, ERC2771Context 
 
     function unpause() external onlyOwner {
         _unpause();
+    }
+
+    /* ─────────────────────────── ERC-2771 diamond resolution ───────────
+     * Ownable and ERC2771Context both derive from Context, so the compiler
+     * needs an explicit pick for which _msgSender/_msgData/_contextSuffixLength
+     * wins — this is the standard OZ resolution, not custom logic.
+     */
+
+    function _msgSender() internal view override(Context, ERC2771Context) returns (address) {
+        return ERC2771Context._msgSender();
+    }
+
+    function _msgData() internal view override(Context, ERC2771Context) returns (bytes calldata) {
+        return ERC2771Context._msgData();
+    }
+
+    function _contextSuffixLength() internal view override(Context, ERC2771Context) returns (uint256) {
+        return ERC2771Context._contextSuffixLength();
     }
 }

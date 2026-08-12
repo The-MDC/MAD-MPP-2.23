@@ -23,7 +23,7 @@ import { FORWARDER_ABI } from "@/lib/meta-tx";
  *      broadcast service for whoever's signature you happen to be holding.
  */
 
-const MAX_RELAY_GAS = 2_000_000n;
+const MAX_RELAY_GAS = BigInt(2_000_000);
 
 function allowlistedTargets(): Set<`0x${string}`> {
   const { staking, marketFactory } = deploymentFor();
@@ -87,7 +87,7 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ success: false, error: "malformed gas value" }, { status: 400 });
   }
-  if (gas <= 0n || gas > MAX_RELAY_GAS) {
+  if (gas <= BigInt(0) || gas > MAX_RELAY_GAS) {
     return NextResponse.json({ success: false, error: `gas must be between 0 and ${MAX_RELAY_GAS}` }, { status: 400 });
   }
 
@@ -105,7 +105,7 @@ export async function POST(req: Request) {
         {
           from,
           to,
-          value: 0n,
+          value: BigInt(0),
           gas,
           deadline: r.deadline,
           data: r.data as `0x${string}`,
