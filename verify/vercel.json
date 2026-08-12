@@ -14,6 +14,11 @@
       ]
     }
   ],
+  "git": {
+    "deploymentEnabled": {
+      "main": false
+    }
+  },
   "ignoreCommand": "case \"$VERCEL_GIT_COMMIT_REF\" in main|feat/*|claude/*) exit 1;; *) exit 0;; esac",
   "crons": [
     { "path": "/api/v1/cron/rollup", "schedule": "0 * * * *" },
