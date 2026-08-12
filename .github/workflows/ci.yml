@@ -64,6 +64,27 @@ jobs:
         continue-on-error: true
         run: npm run lint
 
+  # ── Route-guard gate ────────────────────────────────────────────────
+  # Fails if a mutating route handler (POST/PUT/PATCH/DELETE) has no
+  # recognizable auth/rate-limit guard and no explicit `// PUBLIC-ROUTE:`
+  # opt-out comment. An audit found 33 of 53 mutating routes with zero
+  # protection, not by decision — nobody remembered to add one. This makes
+  # that failure mode visible on every PR instead of only in a manual audit.
+  # No `npm ci` needed: scripts/check-route-guards.mjs is dependency-free.
+  route-guards:
+    name: Route-guard check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: verify
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check every mutating route is guarded or explicitly public
+        run: node scripts/check-route-guards.mjs
+
   # ── Build gate ──────────────────────────────────────────────────────
   # The real `next build` on every PR. Until now it ran ONLY on push-to-main
   # (vercel-deploy.yml) and the Vercel deployment was dashboard-Ignored, so

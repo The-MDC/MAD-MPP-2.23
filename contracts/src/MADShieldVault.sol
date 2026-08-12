@@ -2,9 +2,12 @@
 pragma solidity ^0.8.24;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract MADShieldVault is Ownable {
+    using SafeERC20 for IERC20;
+
     enum ShieldTier { Standard, Shielded, Whale }
 
     struct Position {
@@ -89,7 +92,7 @@ contract MADShieldVault is Ownable {
         uint256 totalRequired = stakeAmount + premium;
 
         // Transfer stake + premium from user
-        token.transferFrom(msg.sender, address(this), totalRequired);
+        token.safeTransferFrom(msg.sender, address(this), totalRequired);
 
         positionId = positions[msg.sender].length;
         positions[msg.sender].push(Position({
@@ -144,7 +147,7 @@ contract MADShieldVault is Ownable {
         pos.isActive = false;
         pos.isClaimed = true;
 
-        token.transfer(msg.sender, pos.stakeAmount);
+        token.safeTransfer(msg.sender, pos.stakeAmount);
 
         emit Claimed(msg.sender, positionId, pos.stakeAmount);
     }
@@ -166,7 +169,7 @@ contract MADShieldVault is Ownable {
         pos.isActive = false;
         pos.isClaimed = true;
 
-        token.transfer(user, payout);
+        token.safeTransfer(user, payout);
 
         emit LossResolved(user, positionId, payout, pos.stakeAmount - payout);
     }
@@ -237,6 +240,6 @@ contract MADShieldVault is Ownable {
      * @param amount The amount of tokens to withdraw.
      */
     function withdraw(uint256 amount) external onlyOwner {
-        token.transfer(owner(), amount);
+        token.safeTransfer(owner(), amount);
     }
 }

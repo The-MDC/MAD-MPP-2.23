@@ -5,10 +5,23 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { openCardPack, PLATFORM, RARITY_TABLE } from "@/lib/gambit-game-math";
+import { requireMadxRouteAuth, isAuthResponse } from "@/lib/madx-route-auth";
 
 export const dynamic = "force-dynamic";
 
+// SECURITY NOTE (partial fix, flagged not solved): this route had no auth at
+// all, and its "balance check" is decorative — madxBalance is read straight
+// from the request body, there's no DATABASE_URL/getDbPool import in this
+// file, and nothing here persists a pack or debits anything. Requiring a
+// session at least ties every pack-open to an accountable wallet instead of
+// an anonymous caller. It does NOT make the balance check real — that needs
+// a server-side balance source (on-chain read or a ledger table) wired in by
+// whoever owns the actual MADx purchase/spend flow, which this route doesn't
+// have visibility into.
 export async function POST(req: NextRequest) {
+  const auth = requireMadxRouteAuth(req, "cards-open-pack", 20, 60_000);
+  if (isAuthResponse(auth)) return auth;
+
   try {
     const body = await req.json().catch(() => ({}));
     const userNonce = typeof body.userNonce === "number" ? body.userNonce : Math.floor(Math.random() * 999999);

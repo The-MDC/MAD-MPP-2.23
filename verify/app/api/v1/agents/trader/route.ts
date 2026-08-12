@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { StateGraph, START, END, Annotation } from '@langchain/langgraph';
 import { ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings } from '@langchain/google-genai';
 import { getDbPool } from '@/lib/db';
+import { requireBearerSecret } from '@/lib/bearer-secret';
 
 const TraderState = Annotation.Root({
   targetTrade: Annotation<any>({
@@ -105,7 +106,15 @@ const workflow = new StateGraph(TraderState)
 
 const app = workflow.compile();
 
-export async function POST() {
+// Internal simulated-copy-trade pipeline (a whale-trade fixture, a vector-DB
+// lookup, an LLM approve/reject call) with no user-facing purpose today — no
+// params, no per-caller behavior. Same reasoning as agents/scraper: gated
+// with CRON_SECRET rather than rate-limited, since there's no legitimate
+// anonymous caller to rate-limit in the first place.
+export async function POST(req: Request) {
+  const auth = requireBearerSecret(req, "CRON_SECRET");
+  if (auth) return auth;
+
   try {
     const finalState = await app.invoke({
       targetTrade: null,

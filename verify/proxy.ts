@@ -44,6 +44,9 @@ const BEARER_PATHS = new Set([
   "/api/v1/cron/rollup",
   "/api/v1/perps/roll",
   "/api/v1/registrar/lapse",
+  "/api/v1/ingest/gdelt",
+  "/api/v1/agents/scraper",
+  "/api/v1/agents/trader",
 ]);
 
 export function proxy(req: NextRequest) {
