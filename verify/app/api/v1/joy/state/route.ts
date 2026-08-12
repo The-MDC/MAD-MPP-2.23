@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { computeJoyState, type JoyInput, type TimedSignal } from "@/lib/joy-engineering";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
+// PUBLIC-ROUTE: pure calculator, no DB, no side effects (see below).
+// Rate-limited as a cost ceiling only.
 /**
  * POST /api/v1/joy/state — pure engagement-mechanics calculator. Surfaces the
  * composed joy-engineering math (virality index · attention momentum · Fibonacci
@@ -22,6 +25,9 @@ function parseContributions(raw: unknown): TimedSignal[] {
 }
 
 export async function POST(req: Request) {
+  const limited = enforceRateLimit(req, "joy-state", 60, 60_000);
+  if (limited) return limited;
+
   try {
     const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
     const v = (body.virality ?? {}) as Record<string, unknown>;

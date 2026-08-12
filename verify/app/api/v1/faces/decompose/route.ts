@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { FACE_ORDER, type FaceId, stakeableLabel, type PersonaDisplayMode } from "@/lib/persona-codex";
 import { fromFaceRecord } from "@/lib/persona-simplex";
 import { decompose, detectSlip, type SimplexState } from "@/lib/persona-decompose";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
+// PUBLIC-ROUTE: pure maths, no database, no external calls — a preview
+// endpoint by design (see below). Rate-limited only as a cost ceiling, not
+// because this needs identity.
 /**
  * POST /api/v1/faces/decompose — run one decomposition step.
  *
@@ -28,6 +32,9 @@ function toVector(v: Record<string, number> | number[] | undefined): number[] {
 }
 
 export async function POST(req: Request) {
+  const limited = enforceRateLimit(req, "faces-decompose", 60, 60_000);
+  if (limited) return limited;
+
   try {
     const body = (await req.json().catch(() => ({}))) as Body;
     const mode: PersonaDisplayMode = body.mode === "broadcast" ? "broadcast" : "codex";

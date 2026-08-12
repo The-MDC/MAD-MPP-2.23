@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { hasDatabaseUrl } from "@/lib/database-url";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 /**
  * MAD Gambit — Game Lobby API  (chat channels + Wall)
@@ -59,6 +60,9 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const limited = enforceRateLimit(req, "lobby-post", 10, 60_000);
+  if (limited) return limited;
+
   if (!hasDatabaseUrl()) return NextResponse.json({ success: false, error: "DATABASE_URL not set" }, { status: 503 });
   const pool = getDbPool();
   try {
@@ -76,7 +80,9 @@ export async function POST(req: Request) {
     if (imageUrl && !/\.(png|jpe?g|gif|webp)(\?|$)/i.test(imageUrl)) {
       return NextResponse.json({ success: false, error: "image/gif attachments only" }, { status: 400 });
     }
-    // PLACEHOLDER: add rate-limiting + moderation here (see README plugin requirements).
+    // Rate-limited above. Content moderation is still a PLACEHOLDER — see
+    // README plugin requirements; that's a filtering/review feature, not a
+    // guard, and needs a real design, not a quick add.
     const res = await pool.query(
       `INSERT INTO lobby_messages (channel, username, subject, body, image_url)
        VALUES ($1, $2, $3, $4, $5)

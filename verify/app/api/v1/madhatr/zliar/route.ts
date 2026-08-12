@@ -7,8 +7,15 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { zLiarMeter } from "@/lib/gambit-game-math";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
+// PUBLIC-ROUTE: pure maths + a canned placeholder string today (see below),
+// no DB. Rate-limited now on purpose — this becomes a real Gemini call in
+// prod, so the cost ceiling should already be in place before that lands.
 export async function POST(req: NextRequest) {
+  const limited = enforceRateLimit(req, "madhatr-zliar", 60, 60_000);
+  if (limited) return limited;
+
   try {
     const { statement, narrativeVariance = 0.5, sourceCredibility = 0.5, corroboration = 0.3 } = await req.json();
     const reading = zLiarMeter({ narrativeVariance, sourceCredibility, corroboration });
