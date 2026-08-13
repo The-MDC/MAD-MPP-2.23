@@ -41,6 +41,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Minus, Plus, Maximize2 } from "lucide-react";
+import OVConvictionStateNode from "@/components/ov-conviction-state-node";
 
 /** The logical phone the desktop bezel presents. iPhone 14 Pro/15/16. */
 const PHONE = { w: 393, h: 852 };
@@ -176,6 +177,10 @@ export default function DeviceFrame({ children }: { children: React.ReactNode })
       <div className="mg-device">
         <div className="mg-device-scroll">{children}</div>
       </div>
+
+      {/* O-V Conviction State Node — desktop only, outside .mg-device for the
+          same reason as the zoom bar below. Self-gates on isDesktop. */}
+      <OVConvictionStateNode isDesktop={isDesktop} />
 
       {/* Zoom control — desktop only, and outside .mg-device so it is not
           itself zoomed by the variable it sets. */}

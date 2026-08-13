@@ -15,36 +15,10 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import { NODE_REGISTRY, NODE_IDS, type NodeId } from "@/lib/node-registry";
-import { fitCanvas } from "@/lib/instrument-chrome";
+import { fitCanvas, fibonacciSphere, resolveColor, type P3 } from "@/lib/instrument-chrome";
 
 const TAU = Math.PI * 2;
 const EDGE_STEPS = [1, 5, 9] as const;
-
-interface P3 { x: number; y: number; z: number }
-
-/** Even placement on a sphere — no clustering at the poles. */
-function fibonacciSphere(n: number): P3[] {
-  const out: P3[] = [];
-  const golden = Math.PI * (3 - Math.sqrt(5));
-  for (let i = 0; i < n; i++) {
-    const y = 1 - (i / (n - 1)) * 2;
-    const r = Math.sqrt(Math.max(0, 1 - y * y));
-    const th = golden * i;
-    out.push({ x: Math.cos(th) * r, y, z: Math.sin(th) * r });
-  }
-  return out;
-}
-
-/**
- * Registry accents are authored as CSS custom properties ("var(--gold)") —
- * canvas cannot resolve those, so read them off the live element.
- */
-function resolveColor(raw: string, el: HTMLElement, fallback: string): string {
-  const m = /var\(\s*(--[\w-]+)\s*(?:,\s*([^)]+))?\)/.exec(raw);
-  if (!m) return raw || fallback;
-  const got = getComputedStyle(el).getPropertyValue(m[1]).trim();
-  return got || (m[2] || "").trim() || fallback;
-}
 
 export default function OctavianMesh() {
   const { skin } = useSkin();
