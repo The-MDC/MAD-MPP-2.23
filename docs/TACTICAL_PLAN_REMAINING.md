@@ -160,7 +160,7 @@ Ordered by what unblocks the most.
 5. **Push the `v2.24-constellation` tag** (A2) — two commands, in §PHASE A. Blocked in-environment, not undone.
 6. **Delete `vercel-agent/migrate-middleware-to-proxy`** — one click. Same git-proxy block.
 7. **Phase-4 gate decisions** (P5) — the two secrets, the six sign-offs, the KMS choice. Only named subjects are blocked on this.
-8. **Re-authorise the Supabase and Windsor.ai connectors** in claude.ai settings — low priority; Supabase is dead code per D03.
+8. **Re-authorise the Windsor.ai connector** in claude.ai settings — low priority.
 
 ---
 
