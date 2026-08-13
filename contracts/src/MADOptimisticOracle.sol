@@ -17,16 +17,21 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
  *              outcome for question `q` and posts a $MADx bond.
  *           2. If nobody disputes within the liveness window, anyone can
  *              settle(q): the assertion becomes truth and the bond is returned.
- *           3. dispute(q) within the window (matching bond) escalates to the
- *              resolver (owner / DVM in v1), who supplies the final outcome via
+ *           3. dispute(q, counterOutcome) within the window (matching bond)
+ *              escalates, recording the disputer's own counter-claim. The
+ *              resolver then supplies the final outcome via
  *              resolveDispute(q, finalOutcome). The party whose value matches
  *              truth wins BOTH bonds minus a protocol fee; the loser is slashed.
  *
  *         Consumers (e.g. MADMarketFactory) read getResolvedOutcome(q).
  *
- *         Honest scope: escalation is resolver(owner)-adjudicated in v1 — NOT
- *         yet a decentralized $MADx token-holder (schelling) vote. Decentralizing
- *         the DVM is the documented next step. Legs 1–3 of the quadruple oracle
+ *         Decentralization, Phase A: `resolver` can be set to a
+ *         MADDisputeVoting instance, which lets staked-$MADx holders decide
+ *         disputes whose bond clears its threshold via commit-reveal voting,
+ *         falling back to the owner when quorum isn't met (see
+ *         MADDisputeVoting's own docs for the full reasoning). The owner
+ *         remains a resolver unconditionally — this is additive, not a
+ *         replacement. Legs 1–3 of the quadruple oracle
  *         (Chainlink/Pyth, AI multi-agent, quadratic-weighted community) feed the
  *         assertion; this contract is the money-at-risk finalizer.
  */
@@ -56,6 +61,7 @@ contract MADOptimisticOracle is Ownable, ReentrancyGuard {
         uint64 liveness;
         Status status;
         bool asserterWon; // meaningful once Resolved
+        int256 disputerOutcome; // the disputer's own counter-claim, set at dispute()
     }
 
     mapping(bytes32 => Assertion) public assertions;
@@ -63,13 +69,21 @@ contract MADOptimisticOracle is Ownable, ReentrancyGuard {
     uint64 public defaultLiveness = 2 hours;
     uint256 public minBond;
 
+    /// @notice Optional second resolver alongside the owner — set to a
+    ///         MADDisputeVoting instance to let staked-$MADx voting resolve
+    ///         disputes that clear its bond threshold, with the owner
+    ///         remaining a fallback for everything else (unset = owner-only,
+    ///         today's behavior, unchanged).
+    address public resolver;
+
     event Asserted(bytes32 indexed questionId, address indexed asserter, int256 outcome, uint256 bond);
-    event Disputed(bytes32 indexed questionId, address indexed disputer);
+    event Disputed(bytes32 indexed questionId, address indexed disputer, int256 counterOutcome);
     event Settled(bytes32 indexed questionId, int256 outcome, address indexed asserter);
     event DisputeResolved(bytes32 indexed questionId, int256 finalOutcome, address indexed winner, uint256 payout);
     event TreasuryUpdated(address indexed treasury);
     event LivenessUpdated(uint64 liveness);
     event MinBondUpdated(uint256 minBond);
+    event ResolverUpdated(address indexed resolver);
 
     error ZeroAddress();
     error BondTooLow();
@@ -80,6 +94,7 @@ contract MADOptimisticOracle is Ownable, ReentrancyGuard {
     error NotSettleable();
     error TooEarly();
     error NotDisputed();
+    error NotAuthorizedResolver();
 
     constructor(address _bondToken, address _treasury) Ownable(msg.sender) {
         if (_bondToken == address(0) || _treasury == address(0)) revert ZeroAddress();
@@ -119,17 +134,24 @@ contract MADOptimisticOracle is Ownable, ReentrancyGuard {
         emit Asserted(questionId, msg.sender, outcome, bond);
     }
 
-    function dispute(bytes32 questionId) external nonReentrant {
+    /// @param counterOutcome The disputer's own claim of the correct outcome.
+    ///        Purely informational for the owner's direct-resolve path (which
+    ///        can still supply any finalOutcome it wants, unchanged) — it
+    ///        exists so a MADDisputeVoting vote that favors the disputer has
+    ///        a concrete value to resolve to, since voters are choosing a
+    ///        side, not independently deriving a value.
+    function dispute(bytes32 questionId, int256 counterOutcome) external nonReentrant {
         Assertion storage a = assertions[questionId];
         if (a.status != Status.Asserted) revert NotDisputable();
         if (block.timestamp >= uint256(a.assertedAt) + uint256(a.liveness)) revert WindowClosed();
         if (msg.sender == a.asserter) revert SelfDispute();
 
         a.disputer = msg.sender;
+        a.disputerOutcome = counterOutcome;
         a.status = Status.Disputed;
 
         bondToken.safeTransferFrom(msg.sender, address(this), a.bond); // matching bond
-        emit Disputed(questionId, msg.sender);
+        emit Disputed(questionId, msg.sender, counterOutcome);
     }
 
     /* ─────────────────────────── settle / resolve ─────────────────────────── */
@@ -150,7 +172,12 @@ contract MADOptimisticOracle is Ownable, ReentrancyGuard {
 
     /// @notice Resolver rules on a disputed assertion by supplying the final
     ///         outcome. Whoever's value matches truth wins both bonds minus fee.
-    function resolveDispute(bytes32 questionId, int256 finalOutcome) external onlyOwner nonReentrant {
+    ///         Callable by the owner (always) or the registered `resolver`
+    ///         (a MADDisputeVoting instance, once one is set) — either can
+    ///         supply any finalOutcome; there's no special-casing of the
+    ///         voting path here beyond who's allowed to call it.
+    function resolveDispute(bytes32 questionId, int256 finalOutcome) external nonReentrant {
+        if (msg.sender != owner() && msg.sender != resolver) revert NotAuthorizedResolver();
         Assertion storage a = assertions[questionId];
         if (a.status != Status.Disputed) revert NotDisputed();
 
@@ -188,5 +215,12 @@ contract MADOptimisticOracle is Ownable, ReentrancyGuard {
     function setMinBond(uint256 _minBond) external onlyOwner {
         minBond = _minBond;
         emit MinBondUpdated(_minBond);
+    }
+
+    /// @notice Set (or clear, via address(0)) the second authorized resolver.
+    ///         The owner's own resolve path is never affected by this either way.
+    function setResolver(address _resolver) external onlyOwner {
+        resolver = _resolver;
+        emit ResolverUpdated(_resolver);
     }
 }

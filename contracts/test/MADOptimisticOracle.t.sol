@@ -30,9 +30,13 @@ contract MADOptimisticOracleTest is Test {
     }
 
     function _dispute(address who, uint256 bond) internal {
+        _dispute(who, bond, int256(999)); // arbitrary counter-claim; unused by owner-path tests
+    }
+
+    function _dispute(address who, uint256 bond, int256 counterOutcome) internal {
         vm.startPrank(who);
         token.approve(address(oracle), bond);
-        oracle.dispute(Q);
+        oracle.dispute(Q, counterOutcome);
         vm.stopPrank();
     }
 
@@ -98,7 +102,7 @@ contract MADOptimisticOracleTest is Test {
         vm.startPrank(disputer);
         token.approve(address(oracle), 1000 ether);
         vm.expectRevert(MADOptimisticOracle.WindowClosed.selector);
-        oracle.dispute(Q);
+        oracle.dispute(Q, int256(999));
         vm.stopPrank();
     }
 
@@ -107,7 +111,7 @@ contract MADOptimisticOracleTest is Test {
         vm.startPrank(asserter);
         token.approve(address(oracle), 1000 ether);
         vm.expectRevert(MADOptimisticOracle.SelfDispute.selector);
-        oracle.dispute(Q);
+        oracle.dispute(Q, int256(999));
         vm.stopPrank();
     }
 
@@ -116,7 +120,7 @@ contract MADOptimisticOracleTest is Test {
         _dispute(disputer, 1000 ether);
         vm.prank(disputer);
         vm.expectRevert(MADOptimisticOracle.NotDisputable.selector);
-        oracle.dispute(Q);
+        oracle.dispute(Q, int256(999));
     }
 
     function testOnlyOwnerResolveDispute() public {
