@@ -80,6 +80,9 @@ contract MADDisputeVoting is Ownable, ERC2771Context {
     mapping(bytes32 => Vote) public votes; // questionId => Vote
     mapping(bytes32 => mapping(address => bytes32)) public commitments;
     mapping(bytes32 => mapping(address => bool)) public hasRevealed;
+    /// @notice Each voter's stake snapshotted at THEIR OWN commit time — see
+    ///         revealVote for why this, not current-at-reveal stake, is used.
+    mapping(bytes32 => mapping(address => uint256)) public committedWeight;
 
     event VoteOpened(bytes32 indexed questionId, uint256 stakeSnapshot, uint64 commitDeadline, uint64 revealDeadline);
     event Committed(bytes32 indexed questionId, address indexed voter);
@@ -157,13 +160,24 @@ contract MADDisputeVoting is Ownable, ERC2771Context {
         if (commitments[questionId][voter] != bytes32(0)) revert AlreadyCommitted();
 
         commitments[questionId][voter] = commitHash;
+        committedWeight[questionId][voter] = stake;
         emit Committed(questionId, voter);
     }
 
-    /// @notice Reveal a committed vote. Weight is the voter's CURRENT stake at
-    ///         reveal time — quorum is measured against the snapshot taken at
-    ///         openVote, so unstaking mid-vote only costs the unstaker their
-    ///         own vote, it can't be used to manufacture or dodge quorum.
+    /// @notice Reveal a committed vote. Weight is the voter's stake AS OF
+    ///         THEIR OWN commitVote call, not current stake at reveal time —
+    ///         reading current stake here would let anyone stake up during
+    ///         the reveal window purely to inflate their own weight (or
+    ///         manufacture quorum against the fixed openVote snapshot) with
+    ///         capital that was never at risk when they committed, then
+    ///         withdraw it right after. Committed-time snapshotting closes
+    ///         that window: weight is locked in before reveal even opens.
+    ///         (This doesn't defend against staking up immediately before
+    ///         commitVote itself — doing that properly needs checkpointed
+    ///         balances in MADStaking, a larger change out of scope here.)
+    ///         Quorum's denominator (stakeSnapshot, taken at openVote) means
+    ///         unstaking mid-vote still only costs the unstaker their own
+    ///         vote — it can't be used to dodge quorum either.
     function revealVote(bytes32 questionId, Side side, bytes32 salt) external {
         Vote storage v = votes[questionId];
         if (v.commitDeadline == 0) revert NotOpen();
@@ -176,7 +190,7 @@ contract MADDisputeVoting is Ownable, ERC2771Context {
         bytes32 expected = keccak256(abi.encodePacked(side, salt, voter));
         if (commitments[questionId][voter] != expected) revert BadReveal();
 
-        (uint256 stake, , ) = staking.stakes(voter);
+        uint256 stake = committedWeight[questionId][voter];
         hasRevealed[questionId][voter] = true;
 
         if (side == Side.Asserter) v.weightAsserter += stake;

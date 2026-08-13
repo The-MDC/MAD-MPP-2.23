@@ -192,6 +192,39 @@ contract MADDisputeVotingTest is Test {
         voting.commitVote(Q, hash);
     }
 
+    /// @notice Regression for the reveal-time-stake bug: staking up after
+    ///         commit -- whether still in the commit window or right before
+    ///         reveal -- must not inflate a voter's counted weight.
+    function testStakingUpDuringRevealWindowDoesNotInflateWeight() public {
+        _assertAndDispute(BIG_BOND);
+        voting.openVote(Q);
+
+        address lateWhale = makeAddr("lateWhale");
+        token.mint(lateWhale, 2_000_000 ether); // stake() transfers per-call, not a delta -- must cover all three below
+        _stake(lateWhale, 1 ether); // minimal stake, just enough to commit
+
+        bytes32 salt = keccak256("late");
+        _commit(lateWhale, MADDisputeVoting.Side.Asserter, salt);
+
+        // Still inside the commit window: stake up massively AFTER
+        // committing but BEFORE the reveal window even opens.
+        _stake(lateWhale, 100_000 ether);
+
+        vm.warp(block.timestamp + voting.commitWindow() + 1);
+
+        // Stake up again, now inside the reveal window itself, immediately
+        // before revealing -- the exact attack the fix closes.
+        _stake(lateWhale, 900_000 ether);
+
+        vm.prank(lateWhale);
+        voting.revealVote(Q, MADDisputeVoting.Side.Asserter, salt);
+
+        // Weight must reflect the 1 ether staked at commit time only --
+        // none of the later stake-ups count.
+        (, , , uint256 weightAsserter, , ) = voting.votes(Q);
+        assertEq(weightAsserter, 1 ether);
+    }
+
     function testCannotFinalizeWhileRevealing() public {
         _assertAndDispute(BIG_BOND);
         voting.openVote(Q);
