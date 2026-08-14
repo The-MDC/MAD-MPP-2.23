@@ -93,7 +93,6 @@
 | 11 | `BondingCurve.sol` just created (not battle-tested) | `05-smart-contracts/madhat-core/src/prediction/` | Needs Foundry tests + fuzzing |
 | 12 | No CI/CD pipeline | `.github/workflows/` exists but empty | Add Foundry test workflow |
 | 13 | No deployment scripts for target chains | `05-smart-contracts/` | Need Arbitrum Nova/One/HyperEVM deploy scripts |
-| 14 | Supabase schema not linked to app code | `06-frontend/demo-app/` vs `04-technical-specs/MADHATS_DATABASE_SCHEMA.md` | Create migration files or Supabase project |
 
 ---
 
