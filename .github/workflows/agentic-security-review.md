@@ -17,7 +17,7 @@ network:
     - api.anthropic.com
 tools:
   github:
-    toolsets: [pull_requests, code_search]
+    toolsets: [pull_requests, search]
   edit:
 safe-outputs:
   add-comment:
@@ -25,14 +25,12 @@ safe-outputs:
 ---
 
 <!--
-  NOTE (read before activating): this is uncompiled gh-aw SOURCE. Run
-  `gh aw compile` (after `gh extension install github/gh-aw`) to generate
-  the paired `agentic-security-review.lock.yml` and validate this
-  frontmatter — gh-aw was in technical preview when this was written and
-  was never run through the real compiler in the session that authored
-  it. See MADHATs-Claude-Enhancement's
-  `.claude/skills/ecc/gh-aw-agentic-workflows.md` for the full activation
-  runbook (ANTHROPIC_API_KEY secret, compile step, enabling Actions).
+  `.lock.yml` is generated and kept in sync automatically by
+  agentic-compile.yml (runs in GitHub Actions on every push to this file).
+  Still requires an ANTHROPIC_API_KEY repo secret to actually run — see
+  MADHATs-Claude-Enhancement's
+  `.claude/skills/ecc/gh-aw-agentic-workflows.md` for the activation
+  runbook.
 -->
 
 # AI Security Review
