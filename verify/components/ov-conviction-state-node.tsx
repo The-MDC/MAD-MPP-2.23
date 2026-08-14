@@ -12,10 +12,17 @@
  * workbench space to occupy below DESKTOP_MIN.
  *
  * Three pieces:
- *   top-left     — a small, non-interactive Octavian orb: the same
- *                  fibonacciSphere placement + registry accents as the
- *                  full mesh at octavian-mesh.tsx, auto-spin only. The
- *                  drag/click/side-panel version belongs on /octavian —
+ *   top-left     — a non-interactive Octavian orb: the same fibonacciSphere
+ *                  placement + registry accents as the full mesh at
+ *                  octavian-mesh.tsx, at 256px (bounded under one perp-deck
+ *                  card's cardMinHeight of 378, per lib/deck-tokens.ts —
+ *                  a HUD accent stays smaller than an actual instrument).
+ *                  Fixed orientation, not auto-spinning: it used to turn
+ *                  continuously, which read as unintentional drift rather
+ *                  than a deliberate visual. "Alive" now comes from
+ *                  per-edge traveling pulses and a slow per-node glow
+ *                  breathe, both time-based with no change in position.
+ *                  The drag/click/side-panel version belongs on /octavian —
  *                  this is a corner visual, not a second instance of
  *                  that instrument.
  *   top-right    — a static legend of platform state/stats, read
@@ -43,6 +50,18 @@ const LEGEND_IDS: NodeId[] = ["fee-waterfall", "tokenomics", "staking", "madconv
 // switches/state content, surfaced here rather than invented fresh.
 const SWITCH_IDS: NodeId[] = ["ticker-legend", "gossip-cop"];
 
+// Fixed orientation for the corner orb — a single flattering angle rather
+// than the auto-spin this used to carry (yaw += 0.0022/frame). The traveling
+// edge-pulses and per-node breathe below are the "alive" signal instead;
+// the sphere itself no longer moves.
+const ORB_YAW = 0.62;
+const ORB_PITCH = -0.24;
+// Every stroke/dot size in the draw loop was tuned at the original 72px
+// corner size (R ≈ 28.8px there). Scaling them by canvas size keeps the mesh
+// looking dense and lit at the larger size instead of the same hairline
+// dots just spreading further apart.
+const ORB_BASELINE_R = 28.8;
+
 function OctavianOrb() {
   const { skin } = useSkin();
   const cvRef = useRef<HTMLCanvasElement | null>(null);
@@ -54,22 +73,20 @@ function OctavianOrb() {
     );
     return e;
   }, [base]);
-  const yaw = useRef(0);
 
   useEffect(() => {
     const draw = (cv: HTMLCanvasElement, t: number) => {
       const s = fitCanvas(cv);
       if (!s) return;
       const { ctx, w, h } = s;
-      yaw.current += 0.0022;
-      const pitch = -0.22;
-      const R = Math.min(w, h) * 0.4;
-      const cy = Math.cos(pitch);
-      const sy = Math.sin(pitch);
+      const R = Math.min(w, h) * 0.42;
+      const scale = R / ORB_BASELINE_R;
+      const cy = Math.cos(ORB_PITCH);
+      const sy = Math.sin(ORB_PITCH);
 
       const project = (p: P3) => {
-        const x1 = p.x * Math.cos(yaw.current) - p.z * Math.sin(yaw.current);
-        const z1 = p.x * Math.sin(yaw.current) + p.z * Math.cos(yaw.current);
+        const x1 = p.x * Math.cos(ORB_YAW) - p.z * Math.sin(ORB_YAW);
+        const z1 = p.x * Math.sin(ORB_YAW) + p.z * Math.cos(ORB_YAW);
         const y2 = p.y * cy - z1 * sy;
         const z2 = p.y * sy + z1 * cy;
         const k = 1 / (2.4 + z2 * 0.55);
@@ -77,6 +94,18 @@ function OctavianOrb() {
       };
 
       const pts = base.map(project);
+
+      // Ambient halo first — sells the sphere as a glowing instrument rather
+      // than a loose scatter of dots. Time-based pulse, not positional.
+      const haloPulse = 0.85 + 0.15 * Math.sin(t * 0.0009);
+      const halo = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, R * 1.85);
+      halo.addColorStop(0, `${skin.accent}22`);
+      halo.addColorStop(0.55, `${skin.accent}0c`);
+      halo.addColorStop(1, "transparent");
+      ctx.globalAlpha = haloPulse;
+      ctx.fillStyle = halo;
+      ctx.fillRect(0, 0, w, h);
+      ctx.globalAlpha = 1;
 
       edges
         .map((e) => ({ e, z: (pts[e[0]].z + pts[e[1]].z) / 2 }))
@@ -87,22 +116,25 @@ function OctavianOrb() {
           const pb = pts[b];
           const depth = Math.max(0.08, Math.min(1, (pa.k + pb.k) * 1.1));
           ctx.strokeStyle = skin.accent;
-          ctx.globalAlpha = 0.12 * depth;
-          ctx.lineWidth = 0.75;
+          ctx.globalAlpha = 0.16 * depth;
+          ctx.lineWidth = 0.9 * scale;
+          ctx.shadowBlur = 3 * scale;
+          ctx.shadowColor = skin.accent;
           ctx.beginPath();
           ctx.moveTo(pa.x, pa.y);
           ctx.lineTo(pb.x, pb.y);
           ctx.stroke();
+          ctx.shadowBlur = 0;
 
           const u = (((t * 0.00016 + seed) % 1) + 1) % 1;
           const px = pa.x + (pb.x - pa.x) * u;
           const py = pa.y + (pb.y - pa.y) * u;
-          ctx.globalAlpha = 0.7 * depth;
+          ctx.globalAlpha = 0.8 * depth;
           ctx.fillStyle = skin.gold;
-          ctx.shadowBlur = 6;
+          ctx.shadowBlur = 9 * scale;
           ctx.shadowColor = skin.gold;
           ctx.beginPath();
-          ctx.arc(px, py, 1.1 * depth + 0.4, 0, TAU);
+          ctx.arc(px, py, (1.3 * depth + 0.5) * scale, 0, TAU);
           ctx.fill();
           ctx.shadowBlur = 0;
           ctx.globalAlpha = 1;
@@ -114,10 +146,14 @@ function OctavianOrb() {
         .forEach(({ p, i }) => {
           const def = NODE_REGISTRY[NODE_IDS[i]];
           const col = resolveColor(def.accent, cv, skin.accent);
-          const r = 2.6 * Math.max(0.45, p.k * 2.3);
-          ctx.globalAlpha = Math.max(0.25, Math.min(1, p.k * 2.4));
+          // Slow per-node breathing glow — time-based only, phase-offset per
+          // node so the orb doesn't pulse as one flat unit. No positional
+          // motion, so it reads as "alive" without reading as "drifting".
+          const breathe = 0.85 + 0.15 * Math.sin(t * 0.0011 + i * 1.7);
+          const r = 3.1 * scale * Math.max(0.45, p.k * 2.3) * breathe;
+          ctx.globalAlpha = Math.max(0.3, Math.min(1, p.k * 2.4)) * breathe;
           ctx.fillStyle = col;
-          ctx.shadowBlur = 6;
+          ctx.shadowBlur = 9 * scale;
           ctx.shadowColor = col;
           ctx.beginPath();
           ctx.arc(p.x, p.y, r, 0, TAU);
