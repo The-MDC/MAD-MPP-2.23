@@ -279,7 +279,6 @@
 ### 10.1 Marketing Website (MADGambit.fun) — from Website Scope v1
 - Single-page scrolling landing (6 sections)
 - Email/social auth (NO Web3 required)
-- Supabase integration
 - Subdomain provisioning system
 - Dashboard redirect to app.MADGambit.fun
 - Target: Lighthouse >95, LCP <1.8s, <100KB bundle

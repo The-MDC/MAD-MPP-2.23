@@ -61,7 +61,6 @@ A parallel Next.js app exists in `src/` with:
 - Feature flags (`features.ts`) — `SMART_CONTRACTS_ENABLED=false` gates all Web3
 - API routes: `/api/contracts/status`, `/api/health`, `/api/wager`
 - Pages: arena, dashboard, leaderboard, wager
-- Supabase integration stub
 
 ### 3 Iterations Completed
 1. **Iteration 1:** Core MVP (17 endpoints, 9 pages, neon theme)
