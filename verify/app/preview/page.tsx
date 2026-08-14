@@ -37,7 +37,7 @@ import { useContainerWide } from "@/hooks/use-container-wide";
 import { PredictionCircus } from "@/components/kaito-and-circus";
 import GambitCardsAuctionSection from "@/components/gambit-cards-auction-section";
 import InstrumentDeckSection from "@/components/instrument-deck-section";
-import OctavianMesh from "@/components/octavian-mesh";
+import OctavianCreature from "@/components/octavian-creature";
 import { AutoShowcaseBadge } from "@/components/carousel";
 import MarketTypeCarousels from "@/components/market-type-carousels";
 import FacesWaterline from "@/components/faces-waterline";
@@ -318,7 +318,7 @@ function PreviewInner() {
             <div id="mg-octavian" style={{ scrollMarginTop: 72 }}>
               <SectionHeading>Octavian · Live Mesh</SectionHeading>
               <div style={{ border: `1px solid ${skin.border}`, borderRadius: 14, overflow: "hidden", background: skin.panel }}>
-                <OctavianMesh />
+                <OctavianCreature variant="full" />
               </div>
             </div>
 
