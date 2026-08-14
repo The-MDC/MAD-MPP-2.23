@@ -345,8 +345,8 @@ export interface P3 { x: number; y: number; z: number }
 
 /**
  * Even placement on a sphere — no clustering at the poles. Shared by
- * components/octavian-mesh.tsx and any smaller companion visual that needs
- * the same node layout at a different scale.
+ * components/octavian-creature.tsx — the one engine behind the corner HUD
+ * orb, the /octavian page, and the /preview inline embed.
  */
 export function fibonacciSphere(n: number): P3[] {
   const out: P3[] = [];
