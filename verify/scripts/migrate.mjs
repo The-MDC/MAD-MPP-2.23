@@ -8,11 +8,10 @@
  *
  *   DATABASE_URL=postgres://... node scripts/migrate.mjs
  *
- * Runs as part of `npm run build` on Vercel, so every deploy migrates the
- * environment's database (previews migrate their own Neon preview branch).
- * Escape hatch: SKIP_MIGRATIONS=1 skips deliberately and loudly — for use only
- * while the database is unreachable (e.g. Neon quota suspension). Remove it as
- * soon as the DB is back; a missing DATABASE_URL still fails the build.
+ * Run deliberately with `npm run migrate:deploy` from a database-connected
+ * operator session before deploying code that requires a new schema. The normal
+ * Vercel build never changes database state. `SKIP_MIGRATIONS` remains only for
+ * backwards compatibility and must not be used as a deployment workflow.
  */
 import { readdir, readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
