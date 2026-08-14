@@ -16,7 +16,7 @@ network:
     - api.anthropic.com
 tools:
   github:
-    toolsets: [pull_requests, code_search]
+    toolsets: [pull_requests, search]
   edit:
 safe-outputs:
   add-comment:
@@ -24,8 +24,10 @@ safe-outputs:
 ---
 
 <!--
-  NOTE (read before activating): uncompiled gh-aw SOURCE — run
-  `gh aw compile` before enabling. See MADHATs-Claude-Enhancement's
+  `.lock.yml` is generated and kept in sync automatically by
+  agentic-compile.yml (runs in GitHub Actions on every push to this file).
+  Still requires an ANTHROPIC_API_KEY repo secret to actually run — see
+  MADHATs-Claude-Enhancement's
   `.claude/skills/ecc/gh-aw-agentic-workflows.md` for the activation
   runbook.
 -->
