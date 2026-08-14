@@ -13,7 +13,7 @@ MAD Gambit requires AI-driven browser automation for:
 - ERC-4337 AA onboarding flow QA
 - Competitor market intelligence (Polymarket, Manifold, Kalshi)
 - Live deck validation (`maddegen.github.io/MADHATs-Gambit-Presentation`)
-- Supabase RLS visual audits during dev
+- Neon/Postgres RLS visual audits during dev
 
 Two candidates were evaluated: **Kapture MCP** and **Microsoft Playwright MCP**.
 
@@ -37,7 +37,7 @@ Two candidates were evaluated: **Kapture MCP** and **Microsoft Playwright MCP**.
 
 Kapture's architecture is identical to CVE-2025-49596 (MCP Inspector localhost breach)
 and CVE-2025-52882 (WebSocket auth bypass). Not acceptable on a dev machine with
-live wallet connections and Supabase service keys.
+live wallet connections and service keys.
 
 ---
 
@@ -68,14 +68,14 @@ live wallet connections and Supabase service keys.
         "--browser", "chromium",
         "--isolated",
         "--block-service-workers",
-        "--allowed-origins", "https://maddegen.github.io;https://app.madgambit.xyz;https://supabase.com;http://localhost:*"
+        "--allowed-origins", "https://maddegen.github.io;https://app.madgambit.xyz;http://localhost:*"
       ]
     }
   }
 }
 ```
 
-Also committed to `claude_desktop_config.json` (Windows: `%APPDATA%\Claude\`).
+Also committed to `claude_desktop_config.json` (Windows: `%APPDATA%\Claude/`).
 
 ---
 
@@ -85,7 +85,7 @@ Also committed to `claude_desktop_config.json` (Windows: `%APPDATA%\Claude\`).
 2. **AA onboarding QA** — ERC-4337 gasless flow across wallet states
 3. **Competitor intel** — Structured scraping of Polymarket/Manifold/Kalshi
 4. **Live deck validation** — Catch stale numbers on the investor deck
-5. **Supabase Dashboard audit** — Visual RLS/schema verification during dev
+5. **Database RLS/dashboard audit** — Visual RLS/schema verification during dev
 6. **Oracle monitoring** — Read Chainlink/Pyth dashboards for feed health
 
 ---
