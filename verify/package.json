@@ -15,7 +15,8 @@
     "test:watch": "vitest",
     "migrate": "node scripts/migrate.mjs",
     "db:smoke": "node scripts/db-smoke.mjs",
-    "migrate:deploy": "node scripts/migrate.mjs"
+    "migrate:deploy": "node scripts/migrate.mjs",
+    "schema:verify": "node scripts/schema-verify.mjs"
   },
   "dependencies": {
     "@langchain/community": "^1.1.29",
