@@ -11,7 +11,8 @@ vercel env pull .env.production --environment production
 npm run migrate:deploy
 ```
 
-Run `npm run db:smoke` against the same approved environment after migrations.
+Run `npm run schema:verify` first, then `npm run db:smoke` against the same approved environment after migrations.
+A ready schema has 14 recorded migrations, pgvector, and all MAD Gambit application tables.
 Never set `SKIP_MIGRATIONS` as a normal deployment path.
 
 ## Portrait storage
