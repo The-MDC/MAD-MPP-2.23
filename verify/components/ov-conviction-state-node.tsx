@@ -17,11 +17,13 @@
  *                  octavian-mesh.tsx, at 256px (bounded under one perp-deck
  *                  card's cardMinHeight of 378, per lib/deck-tokens.ts —
  *                  a HUD accent stays smaller than an actual instrument).
- *                  Fixed orientation, not auto-spinning: it used to turn
- *                  continuously, which read as unintentional drift rather
- *                  than a deliberate visual. "Alive" now comes from
- *                  per-edge traveling pulses and a slow per-node glow
- *                  breathe, both time-based with no change in position.
+ *                  Spins slowly on yaw while pitch independently sways on a
+ *                  much slower period, so it tumbles/weaves rather than
+ *                  turning flat on one axis like a carousel — deliberate
+ *                  motion, tuned slow, not the faster single-axis spin it
+ *                  had before (which read as drift). Per-edge traveling
+ *                  pulses and a slow per-node glow breathe add further life
+ *                  on top.
  *                  The drag/click/side-panel version belongs on /octavian —
  *                  this is a corner visual, not a second instance of
  *                  that instrument.
@@ -50,12 +52,15 @@ const LEGEND_IDS: NodeId[] = ["fee-waterfall", "tokenomics", "staking", "madconv
 // switches/state content, surfaced here rather than invented fresh.
 const SWITCH_IDS: NodeId[] = ["ticker-legend", "gossip-cop"];
 
-// Fixed orientation for the corner orb — a single flattering angle rather
-// than the auto-spin this used to carry (yaw += 0.0022/frame). The traveling
-// edge-pulses and per-node breathe below are the "alive" signal instead;
-// the sphere itself no longer moves.
-const ORB_YAW = 0.62;
-const ORB_PITCH = -0.24;
+// Slow auto-spin, kept per feedback (a first pass removed it entirely; the
+// ask was to tame it, not stop it — then to make it weave). Yaw accumulates
+// steadily and slowly; pitch independently sways on a much slower period so
+// the tilt itself drifts back and forth as it spins. The combination is a
+// tumble/weave rather than a flat single-axis carousel-spin.
+const ORB_SPIN_RATE = 0.0009; // ~40% of the original 0.0022 — "spin slowly"
+const ORB_PITCH_BASE = -0.24;
+const ORB_PITCH_SWING = 0.14;
+const ORB_PITCH_RATE = 0.00028; // full sway period ≈ 22s — slow enough to read as weaving, not jitter
 // Every stroke/dot size in the draw loop was tuned at the original 72px
 // corner size (R ≈ 28.8px there). Scaling them by canvas size keeps the mesh
 // looking dense and lit at the larger size instead of the same hairline
@@ -73,20 +78,23 @@ function OctavianOrb() {
     );
     return e;
   }, [base]);
+  const yaw = useRef(0);
 
   useEffect(() => {
     const draw = (cv: HTMLCanvasElement, t: number) => {
       const s = fitCanvas(cv);
       if (!s) return;
       const { ctx, w, h } = s;
+      yaw.current += ORB_SPIN_RATE;
+      const pitch = ORB_PITCH_BASE + ORB_PITCH_SWING * Math.sin(t * ORB_PITCH_RATE);
       const R = Math.min(w, h) * 0.42;
       const scale = R / ORB_BASELINE_R;
-      const cy = Math.cos(ORB_PITCH);
-      const sy = Math.sin(ORB_PITCH);
+      const cy = Math.cos(pitch);
+      const sy = Math.sin(pitch);
 
       const project = (p: P3) => {
-        const x1 = p.x * Math.cos(ORB_YAW) - p.z * Math.sin(ORB_YAW);
-        const z1 = p.x * Math.sin(ORB_YAW) + p.z * Math.cos(ORB_YAW);
+        const x1 = p.x * Math.cos(yaw.current) - p.z * Math.sin(yaw.current);
+        const z1 = p.x * Math.sin(yaw.current) + p.z * Math.cos(yaw.current);
         const y2 = p.y * cy - z1 * sy;
         const z2 = p.y * sy + z1 * cy;
         const k = 1 / (2.4 + z2 * 0.55);
