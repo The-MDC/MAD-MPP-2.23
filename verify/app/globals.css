@@ -419,13 +419,37 @@ body {
     left: max(16px, env(safe-area-inset-left));
     top: max(16px, env(safe-area-inset-top));
     z-index: 50;
-    /* Was 72px — read as a compact afterthought next to the legend/switch
-       panels. 256px is a deliberate step up while staying well under a perp
-       deck card's cardMinHeight (378px, lib/deck-tokens.ts GEO) — a HUD
-       accent, not an instrument competing with the deck below it. */
-    width: 256px;
-    height: 256px;
+    /* 3x the prior 256px base (was 72px originally). Clamped rather than a
+       flat 768px so it doesn't overrun smaller desktop viewports — the
+       320-768 range still reads as a corner "vitrine," not an instrument
+       competing with the perp deck below it. Interactive zoom (wheel/pinch,
+       see ov-conviction-state-node.tsx) scales the mesh's camera *within*
+       this fixed box; the box itself never resizes on zoom. */
+    width: clamp(280px, 40vw, 768px);
+    height: clamp(280px, 40vw, 768px);
+    border-radius: 28px;
+    overflow: hidden;
+    touch-action: none;
+    /* A real "3D box": lift shadow, glass inner-highlight, a dark inset
+       "floor" for depth, and a faint gold backing so the case itself feels
+       lit even before the mesh renders. */
+    background: radial-gradient(120% 120% at 50% 20%, color-mix(in srgb, var(--gd, #ffd700) 5%, transparent), transparent 60%);
+    box-shadow:
+      0 24px 60px -20px rgba(0, 0, 0, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -18px 40px -20px rgba(0, 0, 0, 0.5),
+      inset 0 0 0 1px color-mix(in srgb, var(--gd, #ffd700) 18%, transparent);
+  }
+  .mg-ov-corner::before {
+    /* Glass sheen overlay, painted above the canvas — sells the "display
+       case" read without needing a 3D rendering library. */
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
     pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(155deg, rgba(255, 255, 255, 0.1) 0%, transparent 30%, transparent 70%, rgba(255, 255, 255, 0.05) 100%);
   }
   .mg-ov-legend {
     position: fixed;
