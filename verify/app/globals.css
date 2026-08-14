@@ -419,8 +419,12 @@ body {
     left: max(16px, env(safe-area-inset-left));
     top: max(16px, env(safe-area-inset-top));
     z-index: 50;
-    width: 72px;
-    height: 72px;
+    /* Was 72px — read as a compact afterthought next to the legend/switch
+       panels. 256px is a deliberate step up while staying well under a perp
+       deck card's cardMinHeight (378px, lib/deck-tokens.ts GEO) — a HUD
+       accent, not an instrument competing with the deck below it. */
+    width: 256px;
+    height: 256px;
     pointer-events: none;
   }
   .mg-ov-legend {

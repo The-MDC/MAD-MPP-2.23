@@ -3,17 +3,18 @@
 /**
  * MAD Gambit — perpetual NYSE-style ticker (very top of the app).
  * ────────────────────────────────────────────────────────────────
- * ONE perpetual right-to-left marquee that DOUBLE-TAP cycles through the three
- * feeds (worksheet item B: "make this into one perpetual ticker that upon double
- * tapping auto cycles through all three perpetual NYSE style tickers"):
- *   1 (gold) Crypto  BTC · ETH · SOL · XRP           → Featured Markets
- *   2 (cyan) Gambit  MADx · DEGEN · CHAOS · VOLUME    → Featured Markets
- *   3 (pink) Scandal live satirical headlines         → News feed
- * A left pill shows the active feed + 3 dots and also cycles on click (a
- * discoverable affordance for the double-tap gesture). Every quote/headline is a
- * real <button> that opens an explainer popup (what it measures + a jump link);
- * the row pauses on hover so a moving item is clickable. Seamless loop, values
- * are beta placeholders, reduced-motion safe.
+ * ONE perpetual right-to-left marquee over four feeds — Crypto, Headlines,
+ * Commodities, Gambit. The left pill is the control surface:
+ *   · ONE TAP   opens a small tray with a radio button per feed, so any feed
+ *               is one click away instead of a sequential cycle.
+ *   · DOUBLE TAP cycles to the next feed directly, no tray — the quick path
+ *               for someone who just wants to see what's next.
+ * Tap/double-tap is disambiguated with a short (300ms) timer, the same
+ * pattern components/live-ticker.tsx uses: a second tap inside the window
+ * cancels the pending "open tray" action and cycles instead. Every
+ * quote/headline is a real <button> that opens an explainer popup (what it
+ * measures + a jump link); the row pauses on hover so a moving item is
+ * clickable. Seamless loop, values are beta placeholders, reduced-motion safe.
  */
 import React from "react";
 import { useSkin } from "@/components/skin-provider";
@@ -133,50 +134,124 @@ export default function CryptoTickerDual() {
   const { skin } = useSkin();
   const [idx, setIdx] = React.useState(0);
   const [info, setInfo] = React.useState(false);
+  const [trayOpen, setTrayOpen] = React.useState(false);
   const feed = FEEDS[idx];
   const accent = feed.accentKey === "gold" ? skin.gold : feed.accentKey === "accent" ? skin.accent : skin.accent2;
-  const cycle = () => { setInfo(false); setIdx((i) => (i + 1) % FEEDS.length); };
+  const cycle = () => { setInfo(false); setTrayOpen(false); setIdx((i) => (i + 1) % FEEDS.length); };
+  const selectFeed = (i: number) => { setInfo(false); setTrayOpen(false); setIdx(i); };
   const run = feed.items.concat(feed.items); // duplicated → seamless -50% loop
+
+  // Tap vs double-tap on the pill, timer-disambiguated (mirrors
+  // components/live-ticker.tsx's lastTap pattern). A lone tap opens the tray
+  // after the grace window; a second tap inside it cancels that and cycles.
+  const pillWrapRef = React.useRef<HTMLDivElement>(null);
+  const lastTap = React.useRef(0);
+  const tapTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onPillTap = React.useCallback((e: React.MouseEvent) => {
+    // Stops the row's own onDoubleClick from also firing on a pill
+    // double-click — the exact double-fire this file was already bitten by
+    // once (see the git history for the legend-does-nothing bug).
+    e.stopPropagation();
+    const now = Date.now();
+    if (now - lastTap.current < 300) {
+      if (tapTimer.current) { clearTimeout(tapTimer.current); tapTimer.current = null; }
+      lastTap.current = 0;
+      cycle();
+    } else {
+      lastTap.current = now;
+      tapTimer.current = setTimeout(() => {
+        setTrayOpen((o) => !o);
+        lastTap.current = 0;
+        tapTimer.current = null;
+      }, 300);
+    }
+  }, [cycle]);
+  React.useEffect(() => () => { if (tapTimer.current) clearTimeout(tapTimer.current); }, []);
+
+  // Close the tray on Escape or a click/tap outside it.
+  React.useEffect(() => {
+    if (!trayOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setTrayOpen(false); };
+    const onDocDown = (e: MouseEvent) => {
+      if (pillWrapRef.current && !pillWrapRef.current.contains(e.target as Node)) setTrayOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onDocDown);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onDocDown);
+    };
+  }, [trayOpen]);
 
   return (
     <div style={{ width: "100%" }}>
       <div
         className="mg-ck-row"
         onDoubleClick={cycle}
-        title="Double-tap to cycle tickers"
+        title="Tap the feed pill for a picker · double-tap anywhere to cycle"
         style={{ display: "flex", alignItems: "stretch", background: skin.bg, borderBottom: `1px solid ${accent}55`, userSelect: "none" }}
       >
-        {/* Feed selector pill — click cycles; mirrors the double-tap gesture. */}
-        <button
-          type="button"
-          // Double-click the legend to change stream, per the brief.
-          //
-          // This used to be onClick={cycle} while the whole row carried
-          // onDoubleClick={cycle}. Double-clicking the legend therefore fired
-          // TWO clicks plus one double-click and advanced three feeds — landing
-          // back where it started with a 3-feed list, which is why it read as
-          // "the legend does nothing". Cycling now happens once, on the double
-          // click, and the pill stops the event so the row handler cannot fire
-          // it a second time.
-          onDoubleClick={(e) => { e.stopPropagation(); cycle(); }}
-          // Pointer users double-click; keyboard users press Enter or Space,
-          // since a double-click has no keyboard equivalent.
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); cycle(); }
-          }}
-          aria-label={`Ticker feed: ${feed.label}. Press Enter to switch feed.`}
-          title="Double-click to change stream"
-          style={{ flex: "none", display: "flex", alignItems: "center", gap: 7, padding: "0 12px", background: `${accent}14`, border: "none", borderRight: `1px solid ${accent}44`, cursor: "pointer", fontFamily: INSTRUMENT_FONT }}
-        >
-          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.5, textTransform: "uppercase", color: accent, textShadow: `0 0 8px ${accent}66`, whiteSpace: "nowrap" }}>{feed.label}</span>
-          <span style={{ display: "inline-flex", gap: 3 }}>
-            {FEEDS.map((f, i) => (
-              <span key={f.key} style={{ width: 5, height: 5, borderRadius: "50%", background: i === idx ? accent : `${skin.muted}66`, boxShadow: i === idx ? `0 0 6px ${accent}` : "none" }} />
-            ))}
-          </span>
-          <AutoShowcaseBadge label="Auto-cycling ticker" />
-          <span style={{ fontSize: 9, color: `${accent}aa`, fontWeight: 900 }}>▸</span>
-        </button>
+        {/* Feed selector pill — tap opens a feed-picker tray, double-tap cycles. */}
+        <div ref={pillWrapRef} style={{ position: "relative", flex: "none" }}>
+          <button
+            type="button"
+            onClick={onPillTap}
+            // Keyboard has no double-tap equivalent, so Enter/Space maps to
+            // the tap action (open the tray) — that also gives keyboard
+            // users direct feed selection, which plain cycling didn't.
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setTrayOpen((o) => !o); }
+            }}
+            aria-haspopup="true"
+            aria-expanded={trayOpen}
+            aria-label={`Ticker feed: ${feed.label}. Press Enter for the feed picker.`}
+            title="Tap: feed picker · double-tap: next feed"
+            style={{ flex: "none", display: "flex", alignItems: "center", gap: 7, padding: "0 12px", background: `${accent}14`, border: "none", borderRight: `1px solid ${accent}44`, cursor: "pointer", fontFamily: INSTRUMENT_FONT }}
+          >
+            <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.5, textTransform: "uppercase", color: accent, textShadow: `0 0 8px ${accent}66`, whiteSpace: "nowrap" }}>{feed.label}</span>
+            <span style={{ display: "inline-flex", gap: 3 }}>
+              {FEEDS.map((f, i) => (
+                <span key={f.key} style={{ width: 5, height: 5, borderRadius: "50%", background: i === idx ? accent : `${skin.muted}66`, boxShadow: i === idx ? `0 0 6px ${accent}` : "none" }} />
+              ))}
+            </span>
+            <AutoShowcaseBadge label="Auto-cycling ticker" />
+            <span style={{ fontSize: 9, color: `${accent}aa`, fontWeight: 900, transform: trayOpen ? "rotate(90deg)" : undefined, transition: "transform 0.2s ease" }}>▸</span>
+          </button>
+
+          {trayOpen ? (
+            <div
+              role="radiogroup"
+              aria-label="Choose ticker feed"
+              style={{
+                position: "absolute", top: "100%", left: 0, marginTop: 4, zIndex: 60,
+                minWidth: 172, padding: 5, borderRadius: 10,
+                background: skin.panel, border: `1px solid ${accent}55`,
+                boxShadow: "0 14px 34px -8px rgba(0,0,0,0.75)",
+                fontFamily: INSTRUMENT_FONT,
+              }}
+            >
+              {FEEDS.map((f, i) => {
+                const on = i === idx;
+                const a = f.accentKey === "gold" ? skin.gold : f.accentKey === "accent" ? skin.accent : skin.accent2;
+                return (
+                  <button
+                    key={f.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    onClick={(e) => { e.stopPropagation(); selectFeed(i); }}
+                    style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "7px 8px", borderRadius: 7, border: "none", background: on ? `${a}1c` : "transparent", cursor: "pointer", textAlign: "left" }}
+                  >
+                    <span style={{ width: 10, height: 10, borderRadius: "50%", flex: "none", border: `1.5px solid ${on ? a : skin.muted}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {on ? <span style={{ width: 5, height: 5, borderRadius: "50%", background: a, boxShadow: `0 0 5px ${a}` }} /> : null}
+                    </span>
+                    <span style={{ fontSize: 10, fontWeight: on ? 900 : 700, letterSpacing: 0.4, textTransform: "uppercase", color: on ? a : skin.text }}>{f.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
 
         {/* The one perpetual marquee. */}
         <div style={{ flex: 1, minWidth: 0, overflow: "hidden", padding: "5px 0" }}>
