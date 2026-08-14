@@ -74,7 +74,7 @@ live wallet connections.
 }
 ```
 
-Also committed to `claude_desktop_config.json` (Windows: `%APPDATA%\Claude\`).
+Also committed to `claude_desktop_config.json` (Windows: `%APPDATA%\Claude/`).
 
 ---
 
