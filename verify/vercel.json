@@ -1,1 +1,28 @@
-Added optimized vercel.json with security headers and region settings for production stability
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    }
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "main": false
+    }
+  },
+  "ignoreCommand": "case \"$VERCEL_GIT_COMMIT_REF\" in main|feat/*|claude/*) exit 1;; *) exit 0;; esac",
+  "crons": [
+    { "path": "/api/v1/cron/rollup", "schedule": "0 * * * *" },
+    { "path": "/api/v1/perps/roll", "schedule": "0 0 * * *" },
+    { "path": "/api/v1/registrar/lapse", "schedule": "30 0 * * *" }
+  ]
+}
