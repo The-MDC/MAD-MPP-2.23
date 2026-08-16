@@ -167,24 +167,94 @@ Morpho: zero matches across ~190 repos. Aerodrome: the lookup required approval 
 
 ---
 
-## 7 · Task ledger
+## 7 · Repository completeness — verified 2026-08-16
 
-**Done this session:** Supabase cleanup · doc consolidation · maths master+companion · QOL top-12 benchmark · VRF audit · tactical plan · Octavian origin trace · Actions scan + CI fix · **cephalopod creature merge (B1 less container sizing)**.
+Checked, not assumed:
 
-**Open:**
+- **Working tree fully committed** — `git status --porcelain` returns empty. No untracked, no modified, no staged-but-uncommitted files.
+- **`.gitignore` excludes nothing load-bearing.** Root ignores `.env`, `.env.local`, `.env*.local`, `.vercel/`, `.DS_Store`. `verify/` adds `node_modules/`, `.next*/`, `coverage/`, `*.log`, `.env*` (with `!.env.example` re-included), `.vercel`, `tsconfig.tsbuildinfo`. Every one of those is either a secret, a machine-local link artifact, or a build product — correct to exclude.
+- **Only one ignored non-junk file exists on disk:** `verify/tsconfig.tsbuildinfo`, a TypeScript incremental-build cache. Correctly ignored; regenerated on every build.
+- **One TODO marker in all tracked source**, and it is historical (`nft-saga.tsx:9` — "TODO in original repo, **built here**").
 
-| # | Item | Type |
+**So: the repo IS the full front-to-back copy.** App (`verify/`), contracts (`contracts/`), Android/FastAPI subproject (`master-maths/`), CI (`.github/workflows/`), agent + Claude tooling (`.agents/`, `.claude/`), schema (`verify/sql/`), decks (`verify/public/pitch/`), docs (`docs/`). Nothing meaningful lives outside git.
+
+## 8 · Database state — what is and is not in the repo
+
+**Schema-as-code: complete and committed.**
+- 14 migrations, `verify/sql/0001_data_platform.sql` → `0014_slot_auction.sql`, applied by `verify/scripts/migrate.mjs` (one transaction each, tracked in a `_migrations` ledger, all `CREATE ... IF NOT EXISTS`, so re-runnable).
+- `verify/scripts/schema-verify.mjs` is a read-only readiness check: migration ledger, the `pgvector` extension, and **39 required tables** by name.
+- `npm run migrate:deploy` and `npm run schema:verify` are the controlled entry points. Migrations no longer run during `next build`.
+
+**What CANNOT be done from an agent session, and why.** Database *contents* are not a repo artifact — you push schema, not rows. Beyond that, this environment cannot reach the databases at all: `*.neon.tech` returns 403 through the egress proxy and TCP 5432 is unreachable (verified, not assumed — see §4). So no agent can dump, sync, or reconcile the live data.
+
+**And the databases are not in a state to be copied even by you yet.** There are **three** live Postgres databases under one Vercel-Neon integration — `mad-mpp-2-23-postgres` (target), `Neon-DB-MADMPP`, `neon-sky-park` — awaiting a founder-run merge. The ordered procedure and the read-only inspection SQL are in **`MAD_GAMBIT_MASTER.md` Part II.5**. Until that merge completes and is validated, "update all DBs" has no well-defined meaning: there is no single source database.
+
+**The correct sequence** is therefore: merge the three → run `schema:verify` against the survivor → if it reports drift, write migration `0015_*.sql` and commit *that*. The migration file is the artifact that belongs in the repo; the data never does.
+
+---
+
+## 9 · Combined task ledger — repo + this thread
+
+Merged: items already tracked in the repo before this session, and everything created in it.
+Ordered by what blocks the most.
+
+### 🔴 Decisions only you can make
+
+| # | Item | Where |
 |---|---|---|
-| 15 | `@neondatabase/serverless` vs ADR-008 | decision (§2.1) |
-| 21 | Three O-V deck canon conflicts | decision (§2.3) |
-| 16 | React18 / Hono / HonoX ask unclear | clarification (§2.5) |
-| 10 | Promote stale production deploy | decision |
-| — | Near-miss on real-money surfaces | decision (§2.2) |
-| — | Generate + commit the two `.lock.yml` files | task (§1) |
-| — | Visual pass on the creature; finish B1 container sizing | task (§3) |
-| 22 | Realign eslint / eslint-config-next / @types/node (needs npm) | task |
-| — | Neon three-database merge | founder-run (Master II.5) |
-| — | Phases 0–4 + B1–B2 | build (§3) |
+| 15 | `@neondatabase/serverless` vs ADR-008 — install request contradicts a settled ADR | §2.1 |
+| — | Near-miss mechanic on real-money surfaces | §2.2 |
+| 10 | Promote `main` to production (`deploymentEnabled.main = false`; prod is manual) | §2.4 |
+| — | `$MADx` supply: 888,888,888 canon vs the deployed mutable/mint-on-purchase contract | §2.4 |
+| — | Chain topology: Arbitrum One only vs the founder-locked Nova + One + HyperLiquid | §2.4 |
+| — | Token distribution split: April canon vs March "vFinal" | §2.4 |
+| 21 | Two O-V deck canon conflicts (Wyoming/New Mexico · "MAD Upshot") | §2.3 |
+| 16 | React18 / Hono / HonoX ask — never clarified | §2.5 |
+| 12 | Bundle docs into PR #77 or keep standalone (pre-existing repo todo) | repo |
+
+### 🟠 Founder-run — blocked on access an agent does not have
+
+| Item | Why |
+|---|---|
+| Neon three-database merge, then `schema:verify`, then migration `0015_*.sql` | §8 — egress-blocked |
+| Generate + commit `agentic-security-review.lock.yml` + `agentic-quality-review.lock.yml` | §1 — the Actions token is correctly forbidden from writing `.github/workflows/` |
+| Realign `eslint` / `eslint-config-next` / `@types/node` (#22) | needs a lockfile regen; npm registry is 403 here |
+| Rotate/confirm `NEON_API_KEY`, attach `madgambit.io`, GHAS toggles, push `v2.24-constellation` | pre-existing repo todos, all founder-gated |
+| Phase-4 named-subject gate: KMS choice, `MADPortraitKeyRegistry` deploy, 6 signed `registry_readiness` rows | pre-existing repo todo |
+
+### 🟢 Build work, in dependency order
+
+| Phase | Item | Effort |
+|---|---|---|
+| 0 | `open-pack` fairness bug — body-supplied `userNonce` is grindable; `madxBalance` check is decorative | 0.5d |
+| B1-rest | Octavian perps-deck container sizing + a visual pass on the creature | 0.5d |
+| 1 | Error boundaries · Suspense/skeletons · `next/font` · code splitting · image optimization | 2–3d |
+| 2 | `useOptimistic` · haptics coverage · persisted audio mute (default off) · focus rings | 2d |
+| 3 | VRF on Sepolia — seed-parameterize the rarity math, `MADRandomness.sol`, Foundry tests, async pack UX | 3–5d |
+| 4 | VRF mainnet + random juror selection in `MADDisputeVoting.sol` | — |
+| B2 | O-V deck → exterior interactive experience (blocked on §2.3) | 4–6d |
+| — | CSP header · ERC-4337 session keys (the two real gaps in the 8-layer security map) | — |
+| — | THE WIRE demo-row · raw-hex design-token scrub (~82 values, 5 panels) · 4 dead components · slot-auction clearing | pre-existing repo todos |
+
+**Not started, deliberately:** containerizing the platform — an architectural reversal for a
+Vercel-native Next.js app, and I want your reasoning before touching it.
+
+---
+
+## 10 · Definition of done for "fully green"
+
+The last green run (`c82dfda`) was **all 11 checks**: Type-check, Lint, Build, Unit tests,
+Route-guard, guard, Secret scan, Dependency review, forge build + test, Slither, Vercel Preview.
+Both Vercel previews Ready.
+
+Read that honestly, though — **green ≠ debugged**:
+- **Lint, Slither and Dependency Review are report-only.** Slither has ~135 untriaged findings. Green there means "ran", not "clean".
+- **Nothing blocks merge** until branch protection actually requires these checks on `main`.
+- **The Octavian creature has never been looked at.** It compiles, lints, builds and tests — none of which catch a canvas that renders wrong.
+- **The two AI review gates still do not run** (no `.lock.yml`).
+
+So the honest bar for "fully green and debugged" is: 11 checks green **plus** a human visual pass
+on the preview **plus** the report-only gates promoted to blocking once their backlogs are worked.
 
 **PR #91 is subscribed** — CI failures and review comments wake the session automatically. A
 self check-in is armed hourly until the PR merges or closes.
