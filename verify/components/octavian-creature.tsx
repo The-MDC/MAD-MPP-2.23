@@ -340,7 +340,31 @@ function OctavianCanvasPanel({ variant, onPopOut }: { variant: "compact" | "full
         0.32 * (ir.tierBlend / 2) + // agitated states tip away from face-on — "turning away"
         ob.pitchOffset;
 
-      const R = Math.min(w, h) * 0.42 * ob.zoom * (1 - 0.05 * ir.tierBlend);
+      // `project()` below puts the sphere SILHOUETTE at exactly R from centre
+      // (|x1|=1 forces z1=y=0, so k=1/2.4 and |x-w/2| = R*2.4*(1/2.4) = R).
+      // The old `0.42` budgeted for that silhouette and nothing else -- but every
+      // node also bleeds OUTWARD past it, and that bleed is the dominant term:
+      //
+      //   node radius r  = 3.1 * sizeVar(<=1.40) * scale * (p.k*2.3 <= 1.243)
+      //                  = ~0.187 R          (scale = R/ORB_BASELINE_R)
+      //   spike reach    = r * (<=3.1) * (<=1.4)  = ~0.81 R   beyond the node
+      //   firefly drift  = ~0.09 R                            beyond the node
+      //
+      // A node sitting on the silhouette with a spike pointing radially outward
+      // therefore landed at ~1.9R, against a half-box of 0.5*min(w,h) -- an
+      // envelope ~152% of the container, so the long spike arms were clipped at
+      // the canvas edge. Because bloom and reach are proportional to r, r to
+      // scale, and scale to R, that ratio is SIZE-INVARIANT: it clipped
+      // identically in the 280px corner HUD and on the full /octavian canvas,
+      // which is why it never read as "just a small-screen problem".
+      //
+      // Derived rather than hand-picked so that re-tuning the spike constants
+      // cannot silently reintroduce the clipping -- change MAX_NODE_BLEED and
+      // the fit follows.
+      const MAX_NODE_BLEED = 0.91; // spike reach (~0.81R) + firefly drift (~0.09R)
+      const ORB_FIT = 0.5 / (1 + MAX_NODE_BLEED); // ~0.262 of min(w,h)
+
+      const R = Math.min(w, h) * ORB_FIT * ob.zoom * (1 - 0.05 * ir.tierBlend);
       const scale = R / ORB_BASELINE_R;
       const cy = Math.cos(pitch);
       const sy = Math.sin(pitch);
