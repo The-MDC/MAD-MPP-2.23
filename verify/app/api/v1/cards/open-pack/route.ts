@@ -4,38 +4,41 @@
  * Source: Card Game Logic Code Reference §4 (pick_pack_cards).
  */
 import { NextRequest, NextResponse } from "next/server";
-import { openCardPack, PLATFORM, RARITY_TABLE } from "@/lib/gambit-game-math";
+import { randomInt } from "node:crypto";
+import { openCardPack, RARITY_TABLE } from "@/lib/gambit-game-math";
 import { requireMadxRouteAuth, isAuthResponse } from "@/lib/madx-route-auth";
+import { derivePackNonce } from "@/lib/pack-nonce";
+import { hasDatabaseUrl } from "@/lib/database-url";
+import { getDbPool } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-// SECURITY NOTE (partial fix, flagged not solved): this route had no auth at
-// all, and its "balance check" is decorative — madxBalance is read straight
-// from the request body, there's no DATABASE_URL/getDbPool import in this
-// file, and nothing here persists a pack or debits anything. Requiring a
-// session at least ties every pack-open to an accountable wallet instead of
-// an anonymous caller. It does NOT make the balance check real — that needs
-// a server-side balance source (on-chain read or a ledger table) wired in by
-// whoever owns the actual MADx purchase/spend flow, which this route doesn't
-// have visibility into.
+// SECURITY NOTE: fairness fix (Part 0 §2.2). Two prior issues, both closed:
+//
+// 1. userNonce and packNumber were both read straight from the request body
+//    — a client could pick either freely and retry until the roll it liked
+//    came up, at zero cost, since nothing was persisted. Both are now
+//    derived server-side from the caller's own wallet plus
+//    customer_accounts.pack_open_count, a persisted counter that only moves
+//    forward (same upsert-and-increment pattern as login_count). Retrying
+//    now always consumes the next counter value — a new roll, not a free
+//    reroll of the same one. This is NOT the VRF work (Part V Phase 3):
+//    it closes free rerolls, not general unpredictability of a single roll.
+//
+// 2. The balance check was decorative — madxBalance came from the request
+//    body with no server-side balance source behind it, so it could never
+//    actually block anyone. Removed rather than left in place implying a
+//    guarantee it didn't provide; a real check needs a server-side MADx
+//    balance source (on-chain read or ledger table) this route has no
+//    visibility into, owned by whoever builds the actual spend flow.
 export async function POST(req: NextRequest) {
   const auth = requireMadxRouteAuth(req, "cards-open-pack", 20, 60_000);
   if (isAuthResponse(auth)) return auth;
 
   try {
-    const body = await req.json().catch(() => ({}));
-    const userNonce = typeof body.userNonce === "number" ? body.userNonce : Math.floor(Math.random() * 999999);
-    const packNumber = typeof body.packNumber === "number" ? body.packNumber : 1;
-    const madxBalance = typeof body.madxBalance === "number" ? body.madxBalance : 0;
-
-    if (madxBalance < PLATFORM.CARD_PACK_COST) {
-      return NextResponse.json(
-        { error: `Insufficient balance. Pack costs ${PLATFORM.CARD_PACK_COST} MADx.`, required: PLATFORM.CARD_PACK_COST },
-        { status: 400 }
-      );
-    }
-
-    const result = openCardPack(userNonce, packNumber);
+    const packOpenCount = await nextPackOpenCount(auth.owner, auth.session.chainId);
+    const userNonce = derivePackNonce(auth.owner, packOpenCount);
+    const result = openCardPack(userNonce, packOpenCount);
 
     // Verify slot 0 guarantee server-side
     const slot0Rarity = result.cards[0].rarity;
@@ -50,12 +53,33 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       cards: result.cards,
       cost: result.cost,
-      newBalance: madxBalance - result.cost,
       slot0Guarantee: `${slot0Rarity} (≥Uncommon) ✓`,
-      packNumber,
+      packNumber: packOpenCount,
       totalCards: result.cards.length,
     });
   } catch (e) {
     return NextResponse.json({ error: "Pack opening failed" }, { status: 500 });
   }
+}
+
+/**
+ * The persisted, monotonic per-wallet pack counter. Falls back to a
+ * CSPRNG-derived one-off count when there's no database (demo/local) rather
+ * than hard-failing the route — there's no persisted state to grind against
+ * either way in that mode.
+ */
+async function nextPackOpenCount(owner: string, chainId: number): Promise<number> {
+  if (!hasDatabaseUrl()) return randomInt(1, 1_000_000);
+
+  const pool = getDbPool();
+  const { rows } = await pool.query<{ pack_open_count: string }>(
+    `INSERT INTO customer_accounts (wallet_address, chain_id, first_seen, pack_open_count)
+     VALUES ($1, $2, now(), 1)
+     ON CONFLICT (wallet_address) DO UPDATE
+       SET pack_open_count = customer_accounts.pack_open_count + 1,
+           updated_at = now()
+     RETURNING pack_open_count`,
+    [owner, chainId],
+  );
+  return Number(rows[0].pack_open_count);
 }
