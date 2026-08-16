@@ -65,7 +65,14 @@ jobs:
 
       - name: Fail if compiled output is out of date
         run: |
+          # `git add -N` (intent-to-add) is load-bearing: `git diff` is blind to
+          # UNTRACKED files, so without it a lock file that has never been
+          # committed at all is invisible here and the check passes green —
+          # which is exactly the case that matters, since a missing .lock.yml
+          # means that agentic workflow simply never runs. Registering the
+          # intent first makes brand-new files show up as a diff.
+          git add -N -- '.github/workflows/*.lock.yml' 2>/dev/null || true
           if ! git diff --exit-code -- '.github/workflows/*.lock.yml'; then
-            echo "::error::Compiled .lock.yml files are out of date. Download this run's 'compiled-workflows' artifact and commit it (a normal git push works fine — only this job's own GITHUB_TOKEN is blocked from touching .github/workflows/), or ask Claude to do it in a live session."
+            echo "::error::Compiled .lock.yml files are missing or out of date. Download this run's 'compiled-workflows' artifact and commit it (a normal git push works fine — only this job's own GITHUB_TOKEN is blocked from touching .github/workflows/), or ask Claude to do it in a live session."
             exit 1
           fi
