@@ -62,8 +62,28 @@ const nextConfig = (phase: string): NextConfig => {
  * dedicated provider (Alchemy/Infura), that host must be added here or wallet
  * reads will fail once enforced.
  */
+// NOTE: `default-src` is deliberately ABSENT here, and that is the whole point.
+//
+// A previous revision of this file listed `default-src 'self'` in the enforced
+// policy alongside a comment claiming the enforced set "cannot break a working
+// page". That was wrong, and badly so. `default-src` is the FALLBACK for every
+// fetch directive that is not otherwise specified — script-src, style-src,
+// img-src, font-src and connect-src all inherit from it. Since none of those
+// were listed in the enforced policy, `default-src 'self'` silently became:
+//
+//   script-src 'self'   → Next's inline hydration/flight bootstrap BLOCKED
+//   style-src  'self'   → Tailwind's injected inline styles BLOCKED
+//   img-src    'self'   → data: and blob: images BLOCKED
+//   connect-src 'self'  → every off-origin fetch BLOCKED
+//
+// i.e. a blank, unhydrated page. Report-Only is a SEPARATE policy: the
+// 'unsafe-inline' allowances below do not relax the enforced one.
+//
+// So the enforced list contains only directives that gate capabilities this app
+// genuinely never uses, and no fallback directive that could reach the ones it
+// does. Anything governing normal page resources belongs in Report-Only until
+// its violation reports are quiet.
 const CSP_ENFORCED = [
-  "default-src 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "object-src 'none'",
