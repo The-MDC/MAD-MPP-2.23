@@ -11,7 +11,7 @@ import {
 } from "@/lib/perp-store";
 import { eraseIdentity } from "@/lib/subject-identity-map";
 import { createLocalKmsAdapter, erasureSlaCopy } from "@/lib/portrait-vault";
-import { createVercelBlobObjectStore } from "@/lib/vercel-blob-store";
+import { createVercelBlobObjectStore, isBlobConfigured } from "@/lib/vercel-blob-store";
 import { isSubjectApproved } from "@/lib/registrar-queue";
 import { LEG_MS, globalLegIndex } from "@/lib/lunar-legs";
 
@@ -52,7 +52,6 @@ export async function POST(req: Request) {
   // The object store is production Vercel Blob, not an in-memory placeholder.
   // KMS integration remains a separate go-live prerequisite for key custody.
   const kms = createLocalKmsAdapter();
-  const store = createVercelBlobObjectStore();
 
   if (!hasDatabaseUrl()) {
     return NextResponse.json({
@@ -61,6 +60,10 @@ export async function POST(req: Request) {
       sla: erasureSlaCopy(kms),
     });
   }
+  if (!isBlobConfigured()) {
+    return NextResponse.json({ success: false, error: "the lapse scheduler needs Vercel Blob" }, { status: 503 });
+  }
+  const store = createVercelBlobObjectStore();
 
   try {
     const pool = getDbPool();

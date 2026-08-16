@@ -6,6 +6,7 @@ import { SEED_SLATE, slotFaceVector, corporaOf } from "@/lib/trend-slate";
 import { trendLife } from "@/lib/trend-lifecycle";
 import { FACE_ORDER, stakeableLabel, type PersonaDisplayMode } from "@/lib/persona-codex";
 import { currentLeg, vintageAt } from "@/lib/lunar-legs";
+import { getCachedJson, setCachedJson } from "@/lib/redis-cache";
 
 /**
  * GET /api/v1/zeitgeist/slate?vintage=&mode= — the live slate.
@@ -25,6 +26,10 @@ export async function GET(req: Request) {
   const leg = currentLeg(now);
   const requested = Number(url.searchParams.get("vintage"));
   const vintage = Number.isFinite(requested) && requested > 0 ? requested : vintageAt(now);
+
+  const cacheKey = `zeitgeist:slate:${vintage}:${mode}`;
+  const cached = await getCachedJson<Record<string, unknown>>(cacheKey);
+  if (cached) return NextResponse.json({ ...cached, cache: "hit" });
 
   const seed = () => {
     const slots = SEED_SLATE.map((s, i) => {
@@ -68,7 +73,7 @@ export async function GET(req: Request) {
       life: trendLife({ leg: leg.slotInTurning }),
       status: r.status,
     }));
-    return NextResponse.json({
+    const payload = {
       success: true,
       source: "live",
       mode,
@@ -76,7 +81,9 @@ export async function GET(req: Request) {
       slotInTurning: leg.slotInTurning,
       slots,
       corpora: rows.map((r) => r.corpus),
-    });
+    };
+    await setCachedJson(cacheKey, payload, 60);
+    return NextResponse.json({ ...payload, cache: "miss" });
   } catch (e) {
     console.error("zeitgeist/slate error:", e);
     return seed();

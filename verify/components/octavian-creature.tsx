@@ -141,7 +141,7 @@ function drawFirefly(
   /** Depth fade for this node; every alpha below is multiplied by it. */
   depth: number,
 ): void {
-  const bloomR = r * (2.6 + seed * 1.4) * (0.7 + 0.5 * energy);
+  const bloomR = r * (1.8 + seed * 1.0) * (0.7 + 0.5 * energy);
 
   // Bloom — the soft body of light. A gradient rather than a shadowBlur disc:
   // blur cost scales badly at 20 nodes x 60fps.
@@ -163,7 +163,7 @@ function drawFirefly(
   if (!still) {
     // Diffraction spikes — the "star" read. Four arms, rotated per seed so
     // they don't all point the same way.
-    const reach = r * (2.2 + seed * 2.6) * (0.5 + 0.9 * energy);
+    const reach = r * (1.5 + seed * 1.6) * (0.5 + 0.9 * energy);
     const rot = seed * Math.PI;
     ctx.globalAlpha = (0.30 + 0.45 * energy) * depth;
     ctx.strokeStyle = color;
@@ -358,7 +358,7 @@ function OctavianCanvasPanel({ variant, onPopOut }: { variant: "compact" | "full
       // space, so a node that drifts toward the viewer also grows and its
       // edges follow it. Amplitude is small (anchors stay authoritative) and
       // rises with agitation — an annoyed creature's lights jitter more.
-      const swarm = still ? 0 : 0.055 + 0.045 * (ir.tierBlend / 2);
+      const swarm = still ? 0 : 0.035 + 0.03 * (ir.tierBlend / 2);
       const pts = base.map((p, i) => {
         const o = fireflyOffset(i, t, swarm);
         return project({ x: p.x + o.dx, y: p.y + o.dy, z: p.z + o.dz });
