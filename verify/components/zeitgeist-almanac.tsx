@@ -16,7 +16,8 @@
  * slate against, so what a holder reads here is literally the input to the
  * matrix that decides where their conviction lands at the Turning.
  */
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useApi } from "@/hooks/use-api";
 import { useSkin } from "@/components/skin-provider";
 import Carousel, { AutoShowcaseBadge } from "@/components/carousel";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
@@ -67,24 +68,11 @@ const PHASE_COLOR: Record<string, "accent" | "gold" | "accent2" | "muted" | "pos
 
 export default function ZeitgeistAlmanac() {
   const { skin } = useSkin();
-  const [slate, setSlate] = useState<SlateResp | null>(null);
-  const [turning, setTurning] = useState<TurningResp | null>(null);
+  const slateRequest = useApi<SlateResp>("/api/v1/zeitgeist/slate");
+  const turningRequest = useApi<TurningResp>("/api/v1/zeitgeist/turning");
+  const slate = slateRequest.data?.success ? slateRequest.data : null;
+  const turning = turningRequest.data?.success ? turningRequest.data : null;
   const [openSlot, setOpenSlot] = useState<number | null>(null);
-
-  useEffect(() => {
-    fetch("/api/v1/zeitgeist/slate")
-      .then((r) => r.json())
-      .then((d: SlateResp) => {
-        if (d?.success) setSlate(d);
-      })
-      .catch(() => {});
-    fetch("/api/v1/zeitgeist/turning")
-      .then((r) => r.json())
-      .then((d: TurningResp) => {
-        if (d?.success) setTurning(d);
-      })
-      .catch(() => {});
-  }, []);
 
   const live = slate?.source === "live";
   const slots = slate?.slots ?? [];
@@ -102,6 +90,11 @@ export default function ZeitgeistAlmanac() {
           </span>
         )}
       </div>
+
+      {(slateRequest.loading || turningRequest.loading) && <div style={{ fontSize: 9, color: skin.muted }}>Loading Zeitgeist data…</div>}
+      {(slateRequest.error || turningRequest.error) && (
+        <button onClick={() => { slateRequest.reload(); turningRequest.reload(); }} style={{ alignSelf: "flex-start", fontSize: 9, color: skin.gold, background: "transparent", border: `1px solid ${skin.gold}55`, borderRadius: 6, padding: "4px 8px", cursor: "pointer" }}>Retry data load</button>
+      )}
 
       {/* Turning strip */}
       {turning && (
