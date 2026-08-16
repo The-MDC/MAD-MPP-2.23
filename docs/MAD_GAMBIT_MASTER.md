@@ -60,6 +60,7 @@ Lightly detailed. Dates are from document headers or git history, not inferred.
 - **2026-08-11** — Audit finds prod serving a stale commit, prod DB schema-less, `NEON_PROJECT_ID` a literal placeholder.
 - **2026-08-12** — PR #72: full-stack reconciliation + new Vercel project standup (`VERCEL_PROJECT_SETUP.md`). Same day: #73 (manual prod deploys), #74 (dark theme + Blob portraits), #75 (SafeERC20, 3 open routes closed), #76 (ERC-2771 gasless relayer), #77 (`MADDisputeVoting.sol`).
 - **2026-08-13** — O-V Conviction State Node HUD shipped.
+- **2026-08-14** — The Octavian visual becomes a *living* mesh. Lineage: a 2026-07-13 Three.js/R3F/WebGPU "Master Octavian" experiment (Vulkan-derived pipeline notes, shader + bundle optimization) → the 2D-canvas `octavian-mesh.tsx` shipped 2026-08-07 in PR #63 → `72dccda` static high-fidelity orb → `fb73122` two-axis weave → **`11b8a6f` the living-mesh moment**: a three-tier pointer-driven mood system (idle cool topaz/emerald/cyan → agitated yellow/green/blue → yellow/orange/red, fastest spin, pitch tipping away as if not wanting to be bothered), decaying back to idle on its own. The palette layering is explicitly modelled on **cephalopod chromatophore-over-iridophore skin** — cool/structural at rest, pigment-dominant when agitated — not an arbitrary colour pick. `bb99269` then merged both visuals into one engine. Note: no trace of this originates in the O-V deck repo; it is native to this codebase.
 - **2026-08-14** — PR #80 merged (O-V HUD + stale-Supabase doc cleanup). Neon project split resolved to a concrete cause: **three** live Postgres databases under one integration, needing a founder-run merge (Part II.5). Migrations removed from the Vercel build in favour of a controlled `migrate:deploy`; `main` auto-deploy disabled; two advisory AI review gates added via gh-aw.
 - **2026-08-16** — This consolidation; frontend QOL benchmark and Chainlink VRF audit (Parts III–V).
 
@@ -392,19 +393,18 @@ Start only once Phases 1–2 provide a pending state worth showing.
 
 Independent of Phases 0–4 above; touches the desktop-only space *outside* the phone frame. Numbered separately to avoid colliding with the VRF/QOL phase numbers.
 
-### B-Phase 1 — Octavian mesh: size, shared state, firefly anomalies (2–3 days)
+### B-Phase 1 — Octavian mesh: size, shared state, firefly anomalies (1.5–2 days)
 
-Target: `components/ov-conviction-state-node.tsx` → the `OctavianOrb` sub-component (shipped in PR #80), plus `lib/instrument-chrome.ts` and `components/octavian-mesh.tsx`.
+> **Re-scoped 2026-08-16 against current `main`.** `octavian-mesh.tsx` **no longer exists**: commit `bb99269` merged both visuals into one engine, `components/octavian-creature.tsx`, with `variant="compact"` (workbench corner HUD) and `variant="full"` (`/octavian` + inline on `/preview`). Two of the three things originally scoped here already shipped — see below — so this phase is smaller than first written.
+
+**Already shipped, do not rebuild:** wheel + pinch zoom (`ZOOM_MIN = 1/6`, `ZOOM_MAX = 4`), two-axis drag-to-orbit, click-to-select, double-click pop-out overlay, and the three-tier creature-mood system. The container is already a "3D box" (layered shadow/inset, glass sheen, gold backing) at 3× the old 256px base, clamped 280–768px.
 
 **B1.1 — Resize to the perps-deck container idiom.**
-The perps deck container (`perp-dials.tsx:714`) is the size/shape reference: `borderRadius: 24`, `padding: clamp(10px, 1.4vw, 16px)`, gradient `--pn`→`--bg` background, 1px `--tx`-mix border, dual box-shadow (gold rim + cyan bloom). Its instruments size off `maxWidth: calc(252px * var(--dial, 1))` with `aspectRatio: 280/168`. Lift that container into a shared primitive rather than copy-pasting the literals a third time — `instrument-chrome.ts` already exists precisely for this kind of extraction (it took `fibonacciSphere`/`resolveColor`/`P3` out of `octavian-mesh.tsx` in PR #80). Give the exterior orb the same container and a `--dial`-equivalent scale variable.
+The perps deck container (`perp-dials.tsx:714`) is the size/shape reference: `borderRadius: 24`, `padding: clamp(10px, 1.4vw, 16px)`, gradient `--pn`→`--bg` background, 1px `--tx`-mix border, dual box-shadow (gold rim + cyan bloom); its instruments size off `maxWidth: calc(252px * var(--dial, 1))` with `aspectRatio: 280/168`. Replace the creature's current 280–768px clamp with that container and a `--dial`-equivalent scale variable. Lift the container into a shared primitive in `lib/instrument-chrome.ts` rather than copy-pasting the literals a third time — that module already exists for exactly this (it absorbed `fibonacciSphere`/`resolveColor`/`P3` in PR #80). Note the creature deliberately **never resizes its box on zoom** — only the rendered mesh scales (`R = min(w,h) * 0.42 * zoom * (1 - 0.05 * tierBlend)`); preserve that separation.
 
-**B1.2 — Share container state + zoom.** ⚠️ *This reverses a deliberate decision — read before implementing.*
-`ov-conviction-state-node.tsx` is currently rendered as a **sibling** of `.mg-device`, explicitly so it is *not* affected by `--mg-device-zoom` (its header documents this, following the `.mg-zoombar` convention). Making it share the phone's zoom means either:
-- **(a)** consume `--mg-device-zoom` in the orb's own container while staying a sibling — keeps `position: fixed` and safe-area insets working, scales with the phone; **recommended**; or
-- **(b)** move it inside the zoomed subtree — simpler conceptually, but it inherits phone clipping and its fixed-position/safe-area layout stops behaving.
+**B1.2 — Share state across mounts.** The remaining real gap. Zoom, orbit and mood all live in refs *inside* `OctavianCanvasPanel`, so every mount is independent — the header comment states plainly that "the popped-out instance is a separate mount with its own mood/orbit." Compact, full, and popped-out therefore drift apart. Hoist that state (`zoomRef`, orbit yaw/pitch, mood tier + decay clock) into one shared store — a module-level store with `useSyncExternalStore`, or context — so all mounts read and write the same values and prodding the corner orb is visible on `/octavian`. Keep `NODE_IDS`/`EDGE_STEPS`/`fibonacciSphere` as the single source of node placement; do not fork the geometry.
 
-Take (a). Then unify the state: the full `/octavian` mesh keeps orbit state in a ref (`orbit = { yaw, pitch, spin, dragging, lx, ly }`) so pointer moves don't re-render; the corner orb has only `yaw` and auto-spin. Hoist that orbit state into one shared hook (`hooks/use-octavian-orbit.ts`) consumed by both, so drag/zoom in one is reflected in the other. Keep `NODE_IDS`/`EDGE_STEPS`/`fibonacciSphere` as the single source of node placement — do not fork the geometry.
+*Note on the phone zoom:* the HUD is a deliberate **sibling** of `.mg-device` so `--mg-device-zoom` does not scale it (documented in its header, following the `.mg-zoombar` convention). If you also want it to track phone zoom, consume `--mg-device-zoom` in the creature's own container **while staying a sibling** — moving it inside the zoomed subtree inherits phone clipping and breaks its fixed-position/safe-area layout.
 
 **B1.3 — Spheres → firefly star anomalies.**
 Today each node renders as a uniform circle at a fixed `fibonacciSphere` point. Wanted: varied, bright, natural star-like bodies that drift and dart like fireflies. Implementation shape:
@@ -419,10 +419,15 @@ Today each node renders as a uniform circle at a fixed `fibonacciSphere` point. 
 
 ### B-Phase 2 — O-V deck → interactive exterior experience (4–6 days)
 
-Source: `verify/public/pitch/ov-pitch-deck.html` (182KB, the O-V deck; `index.html` and `madhats-gambit.html` are the other two preserved decks).
+**Source — use the repo, not the HTML.** The latest O-V deck is the private repo **`MADdegen/OV-Deck-2026`** (Vite + React, last commit 2026-07-31 `079fce0`), *not* `verify/public/pitch/ov-pitch-deck.html` — that HTML is an older Angular-generated export. The repo gives structured slide data in `src/slidesData.ts` (212 lines: `id`, `title`, `subtitle`, bullet arrays) so no HTML parsing is needed at all, and it already ships eight interactive components worth mining rather than reinventing: `CardDeckViewer`, `TokenomicsVisualizer`, `TripleThreatOracleVisualizer`, `DutchAuctionBooster`, `InteractiveSimulator`, `DataRoomDashboard`, `InteractiveCodePlayground`, `PresenterControls`.
 
-**B2.1 — Its 12 sections, as scanned:**
-1. MΛĐ Gambit llc. (hero) · 2. MΛĐĐΞX ($MΛĐx) Launch · 3. Production & Speculation · 4. MAD Upshot: The Card Economy · 5. MAD Shield Protection · 6. Triple-Threat Oracle Cascade · 7. $MADx Tokenomics · 8. Defensible IP & Cap Table · 9. The Golden Stack: $0 Infrastructure · 10. Vanguard Synergy & Co-Building · 11. The Ask: Strategic Partnership Offer · 12. Claim Your Co-Development Pass
+**B2.1 — Its 12 slides (from `slidesData.ts`):**
+0. MΛĐ Gambit L.C. (hero) · 1. MΛĐĐΞX ($MΛĐx) Launch · 2. Production & Speculation · 3. MAD Upshot: The Card Economy · 4. MAD Shield Protection · 5. Triple-Threat Oracle Cascade · 6. $MADx Tokenomics · 7. Defensible IP & Cap Table · 8. The Golden Stack: $0 Infrastructure · 9. Vanguard Synergy & Co-Building · 10. The Ask: Alignment and Runway · 11. Claim Your Co-Development Pass
+
+**B2.1a — Three canon conflicts found in the deck. Resolve before any of it reaches a user surface:**
+- **Wyoming vs New Mexico.** Slides 0 and 7 say "Wyoming L.C." twice. The formation record in this repo's archive says **MAD Gambit LLC was filed in New Mexico on 2026-03-25**. One of the two is wrong; this is a legal-entity fact on an investor slide, so it needs a definitive answer, not a merge.
+- **"MAD Upshot"** (slide 3) is banned by the canonical brand rules (Part II.7) — and the deck is *newer* than the ban, so it was reintroduced rather than simply left stale.
+- **Creator Ladder.** The deck's head commit adds a tiered creator fee "28.8–60% by status (User / MinorCreator / CR8TR)". Part II.7's canon is a flat **40% creator share on creator-made markets**. The deck's 1.88% fee and 60% platform share do match canon — it is specifically the creator split that has moved. Decide which is current and update the other.
 
 **B2.2 — Two blockers to resolve before building.** Both are content problems, not engineering ones:
 - **Slides 8, 10, 11, 12 are investor-facing** (cap table, co-building, the ask, co-dev pass). The exterior workbench is a *user* surface. Surfacing fundraising material there leaks it to every visitor. **Recommendation: map only slides 2–7 and 9** to the exterior; keep 1 as ambient branding; gate 8/10/11/12 behind an explicit investor route or drop them.
@@ -435,7 +440,7 @@ Source: `verify/public/pitch/ov-pitch-deck.html` (182KB, the O-V deck; `index.ht
 Position section panels around the phone exterior on the same convention as `.mg-zoombar` and the existing HUD: `position: fixed`, safe-area insets, `z-index: 50`, glass panel, self-gated on `isDesktop` (`DESKTOP_MIN = 1024`) — there is no exterior space below that width, and the whole feature must no-op on mobile. Selecting a firefly node in B-Phase 1's mesh focuses its corresponding section; selecting a section highlights its node. That reciprocal link is what makes it a *secondary experience* rather than a sidebar — one shared selection state, two representations.
 
 **B2.5 — Content extraction.**
-Do not parse 182KB of Angular-generated HTML at runtime. Extract the 7–8 retained sections into a typed module (`lib/ov-deck-content.ts`) at build/author time — headline, 2–4 synthesized bullets, the node ID it binds to, accent. Synthesize the copy against Part II §7 canonical numbers, not the deck's own figures: the deck is older than the April canon and several of its numbers are in the superseded table.
+Port `slidesData.ts`'s retained slides into a typed module (`lib/ov-deck-content.ts`) at author time — headline, 2–4 bullets, bound node ID, accent. Do **not** fetch from the deck repo at runtime and do **not** parse the old HTML export. Reconcile every number against Part II.7 canon first (see B2.1a); where deck and canon disagree and the conflict is unresolved, omit the figure rather than shipping a contradiction.
 
 **B2.6 — Reuse, don't duplicate.** `components/ov-deck-selector.tsx` already exists (3 named deck versions driving live conviction math via `OV_DECKS`/`calculateDeltaLimit`). Check whether the new selector should extend it rather than adding a second deck concept with the same name.
 
