@@ -5,7 +5,7 @@ name: Foundry — contracts
 # compiles/tests run here. Deps (forge-std, openzeppelin-contracts) are vendored under
 # contracts/lib, so no `forge install` is needed. Scoped by contracts/foundry.toml to
 # src/test only — the un-integrated contracts/madhat-core project is intentionally excluded
-# until its Part K reconciliation checklist lands (see MAD_GAMBIT_MASTER_ACTION_PLAN.md N-C).
+# until its reconciliation checklist lands (see contracts/madhat-core/RECONCILIATION_RUNBOOK.md).
 
 on:
   # Scope push to main only — feature-branch pushes are already covered by the

@@ -45,7 +45,7 @@ import MarketRails from "@/components/market-rails";
 import DopamineEngine from "@/components/dopamine-engine";
 import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
 import OVDeckSelector from "@/components/ov-deck-selector";
-// Ported from the /preview premiere theme — see docs/HANDOFF_2026-08-11_AUDIT.md §9.
+// Ported from the /preview premiere theme.
 import MarketTypeCarousels from "@/components/market-type-carousels";
 import FeaturedMarketCards from "@/components/featured-market-cards";
 import { SkinProvider } from "@/components/skin-provider";

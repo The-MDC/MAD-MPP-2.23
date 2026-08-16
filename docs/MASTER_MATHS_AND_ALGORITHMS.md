@@ -3,7 +3,8 @@
 > **This is the one canonical maths document.** It supersedes and consolidates the
 > previously-scattered maths notes (`engine-room-math-formulas.md`,
 > `REPORTS/GARCH_VULKAN_ADVANCED.md`, `docs/VULKAN_MAD_MAPPING.md`,
-> `docs/SHIELD_RISK_DEFENCES.md`, and the old 8-line `MASTER_MATHS_AND_ALGORITHMS.md`),
+> `docs/SHIELD_RISK_DEFENCES.md`, and the old 8-line `MASTER_MATHS_AND_ALGORITHMS.md`
+> — all deleted in the 2026-08-16 consolidation; recoverable from git history),
 > which now point here.
 >
 > **The code is the authority.** Every formula below cites its implementation home
@@ -156,4 +157,4 @@ These conflicts exist **across the old docs**; the maths/formulas are reconciled
 - `docs/VULKAN_MAD_MAPPING.md`
 - `docs/SHIELD_RISK_DEFENCES.md`
 
-**Canonical numbers** live in `docs/imported/tokenomics/CANONICAL_NUMBERS.md` (the numbers source of truth) — cross-checked against §1 here; resolve §13 there under founder sign-off. **Business tokenomics** narrative stays in `MASTER_TOKENOMICS.md`; **mechanism/oracle research** in `docs/MECHANISM_ORACLE_MADX_RESEARCH.md`.
+**Canonical numbers** now live in `docs/MAD_GAMBIT_MASTER.md` Part II.7 (consolidated 2026-08-16 from the former `docs/imported/tokenomics/CANONICAL_NUMBERS.md`) — cross-checked against §1 here; resolve §13 under founder sign-off. The unresolved splits noted in §13 are carried forward in the master doc's Part II.9. **Engine-room formulas** remain standalone in `docs/imported/tokenomics/engine-room-math-formulas.md`. The former `MASTER_TOKENOMICS.md` narrative and `docs/MECHANISM_ORACLE_MADX_RESEARCH.md` were consolidated into the master doc; their originals are in git history.

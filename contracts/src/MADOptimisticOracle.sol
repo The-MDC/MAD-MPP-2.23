@@ -9,7 +9,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 /**
  * @title MADOptimisticOracle
  * @notice The economic-finality leg of MAD Gambit's quadruple-threat oracle
- *         (see docs/MECHANISM_ORACLE_MADX_RESEARCH.md). UMA-optimistic-oracle
+ *         (see docs/MAD_GAMBIT_MASTER.md). UMA-optimistic-oracle
  *         -inspired, self-contained, custody-safe.
  *
  *         Flow:

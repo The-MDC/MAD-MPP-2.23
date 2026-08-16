@@ -45,7 +45,7 @@ import {MADDisputeVoting} from "../src/MADDisputeVoting.sol";
  *     --rpc-url $ARBITRUM_ONE_RPC_URL --broadcast --verify
  */
 contract Deploy is Script {
-    /// @dev Verified fair-launch $MADx on Arbitrum One (see docs/MECHANISM_ORACLE_MADX_RESEARCH.md).
+    /// @dev Verified fair-launch $MADx on Arbitrum One (see docs/MAD_GAMBIT_MASTER.md).
     address internal constant DEFAULT_MADX = 0x6972370e1caAA3624F37D7e87C28e1089D00151f;
     uint256 internal constant DEFAULT_VOTE_THRESHOLD_BOND = 5_000 ether;
 

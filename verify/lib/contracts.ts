@@ -8,7 +8,7 @@
  * zero address).
  *
  * $MADx ground truth is verified on-chain — see
- * docs/MECHANISM_ORACLE_MADX_RESEARCH.md.
+ * docs/MAD_GAMBIT_MASTER.md.
  */
 
 export interface ChainInfo {

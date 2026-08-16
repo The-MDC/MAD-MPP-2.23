@@ -1,9 +1,8 @@
 /**
  * MAD Gambit — Live RSS Feed Engine
  * ------------------------------------------------------------------
- * Server-side fetch + parse of REAL RSS feeds. Feed list is exactly the
- * set named in HANDOFF_MAD_GAMBIT.md §5 (RssFeedFetcher): CoinDesk,
- * CoinTelegraph, CNBC, BBC, Yahoo Finance, Outlier Ventures, Jamie Burke.
+ * Server-side fetch + parse of REAL RSS feeds: CoinDesk, CoinTelegraph,
+ * CNBC, BBC, Yahoo Finance, Outlier Ventures, Jamie Burke.
  * Runs in Next.js server runtime (route handler). No API key required.
  *
  * Expansion targets (Top-10 news/entertainment/exchanges, influencer
