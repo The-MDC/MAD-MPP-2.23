@@ -9,8 +9,12 @@ import type { ObjectStore } from "@/lib/portrait-vault";
  * local or non-Vercel execution. This adapter deliberately requires a private
  * store: ciphertext must never be served from a public URL.
  */
+export function isBlobConfigured(): boolean {
+  return Boolean(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN);
+}
+
 function assertBlobCredentials(): void {
-  if (!process.env.BLOB_STORE_ID && !process.env.BLOB_READ_WRITE_TOKEN) {
+  if (!isBlobConfigured()) {
     throw new Error("Portrait storage requires a connected private Vercel Blob store");
   }
 }
