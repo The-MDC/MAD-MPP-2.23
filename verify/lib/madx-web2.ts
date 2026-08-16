@@ -3,7 +3,7 @@
  * ------------------------------------------------------------------
  * An off-chain, Neon-backed credit ledger that MIRRORS the on-chain fair-launch
  * $MADx (MADDEX / "MADx", hard cap 224,573,096, mint-on-demand — see
- * docs/MECHANISM_ORACLE_MADX_RESEARCH.md) so the beta is fully functional before
+ * docs/MAD_GAMBIT_MASTER.md) so the beta is fully functional before
  * the on-chain token has circulating supply. Behaviour parity with its web3
  * counterpart: balance, mint-to-cap onboarding/purchase, transfer, staking into
  * the real STAKING_TIERS (APY accrual mirroring MADStaking), claim, and spend.

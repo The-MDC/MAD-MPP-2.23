@@ -27,8 +27,7 @@ import NewsTwoRow from "@/components/news-two-row";
 import FeaturedMarketCards from "@/components/featured-market-cards";
 import DopamineCarouselStrip from "@/components/dopamine-carousel-strip";
 import PerpDials from "@/components/perp-dials";
-// Ported from the /mpp2.23 device theme — see the merge note in
-// docs/HANDOFF_2026-08-11_AUDIT.md §9.
+// Ported from the /mpp2.23 device theme.
 import OVDeckSelector from "@/components/ov-deck-selector";
 import MadhatrConcierge from "@/components/madhatr-concierge";
 import { OV_DECKS, type OVDeck } from "@/lib/gambit-game-math";

@@ -28,7 +28,7 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
  *           protocolCut = the remaining 60% → treasury
  *         The platform-wide 28.8% community share is a TREASURY-level split of net
  *         profit, deliberately NOT computed per-market here — the two are
- *         non-additive by design (see MAD_GAMBIT_MASTER_ACTION_PLAN Part A).
+ *         non-additive by design (see docs/MAD_GAMBIT_MASTER.md).
  *
  *         Payouts use a pull pattern (each winner calls `claim`); only the two
  *         fee transfers happen at resolution, after all state is final.
