@@ -26,6 +26,7 @@ the build or the demo.
 | `0009_gdelt_url_unique.sql` | Partial unique index on `gdelt_signals(url)` for idempotent ingest |
 | `0010_auth_identity.sql` | `siwe_nonces` (SIWE replay protection), `user_profiles` (user-asserted identity) |
 | `0011_customer_accounts.sql` | `customer_accounts`, `customer_login_events`, `customer_profile_audit` (system-asserted account state + ledgers) |
+| `0015_pack_open_counter.sql` | `customer_accounts.pack_open_count` — per-wallet monotonic counter, closes the open-pack grindable-nonce bug |
 
 ## One migration owns each table
 
