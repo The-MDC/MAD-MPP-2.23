@@ -148,6 +148,21 @@ unexplained freeze. **Phases 1–2 are prerequisites for Phase 3, not parallel w
 - **Creator Ladder (28.8/40/60% by status) is canon**, not the flat 40% — founder sign-off 31 Jul 2026, recorded in `verify/lib/node-registry.ts`, implemented as `CREATOR_LADDER`.
 - **Octavian's origin is Google AI Studio lineage, not Vercel v0.** Zero v0 fingerprints anywhere; three `metadata.json` files carry the AI Studio app-builder schema. Unverified only because v0 chats and `The-MDC/v0-open-in-v0-023b047d` were unreachable — to close it, start a session with that repo as the initial source and diff against `octavian-creature.tsx`.
 - **Compliance:** the mechanics stay, the clinical neuroscience framing stays out of anything user- or investor-facing. Internal docs may name them plainly; decks and marketing may not.
+- **Bulk env-var export is `vercel env pull`, not a browser extension.** Evaluated
+  `tushgaurav/vercel-env-variables` (Chrome MV3) and rejected it. It reads the raw Vercel session
+  cookie and calls undocumented internals (`vercel.com/api/v9/projects/{name}`, then
+  `/api/v1/projects/{name}/env/{id}` per var) rather than the public `api.vercel.com`. Its
+  `background.js` returns that session token from a `chrome.runtime.onMessage` listener with no
+  sender or message validation, and `console.log`s the cookie on startup. Use
+  `vercel env pull .env.local` and `vercel env ls` — supported, CI-safe, and `env ls` also shows
+  which environment each var belongs to. See the `vercel-system-env-and-cli` skill.
+- **Env-var confusion is usually provenance, not value.** `DATABASE_URL` is injected by the
+  **Vercel Marketplace Neon integration**, which provisions the database inside a *Vercel-managed*
+  Neon account — so the personal Neon API/MCP credentials list **zero projects** even though
+  production connects fine and all migrations are applied. Typing the var by hand reports "already
+  connected" for the same reason. Do not conclude from an empty Neon project list, or from
+  demo-fallback code paths, that the database is unconfigured: read the build log, which prints
+  `connected to Postgres` and the migration ledger on every deploy.
 - **Morpho / Aerodrome:** no such repos. Morpho returned zero across ~190; the Aerodrome lookup needed approval and never ran.
 
 ---
