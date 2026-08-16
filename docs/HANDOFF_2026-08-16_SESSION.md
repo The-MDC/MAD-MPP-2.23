@@ -1,7 +1,7 @@
 # Session Handoff — 2026-08-16
 
 **Branch:** `claude/production-deployment-confirmed-iswp2h` · **PR:** [#91](https://github.com/MADdegen/MAD-MPP-2.23/pull/91) (draft, all 10 checks green)
-**Head:** `daa5a28` · **Base:** `main` @ `ce1ace4`
+**Head:** `96c2ee6` · **Base:** `main` @ `ce1ace4`
 
 > **This is session state, not platform state.** Platform truth lives in
 > [`MAD_GAMBIT_MASTER.md`](MAD_GAMBIT_MASTER.md) — this file deliberately does **not** duplicate
@@ -19,6 +19,7 @@
 | 3 | One master maths doc + one companion; refreshed state against current `main` | `d2051fc` |
 | 4 | Re-scoped Octavian workstream; pointed O-V phase at the real deck repo | `7aa70f0` |
 | 5 | **CI fix:** agentic compile check now sees missing `.lock.yml` files | `daa5a28` |
+| 6 | **Cephalopod creature merge** — one shared nervous system across all mounts + firefly star swarm fed by live platform activity + reduced-motion | `96c2ee6` |
 
 ### The CI fix, specifically
 `agentic-compile.yml`'s "out of date" step used `git diff --exit-code`, which is **blind to
@@ -101,7 +102,7 @@ Workstream B**. Summary only here.
 | **2** | **Interaction feel** — `useOptimistic` on mutations, haptics on the moments that matter, persisted audio mute (**default off**), focus rings. | 2d |
 | **3** | **VRF on Sepolia** — seed-parameterize `openCardPack`/`attemptEvolution`, `MADRandomness.sol` on `VRFConsumerBaseV2Plus`, Foundry tests with a mock coordinator, async pack UX. | 3–5d |
 | **4** | **VRF mainnet + random juror selection** in `MADDisputeVoting.sol` (the most defensible non-obvious use). | — |
-| **B1** | **Octavian:** perps-deck container sizing + hoist per-mount state into a shared store + firefly star anomalies. | 1.5–2d |
+| **B1** | **Octavian — MOSTLY DONE** (`96c2ee6`). Shared state ✅, firefly star swarm ✅, platform-activity feed ✅, reduced-motion ✅. **Remaining: perps-deck container sizing** (`perp-dials.tsx:714` idiom — `borderRadius: 24`, `clamp(10px,1.4vw,16px)` padding, a `--dial`-style scale var; lift it into `instrument-chrome.ts` rather than copy-pasting a third time). Also unverified in a browser — needs a visual pass. | ~0.5d left |
 | **B2** | **O-V deck → exterior interactive experience**, bound to `node-registry` state. Blocked on §2.3. | 4–6d |
 
 **Sequencing constraint that matters:** VRF makes pack-opening asynchronous (request → 3+ block
@@ -109,7 +110,6 @@ confirmations → callback). Shipping it onto today's synchronous UI would repla
 pack-open with an unexplained freeze. **Phases 1–2 are prerequisites for Phase 3, not parallel.**
 
 ### Asked for but deliberately not started
-- **"Code the Octavian live creature mesh fed by platform activity"** — planned (B1), not built.
 - **"Make the entire platform modular and containerized"** — containerizing a Vercel-native Next.js app is an architectural reversal; I'd want your reasoning before touching it.
 - **"Implement the security layers"** — the 8-layer map is consolidated into Master Part II.6; implementing the two genuine gaps (**CSP header**, **ERC-4337 session keys**) is unstarted.
 
@@ -168,7 +168,7 @@ Morpho: zero matches across ~190 repos. Aerodrome: the lookup required approval 
 
 ## 7 · Task ledger
 
-**Done this session:** Supabase cleanup · doc consolidation · maths master+companion · QOL top-12 benchmark · VRF audit · tactical plan · Octavian origin trace · Actions scan + CI fix.
+**Done this session:** Supabase cleanup · doc consolidation · maths master+companion · QOL top-12 benchmark · VRF audit · tactical plan · Octavian origin trace · Actions scan + CI fix · **cephalopod creature merge (B1 less container sizing)**.
 
 **Open:**
 
@@ -180,6 +180,7 @@ Morpho: zero matches across ~190 repos. Aerodrome: the lookup required approval 
 | 10 | Promote stale production deploy | decision |
 | — | Near-miss on real-money surfaces | decision (§2.2) |
 | — | Generate + commit the two `.lock.yml` files | task (§1) |
+| — | Visual pass on the creature; finish B1 container sizing | task (§3) |
 | — | Neon three-database merge | founder-run (Master II.5) |
 | — | Phases 0–4 + B1–B2 | build (§3) |
 
