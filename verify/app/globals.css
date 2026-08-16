@@ -489,6 +489,68 @@ body {
 }
 
 /* ─────────────────────────────────────────────────────────────────────
+   OCTAVIAN CREATURE — the "full" variant's canvas+info-panel grid, and the
+   double-click pop-out overlay. Deliberately OUTSIDE the desktop-only
+   @media(min-width:1024px) block above: /octavian and the /preview inline
+   embed both render on mobile, unlike the corner HUD these rules also
+   style (via .mg-ov-corner, still desktop-gated above).
+───────────────────────────────────────────────────────────────────── */
+.mg-octavian-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(240px, 1fr);
+  gap: 14px;
+  padding: 14px;
+  border-radius: 24px;
+  height: 100%; /* fills .mg-ov-popout-panel when popped out; harmless no-op in normal page flow */
+}
+@media (max-width: 720px) {
+  .mg-octavian-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mg-ov-popout-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(8px, 3vw, 32px);
+  background: rgba(3, 4, 10, 0.72);
+  backdrop-filter: blur(6px);
+}
+.mg-ov-popout-panel {
+  position: relative;
+  width: min(96vw, 1400px);
+  height: min(92vh, 1400px);
+  border-radius: 24px;
+  overflow: auto;
+  box-shadow:
+    0 40px 100px -20px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 0 1px color-mix(in srgb, var(--gd, #ffd700) 18%, transparent);
+}
+.mg-ov-popout-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid color-mix(in srgb, var(--gd, #ffd700) 40%, transparent);
+  background: color-mix(in srgb, #000 55%, transparent);
+  color: var(--gd, #ffd700);
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
    INSTRUMENT CLUSTER — dials flank the chrono when there is room, and sit
    TOGETHER above it when there is not.
 
