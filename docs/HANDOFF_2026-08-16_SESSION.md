@@ -1,7 +1,7 @@
 # Session Handoff — 2026-08-16
 
-**Branch:** `claude/production-deployment-confirmed-iswp2h` · **PR:** [#91](https://github.com/MADdegen/MAD-MPP-2.23/pull/91) (draft, all 10 checks green)
-**Head:** `96c2ee6` · **Base:** `main` @ `ce1ace4`
+**Branch:** `claude/production-deployment-confirmed-iswp2h` · **PR:** [#91](https://github.com/MADdegen/MAD-MPP-2.23/pull/91) (draft, all 11 checks green)
+**Head:** `c82dfda` · **Base:** `main` @ `ce1ace4`
 
 > **This is session state, not platform state.** Platform truth lives in
 > [`MAD_GAMBIT_MASTER.md`](MAD_GAMBIT_MASTER.md) — this file deliberately does **not** duplicate
@@ -20,6 +20,7 @@
 | 4 | Re-scoped Octavian workstream; pointed O-V phase at the real deck repo | `7aa70f0` |
 | 5 | **CI fix:** agentic compile check now sees missing `.lock.yml` files | `daa5a28` |
 | 6 | **Cephalopod creature merge** — one shared nervous system across all mounts + firefly star swarm fed by live platform activity + reduced-motion | `96c2ee6` |
+| 7 | **CI fix:** `actions/checkout` v4 → v6 on six workflows (Node 20 is removed from runners 2026-09-16) | `c82dfda` |
 
 ### The CI fix, specifically
 `agentic-compile.yml`'s "out of date" step used `git diff --exit-code`, which is **blind to
@@ -181,6 +182,7 @@ Morpho: zero matches across ~190 repos. Aerodrome: the lookup required approval 
 | — | Near-miss on real-money surfaces | decision (§2.2) |
 | — | Generate + commit the two `.lock.yml` files | task (§1) |
 | — | Visual pass on the creature; finish B1 container sizing | task (§3) |
+| 22 | Realign eslint / eslint-config-next / @types/node (needs npm) | task |
 | — | Neon three-database merge | founder-run (Master II.5) |
 | — | Phases 0–4 + B1–B2 | build (§3) |
 
