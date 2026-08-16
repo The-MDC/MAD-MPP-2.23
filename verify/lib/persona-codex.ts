@@ -15,7 +15,7 @@
  *                   be funny. `stakeableLabel()` is the enforcement point.
  *
  * Product sheet: docs/FIVE_FACES_Product_Sheet.md §2, §2.1, §4.3
- * Maths home:    docs/MASTER_MATHS_AND_ALGORITHMS.md
+ * Maths home:    docs/MAD_GAMBIT_MASTER.md (Part VI)
  */
 
 export type FaceId = "saint" | "white_rice" | "megalomaniac" | "narcissist" | "prostitute";
