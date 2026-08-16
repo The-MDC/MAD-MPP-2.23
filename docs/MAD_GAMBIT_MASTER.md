@@ -217,7 +217,7 @@ Locked, from `CANONICAL_NUMBERS.md` (2026-04-05) and implemented + unit-tested i
 |---|---|
 | Platform fee | **1.88%** global |
 | Community profit share | **28.8%** (displays as 28%) |
-| Creator revenue share | **40%** — creator-made markets **only** |
+| Creator revenue share | **Creator Ladder 28.8% → 40% → 60%** by status (User / MinorCreator / CR8TR), creator-made markets **only**. Supersedes the flat 40% — founder sign-off 31 Jul 2026, recorded in `verify/lib/node-registry.ts` and implemented as `CREATOR_LADDER` in `gambit-game-math.ts`. |
 | MAD Shield loss recovery | **28.8%**, premium-funded (not a subsidy) |
 | Token supply | **888,888,888** fixed |
 | Seed ask | $1M–$2M @ $12M pre · min viable raise $688K |
@@ -427,7 +427,7 @@ Today each node renders as a uniform circle at a fixed `fibonacciSphere` point. 
 **B2.1a — Three canon conflicts found in the deck. Resolve before any of it reaches a user surface:**
 - **Wyoming vs New Mexico.** Slides 0 and 7 say "Wyoming L.C." twice. The formation record in this repo's archive says **MAD Gambit LLC was filed in New Mexico on 2026-03-25**. One of the two is wrong; this is a legal-entity fact on an investor slide, so it needs a definitive answer, not a merge.
 - **"MAD Upshot"** (slide 3) is banned by the canonical brand rules (Part II.7) — and the deck is *newer* than the ban, so it was reintroduced rather than simply left stale.
-- **Creator Ladder.** The deck's head commit adds a tiered creator fee "28.8–60% by status (User / MinorCreator / CR8TR)". Part II.7's canon is a flat **40% creator share on creator-made markets**. The deck's 1.88% fee and 60% platform share do match canon — it is specifically the creator split that has moved. Decide which is current and update the other.
+- **Creator Ladder — RESOLVED, the deck is correct.** The deck's tiered creator fee "28.8–60% by status (User / MinorCreator / CR8TR)" is canon: `verify/lib/node-registry.ts` records a founder sign-off dated **31 Jul 2026** adopting the ladder over the flat 40%, and it is implemented as `CREATOR_LADDER` in `gambit-game-math.ts`. Part II.7 has been corrected — the master doc was stale here, not the deck. Two conflicts remain (Wyoming/New Mexico, "MAD Upshot").
 
 **B2.2 — Two blockers to resolve before building.** Both are content problems, not engineering ones:
 - **Slides 8, 10, 11, 12 are investor-facing** (cap table, co-building, the ask, co-dev pass). The exterior workbench is a *user* surface. Surfacing fundraising material there leaks it to every visitor. **Recommendation: map only slides 2–7 and 9** to the exterior; keep 1 as ambient branding; gate 8/10/11/12 behind an explicit investor route or drop them.
