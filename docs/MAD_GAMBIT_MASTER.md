@@ -4,6 +4,10 @@
 > Consolidated 2026-08-16 from ~150 scattered planning documents, which were deleted in the
 > same commit. Git history retains every one of them if something here proves thin.
 >
+> **Current outstanding work lives in [`HANDOFF_2026-08-16_SESSION.md`](HANDOFF_2026-08-16_SESSION.md)**
+> — decisions, blockers and the build queue, ordered. Start there; this document is the reference
+> it points back to.
+>
 > **Still standalone, deliberately:** `docs/MASTER_MATHS_AND_ALGORITHMS.md` (the one canonical
 > maths & algorithms doc) and its single companion `docs/MATHS_ENGINE_FORMULAS.md` (the engine
 > room); `docs/PITCH_DECK_VERSION_TRACKER.md` (deck lineage) and the decks themselves
