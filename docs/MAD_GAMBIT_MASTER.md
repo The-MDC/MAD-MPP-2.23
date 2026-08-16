@@ -46,24 +46,31 @@ these checks on `main`. And the Octavian creature **merged without any human eve
 
 ## 2 · Do these first
 
-### 2.1 — Visual pass on the Octavian creature 🔴 *it's live and unreviewed*
+### 2.1 — Visual pass on the Octavian creature 🔴 *still unreviewed by a human*
 It compiles, lints, type-checks, builds and passes tests. None of that catches a canvas that
 renders wrong. Look at `/octavian`, the `/preview` inline mesh, and the desktop corner HUD.
 
-Three tuning constants, all one-liners in `components/octavian-creature.tsx`:
-- `bloomR` — bloom scale. Most likely too generous at HUD size, where the orb is small.
+**A container-sizing bug was found and fixed since this item was written** (`0.42` → derived
+`~0.262` of `min(w,h)`). `project()` places the sphere silhouette at exactly `R`, but nothing
+budgeted for the outward bleed past it — spike `reach` alone reaches `~0.81R` beyond a node — so
+the worst-case envelope was `~1.9R` against a half-box of `0.5`, i.e. **~152% of the container**,
+and the spike arms were clipped at the canvas edge. Because bloom and reach scale with `r`, `r`
+with `scale`, and `scale` with `R`, that ratio was **size-invariant**: it clipped identically in
+the 280px corner HUD and on the full canvas, which is why it never presented as a small-screen
+problem. `R` is now derived from `MAX_NODE_BLEED` so re-tuning the spike constants cannot silently
+reintroduce it.
+
+**What that fix does NOT settle:** whether the resulting body — visibly smaller — reads well, and
+whether the three tuning constants are now right *as a set*. Still one-liners in
+`components/octavian-creature.tsx`:
+- `bloomR` — bloom scale.
 - `reach` — diffraction-spike length. Watch for "noise" rather than "star".
 - `swarm` (in the draw loop) — firefly drift amplitude. Should read alive, not jittery.
+- `MAX_NODE_BLEED` — the envelope budget. Raise it and the body shrinks; lower it and spikes clip.
 
-Also confirm `prefers-reduced-motion` actually pins the swarm.
-
-### 2.2 — `open-pack` fairness bug 🔴 *live, exploitable, half a day*
-`verify/app/api/v1/cards/open-pack/route.ts` reads `userNonce` **from the request body** (default
-`Math.random()`), so pack rarity is grindable by retrying nonces. Derive it server-side from
-`auth.owner` + a persisted per-wallet pack counter. Same file: the `madxBalance` check also reads
-from the body — the route's own comment calls it "decorative". Either wire it to a real
-server-side balance or delete it so it stops implying a guarantee. Add a regression test asserting
-two identical client nonces don't produce identical rarities.
+`prefers-reduced-motion` was traced through every motion pathway in the draw loop and **does** pin
+the swarm — confirmed, not assumed. The one pathway left deliberately unpinned is the ambient
+halo's opacity breathe (`haloPulse`): low-amplitude and non-spatial.
 
 ---
 
@@ -100,14 +107,14 @@ Full detail — file paths, exit criteria — in ****Parts III–V + Workstream 
 
 | Phase | Item | Effort |
 |---|---|---|
-| **0** | `open-pack` fairness bug (Part 0 §2.2) | 0.5d |
-| **B1-rest** | Octavian perps-deck container sizing — adopt the `perp-dials.tsx:714` idiom (`borderRadius: 24`, `clamp(10px,1.4vw,16px)` padding, a `--dial`-style scale var) and lift it into `lib/instrument-chrome.ts` rather than copy-pasting a third time. Plus the visual pass (Part 0 §2.1). | 0.5d |
-| **1** | Perceived-performance foundations: `error.tsx` + `global-error.tsx`, `loading.tsx`/Suspense + skeletons, `next/font`, `next/dynamic` code splitting (93 components / 19,455 lines ship eagerly today), image optimization. **Measure LCP/CLS before and after or it's worthless.** | 2–3d |
+| ~~**0**~~ | ~~`open-pack` fairness bug~~ — **DONE.** Nonce derives server-side from `auth.owner` + persisted `customer_accounts.pack_open_count` via `lib/pack-nonce.ts`; `verify/sql/0015_pack_open_counter.sql` added; regression coverage in `lib/pack-nonce.test.ts`; `madxBalance` no longer read from the request body. | — |
+| **B1-rest** | Octavian perps-deck container sizing. **Narrower than originally written:** `lib/instrument-chrome.ts` already exists and `perp-dials.tsx` already imports its canvas primitives. What is still inline is only the CSS *deck-shell* chrome (`borderRadius: 24`, `clamp(10px,1.4vw,16px)` padding, gradient + `boxShadow`), and only in that one file — so this is an extract-before-second-use, not the third copy-paste. Envelope sizing itself is fixed (Part 0 §2.1); the visual pass remains. | 0.5d |
+| **1** | Perceived-performance foundations. **Partly done:** `app/error.tsx`, `app/global-error.tsx` and `app/loading.tsx` (skeleton, not spinner — reserves the grid footprint so arrival doesn't cause CLS) all shipped; none existed before. **Remaining:** `next/font`, `next/dynamic` code splitting (93 components / 19,455 lines ship eagerly today), image optimization. **Measure LCP/CLS before and after or it's worthless** — and note nothing in CI measures this, so it needs a real browser session. | 1–2d |
 | **2** | Interaction feel: `useOptimistic` on mutations, haptics on the moments that matter, persisted audio mute (**default off**), focus rings (only 3 `focus-visible` vs 92 `aria-`). | 2d |
 | **3** | VRF on Sepolia: seed-parameterize `openCardPack`/`attemptEvolution`, `contracts/src/MADRandomness.sol` on `VRFConsumerBaseV2Plus`, Foundry tests with a mock coordinator, async pack UX. Coordinator address + key hash marked **‹verify›** — read off live Chainlink docs, they were egress-blocked here. | 3–5d |
 | **4** | VRF mainnet + **random juror selection** in `MADDisputeVoting.sol` (the most defensible non-obvious use — removes "who resolves this market" as a manipulation surface). | — |
 | **B2** | O-V deck → exterior interactive experience, bound to `node-registry` state. Source is the **`MADdegen/OV-Deck-2026` repo** (`src/slidesData.ts`, structured, plus 8 ready-built interactive components) — *not* the older HTML export. Blocked on Part 0 §3's deck conflicts. | 4–6d |
-| **—** | Security gaps: **CSP header** and **ERC-4337 session keys** — the two genuine holes in the 8-layer map. | — |
+| **—** | Security gaps. **CSP shipped, half-enforced by design:** `frame-ancestors` / `base-uri` / `object-src` / `form-action` are enforced (they restrict capabilities this app never uses, so they cannot break a page), while `script-src` / `style-src` — the two that actually stop XSS and the two that white-screen an app when wrong — ship **Report-Only**, because Next injects inline bootstrap, Tailwind injects inline styles, wallet extensions inject providers, and no browser exists in the agent sandbox to verify against. **Promotion to enforced is a two-line change once reports are quiet, and is the intended follow-up.** Review `connect-src` first: if `RELAYER_RPC_URL` is repointed at a dedicated provider, that host must be added or client-side wallet reads break. **ERC-4337 session keys remain open.** | — |
 | **—** | Promote Lint / Slither / Dependency Review from report-only to blocking, once their backlogs are worked. | — |
 | **—** | Carried from the repo: THE WIRE demo-row · raw-hex design-token scrub (~82 values, 5 panels) · 4 dead components · slot-auction clearing is manual. | — |
 
