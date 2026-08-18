@@ -41,11 +41,13 @@ export default function InstrumentDeckSection({
         border: `1px solid ${skin.border}`,
         borderRadius: 14,
         background: skin.panel,
-        padding: "12px 14px 14px",
+        // Tightened: the deck reads well but was spending height on padding
+        // and a full-width header row rather than on the instruments.
+        padding: "8px 12px 10px",
         fontFamily: INSTRUMENT_FONT,
       }}
     >
-      <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 10 }}>
+      <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 6 }}>
         <h3
           style={{
             fontSize: 10, fontWeight: 900, letterSpacing: 1.4,

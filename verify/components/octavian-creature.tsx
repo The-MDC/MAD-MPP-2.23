@@ -508,7 +508,20 @@ function OctavianCanvasPanel({ variant, onPopOut }: { variant: "compact" | "full
         color: skin.text,
       }}
     >
-      <div style={{ position: "relative", minHeight: 420 }}>
+      {/* A 300x300 square, not a 420px-tall column.
+          The creature is drawn from Math.min(w, h), so a tall box wastes every
+          pixel of the extra height — it made the panel half a phone screen high
+          without making the creature any bigger. Square is the honest shape for
+          it, capped so it never exceeds the panel width on a narrow phone. */}
+      <div
+        style={{
+          position: "relative",
+          width: "min(300px, 100%)",
+          height: "min(300px, 100vw)",
+          aspectRatio: "1 / 1",
+          margin: "0 auto",
+        }}
+      >
         {canvas}
         <div style={{ position: "absolute", left: 2, top: 2, fontSize: 6.5, letterSpacing: 0.9, color: skin.muted, textTransform: "uppercase" }}>
           Drag to orbit · tap a node · double-click to expand

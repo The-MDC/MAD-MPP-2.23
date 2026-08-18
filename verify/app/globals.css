@@ -425,8 +425,14 @@ body {
        competing with the perp deck below it. Interactive zoom (wheel/pinch,
        see ov-conviction-state-node.tsx) scales the mesh's camera *within*
        this fixed box; the box itself never resizes on zoom. */
-    width: clamp(280px, 40vw, 768px);
-    height: clamp(280px, 40vw, 768px);
+    /* 300x300, per founder direction. The previous clamp reached 768px at wide
+       viewports, which put a creature nearly as tall as the phone on the
+       workbench beside it — it read as bleeding out of the frame rather than as
+       a corner instrument. Fixed size also means it no longer grows as the
+       window does, so it cannot creep back toward the phone. Double-click still
+       pops it out full-size. */
+    width: 300px;
+    height: 300px;
     border-radius: 28px;
     overflow: hidden;
     touch-action: none;
@@ -496,6 +502,12 @@ body {
    style (via .mg-ov-corner, still desktop-gated above).
 ───────────────────────────────────────────────────────────────────── */
 .mg-octavian-grid {
+  /* Container query context. The collapse below MUST be measured on this box,
+     not the viewport: the app renders inside a 393px device frame, so
+     @media (max-width: 720px) reads the 1920px monitor, never fires, and the
+     two-column rule survives inside 393px. The aside's 240px minimum then
+     leaves the canvas ~110px — the narrow strip where the creature should be. */
+  container-type: inline-size;
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(240px, 1fr);
   gap: 14px;
@@ -503,6 +515,18 @@ body {
   border-radius: 24px;
   height: 100%; /* fills .mg-ov-popout-panel when popped out; harmless no-op in normal page flow */
 }
+
+/* Stack whenever the panel itself is too narrow for canvas + 240px aside.
+   Container-relative, so it fires inside the phone as well as on a small
+   window. */
+@container (max-width: 720px) {
+  .mg-octavian-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* Kept as the fallback for engines without container queries. It cannot fire
+   inside the device frame — that is what the @container rule above is for —
+   but it still collapses the panel correctly on a genuinely small window. */
 @media (max-width: 720px) {
   .mg-octavian-grid {
     grid-template-columns: 1fr;
