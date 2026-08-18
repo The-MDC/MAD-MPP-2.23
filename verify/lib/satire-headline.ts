@@ -80,13 +80,28 @@ const MAX_LEN = 70;
  * This returns an ENTITY, never the headline: that distinction is what keeps
  * the source out of the output.
  */
+/**
+ * Letter classes written as explicit ranges rather than \p{L} with the `u`
+ * flag. This file compiles under the repo's ES5 target, where both the unicode
+ * flag and property escapes are syntax errors — Latin-1 Supplement and Latin
+ * Extended-A cover the accented names that actually appear in these feeds
+ * (Rodríguez, Mbappé, Håland).
+ */
+const UPPER = "A-Z\\u00C0-\\u00D6\\u00D8-\\u00DE";
+const LETTER = "A-Za-z\\u00C0-\\u00FF\\u0100-\\u017F";
+const NAME_RUN = new RegExp(
+  "\\b[" + UPPER + "][" + LETTER + "'\\u2019-]*(?:\\s+[" + UPPER + "][" + LETTER + "'\\u2019-]*)*",
+  "g",
+);
+const NON_WORD = new RegExp("[^" + LETTER + "0-9'\\u2019-]+", "g");
+
 function extractSubject(clean: string): string {
   // Title Case and ALL CAPS both defeat naive proper-noun detection, so only
   // trust capitalisation when the headline is actually mixed-case.
   const mixedCase = /[a-z]/.test(clean) && /[A-Z]/.test(clean);
 
   if (mixedCase) {
-    const runs = clean.match(/\b[A-Z][\p{L}'\u2019-]*(?:\s+[A-Z][\p{L}'\u2019-]*)*/gu) ?? [];
+    const runs = clean.match(NAME_RUN) ?? [];
     const named = runs
       .map((run) => ({ text: trimRun(run), lead: clean.indexOf(run) === 0 }))
       .filter((r) => r.text.length > 2);
@@ -106,7 +121,7 @@ function extractSubject(clean: string): string {
   }
 
   const words = clean
-    .split(/[^\p{L}\p{N}'\u2019-]+/u)
+    .split(NON_WORD)
     .map(trimRun)
     .filter((w) => w.length > 3 && !STOP.has(w.toLowerCase()));
   if (!words.length) return "";
@@ -119,7 +134,7 @@ function trimRun(run: string): string {
   while (w.length && STOP.has(w[0].toLowerCase())) w.shift();
   while (w.length && STOP.has(w[w.length - 1].toLowerCase())) w.pop();
   // "Influencer's goes viral" reads as a typo; the entity is "Influencer".
-  return w.join(" ").replace(/['\u2019]s$/u, "").slice(0, SUBJECT_MAX).trim();
+  return w.join(" ").replace(/['\u2019]s$/, "").slice(0, SUBJECT_MAX).trim();
 }
 
 /** ALL-CAPS feeds would otherwise SHOUT mid-sentence. */
