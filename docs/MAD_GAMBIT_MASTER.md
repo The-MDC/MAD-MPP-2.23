@@ -34,13 +34,35 @@ Merged and live on `main`:
 | **Docs** | ~150 planning docs consolidated into `MAD_GAMBIT_MASTER.md`. 114 files / ~36.5k lines removed, inbound links repaired. |
 | **Maths** | Part VI (canonical algorithms, code-bound) + Part VII (the tokenomics engine room). Both live in this file. Do not create a separate maths doc. |
 | **Octavian** | One creature across all mounts (`octavian-creature.tsx` + `lib/octavian-state.ts`): shared mood/orbit/zoom/selection, firefly star swarm, live platform-activity feed, reduced-motion. |
-| **CI** | 11 checks. `actions/checkout` on v6. Agentic-compile false-green fixed. |
+| **CI** | 11 checks. `actions/checkout` on v6. Agentic-compile false-green fixed. **But see the red banner immediately below — none of them have executed since 2026-08-16.** |
 | **Repo** | Verified complete: working tree fully committed; `.gitignore` excludes only secrets, Vercel link artifacts and build products. |
 
-**Verified green at merge:** Type-check, Lint, Build, Unit tests, Route-guard, guard, Secret scan,
-Dependency review, forge build + test, Slither, Vercel Preview — plus both Vercel previews Ready.
+### 🔴 CI has been red on `main` since 2026-08-16 08:07 UTC — founder action needed
 
-**But green ≠ done.** Lint, Slither and Dependency Review are **report-only** (Slither has ~135
+**This supersedes the "verified green at merge" line that stood here.** Every workflow, on every
+branch, has failed since that timestamp:
+
+| Workflow | Last success | First failure |
+|---|---|---|
+| `ci.yml` | run 260 — 2026-08-16 **07:42** | run 261 — 2026-08-16 **08:07, on `main`** |
+| `placeholder-guard.yml` | run 311 — 2026-08-16 **07:42** | run 312 — 2026-08-16 **08:07, on `main`** |
+
+Four separate branches since, all identical. **It is not any one PR's change** — it reproduces on
+`main`, and the guard's own script passes when run by hand against the current tree.
+
+**The signature says the jobs never reached a runner:** ~3-second duration, `runner_id: 0`,
+`runner_name: ""`, logs 404 from the API, and an empty check-run output. That is not a failing
+script — it is a job that was refused before it started. On a **private repo under a personal
+account** the usual cause is account-level: included Actions minutes exhausted, or a spending limit
+reached. **An agent cannot see billing**, so this needs a founder to open
+*Settings → Billing → Actions* and confirm.
+
+Until it is resolved, **every gate in the table below is decorative** — Type-check, Build, Unit
+tests, Secret scan and the guard have not actually run on anything merged since 2026-08-16 07:42.
+That is a far larger hole than the report-only caveat noted below, and it is the single most
+urgent item in this document.
+
+**And green ≠ done, when it comes back.** Lint, Slither and Dependency Review are **report-only** (Slither has ~135
 untriaged findings — green means "ran"). Nothing blocks merge until branch protection requires
 these checks on `main`. And the Octavian creature **merged without any human ever looking at it**.
 
@@ -100,6 +122,7 @@ halo's opacity breathe (`haloPulse`): low-amplitude and non-spatial.
 | **Neon three-database merge** | `mad-mpp-2-23-postgres` (target), `Neon-DB-MADMPP`, `neon-sky-park`. Ordered procedure + read-only inspection SQL in **Part II.5 below**. Agents cannot reach `*.neon.tech` (403) or TCP 5432. Until this completes there is **no single source database**, so "sync the DBs" has no well-defined target. Correct sequence: merge → `npm run schema:verify` → commit any drift as `verify/sql/0016_*.sql` (**0015 is taken** — see Part II.5). Schema-as-code is already complete: 15 migrations + `schema-verify.mjs` checking the ledger, pgvector and 39 named tables. |
 | **Generate the two `.lock.yml` files** | `gh aw compile`, then commit `agentic-security-review.lock.yml` + `agentic-quality-review.lock.yml`. Until then **both AI review gates are configured but never run**. The Actions `GITHUB_TOKEN` is *correctly* forbidden from writing `.github/workflows/` — needs a human push or a session with real push credentials. |
 | **eslint / eslint-config-next / @types/node realignment** | `eslint-config-next` is pinned at **15.4.5** while `next` resolves to **16.2.9** (and it's the only dep without a caret); `eslint` is **8.x, EOL** — config 16.x wants ESLint 9 + flat config, so those two move together; `@types/node` is **20.x** against `engines.node: 22.x`. Needs a lockfile regen — the sandbox 403s the npm registry, and hand-editing `package-lock.json` breaks `npm ci` on every job. Because Lint is report-only, the stale config is silently under-checking a Next 16 codebase rather than failing. |
+| **GitHub Actions is refusing to run jobs** | 🔴 **Most urgent item in this document.** Red on every branch including `main` since 2026-08-16 08:07 UTC; jobs never reach a runner. An agent cannot read billing — open *Settings → Billing → Actions* and check for exhausted minutes or a spending limit. Full evidence in Part 0 §1. |
 | **Founder-gated ops** | Rotate/confirm `NEON_API_KEY` · attach `madgambit.io` · GitHub Advanced Security toggles · push `v2.24-constellation` · Phase-4 named-subject gate (KMS choice, `MADPortraitKeyRegistry` deploy, 6 signed `registry_readiness` rows). |
 
 ---
@@ -327,6 +350,27 @@ Kotlin client can stop compiling and every check still goes green. Workstream C5
 Precedent: `contracts/script/**` sat outside `foundry.yml`'s filter the same way — `forge build`
 compiled it, but the gate never ran on changes to it, leaving INTERLOCK L4 unverified until it was
 found by accident.
+
+**A third instance of the same pattern, fixed 2026-08-18: Placeholder Guard was scanning nothing.**
+A git pathspec is not a shell glob. Without `:(glob)` magic, `*` already crosses `/`, while `**` is
+*not* special and matches a literal path component — so `contracts/src/**/*.sol` demanded an
+intervening directory that does not exist:
+
+```
+git ls-files 'contracts/src/**/*.sol'   -> 0   (should be 10)
+git ls-files 'contracts/test/**/*.sol'  -> 0   (should be  9)
+git ls-files 'verify/**/*.ts'           -> 203 (should be 206)
+```
+
+The pragma check had **never scanned a single contract**, and the code-token check silently skipped
+the files at the top of `verify/` — including `proxy.ts`, the SIWE gate. The guard passed by
+scanning nothing, which is worse than failing. Now `dir/*.ext`, with the trap written into the
+workflow so it cannot be "tidied" back. All 19 contracts and 321 TS/TSX files pass, so this turned
+coverage on without changing the verdict.
+
+**The lesson, three times over:** a green gate is not evidence until you have confirmed it is
+looking at something. Check the file *count* a filter or pathspec actually yields, not just its exit
+code.
 
 ### 5. Database & migrations
 
