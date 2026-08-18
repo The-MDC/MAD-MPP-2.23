@@ -8,8 +8,10 @@
 > ordered by who can act. Everything after it is reference.
 >
 > **This is the only planning document.** Maths (Part VI), the tokenomics engine room (Part VII)
-> and the deck lineage (Appendix A) were folded in on 2026-08-16 — there is no second file to
-> check. Do not create one.
+> and the deck lineage (Appendix A) were folded in on 2026-08-16, and the hosting audit (Part VIII)
+> on 2026-08-18 — there is no second file to check. Do not create one. A session handoff belongs
+> *in here* too: 2026-08-18's went into PART 0 §7 and Workstream C, not into a dated file beside
+> this one.
 >
 > Outside its scope by design, and untouched: each subproject's own docs (`verify/docs/`,
 > `contracts/madhat-core/`, `master-maths/`), live tooling config (`.claude/`, `.agents/`), and
@@ -86,7 +88,8 @@ halo's opacity breathe (`haloPulse`): low-amplitude and non-spatial.
 | **Token distribution split** | April canon (35/20/15/10/10/10) vs March "vFinal" (45/15/15/15/10). |
 | **O-V deck — 2 canon conflicts** | `MADdegen/OV-Deck-2026` says **"Wyoming L.C."** (slides 0, 7) against a **New Mexico** formation record filed 2026-03-25 — a legal-entity fact on an investor slide. And slide 3 reintroduces **"MAD Upshot"**, which canon bans; the deck is *newer* than the ban. *(A third conflict — the Creator Ladder — turned out to be the master doc's error, not the deck's; already corrected.)* |
 | **React18 / Hono / HonoX** | Never clarified. `verify/` is already Next.js 16 + React **19.2.1** + Tailwind v4, live. Hono/HonoX appears once in the whole archive as a speculative Phase-4 API-gateway idea — not a frontend, not tied to React 18. |
-| **Containerizing the platform** | Asked for, deliberately not started: an architectural reversal for a Vercel-native Next.js app. I'd want your reasoning first. |
+| **Containerizing the platform** | Asked for, deliberately not started — **but the premise has shifted.** This was declined as "an architectural reversal for a Vercel-native Next.js app"; the coupling audit (Part VIII §1) shows the app is **not** Vercel-native. `next.config.ts` already builds `output: "standalone"` and its own comment names Cloud Run. Total Vercel surface: one 44-line Blob adapter behind an interface that already exists, one analytics import, three cron entries, and **zero** `process.env.VERCEL*` references. Containerizing is a config change, not a reversal. Still your call — but decide it on merit now, not on switching cost. |
+| **Leaving Vercel** | Asked 2026-08-18: an up-and-coming alternative, bonus for a first-party database. Full audit in **Part VIII**. Recommendation: **Sevalla**, moving the runtime only and **leaving Neon in place** for the first cutover — changing host and database together gives any failure two candidate causes. The case against the obvious pick (Railway) is its own 2026 incident record, Part VIII §5. Four Sevalla facts are marked ‹verify› because its domains are egress-blocked here (Part VIII §7); the pod-price line is the one to check first. **Nothing has been actioned — the app is on Vercel and works.** |
 
 ---
 
@@ -94,7 +97,7 @@ halo's opacity breathe (`haloPulse`): low-amplitude and non-spatial.
 
 | Item | Blocker |
 |---|---|
-| **Neon three-database merge** | `mad-mpp-2-23-postgres` (target), `Neon-DB-MADMPP`, `neon-sky-park`. Ordered procedure + read-only inspection SQL in **Part II.5 below**. Agents cannot reach `*.neon.tech` (403) or TCP 5432. Until this completes there is **no single source database**, so "sync the DBs" has no well-defined target. Correct sequence: merge → `npm run schema:verify` → commit any drift as `verify/sql/0015_*.sql`. Schema-as-code is already complete: 14 migrations + `schema-verify.mjs` checking the ledger, pgvector and 39 named tables. |
+| **Neon three-database merge** | `mad-mpp-2-23-postgres` (target), `Neon-DB-MADMPP`, `neon-sky-park`. Ordered procedure + read-only inspection SQL in **Part II.5 below**. Agents cannot reach `*.neon.tech` (403) or TCP 5432. Until this completes there is **no single source database**, so "sync the DBs" has no well-defined target. Correct sequence: merge → `npm run schema:verify` → commit any drift as `verify/sql/0016_*.sql` (**0015 is taken** — see Part II.5). Schema-as-code is already complete: 15 migrations + `schema-verify.mjs` checking the ledger, pgvector and 39 named tables. |
 | **Generate the two `.lock.yml` files** | `gh aw compile`, then commit `agentic-security-review.lock.yml` + `agentic-quality-review.lock.yml`. Until then **both AI review gates are configured but never run**. The Actions `GITHUB_TOKEN` is *correctly* forbidden from writing `.github/workflows/` — needs a human push or a session with real push credentials. |
 | **eslint / eslint-config-next / @types/node realignment** | `eslint-config-next` is pinned at **15.4.5** while `next` resolves to **16.2.9** (and it's the only dep without a caret); `eslint` is **8.x, EOL** — config 16.x wants ESLint 9 + flat config, so those two move together; `@types/node` is **20.x** against `engines.node: 22.x`. Needs a lockfile regen — the sandbox 403s the npm registry, and hand-editing `package-lock.json` breaks `npm ci` on every job. Because Lint is report-only, the stale config is silently under-checking a Next 16 codebase rather than failing. |
 | **Founder-gated ops** | Rotate/confirm `NEON_API_KEY` · attach `madgambit.io` · GitHub Advanced Security toggles · push `v2.24-constellation` · Phase-4 named-subject gate (KMS choice, `MADPortraitKeyRegistry` deploy, 6 signed `registry_readiness` rows). |
@@ -117,6 +120,19 @@ Full detail — file paths, exit criteria — in ****Parts III–V + Workstream 
 | **—** | Security gaps. **CSP shipped, half-enforced by design:** `frame-ancestors` / `base-uri` / `object-src` / `form-action` are enforced (they restrict capabilities this app never uses, so they cannot break a page), while `script-src` / `style-src` — the two that actually stop XSS and the two that white-screen an app when wrong — ship **Report-Only**, because Next injects inline bootstrap, Tailwind injects inline styles, wallet extensions inject providers, and no browser exists in the agent sandbox to verify against. **Promotion to enforced is a two-line change once reports are quiet, and is the intended follow-up.** Review `connect-src` first: if `RELAYER_RPC_URL` is repointed at a dedicated provider, that host must be added or client-side wallet reads break. **ERC-4337 session keys remain open.** | — |
 | **—** | Promote Lint / Slither / Dependency Review from report-only to blocking, once their backlogs are worked. | — |
 | **—** | Carried from the repo: THE WIRE demo-row · raw-hex design-token scrub (~82 values, 5 panels) · 4 dead components · slot-auction clearing is manual. | — |
+
+### Workstream C — converge the two clients (added 2026-08-18)
+
+`master-maths/` is **not a dead artifact**; it is the second client of this product. See §7 and
+Part I 2026-06 for the evidence. Ordered by dependency:
+
+| # | Item | Notes |
+|---|---|---|
+| **C5** | **A Gradle job in CI.** `master-maths/` is built by **no workflow** — the path filters in `ci.yml` / `foundry.yml` don't match it, so the Kotlin can stop compiling with nothing going red. Same class of gap that left `contracts/script/**` unverified until it was found by accident. **Do this first: it is the cheapest, and it is what makes C1–C4 verifiable.** |
+| **C1** | **One token source.** Generate `master-maths/…/ui/theme/Color.kt` and `verify/lib/gambit-design-tokens.ts` from a single file. The palettes are identical *by coincidence* today; this makes them identical *by construction*. Blocks nothing, unblocks every later visual change. Folds naturally into the raw-hex scrub already queued above. |
+| **C2** | **`MadGambitApiService.kt`.** A third service beside `GeminiApiService.kt` and `RssFeedFetcher.kt`, hitting `/api/v1/{faces,zeitgeist,epiphany,perps,markets,registrar}`. Depends on nothing. This is the whole of "build the backend for the Android app" — the backend exists, the app has never been pointed at it. |
+| **C3** | **Reconcile the two maths.** `GambitMath.kt` and `gambit-game-math.ts` share lineage but have drifted — the web side has since gained CGARCH/EGARCH the Kotlin lacks. Decide canonical per function against Part VI; the web side is better tested (canon-lock suite). ⚠️ Do not silently resolve — this is a Part VI §13-class decision. |
+| **C4** | **Phone-frame theme on the web hub**, plus the genuinely-new backend behind it: KAITO feed, NYSE price panel, O-V Deck release registry, skin/laser selector. Everything else in that design — MULTIPLIER, MIN THRESHOLD, SHIELD APY, Δ-LIMIT — is **already computed** by existing maths. Check whether `The-MDC/mad-gambit-ui` simply *is* this UI before building it (blocked, Part 0 §4/§6). |
 
 **Sequencing constraint:** VRF makes pack-opening asynchronous (request → 3+ confirmations →
 callback). Shipping it onto today's synchronous UI replaces an instant pack-open with an
@@ -149,6 +165,29 @@ unexplained freeze. **Phases 1–2 are prerequisites for Phase 3, not parallel w
 - **Octavian's origin is Google AI Studio lineage, not Vercel v0.** Zero v0 fingerprints anywhere; three `metadata.json` files carry the AI Studio app-builder schema. Unverified only because v0 chats and `The-MDC/v0-open-in-v0-023b047d` were unreachable — to close it, start a session with that repo as the initial source and diff against `octavian-creature.tsx`.
 - **Compliance:** the mechanics stay, the clinical neuroscience framing stays out of anything user- or investor-facing. Internal docs may name them plainly; decks and marketing may not.
 - **Morpho / Aerodrome:** no such repos. Morpho returned zero across ~190; the Aerodrome lookup needed approval and never ran.
+- **`master-maths/` is the second client, not an abandoned experiment.** Three independent lines of
+  evidence: `verify/lib/gambit-game-math.ts` *names its own origin in its header* as a port of v1.7
+  Kotlin `GambitMath.kt` (`com.example.math`) — both carry `calculateConviction`,
+  `calculateDeltaLimit`, `calculateShieldPayout`, `getLunarPhaseMultiplier`,
+  `calculateDLLMSRCost`, `garchUpdate`. The palettes are **byte-identical** (`0xFFFFD700` /
+  `0xFFB8860B` are `gold: "#ffd700"` / `goldDim: "#b8860b"`). And the Compose screens map 1:1 —
+  `KaitoTerminalScreen` → the KAITO bar, `MadShieldScreen` → MAD Shield, `AuctionScreen` → the
+  ZEITGEIST slot auction, `PersonaSettingsScreen` → FIVE FACES, `DataHouseScreen` → the datahouse
+  fold, `AuthScreen` → LOGIN/SIGN UP. **The gap is narrow:** the Compose `api/` package is two
+  files (Gemini + RSS) and has no backend of its own. Workstream C above.
+- **`master-maths/` is nested, and must stay nested.** Both trees defined `app/` — the Android
+  module sat exactly on `app/page.tsx`. That collision is *why* commit `8c7a195` superficially read
+  as a replacement rather than a deletion. Nesting removes it permanently: `settings.gradle.kts`
+  resolves `include(":app")` relative to itself, so the Gradle build is unaffected. Do not hoist it
+  back to the root. (`rootProject.name` was the Android Studio default `"My Application"`; now
+  `"Master Maths"`.)
+- **`--exclude-detectors=lob` in `secret-scan.yml` is a detector collision, not a suppressed
+  finding.** TruffleHog's Lob detector matches `(live|test)_[a-zA-Z0-9]{35}`; Foundry's convention
+  produces exactly that shape — `function test_DestroyedSubjectCanNeverBeReRegistered()` is `test_`
+  + 38 alphanumerics. It reported five "verified secrets" on the restore PR because that was the
+  **first scan ever to see those files** (the scan is diff-scoped, and they predate the gate).
+  Lob is a vendor this repo has no dependency on, so it cannot produce a true positive. Every other
+  detector stays live. Do not "fix" this by renaming test functions.
 
 ---
 
@@ -178,7 +217,7 @@ Lightly detailed. Dates are from document headers or git history, not inferred.
 
 ### 2026-04/06 — consolidation and a dead end
 - **2026-04-05** — `CANONICAL_NUMBERS.md` last updated — still the numeric source of truth today.
-- **2026-06** — Android/Kotlin (Jetpack Compose) client era. Abandoned; survives only as `master-maths/`.
+- **2026-06** — Android/Kotlin (Jetpack Compose) client era, ~70 Compose files, no WebView. **Dormant, not abandoned** — corrected 2026-08-18. It survives as `master-maths/` and is a genuine second client of this product: the web maths is a *port of its* `GambitMath.kt`, the palettes are byte-identical, and its screens map 1:1 onto the shipped web features. Evidence and remaining work in Part 0 §7 and Workstream C.
 
 ### 2026-07 — the current app takes shape
 - **2026-07-01** — Multi-agent swarm run (`.agents/`): 4 milestones — SIWE auth, `MADShieldVault.sol` + Foundry tests, concierge wiring, local Gemma endpoint. All returned CLEAN verdicts. **Caveat: every shell command in that run timed out on permission prompts, so all four were _statically reviewed, never executed_.** Treat the verdicts accordingly.
@@ -203,6 +242,7 @@ Lightly detailed. Dates are from document headers or git history, not inferred.
 - **2026-08-14** — The Octavian visual becomes a *living* mesh. Lineage: a 2026-07-13 Three.js/R3F/WebGPU "Master Octavian" experiment (Vulkan-derived pipeline notes, shader + bundle optimization) → the 2D-canvas `octavian-mesh.tsx` shipped 2026-08-07 in PR #63 → `72dccda` static high-fidelity orb → `fb73122` two-axis weave → **`11b8a6f` the living-mesh moment**: a three-tier pointer-driven mood system (idle cool topaz/emerald/cyan → agitated yellow/green/blue → yellow/orange/red, fastest spin, pitch tipping away as if not wanting to be bothered), decaying back to idle on its own. The palette layering is explicitly modelled on **cephalopod chromatophore-over-iridophore skin** — cool/structural at rest, pigment-dominant when agitated — not an arbitrary colour pick. `bb99269` then merged both visuals into one engine. Note: no trace of this originates in the O-V deck repo; it is native to this codebase.
 - **2026-08-14** — PR #80 merged (O-V HUD + stale-Supabase doc cleanup). Neon project split resolved to a concrete cause: **three** live Postgres databases under one integration, needing a founder-run merge (Part II.5). Migrations removed from the Vercel build in favour of a controlled `migrate:deploy`; `main` auto-deploy disabled; two advisory AI review gates added via gh-aw.
 - **2026-08-16** — This consolidation; frontend QOL benchmark and Chainlink VRF audit (Parts III–V). Later the same day: PR #91 merged (Octavian cephalopod creature + CI fixes), then the session handoff, the maths master, the engine-room formulas and the deck lineage were all folded in here as PART 0, Parts VI–VII and Appendix A — leaving this as the single planning document.
+- **2026-08-18** — Restore/convergence handoff folded in rather than filed beside this document (§7, Workstream C, the 2026-06 correction). Three stale facts fixed: the migration count (14 → **15**, so the Neon merge is `0016`, not `0015`), the Kotlin client's status ("abandoned" → dormant second client), and the absence of any CI gate over `master-maths/`. **Part VIII added** — the hosting-platform audit, whose finding is that Vercel coupling is one 44-line file, one import and three cron entries.
 
 ---
 
@@ -282,9 +322,17 @@ Project **`mad-gambit-2.23`** (team `madgambit`, Pro), replacing the dead `mpp2.
 
 Nothing blocks merge until branch protection actually requires these checks on `main`. The two AI review gates are deliberately non-blocking while they prove out; their `.lock.yml` files are generated by `gh aw compile` and only the `.md` sources are checked in so far.
 
+**Coverage gap: `master-maths/` is gated by nothing.** No workflow's path filter matches it, so the
+Kotlin client can stop compiling and every check still goes green. Workstream C5 (Part 0 §5).
+Precedent: `contracts/script/**` sat outside `foundry.yml`'s filter the same way — `forge build`
+compiled it, but the gate never ran on changes to it, leaving INTERLOCK L4 unverified until it was
+found by accident.
+
 ### 5. Database & migrations
 
-14 migrations, `verify/sql/0001–0014_*.sql`, applied by `verify/scripts/migrate.mjs` — one transaction each, tracked in a `_migrations` ledger, idempotent (`CREATE ... IF NOT EXISTS`). Schema lands **only** via reviewed numbered migrations; interactive `psql` is both discouraged and network-blocked in-container.
+**15** migrations, `verify/sql/0001–0015_*.sql`, applied by `verify/scripts/migrate.mjs` — one transaction each, tracked in a `_migrations` ledger, idempotent (`CREATE ... IF NOT EXISTS`). Schema lands **only** via reviewed numbered migrations; interactive `psql` is both discouraged and network-blocked in-container.
+
+**The next free number is `0016`.** `0015_pack_open_counter.sql` shipped with the Phase-0 fairness fix, so the merge migration below is `0016_neon_merge.sql`, not `0015_*` — this section said "14 migrations" until 2026-08-18 and would have collided.
 
 **Current blocker — three Neon databases, one app (2026-08-14).** Under the same Neon-via-Vercel integration there are three live Postgres databases:
 
@@ -299,7 +347,7 @@ Nothing blocks merge until branch protection actually requires these checks on `
 **Founder-driven sequence, in order — do not skip ahead to the delete:**
 1. Run the read-only inspection query (below) in each of the three Neon SQL Editors.
 2. Diff the three outputs; decide a conflict policy per overlapping table.
-3. Author the merge migration as `verify/sql/00NN_neon_merge.sql`, following the existing migrations-as-code convention.
+3. Author the merge migration as `verify/sql/0016_neon_merge.sql`, following the existing migrations-as-code convention.
 4. Validate row counts and app behaviour against the merged result.
 5. **Only then** delete `Neon-DB-MADMPP` and `neon-sky-park`.
 
@@ -862,6 +910,146 @@ MaxBurn(30d) = TotalSupply × 0.049 = 43,555,555 $MADx
 ```
 
 Prevents deflationary death spiral. Hard-coded in contract.
+
+---
+
+## PART VIII — HOSTING PLATFORM EVALUATION (2026-08-18)
+
+*Asked for: an up-and-coming Vercel alternative, bonus if it has its own backend database. This
+part is the audit; the decision itself is a row in Part 0 §3. Nothing here has been actioned —
+the app is on Vercel and works.*
+
+### 1 · The finding that decides this: the app is barely coupled to Vercel
+
+Measured against the tree, not assumed. **Every** Vercel-specific surface in `verify/`:
+
+| Surface | Extent | Portable? |
+|---|---|---|
+| `next.config.ts` | already `output: "standalone"`, and its own header comment says *"works directly in AI Studio and Google Cloud Run… run with `node .next/standalone/server.js`"* | **already portable — this was built to run in a container** |
+| `@vercel/*` imports | **two, in the whole app**: `lib/vercel-blob-store.ts` and one `@vercel/speed-insights` line in `app/layout.tsx` | yes |
+| `lib/vercel-blob-store.ts` | 44 lines, **one** consumer (`app/api/v1/registrar/lapse/route.ts`), and it already implements a pre-existing `ObjectStore` interface from `lib/portrait-vault` | yes — an S3 swap is a *second implementation of an interface that already exists*, not a refactor |
+| `process.env.VERCEL*` | **zero references** in application code | n/a |
+| `export const runtime` | **zero** — nothing is pinned to the Edge runtime, so `proxy.ts` is a plain Node proxy | yes |
+| ISR | no page-level ISR at all; two route handlers carry `revalidate = 300` (`feeds`, `news/satirical`) | yes, with a caveat — §4 |
+| `vercel.json` headers | **redundant**: `next.config.ts`'s `SECURITY_HEADERS` is a strict superset (adds CSP, Referrer-Policy, Permissions-Policy) | yes — headers travel with the framework, not the platform |
+| `vercel.json` `crons` | 3 jobs — `cron/rollup` hourly, `perps/roll` 00:00, `registrar/lapse` 00:30 | **the one real port**: needs a platform scheduler |
+| `vercel.json` `git` / `ignoreCommand` | Vercel-only branch rules | replaced by the new platform's equivalent |
+| Database | **Neon, an independent managed Postgres reached over `DATABASE_URL`** — not Vercel Postgres | **does not move at all** |
+
+**The shape of this app argues for a container, not for serverless.** 90 route handlers, a custom
+SIWE proxy, three crons, and ADR-008's `pg` **Pool** — a long-lived pool is actively penalised by
+per-request serverless isolates and is exactly right on a persistent Node process. The one thing
+Vercel does that a container does not is per-route autoscaling and CDN-backed ISR, and this app
+uses neither.
+
+**Conclusion: the lock-in is one 44-line file, one analytics import, and three cron entries.**
+That is the whole cost, and it is low enough that platform choice should be decided on merit
+rather than on switching cost.
+
+### 2 · Why the question is answerable at all in 2026
+
+**Next.js 16.2 (March 2026) shipped a stable, public Adapter API**, built with OpenNext, Netlify,
+Cloudflare, AWS Amplify and Google Cloud. Platforms no longer reverse-engineer `.next/`; the build
+emits a typed, versioned description of routes, prerenders, assets, runtime targets and caching
+rules. This is what unblocked full Next 16 support — `proxy.ts` included — off Vercel.
+
+Status as of writing: **verified adapters for Vercel and Bun**; Netlify, Cloudflare and AWS
+(via OpenNext) in active development. Every PaaS below therefore still runs Next.js the *other*
+way — as a standalone Node server in a container. For this app that is fine (§1), and it means
+adapter maturity is **not** a gating concern for us the way it would be for an ISR-heavy site.
+
+### 3 · Candidates
+
+Ranked against what this repo actually needs: Node container · managed Postgres · S3-compatible
+private object storage · scheduled jobs · per-PR preview environments.
+
+| Platform | Own Postgres | Object storage | Cron | PR previews | Read |
+|---|---|---|---|---|---|
+| **Sevalla** (Kinsta) | ✅ managed, from ~$5/mo | ✅ S3-compatible, R2-backed, $0.02/GB, **zero egress** | ✅ cron process type | ✅ | **Recommended.** Genuinely up-and-coming — took over Kinsta's whole PaaS line on 2026-02-02 — but with an established parent rather than a runway clock. Only platform here that covers all four needs *and* the object-storage half. |
+| **Northflank** | ✅ from ~$3.91/mo | via BYOC / S3 | ✅ | ✅ built-in | The serious-infrastructure pick: BYOC, multi-cloud, managed K8s, GPUs, per-second billing, $50/mo free credits. More power and more configuration than this app needs today; the right answer if the platform later grows workers and queues. |
+| **Zerops** | ✅ managed, HA option | ✅ S3-compatible | ✅ | ✅ | The most "up-and-coming" of the set — private networking, hostname service discovery, credentials auto-injected, queues and search in-catalogue, 2026 work on workload-aware Postgres tuning. EU-based. Smallest company: the highest-variance pick. |
+| **Render** | ✅ compute ~$6/mo + $0.30/GB storage | ❌ | ✅ | ✅ | Boring and safe, and *not* up-and-coming. Note: **no native ISR** on a standalone server — irrelevant here (§1). |
+| **Railway** | ✅ auto-injected `DATABASE_URL`, one-click HA Postgres (Patroni, Mar 2026) | ❌ | ✅ | ✅ | Best DX and the tightest DB integration — **but see §5.** |
+| **Coolify / Dokploy** | self-managed | self-managed | ✅ | ✅ | Self-hosted on your own VPS. Cheapest at scale, and you become the SRE. Wrong trade for a one-founder team already short on operator time. |
+| **Cloudflare Workers** | ❌ (Hyperdrive proxies to an external PG) | ✅ R2 | ✅ | ✅ | Best edge story, and an OpenNext adapter in development — but no first-party Postgres, which is precisely the bonus asked for. |
+
+### 4 · Recommendation
+
+**Sevalla**, with **Neon staying exactly where it is** — at least through the first cutover.
+
+Two decisions, and they should be taken separately:
+
+1. **Move the runtime.** Sevalla runs the standalone build the config already produces, gives the
+   `pg` Pool a persistent process to live in, and covers Blob and the three crons with first-party
+   services instead of one-off glue.
+2. **Leave the database.** Neon is not a Vercel product and nothing forces it to move. Changing
+   host *and* database in one step means a failure has two candidate causes. Move the runtime,
+   confirm it, and only then decide whether consolidating onto Sevalla Postgres is worth it.
+
+There is a real argument for consolidating later: it would collapse the **three-database Neon
+split** (Part II.5) into one migration onto one clean target, and put the database on the same
+private network as the app. That is a genuinely attractive endgame — but it is the *second* move,
+not the first, and it is gated on the same founder-run inspection that Part II.5 already blocks on.
+
+**The `revalidate = 300` caveat, stated plainly:** on a standalone server that cache is
+per-instance. At one instance, nothing changes. Past one instance, `feeds` and
+`news/satirical` refetch per pod — which costs upstream calls, not correctness. If it ever matters,
+the fix is a shared cache handler, which is the same fix everyone self-hosting Next uses.
+
+### 5 · The case against Railway, since it is the obvious pick
+
+Railway has the best integrated-database experience of the set and would otherwise top this list.
+Against it: it published incident reports for **2026-02-11** and for **2026-05-19**, the latter a
+~8-hour platform-wide outage after **Google Cloud suspended Railway's own production account** —
+API, control plane, databases and compute all down, persistent disks inaccessible. Contractual
+SLAs exist only on Business Class and above; Hobby and Pro publish targets without them.
+
+Some of the harshest commentary comes from competitors (Northflank, Kuberns) and should be
+discounted accordingly — but the two incident reports are Railway's own. For an app that will
+custody real `$MADx` and settle markets on a lunar clock, a single-cloud-account dependency with
+no SLA at our tier is the wrong risk, and it is the one factor that outweighs Railway's better DX.
+
+### 6 · Migration checklist, if the decision is yes
+
+Small enough to state completely:
+
+1. `lib/s3-object-store.ts` — second implementation of the existing `ObjectStore` interface. Keep
+   `deletable: true`; crypto-shredding depends on it, and a store that cannot really delete breaks
+   THE LAPSE. Select on env, keep `vercel-blob-store.ts` until the cutover is proven.
+2. Drop `@vercel/speed-insights` from `app/layout.tsx` (and its `connect-src` entry in the CSP).
+3. Port the three crons to the platform scheduler. **They stay HTTP calls to the existing routes**,
+   still bearing `CRON_SECRET` — the handlers already export `GET` and `proxy.ts` already
+   bearer-passes them around the guest gate. Nothing in the app changes.
+4. Reproduce the env set (Part II.2). `DATABASE_URL` stops being integration-injected and becomes
+   an ordinary secret — **note this**, since Part II.2 currently says never to hand-set it.
+5. Point a preview environment at a Neon branch; keep `main` non-auto-deploying to match
+   `vercel.json`'s current posture.
+6. Cut DNS last, and keep the Vercel project alive until the new one has survived a full lunar leg
+   boundary — a roll is the one event no staging environment reproduces.
+
+**Do not** promote CSP `script-src`/`style-src` to enforced during the same change (Part 0 §5).
+A white-screen during a host migration is indistinguishable from a failed migration.
+
+### 7 · Facts marked ‹verify›
+
+`sevalla.com` and `docs.sevalla.com` are **egress-blocked from the agent container** (Part 0 §6),
+so Sevalla specifics came from search summaries and third-party writeups, not the live pages.
+Confirm before committing:
+
+- **Pod pricing** ‹verify›: S1 0.5 CPU/1 GB **$10/mo**, S2 1 CPU/2 GB **$40/mo**, M1 0.5 CPU/2 GB
+  **$20/mo**. The S1→S2 jump is 4× price for 2× resources, which is odd enough to be a
+  transcription artefact. A Next.js standalone server wants ≥1 GB, so the realistic line is M1 or
+  S2 — **the difference between them is the whole cost story**, and it is the one number worth
+  checking first.
+- **Cron process type** ‹verify›: reportedly a process that launches on schedule and exits, with no
+  persistent storage and no horizontal scaling. Fine for three HTTP pokes; confirm the schedule
+  syntax and any minimum interval.
+- **Preview environments** ‹verify›: PR previews are opt-in and bill build minutes and bandwidth.
+  One source describes previews being created *on merge*, which would be the wrong semantics for
+  this repo — confirm previews are per **open PR**, since every gate here runs against a preview.
+- **Object storage** ‹verify›: S3-compatible, Cloudflare R2-backed, $0.02/GB, zero ingress/egress,
+  six regions. Confirm **private-by-default** buckets — `vercel-blob-store.ts` deliberately
+  requires a private store because portrait ciphertext must never be served from a public URL.
 
 ---
 
