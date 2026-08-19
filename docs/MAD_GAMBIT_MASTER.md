@@ -110,8 +110,8 @@ halo's opacity breathe (`haloPulse`): low-amplitude and non-spatial.
 | **Token distribution split** | April canon (35/20/15/10/10/10) vs March "vFinal" (45/15/15/15/10). |
 | **O-V deck — 2 canon conflicts** | `MADdegen/OV-Deck-2026` says **"Wyoming L.C."** (slides 0, 7) against a **New Mexico** formation record filed 2026-03-25 — a legal-entity fact on an investor slide. And slide 3 reintroduces **"MAD Upshot"**, which canon bans; the deck is *newer* than the ban. *(A third conflict — the Creator Ladder — turned out to be the master doc's error, not the deck's; already corrected.)* |
 | **React18 / Hono / HonoX** | Never clarified. `verify/` is already Next.js 16 + React **19.2.1** + Tailwind v4, live. Hono/HonoX appears once in the whole archive as a speculative Phase-4 API-gateway idea — not a frontend, not tied to React 18. |
-| **Containerizing the platform** | Asked for, deliberately not started — **but the premise has shifted.** This was declined as "an architectural reversal for a Vercel-native Next.js app"; the coupling audit (Part VIII §1) shows the app is **not** Vercel-native. `next.config.ts` already builds `output: "standalone"` and its own comment names Cloud Run. Total Vercel surface: one 44-line Blob adapter behind an interface that already exists, one analytics import, three cron entries, and **zero** `process.env.VERCEL*` references. Containerizing is a config change, not a reversal. Still your call — but decide it on merit now, not on switching cost. |
-| **Leaving Vercel** | Asked 2026-08-18: an up-and-coming alternative, bonus for a first-party database. Full audit in **Part VIII**. Recommendation: **Sevalla**, moving the runtime only and **leaving Neon in place** for the first cutover — changing host and database together gives any failure two candidate causes. The case against the obvious pick (Railway) is its own 2026 incident record, Part VIII §5. Four Sevalla facts are marked ‹verify› because its domains are egress-blocked here (Part VIII §7); the pod-price line is the one to check first. **Nothing has been actioned — the app is on Vercel and works.** |
+| **Containerizing the platform** | Deferred by the 2026-08-18 decision to stay on Vercel — but **correct the reasoning, because the old one was wrong.** It was declined as "an architectural reversal for a Vercel-native Next.js app"; the coupling audit (Part VIII §1) shows the app is **not** Vercel-native. `next.config.ts` already builds `output: "standalone"` and its own comment names Cloud Run; total Vercel surface is one 44-line Blob adapter behind a pre-existing interface, one analytics import, three cron entries, and **zero** `process.env.VERCEL*` references. So containerizing is a config change, not a reversal — it is deferred for want of a reason to do it, **not** because it is hard. |
+| ~~**Leaving Vercel**~~ | **DECIDED 2026-08-18: stay on Vercel + Neon.** Founder's call, and the audit supports it. Part VIII is retained as a **contingency plan, not a pending recommendation** — see the note at its head for what would reopen it. |
 
 ---
 
@@ -265,7 +265,7 @@ Lightly detailed. Dates are from document headers or git history, not inferred.
 - **2026-08-14** — The Octavian visual becomes a *living* mesh. Lineage: a 2026-07-13 Three.js/R3F/WebGPU "Master Octavian" experiment (Vulkan-derived pipeline notes, shader + bundle optimization) → the 2D-canvas `octavian-mesh.tsx` shipped 2026-08-07 in PR #63 → `72dccda` static high-fidelity orb → `fb73122` two-axis weave → **`11b8a6f` the living-mesh moment**: a three-tier pointer-driven mood system (idle cool topaz/emerald/cyan → agitated yellow/green/blue → yellow/orange/red, fastest spin, pitch tipping away as if not wanting to be bothered), decaying back to idle on its own. The palette layering is explicitly modelled on **cephalopod chromatophore-over-iridophore skin** — cool/structural at rest, pigment-dominant when agitated — not an arbitrary colour pick. `bb99269` then merged both visuals into one engine. Note: no trace of this originates in the O-V deck repo; it is native to this codebase.
 - **2026-08-14** — PR #80 merged (O-V HUD + stale-Supabase doc cleanup). Neon project split resolved to a concrete cause: **three** live Postgres databases under one integration, needing a founder-run merge (Part II.5). Migrations removed from the Vercel build in favour of a controlled `migrate:deploy`; `main` auto-deploy disabled; two advisory AI review gates added via gh-aw.
 - **2026-08-16** — This consolidation; frontend QOL benchmark and Chainlink VRF audit (Parts III–V). Later the same day: PR #91 merged (Octavian cephalopod creature + CI fixes), then the session handoff, the maths master, the engine-room formulas and the deck lineage were all folded in here as PART 0, Parts VI–VII and Appendix A — leaving this as the single planning document.
-- **2026-08-18** — Restore/convergence handoff folded in rather than filed beside this document (§7, Workstream C, the 2026-06 correction). Three stale facts fixed: the migration count (14 → **15**, so the Neon merge is `0016`, not `0015`), the Kotlin client's status ("abandoned" → dormant second client), and the absence of any CI gate over `master-maths/`. **Part VIII added** — the hosting-platform audit, whose finding is that Vercel coupling is one 44-line file, one import and three cron entries.
+- **2026-08-18** — Restore/convergence handoff folded in rather than filed beside this document (§7, Workstream C, the 2026-06 correction). Three stale facts fixed: the migration count (14 → **15**, so the Neon merge is `0016`, not `0015`), the Kotlin client's status ("abandoned" → dormant second client), and the absence of any CI gate over `master-maths/`. **Part VIII added** — the hosting-platform audit, whose finding is that Vercel coupling is one 44-line file, one import and three cron entries. **Same day, decided: stay on Vercel + Neon.** The audit established optionality, not a verdict — it never found a reason to leave, and hosting cannot be migrated while Actions is refusing to run jobs. Part VIII becomes a contingency plan with named reopen triggers.
 
 ---
 
@@ -959,9 +959,33 @@ Prevents deflationary death spiral. Hard-coded in contract.
 
 ## PART VIII — HOSTING PLATFORM EVALUATION (2026-08-18)
 
-*Asked for: an up-and-coming Vercel alternative, bonus if it has its own backend database. This
-part is the audit; the decision itself is a row in Part 0 §3. Nothing here has been actioned —
-the app is on Vercel and works.*
+> ## ✅ DECIDED — staying on Vercel + Neon (2026-08-18)
+>
+> **Read this before reading the rest.** This part is a **contingency plan, not a proposal.**
+>
+> **What the audit actually found was optionality, not a verdict.** It was commissioned as "find an
+> up-and-coming Vercel alternative"; it answered that, and Sevalla is the ranked pick if the day
+> comes. What it did **not** find is a reason to go — no cost wall, no scaling limit, no capability
+> gap. The live problems are the CI outage (Part 0 §1), the three-database Neon split (Part II.5)
+> and the report-only gates. **None of those are Vercel's doing, and none of them improve on another
+> host.** Do not mistake "the exit is cheap" for "the exit is indicated."
+>
+> **A timing point that would hold even if the merits were closer:** hosting cannot be migrated
+> while GitHub Actions is refusing to run jobs. That move is precisely the change that needs
+> type-check, build, tests and secret scan watching it, and right now none of them execute.
+>
+> **What would reopen this**, in rough order of likelihood:
+> 1. A Vercel bill that outgrows the platform's value — the only argument with real force, and it
+>    needs your actual invoice, which no agent can see.
+> 2. Sustained connection-pool pressure under `pg` (ADR-008) that a persistent container would fix.
+> 3. Needing long-running workers or queues — genuinely awkward on Vercel, native on the §3 field.
+> 4. A Vercel platform incident of the severity Railway's 2026 record shows (§5).
+>
+> Absent one of those, **the cheapest correct action is to do nothing**, and the §1 coupling table
+> is the reason that stays true: the exit does not get more expensive by waiting.
+
+*Everything below is the audit as run, kept for whenever one of those triggers fires. The §7
+‹verify› list still applies — those figures were never confirmed against live pages.*
 
 ### 1 · The finding that decides this: the app is barely coupled to Vercel
 
