@@ -3,11 +3,17 @@
 /**
  * MAD Gambit — Abbreviated Whitepaper / Master Product Sheet
  * ------------------------------------------------------------------
- * Replaces the old "Sandbox Documentation" stub with a full-scope, single-view
- * product sheet sourced verbatim from the canonical docs (numbers locked):
- * fee 1.88% · community 28.8% · creator 40% · $MADx 888,888,888 · seed
- * $1.24M–$2.48M @ $12M pre · Y3 $154.5M on $3.6B–$4.2B vol. Links to the full
- * /pitch data room. Self-styled (INK tokens) for consistency across themes.
+ * Full-scope, single-view product sheet sourced from the canonical docs
+ * (numbers locked): fee 1.88% · community 28.8% · creator 40% ·
+ * $MADx 888,888,888 · seed $1.24M–$2.48M @ $12M pre.
+ *
+ * 2026-08-19 — reconciled against the published data room per Boardy's
+ * consolidated brief. See docs/boardy/CANONICAL_NUMBERS_2026-08-19.md.
+ *   · Y3 headline $154.5M → $139.6M base case ($177.7M is bull only).
+ *   · Retention and Monte Carlo solvency relabelled as target / modelled —
+ *     they were stated as achieved fact and are not evidenced.
+ * Every claim here must trace to docs/boardy/FEATURE_TRACEABILITY_MATRIX.md.
+ * Self-styled (INK tokens) for consistency across themes.
  */
 import React from "react";
 import { X, ExternalLink } from "lucide-react";
@@ -15,13 +21,13 @@ import { INK } from "@/lib/gambit-design-tokens";
 
 const SECTIONS: { h: string; body: React.ReactNode }[] = [
   { h: "01 · The Problem", body: "Prediction markets are truth machines (Polymarket/Kalshi) or liquidity machines (DraftKings/Stake) — none are entertainment-native or creator-owned. Culture moves faster than either can price." },
-  { h: "02 · The Product — Conviction · Prediction · Affliction", body: "Creator-made scandal/culture markets with satirical NFT cards and a loss-mitigation shield. Emotional hedging → sticky retention (70%+ D30 target)." },
+  { h: "02 · The Product — Conviction · Prediction · Affliction", body: "Creator-made scandal/culture markets with satirical NFT cards and a loss-mitigation shield. Positioned as a family of specialised perpetuals — Z-Liar, Gossip-Cop, Perpetual Epiphanies, Progression/Saga — not a binary prediction market. Retention target 70% D30; not yet measured." },
   { h: "03 · Card Economy", body: "992-card canonical deck, 7 rarities (Common→Mythic). Scandal Packs mint on an 8-tier Dutch-auction bonding curve — $8.88 floor → $95 (gradual) → $296 conviction cap. Evolution burns are the primary deflationary sink." },
-  { h: "04 · MAD Shield", body: "Opt-in loss recovery: 2–4% premium returns 28.8% of losses (standard), premium-funded via 25% fee allocation + Lido/Aave yield. 100% USD solvency across 1,000 Monte-Carlo bear scenarios. GARCH(1,1)-priced." },
+  { h: "04 · MAD Shield", body: "Opt-in loss recovery: a 2–4% premium returns 28.8% of losses at standard tier, scaling to 40% by premium tier (60% VIP, gated). Funded from the fee allocation plus yield on pooled float. GARCH(1,1)-priced. Solvency is modelled, not audited — assumptions and Monte Carlo parameters are in the data room. Not insurance." },
   { h: "05 · Tokenomics & Markets", body: "$MADx — 888,888,888 fixed supply. Platform fee 1.88% → 40% to the market creator, 28.8% smart-contract-enforced to the community pool. Markets priced by DL-LMSR (volume-scaled bonding curve); Market Factory lets creators launch markets on-chain." },
-  { h: "06 · Chain", body: "Arbitrum Nova (launch / gameplay, chain 42170) · Arbitrum One (MAD Shield vaults + $MADx). HyperEVM + Base expansion. Foundry-built, SIWE auth." },
-  { h: "07 · Traction & Projections", body: "Y1 $30.9M → Y2 $92.7M → Y3 $154.5M gross on $3.6B–$4.2B annual volume; ~$80M EBITDA; 750K DAU. 5 revenue streams (fees 51% · NFT 31% · staking/yield 12% · shield 6%)." },
-  { h: "08 · The Ask", body: "Seed $1.24M–$2.48M at $12M pre-money — SAFE or equity. Use: 35% contracts & audits · 25% marketing/creator acquisition · 20% liquidity · 15% team · 5% legal." },
+  { h: "06 · Chain", body: "Arbitrum Nova (launch / gameplay, chain 42170) · Arbitrum One (liquidity, MAD Shield vaults, $MADx) · Ethereum L1 governance anchor · Base L2 Phase 3 · HyperEVM for AI-agent settlement. Foundry-built, SIWE auth." },
+  { h: "07 · Projections (modelled)", body: "Y3 $139.6M gross, base case — $177.7M is bull case only and is not the headline. Modelled on $3.6B–$4.2B annual volume. Revenue-stream weighting is being re-run against the revised base case. Projections only: no revenue, users, or retention to date. 15,000 pre-registered is a waitlist." },
+  { h: "08 · The Ask — three separate tranches", body: "(1) Infrastructure $15K–$20K: 3–6 months of build infrastructure, frontier-model usage, and a development machine. (2) Bridge $300K–$500K: product, testing, security, ecosystem, and an accountable technical partner against explicit milestones. (3) Seed $1.24M–$2.48M @ $12M pre — SAFE or equity, 10% token allocation. Use: 35% contracts & audits · 25% creator acquisition · 20% liquidity · 15% team · 5% legal. Seeking operator investors and studios, not passive capital." },
 ];
 
 export default function WhitepaperSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
