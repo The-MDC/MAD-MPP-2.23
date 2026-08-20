@@ -48,7 +48,7 @@
     "viem": "^2.54.6"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.0.0",
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^20.14.9",
     "@types/pg": "^8.20.0",
     "@types/react": "^19.0.7",
