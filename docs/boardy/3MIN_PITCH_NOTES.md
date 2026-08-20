@@ -13,6 +13,20 @@
 
 ---
 
+## 🚨 Live-surface state — read before you open anything (checked 2026-08-20 15:15 UTC)
+
+| Surface | State | Do |
+|---|---|---|
+| `mad-mpp-2-23-madgambit.vercel.app` | **Behind Vercel SSO.** Anyone not on your Vercel team hits a login page. | Screen-share it — don't paste the link. Settings → Deployment Protection → Vercel Authentication → Disabled to fix. |
+| Same, **content** | Last build **2026-08-19 14:00 UTC**. The 1.88% fix and the Octavian resize are on `main` but **not deployed**. | `cd verify && npx vercel --prod` before you show it, or demo from `npm run dev`. |
+| `o-vdeck26.vercel.app` | Public, fee numbers correct — but says **"Manager-Managed Wyoming LLC"** and **"Wyoming Registered, SEC Compliant LLC Architecture"**, 7 occurrences. | **Do not open it.** Canon is New Mexico LLC (filed). Built from a source outside this repo; the copy here is already fixed. |
+| `maddegen.github.io/MADHATs-Gambit-Presentation/` | **Dead** — repo 404s under both orgs. | Never hand this out. |
+
+**If asked about entity on the spot:** "New Mexico LLC, filed." Nothing further — you have not paid
+for a legal opinion, and the deck that says otherwise is a stale build you are replacing.
+
+---
+
 ## SLIDE 1 — The gap · 0:00–0:25 (~60 words)
 
 - Open cold, no company name yet: **"Prediction markets today are either truth machines or
@@ -108,7 +122,11 @@
 
 ## Pre-flight
 
+- [ ] **Deployed?** `npx vercel --prod` run and READY — otherwise the live site is a day stale
+- [ ] **SSO off**, or you are screen-sharing and never pasting the URL
+- [ ] `o-vdeck26.vercel.app` **closed** — it still says Wyoming
 - [ ] Data House open in a second tab — `verify/public/pitch/index.html`
+- [ ] Fee card reads **1.88%** (it rendered *18.8%* until today — `node-registry.ts` `pct()` helper)
 - [ ] Deck fits 3:00 on a live timer, not a read-through
 - [ ] Y3 revenue headline confirmed (**$139.6M base**, not $154.5M — see `CANONICAL_NUMBERS_2026-08-19.md`)
 - [ ] Every number said aloud traces to `FEATURE_TRACEABILITY_MATRIX.md`
