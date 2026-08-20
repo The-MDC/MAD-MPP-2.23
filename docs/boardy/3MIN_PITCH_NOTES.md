@@ -111,6 +111,141 @@ for a legal opinion, and the deck that says otherwise is a stale build you are r
 
 ---
 
+---
+
+# Deep-dive bullets — the seven Boardy asked for
+
+Point form, for the room *after* the 3 minutes. Every line is tagged with what backs it:
+**[LIVE]** in code · **[DEMO]** works but not production · **[SPEC]** written, not built ·
+**[⚠️]** unresolved — do not assert. Sources: `FEATURE_TRACEABILITY_MATRIX.md`,
+`CANONICAL_NUMBERS_2026-08-19.md`, `verify/lib/gambit-game-math.ts`.
+
+## 1 · The wedge
+
+- Prediction markets split two ways and **neither is entertainment-native**: truth machines
+  (Polymarket, Kalshi) and liquidity machines (DraftKings, Stake). Culture prices faster than
+  either settles. **[LIVE — positioning]**
+- Kalshi's "peer-to-peer" framing is undercut by its own structure — Susquehanna and Kalshi's
+  trading arm supply liquidity and carry risk, which is sportsbook economics; the actual
+  innovation is CFTC-vs-state-gaming **regulatory arbitrage**. *Cite as third-party analysis
+  in the attachments — never as our finding.* **[LIVE — third-party]**
+- So the wedge is not "cheaper Polymarket". It is **who owns the market**: the person who
+  creates it earns from it. That is a structural difference, not a pricing one.
+- Concretely: **Market Factory** lets a creator launch an on-chain market and take a share of
+  every trade in it. **[DEMO — frontend built, contract not deployed]**
+
+## 2 · IP assessment methodology — how we know what we own
+
+- We do not claim a feature until it is traced to a file. Every capability is graded
+  **Implemented → Demonstrated → Validated → Conceptual** in `FEATURE_TRACEABILITY_MATRIX.md`,
+  with the evidence path next to it.
+- The grading is adversarial on purpose. It is what caught: the MADConv Cobb-Douglas formula
+  is **Engine Room documentation with no implementation**; GDELT scandal velocity is **UI with
+  no verified feed**; the oracle cascade is **slideware**. Those are marked Conceptual and are
+  not pitched.
+- Same method removed four claims from investor use: "15,000 users" is a **waitlist**;
+  "70%+ D30" is a **target, not measured**; Monte-Carlo solvency needs its assumptions
+  attached; MAD Shield is **not insurance**.
+- **What this buys you as an investor:** when I say something is live, it is a file path.
+  Ask me for it and I will open it.
+
+## 3 · Value proposition
+
+- **For the player:** the loss has a floor. MAD Shield is opt-in loss mitigation — pay
+  **2–4%** of stake and a losing position recovers at your tier's cap. **[LIVE — `shieldPremium`,
+  `shieldRecovery`]** Not insurance, not a guarantee — a stop-loss.
+- **For the creator:** you launch the market, you earn the rake on it — up to **60%** of the
+  fee at the top rung. Nobody else in the category pays the person who made the market.
+- **For the platform:** emotional hedging is sticky. That is the retention thesis — and it is
+  a **thesis**, not a measurement. Say it that way. **[⚠️ unmeasured]**
+- One line: **conviction, prediction, affliction.** You back a take, you price it continuously,
+  and the downside is dialled rather than absolute.
+
+## 4 · Revenue sources
+
+| Stream | Mechanism | State |
+|---|---|---|
+| Trading fees | **1.88%** flat on every market | **[LIVE]** `PLATFORM.FEE_BPS = 188` |
+| NFT / card economy | 992-card deck, 8-tier Dutch-auction Scandal Packs, $8.88 floor → $296 conviction cap | **[LIVE]** `getAuctionPrice`, `SCANDAL_PACK_TIERS` |
+| Staking & yield | Shield pool funded by premiums + Lido/Aave yield | **[⚠️]** tier table unresolved — **do not quote yields** |
+| MAD Shield premiums | 2–4% opt-in on stake | **[LIVE]** `shieldPremium` |
+| Evolution burns | Card burns as the deflationary sink; Furnace cap **4.9%/30d** | **[LIVE]** `FURNACE_BURN_CAP` |
+
+- Y3 headline: **$139.6M gross, base case** on $3.6B–$4.2B annual volume. **$177.7M is the bull
+  case and is never the headline.**
+- The **51 / 31 / 12 / 6** stream split derives from the retired $154.5M model. **Do not quote
+  it** until it is re-run against $139.6M. **[⚠️]**
+
+## 5 · Maths and tech stack
+
+**Maths — all of these are in `verify/lib/gambit-game-math.ts`, 1,405 lines, 117 exports:**
+
+- **DL-LMSR** market making — `C(q) = b·ln Σe^(q_i/b)`, `P(i) = e^(q_i/b)/Σe^(q_j/b)`,
+  volume-scaled α, liquidity `b = 1200`. **[LIVE]**
+- **GARCH(1,1)** volatility — ω=0.0001, α=0.05, β=0.90, σ clamped to [0.09, 0.68]. **[LIVE]**
+- **Shield premium** Φ = Stake · P(win) · σ · 0.35, clamped to [2%, 4%]. **[LIVE]**
+- Conviction growth, temporal and stochastic decay; Fibonacci variable-reward schedule
+  [5,8,13,21,34]; loss-aversion weight 2.5×. **[LIVE]** — game mechanics, *not* financial modelling.
+- MADConv full Cobb-Douglas, half-Kelly sizing, virality ODE — **[SPEC]** documented only. Say
+  "specified in the Engine Room, coefficients proprietary." Do not call it live.
+
+**Stack:**
+
+- Front end: **Next.js 15 / React / TypeScript / Tailwind**; 7-tab hub live. **[LIVE]**
+- Chains: **Arbitrum Nova (42170)** primary gameplay · **Arbitrum One (42161)** liquidity,
+  Shield vaults, $MADx · **Ethereum L1** governance anchor · **Base L2** Phase 3 ·
+  **HyperEVM** AI-agent settlement.
+- Contracts: **Foundry / Solidity / OpenZeppelin** — MADShieldVault, MADCard721/1155,
+  FounderRegistry, MADStaking, P2PEscrow, SessionKeyManager. **Written and tested, not
+  deployed.** **[LIVE code / not deployed]**
+- Auth: **SIWE** on 42170. **[LIVE]** · Data: **Neon Postgres + Drizzle** · Host: **Vercel**
+- Agents: LangGraph scraper/trader routes, AI concierge. **[DEMO — simulated/local]**
+
+## 6 · Unit economics — per **$1,000** of market volume
+
+Gross fee is **$18.80** (1.88%). Where it goes depends on the creator's ladder rung —
+`CREATOR_LADDER` in code, unlocked by traction, not by negotiation:
+
+| Rung | Unlock | Creator | Community + DAO | Protocol |
+|---|---|---|---|---|
+| **User** (28.8%) | default | $5.41 | $5.41 | **$7.97** |
+| **MinorCreator** (40%) | 12 tractioned markets | $7.52 | $5.41 | **$5.87** |
+| **CR8TR** (60%) | 34 markets + 888 followers | $11.28 | $5.41 | **$2.11** |
+| Platform-made market | — | $0 | $5.41 | **$13.39** |
+
+- **This answers the open question** in `CANONICAL_NUMBERS_2026-08-19.md` §10: what moves the
+  creator from 40% to 60% is the **ladder**, gated on tractioned markets and followers.
+  `splitFee(volume, creatorShareBps)` takes the rung directly and caps it at 6000 bps.
+- **⚠️ The one number I will not defend yet.** The code applies the 28.8% community share to the
+  **gross** fee; the founder's canonical statement is 28.8% of the **net** (post-creator) share.
+  On a CR8TR market that is the difference between the protocol keeping **$2.11** and **$5.35**
+  per $1,000. **Do not present a protocol take-rate until this is reconciled** — it moves real
+  token flows and needs sign-off, not a patch.
+- Honest framing if pressed: *"Creator-made markets are deliberately creator-heavy — that is the
+  wedge. Platform-made markets carry the margin. The exact protocol take at the top rung is
+  being reconciled this week and I am not going to quote you a number I would have to correct."*
+
+## 7 · Defensibility
+
+- **Economic IP, not code IP.** The bonding curve is public maths. What is not copyable is the
+  **calibrated system**: DL-LMSR + GARCH + a recovery dial + a creator ladder that all have to
+  hold together. Constants are tuned; the tuning is the asset.
+- **The creator ladder is the moat that compounds.** A CR8TR needs 34 tractioned markets and 888
+  followers. That history does not port to a competitor. Every rung climbed raises the cost of
+  leaving. **[LIVE]**
+- **MAD Shield is a capital moat.** A recovery pool with real solvency behaviour is expensive to
+  stand up and expensive to copy badly. *(Solvency modelling exists; the "100% across 1,000
+  Monte-Carlo scenarios" line needs its assumptions published before it is used as proof.)* **[⚠️]**
+- **Card supply is fixed and burned.** 992 canonical cards, evolution burns as the sink, Furnace
+  capped at 4.9%/30d. Scarcity is enforced in code, not policy. **[LIVE]**
+- **Satire is a brand moat, not a technical one** — and I would rather say that plainly. It is
+  hard to clone a voice; it is not hard to clone a fee schedule.
+- **Honest weakness, say it first:** the single-founder technical constraint. Engine and
+  contracts are written; nothing is deployed. That is exactly what the bridge round funds, and
+  I would rather you hear it from me than find it in diligence.
+
+---
+
 ## Q&A — the four you will actually get
 
 | Question | Answer in one breath |
