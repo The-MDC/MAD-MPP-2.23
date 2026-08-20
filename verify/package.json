@@ -45,7 +45,7 @@
     "tailwind-merge": "^3.0.1",
     "three": "^0.185.0",
     "tw-animate-css": "^1.0.0",
-    "viem": "^2.54.6"
+    "viem": "^2.55.17"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",
