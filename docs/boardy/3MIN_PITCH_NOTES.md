@@ -59,10 +59,13 @@
 ## SLIDE 4 — The economic IP · 1:35–2:10 (~80 words)
 
 - **"The economics are enforced in the contract, not in a pitch deck."**
-- Three numbers only — these are code-verified, say them with confidence:
-  - **1.88%** platform rake. Global.
-  - **40%** of it to the creator who made the market.
-  - **28.8%** to the community pool.
+- Three numbers only:
+  - **1.88%** platform rake. Global. *(code-verified — say it with confidence)*
+  - **40%** of the fee to the creator who made the market; the platform takes the other 60%.
+    *(code-verified. There is no 40–60% creator range — 40/60 is the two sides of one split.)*
+  - **28.8%** of the **platform's share** to the community pool and DAO treasury — rewards,
+    marketing, grants. *(canonical, but `splitFee()` currently applies it to the gross fee, so
+    don't call this one enforced-in-code until that's reconciled.)*
 - Then the differentiator: **"And losses aren't final. MAD Shield is an opt-in, fee-funded
   recovery pool — 2 to 4% premium, 28.8% standard recovery, scaling to 40%."**
 - ⚠️ **Never say** "insurance", "no counterparty risk", "regulatory-safe", or "industry's first."

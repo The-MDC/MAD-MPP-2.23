@@ -14,8 +14,8 @@ differ, use these values."*
 | Item | Value | Verified against |
 |---|---|---|
 | Platform rake | **1.88%** (188 bps) — never 1.888% | `gambit-game-math.ts`, Data House ×13 |
-| Creator share (creator-made markets only) | **40%** of the rake | canonical-numbers.md |
-| Community pool | **28.8%** of the rake | Data House ×25 |
+| Creator share (creator-made markets only) | **40%** of the rake (platform takes the other 60%) | Data House Revenue Distribution Flow |
+| Community + DAO treasury | **28.8% of the PLATFORM share** (net, after creator) — *not* of the rake | Data House Platform Allocation; founder confirmed 2026-08-20 |
 | MAD Shield recovery allocation | **28.8%** of the rake | canonical-numbers.md |
 | MAD Shield opt-in premium band | **2%–4%** | Boardy brief; SHIELD_RISK_DEFENCES.md |
 | MAD Shield standard recovery cap | **28.8%** of losses | Boardy brief |
@@ -192,3 +192,116 @@ risk, making the economics equivalent to a sportsbook; the real innovation is CF
 gaming **regulatory arbitrage**. **Cite as third-party analysis, never as our own finding.**
 This is the strongest available argument that creator-owned market economics is a structural
 difference rather than a cheaper competitor.
+
+---
+
+## 10. Founder clarification — fee split (2026-08-20, Nick)
+
+> "40 to 60% profit share is from Creator Markets, it's 28.8% of net profit-share to community
+> and DAO treasury for rewards, marketing, and grants... but canonical yes."
+
+**Confirmed canonical:** platform fee **1.88%**, community allocation **28.8%**.
+
+**Restated by the founder:**
+- Creator profit share is a **40–60% range**, and it applies to **Creator Markets**.
+- The **28.8%** is of **net profit-share**, and it goes to **community *and* DAO treasury**,
+  earmarked for **rewards, marketing, and grants**.
+
+### ⛔ This does not match `splitFee()` — reconcile before investor use
+
+`verify/lib/gambit-game-math.ts`:
+
+```
+grossFee     = volume * 1.88%
+creatorCut   = isCreatorMarket ? grossFee * 40%   : 0   // CREATOR_SHARE_BPS 4000
+communityCut = grossFee * 28.8%                          // COMMUNITY_SHARE_BPS 2880
+protocolCut  = grossFee - creatorCut - communityCut       // 31.2% on a creator market
+```
+
+| Dimension | Founder statement | Code |
+|---|---|---|
+| Creator share | **40–60% range** | **40% flat** — no upper tier exists |
+| 28.8% denominator | **net profit-share** | **gross fee** |
+| Recipients | community **+ DAO treasury** | single `communityCut` |
+| Earmark | rewards · marketing · grants | not modelled |
+
+**Why this matters:** the denominator changes every downstream revenue number. On a creator
+market the code leaves protocol 31.2% of gross; a net-based 28.8% implies a different base and a
+different protocol take.
+
+⚠️ **Possible conflation to rule out.** The pair 40/60 *does* appear in the code — but as **MAD
+Shield loss-recovery tiers**, not creator share:
+`SHIELD_RECOVERY_PREMIUM_PCT = 0.40` (shielded) and `SHIELD_RECOVERY_WHALE_PCT = 0.60` (VIP),
+above the 28.8% standard pool recovery. Confirm whether the creator 40–60% range is a genuine
+separate design or an upstream mix-up with the Shield tiering.
+
+### Open questions for Nick
+1. **What moves creator share from 40% to 60%?** Volume, tenure, staking tier, VIP status,
+   negotiated? Nothing in code implements a range.
+2. **What is "net"?** Gross fee minus what — creator cut, infrastructure, oracle costs, all three?
+3. **What is the community / DAO treasury split** inside the 28.8%?
+4. Should `splitFee()` be changed to match, or is the code correct and the narrative loose?
+
+**Until answered:** on slides, state only what `splitFee()` enforces — **1.88% rake · 40% creator
+on creator-made markets · 28.8% community** — and describe the 40–60% range and the DAO treasury
+earmark as designed, not implemented. Do **not** label the range LIVE.
+
+### ✅ RESOLVED (2026-08-20) — found in the published Data House
+
+Per Nick's instruction to review the canonical data. `verify/public/pitch/index.html` and
+`madhats-gambit.html`, **Revenue Distribution Flow**, state it exactly:
+
+```
+Creator-Made Market:  40% of Fee (0.752% of Vol) -> Creator Wallet  ·  60% -> Platform
+Platform-Made Market: 100% -> Platform (1.88% of Vol)
+Platform Allocation:  35% Operations · 25% MAD Shield Pool · 10% Token Burn
+                      · 28.8% Community Rewards · 1.2% Reserve      (= 100%)
+```
+
+**Both questions answered:**
+
+1. **There is no 40–60% creator range.** "40 to 60%" is the **two sides of one split** on
+   Creator Markets: creator **40%** of the fee, platform **60%**. The creator share is a flat
+   **40%** — which matches `CREATOR_SHARE_BPS = 4000` exactly. Code and canon agree.
+   The earlier "conflated with Shield 40/60" hypothesis was wrong; disregard it.
+2. **The 28.8% is of the platform's share**, i.e. of net after the creator is paid — confirmed by
+   Nick as "28.8% of net profits". It is one line in a five-way Platform Allocation, alongside
+   Operations, Shield Pool, Token Burn and Reserve.
+
+### ⛔ `splitFee()` implements the community cut on the wrong base — BUG
+
+```ts
+// verify/lib/gambit-game-math.ts — current
+const communityCut = grossFee * bpsToPct(PLATFORM.COMMUNITY_SHARE_BPS); // 28.8% of GROSS
+```
+
+Canon applies 28.8% to the **platform share**, not the gross fee. On a creator market:
+
+| | Community cut |
+|---|---|
+| Canon | 28.8% × 60% of fee = **17.28% of gross fee** |
+| Code | **28.8% of gross fee** |
+| Error | **+11.52 pp of gross fee over-allocated** |
+
+The code's `protocolCut = gross − creator − community` also yields 31.2% on a creator market,
+whereas canon says the platform keeps **60%** and then allocates internally. The code models a
+flat three-way split; canon is a **two-stage waterfall**.
+
+**Proposed shape (needs founder sign-off before any code change):**
+```
+grossFee      = volume * 1.88%
+creatorCut    = isCreatorMarket ? grossFee * 40% : 0
+platformShare = grossFee - creatorCut                  // 60% creator-made, 100% platform-made
+  operations  = platformShare * 35%
+  shieldPool  = platformShare * 25%
+  tokenBurn   = platformShare * 10%
+  community   = platformShare * 28.8%   // community + DAO treasury: rewards, marketing, grants
+  reserve     = platformShare * 1.2%
+```
+Do **not** change `splitFee()` without sign-off — it moves real token flows.
+
+### ✅ Fixed: 1.888% contamination inside the primary Data House
+
+The flow line read **"40% of Fee (0.7552% of Vol)"**. That figure is `1.888% × 40%`, not
+`1.88% × 40%`. The correct value is **0.752%**. Corrected in both `index.html` and
+`madhats-gambit.html` — the headline said 1.88% while a derived figure was computed from 1.888%.
