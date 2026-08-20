@@ -70,7 +70,11 @@ export interface GambitNodeDef {
 const ENGINE_URL = "https://madgambit.io/maths-engine-room.html";
 const DECK_URL = "https://o-vdeck26.vercel.app";
 
-const pct = (bps: number) => `${(bps / 100).toFixed(1).replace(/\.0$/, "")}%`;
+// bps -> display percent. toFixed(2) then Number() to drop trailing zeros, so
+// 188 renders "1.88%" and not "1.9%" — one decimal silently rounded the
+// headline platform fee away from its canonical value. 2880/4000/6000 are
+// unaffected ("28.8%", "40%", "60%").
+const pct = (bps: number) => `${Number((bps / 100).toFixed(2))}%`;
 
 export const NODE_REGISTRY: Record<NodeId, GambitNodeDef> = {
   "fee-waterfall": {
@@ -78,7 +82,7 @@ export const NODE_REGISTRY: Record<NodeId, GambitNodeDef> = {
     badge: "FEE",
     accent: "var(--gold)",
     headline: "THE PRICE OF CERTAINTY",
-    body: `One flat ${pct(PLATFORM.FEE_BPS * 10)} fee on every market. Non-additive waterfall: the creator's ladder share comes off their own markets first; the platform side splits four ways.`,
+    body: `One flat ${pct(PLATFORM.FEE_BPS)} fee on every market. Non-additive waterfall: the creator's ladder share comes off their own markets first; the platform side splits four ways.`,
     live: {
       kind: "bars",
       bars: [
