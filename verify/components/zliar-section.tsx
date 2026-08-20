@@ -12,7 +12,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Gauge, ThumbsUp, ThumbsDown, Flame } from "lucide-react";
 import { INK } from "@/lib/gambit-design-tokens";
-import Carousel from "@/components/carousel";
+import Carousel, { AutoShowcaseBadge } from "@/components/carousel";
 import ZLiarMeter from "@/components/zliar-meter";
 import { celebrate } from "@/components/joy-layer";
 
@@ -77,8 +77,11 @@ export default function ZLiarSection() {
 
       {/* ALL Z-Liar markets — carousel */}
       <div>
-        <p className="font-mono text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: INK.muted }}>All Z-Liar Markets</p>
-        <Carousel ariaLabel="Z-Liar markets">
+        <p className="flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: INK.muted }}>
+          All Z-Liar Markets
+          <AutoShowcaseBadge />
+        </p>
+        <Carousel auto ariaLabel="Z-Liar markets">
           {MARKETS.map((m) => <MarketCard key={m.id} m={m} />)}
         </Carousel>
       </div>

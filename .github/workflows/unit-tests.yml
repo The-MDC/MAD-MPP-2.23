@@ -1,0 +1,40 @@
+name: Unit Tests
+
+on:
+  pull_request:
+    paths:
+      - "verify/**"
+      - ".github/workflows/unit-tests.yml"
+  push:
+    branches: [ main ]
+    paths:
+      - "verify/**"
+      - ".github/workflows/unit-tests.yml"
+
+concurrency:
+  group: unit-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-tests:
+    name: Unit tests (vitest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: verify
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: verify/package-lock.json
+      - name: Install app dependencies (locked)
+        run: npm ci
+      # vitest is a dev-only test runner. It is installed with --no-save so the
+      # committed package-lock.json stays in sync with package.json (the type-check
+      # job runs `npm ci` against that same lockfile and must not break).
+      - name: Install vitest (not persisted to the lockfile)
+        run: npm install --no-save vitest@^3.2.4
+      - name: Run unit tests
+        run: npx vitest run

@@ -1,6 +1,6 @@
 /**
  * GET /api/v1/feeds — LIVE RSS aggregation (real feeds, no key).
- * Source list per HANDOFF_MAD_GAMBIT.md §5.
+ * Source list is defined in lib/rss-feeds.ts.
  */
 import { NextResponse } from "next/server";
 import { fetchAllFeeds } from "@/lib/rss-feeds";

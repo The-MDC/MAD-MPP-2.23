@@ -13,6 +13,9 @@ These are the **only** numbers that may ever be stated freely. Everything else i
 - $MADx total supply: 888,888,888
 - Primary gameplay chain: Arbitrum Nova (chain ID 42170)
 - MAD Shield vaults + $MADx chain: Arbitrum One (chain ID 42161)
+- Secondary venue: HyperLiquid (HyperEVM) — distribution/liquidity only, never the canonical record
+- Testnet: Arbitrum Sepolia (chain ID 421614)
+- Chain story locked by founder sign-off August 2026; see docs/MAD_GAMBIT_MASTER.md Part VI §13 item 4
 - LLC jurisdiction: New Mexico (filed)
 - Seed: $1.24M–$2.48M @ $12M pre-money (public range), 10% token allocation
 - Infrastructure tranche: $15K–$20K · Bridge: $300K–$500K (keep separate from the seed)

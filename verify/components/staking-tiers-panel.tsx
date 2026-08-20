@@ -6,7 +6,7 @@
  * shows progress to next tier. Source: Card Game Logic Code Reference §6.
  */
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useGame } from "@/context/game-context";
 import { STAKING_TIERS, getStakingTier } from "@/lib/gambit-game-math";
 import { Zap, Lock } from "lucide-react";
@@ -20,6 +20,23 @@ export default function StakingTiersPanel() {
     ? Math.min(100, ((madCredits - (currentTier?.minMadx ?? 0)) /
         (nextTier.minMadx - (currentTier?.minMadx ?? 0))) * 100)
     : 100;
+
+  // Server-computed projected yield (mirrors on-chain MADStaking APY math).
+  const [projection, setProjection] = useState<{ daily: number; monthly: number; annual: number } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/v1/staking?staked=${encodeURIComponent(madCredits)}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelled && d?.success && d.projectedYield) setProjection(d.projectedYield);
+      })
+      .catch(() => {
+        if (!cancelled) setProjection(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [madCredits]);
 
   const TIER_COLORS = [
     "#cd7f32", "#c0c0c0", "#ffd700", "#b9f2ff", "#b9f2ff", "#ec4899",
@@ -73,6 +90,27 @@ export default function StakingTiersPanel() {
           {!nextTier && (
             <p className="font-mono text-[8px] text-yellow-600 mt-1">◈ Maximum tier achieved</p>
           )}
+        </div>
+      )}
+
+      {/* Projected rewards — server-computed via /api/v1/staking */}
+      {projection && currentTier && (
+        <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3 mb-4">
+          <p className="font-mono text-[8px] text-cyan-500/80 uppercase tracking-wider mb-1.5">
+            Projected Rewards · {currentTier.name} @ {(currentTier.apy * 100).toFixed(0)}% APY
+          </p>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            {([["Daily", projection.daily], ["Monthly", projection.monthly], ["Annual", projection.annual]] as const).map(
+              ([label, val]) => (
+                <div key={label}>
+                  <p className="font-mono text-[11px] font-black text-cyan-300">
+                    {val.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  </p>
+                  <p className="font-mono text-[7px] text-neutral-600 uppercase tracking-wide">{label} $MADx</p>
+                </div>
+              ),
+            )}
+          </div>
         </div>
       )}
 

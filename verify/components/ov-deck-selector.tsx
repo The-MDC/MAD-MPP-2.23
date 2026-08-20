@@ -89,7 +89,7 @@ export default function OVDeckSelector({
 
       {/* Reserve pool */}
       <div className="mt-2 rounded-lg border border-neutral-850 bg-[#030508] px-3 py-2 flex items-center justify-between">
-        <span className="font-mono text-[9px] uppercase tracking-widest text-neutral-600">Insurance Reserve Pool</span>
+        <span className="font-mono text-[9px] uppercase tracking-widest text-neutral-600">Shield Reserve Pool</span>
         <span className="font-mono text-[10px] font-black text-emerald-400">
           ${(selectedDeck.reservePool / 1_000_000).toFixed(1)}M USD
         </span>

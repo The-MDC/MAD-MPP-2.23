@@ -39,7 +39,7 @@ const SLIDES: Slide[] = [
     cta: "Every loss feeds the furnace. Every evolution is deflationary.",
   },
   {
-    title: "Sustainable Conviction Insurance",
+    title: "Sustainable Conviction Shield",
     subtitle: "φ-Ratio Protective Limits",
     icon: "🛡",
     color: "#ffd700",
@@ -47,7 +47,7 @@ const SLIDES: Slide[] = [
       { label: "Base recovery",  value: "28.8% of loss" },
       { label: "VIP recovery",   value: "60% of loss" },
       { label: "φ at max vol",   value: "×1.618 uplift" },
-      { label: "Shield premium", value: "2–4% of stake" },
+      { label: "MAD-Shield opt-in fee", value: "2–4% of stake" },
     ],
     cta: "The golden ratio is not decoration. It is the structural safety factor.",
   },
@@ -88,7 +88,8 @@ export default function PortalTab() {
           <h2 className="font-mono text-xs uppercase tracking-[0.3em] font-bold text-neutral-300">The Portal</h2>
           <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-600">Data Room · Investment Thesis · Genesis Access</p>
         </div>
-        <a href="/slides.html" target="_blank" rel="noopener"
+        {/* §5 link pass: /slides.html never shipped — the live O-V deck is the pitch. */}
+        <a href="https://o-vdeck26.vercel.app" target="_blank" rel="noopener noreferrer"
           className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-purple-500/40 bg-purple-500/8 text-purple-400 font-mono text-[9px] font-bold uppercase tracking-wider hover:bg-purple-500/15 transition-all">
           <ExternalLink className="w-2.5 h-2.5" /> Full Pitch Deck
         </a>

@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  pull_request:
+    paths:
+      - "verify/**"
+      - ".github/workflows/ci.yml"
+  push:
+    branches: [ main ]
+    paths:
+      - "verify/**"
+      - ".github/workflows/ci.yml"
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# ── One job, deliberately ───────────────────────────────────────────────
+# This was four parallel jobs (type-check / lint / route-guards / build).
+# Three of them each ran their own checkout + setup-node + `npm ci`, so a
+# single push paid the install cost of ~650 packages THREE times while the
+# checks themselves take seconds. On a minutes-metered private repo the
+# install, not the checking, was the bill.
+#
+# Collapsed to one job with one install. Ordering is chosen so the cheapest
+# thing that can fail runs first:
+#
+#   route-guard  — dependency-free (scripts/check-route-guards.mjs), so it
+#                  runs BEFORE npm ci and fails in seconds, not minutes
+#   npm ci       — the one install
+#   type-check   — cheapest of the three node checks
+#   lint         — report-only, must not fail the job (see below)
+#   build        — most expensive, so last
+#
+# TRADE-OFF, accepted knowingly: these no longer report as four independent
+# checks, and a type-check failure now short-circuits before build, so one
+# run surfaces one failure rather than all of them. That is the intended
+# exchange — fewer minutes for slightly coarser reporting. If Actions minutes
+# stop being the constraint, splitting back out is a clean revert.
+#
+# ⚠️ If branch protection requires the OLD check names ("Type-check (verify/)",
+# "Lint (eslint)", "Build (next build)", "Route-guard check"), those names no
+# longer exist and required-checks must be repointed at "Verify" or merges
+# will block forever waiting on checks that can never report.
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: verify
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: verify/package-lock.json
+
+      # ── Route-guard gate (pre-install, dependency-free) ──────────────
+      # Fails if a mutating route handler (POST/PUT/PATCH/DELETE) has no
+      # recognizable auth/rate-limit guard and no explicit `// PUBLIC-ROUTE:`
+      # opt-out. An audit found 33 of 53 mutating routes unprotected — not by
+      # decision, just because nobody remembered. This keeps that visible on
+      # every PR instead of only in a manual audit.
+      - name: Route-guard check
+        run: node scripts/check-route-guards.mjs
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check (tsc --noEmit)
+        run: npm run type-check
+
+      # ── Lint gate (report-only) ──────────────────────────────────────
+      # ESLint (next/core-web-vitals) — catches react-hooks/rules-of-hooks and
+      # @next/next correctness rules that had no gate before. Invokes eslint
+      # directly: Next 16 REMOVED the `next lint` subcommand.
+      #
+      # Staged report-only via continue-on-error because eslint-config-next is
+      # still pinned to 15.4.5 against Next 16, and the npm registry is blocked
+      # in-sandbox so the lockfile can't be regenerated to realign it and move
+      # to flat config. Once that lands, drop continue-on-error to enforce.
+      #
+      # NOTE: as a STEP-level continue-on-error this keeps its old semantics —
+      # lint failures are reported but do not fail the job, and the build step
+      # below still runs.
+      - name: Lint (eslint)
+        continue-on-error: true
+        run: npm run lint
+
+      # ── Build gate ───────────────────────────────────────────────────
+      # The real `next build` on every PR, so prerender/build breaks block the
+      # PR rather than surfacing after merge. No app env vars are set; missing
+      # NEXT_PUBLIC_* just inline as undefined at build (non-fatal).
+      - name: Build (next build)
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+          # `npm run build` runs scripts/migrate.mjs first and hard-fails
+          # without a DATABASE_URL. CI has no database — skip loudly here;
+          # real migrations are enforced on Vercel builds, which do have one.
+          SKIP_MIGRATIONS: "1"

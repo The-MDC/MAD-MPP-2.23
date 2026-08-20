@@ -2,9 +2,18 @@
 pragma solidity ^0.8.24;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC2771Context} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
-contract MADShieldVault is Ownable {
+/// ERC-2771 (gasless): stake/requestUnstake/claim resolve caller identity via
+/// _msgSender(), so they work relayed through the MAD Gambit forwarder (see
+/// verify/app/api/v1/relay/execute) as well as called directly. onlyOwner
+/// functions needed no change — Ownable already resolves through _msgSender().
+contract MADShieldVault is Ownable, ERC2771Context {
+    using SafeERC20 for IERC20;
+
     enum ShieldTier { Standard, Shielded, Whale }
 
     struct Position {
@@ -54,7 +63,10 @@ contract MADShieldVault is Ownable {
     );
     event WhaleEligibilityUpdated(address indexed user, bool eligible);
 
-    constructor(address _token) Ownable(msg.sender) {
+    constructor(address _token, address trustedForwarder_)
+        Ownable(msg.sender)
+        ERC2771Context(trustedForwarder_)
+    {
         require(_token != address(0), "Invalid token address");
         token = IERC20(_token);
     }
@@ -81,18 +93,19 @@ contract MADShieldVault is Ownable {
         uint256 premiumTierBps
     ) external returns (uint256 positionId) {
         require(stakeAmount > 0, "Cannot stake 0");
+        address user = _msgSender();
         if (tier == ShieldTier.Whale) {
-            require(isWhaleEligible[msg.sender], "Not eligible for Whale tier");
+            require(isWhaleEligible[user], "Not eligible for Whale tier");
         }
 
         uint256 premium = calculateShieldPremium(stakeAmount, tier, premiumTierBps);
         uint256 totalRequired = stakeAmount + premium;
 
         // Transfer stake + premium from user
-        token.transferFrom(msg.sender, address(this), totalRequired);
+        token.safeTransferFrom(user, address(this), totalRequired);
 
-        positionId = positions[msg.sender].length;
-        positions[msg.sender].push(Position({
+        positionId = positions[user].length;
+        positions[user].push(Position({
             stakeAmount: stakeAmount,
             tier: tier,
             premiumTierBps: premiumTierBps,
@@ -105,7 +118,7 @@ contract MADShieldVault is Ownable {
             isClaimed: false
         }));
 
-        emit Staked(msg.sender, positionId, stakeAmount, tier, premium);
+        emit Staked(user, positionId, stakeAmount, tier, premium);
     }
 
     /**
@@ -113,8 +126,9 @@ contract MADShieldVault is Ownable {
      * @param positionId The ID of the position to unstake.
      */
     function requestUnstake(uint256 positionId) external {
-        require(positionId < positions[msg.sender].length, "Invalid position ID");
-        Position storage pos = positions[msg.sender][positionId];
+        address user = _msgSender();
+        require(positionId < positions[user].length, "Invalid position ID");
+        Position storage pos = positions[user][positionId];
         require(pos.isActive, "Position is not active");
         require(!pos.isUnstaking, "Already unstaking");
         require(!pos.isClaimed, "Already claimed");
@@ -126,7 +140,7 @@ contract MADShieldVault is Ownable {
         pos.unstakeRequestedAt = block.timestamp;
         pos.estimatedReturnAt = estimatedReturnAt;
 
-        emit UnstakeRequested(msg.sender, positionId, windowHours, estimatedReturnAt);
+        emit UnstakeRequested(user, positionId, windowHours, estimatedReturnAt);
     }
 
     /**
@@ -134,8 +148,9 @@ contract MADShieldVault is Ownable {
      * @param positionId The ID of the position to claim.
      */
     function claim(uint256 positionId) external {
-        require(positionId < positions[msg.sender].length, "Invalid position ID");
-        Position storage pos = positions[msg.sender][positionId];
+        address user = _msgSender();
+        require(positionId < positions[user].length, "Invalid position ID");
+        Position storage pos = positions[user][positionId];
         require(pos.isActive, "Position is not active");
         require(pos.isUnstaking, "Unstake not requested");
         require(!pos.isClaimed, "Already claimed");
@@ -144,9 +159,9 @@ contract MADShieldVault is Ownable {
         pos.isActive = false;
         pos.isClaimed = true;
 
-        token.transfer(msg.sender, pos.stakeAmount);
+        token.safeTransfer(user, pos.stakeAmount);
 
-        emit Claimed(msg.sender, positionId, pos.stakeAmount);
+        emit Claimed(user, positionId, pos.stakeAmount);
     }
 
     /**
@@ -166,7 +181,7 @@ contract MADShieldVault is Ownable {
         pos.isActive = false;
         pos.isClaimed = true;
 
-        token.transfer(user, payout);
+        token.safeTransfer(user, payout);
 
         emit LossResolved(user, positionId, payout, pos.stakeAmount - payout);
     }
@@ -237,6 +252,24 @@ contract MADShieldVault is Ownable {
      * @param amount The amount of tokens to withdraw.
      */
     function withdraw(uint256 amount) external onlyOwner {
-        token.transfer(owner(), amount);
+        token.safeTransfer(owner(), amount);
+    }
+
+    /* ─────────────────────────── ERC-2771 diamond resolution ───────────
+     * Ownable and ERC2771Context both derive from Context, so the compiler
+     * needs an explicit pick for which _msgSender/_msgData/_contextSuffixLength
+     * wins — this is the standard OZ resolution, not custom logic.
+     */
+
+    function _msgSender() internal view override(Context, ERC2771Context) returns (address) {
+        return ERC2771Context._msgSender();
+    }
+
+    function _msgData() internal view override(Context, ERC2771Context) returns (bytes calldata) {
+        return ERC2771Context._msgData();
+    }
+
+    function _contextSuffixLength() internal view override(Context, ERC2771Context) returns (uint256) {
+        return ERC2771Context._contextSuffixLength();
     }
 }

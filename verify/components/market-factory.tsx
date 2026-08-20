@@ -31,7 +31,7 @@ export default function MarketFactory() {
 
   const [question, setQuestion] = useState("");
   const [category, setCategory] = useState<Category>("Crypto");
-  const [liquidityB, setLiquidityB] = useState(100);
+  const [liquidityB, setLiquidityB] = useState<number>(PLATFORM.LMSR_DEFAULT_B);
   const [seedYes, setSeedYes] = useState(50); // initial share skew (demo)
 
   // Live DL-LMSR outcome prices for a binary market at the current skew.
@@ -103,7 +103,7 @@ export default function MarketFactory() {
       <div className="grid grid-cols-2 gap-3">
         <label className="block">
           <span className="font-mono text-[10px] uppercase tracking-widest" style={{ color: INK.muted }}>Liquidity b: {liquidityB}</span>
-          <input type="range" min={20} max={500} step={10} value={liquidityB} onChange={(e) => setLiquidityB(+e.target.value)} className="mt-2 w-full" style={{ accentColor: accent }} />
+          <input type="range" min={300} max={2400} step={100} value={liquidityB} onChange={(e) => setLiquidityB(+e.target.value)} className="mt-2 w-full" style={{ accentColor: accent }} />
         </label>
         <label className="block">
           <span className="font-mono text-[10px] uppercase tracking-widest" style={{ color: INK.muted }}>Initial YES lean: {seedYes}</span>

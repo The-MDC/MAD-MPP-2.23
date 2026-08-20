@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "./tokens.css";
 
 /* ─────────────────────────────────────────────────────────────────────
    MAD GAMBIT — Dopamine Neuroscience Animation System v3
@@ -9,19 +10,19 @@
 ───────────────────────────────────────────────────────────────────── */
 
 :root {
-  /* Global theme tokens — set at runtime by ThemeProvider (context/theme-context.tsx)
-     from the active SKIN_TOKENS skin. Defaults = HolographicGoldLaser so SSR and
-     any pre-hydration paint match the app-wide theme. */
-  --mg-primary: #ffd700;
-  --mg-secondary: #efc76d;
-  --mg-accent: #ff00f0;
-  --mg-bg: #030508;
-  --mg-panel: #05070c;
-  --mg-border: #ffd70033;
-  --mg-glow: #ffd700;
+  /* Global theme tokens — CyberOnyx is the dark SSR default. ThemeProvider
+     applies a saved user-selected skin after hydration. */
+  --mg-primary: #00f0ff;
+  --mg-secondary: #7cffc7;
+  --mg-accent: #ec4899;
+  --mg-bg: #01010a;
+  --mg-panel: #03040e;
+  --mg-border: #00f0ff33;
+  --mg-glow: #00f0ff;
 
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-stencil: "Allerta Stencil", Impact, Haettenschweiler, "Arial Narrow Bold", var(--font-sans);
 
   /* Dopamine color ramp — temperature rises with excitement */
   --dopamine-calm:    #00f0ff;   /* blue-cyan — resting state */
@@ -201,11 +202,46 @@
 }
 
 /* Base resets */
-html, body {
+:root {
+  /*
+   * Stable viewport fallback stack for the DeviceFrame.
+   * 100vh keeps older Safari/Chrome working; newer engines use svh so mobile
+   * browser chrome no longer stretches the frame while scrolling.
+   */
+  --mg-frame-vh: 100vh;
+  --mg-frame-gutter: 28px;
+  --mg-frame-gutter-total: 56px;
+
+  /*
+   * The logical phone the desktop bezel presents — the viewport the app
+   * actually lays out against. 393x852 is the modern median (iPhone
+   * 14 Pro/15/16; Pixel 5 393x851). Change these two to present a different
+   * handset; the frame scales whatever they say to fit the workbench.
+   *
+   * Reference range, 2020-2026:
+   *   360x800  Galaxy S20-S24 (narrowest still current)
+   *   375x667  iPhone SE 2/3  (shortest)
+   *   390x844  iPhone 12/13/14
+   *   393x852  iPhone 14 Pro/15/16 · Pixel 5      <- default
+   *   412x915  Pixel 7/8
+   *   440x956  iPhone 16 Pro Max (widest)
+   */
+  --mg-device-w: 393px;
+  --mg-device-h: 852px;
+}
+
+@supports (height: 100svh) {
+  :root { --mg-frame-vh: 100svh; }
+}
+
+html { min-height: 100%; }
+
+body {
   background-color: #030303;
   color: #f3f4f6;
   font-family: var(--font-sans), sans-serif;
   min-height: 100vh;
+  min-height: var(--mg-frame-vh);
   margin: 0;
   padding: 0;
   overflow-x: hidden;
@@ -225,11 +261,32 @@ html, body {
    Renders children once; responsive shell is CSS-only. See device-frame.tsx.
 ───────────────────────────────────────────────────────────────────── */
 .mg-workbench { display: contents; }
-.mg-device { width: 100%; }
+/* The scrolling layer, at every breakpoint. Separating it from .mg-device is
+   what keeps `position: fixed` chrome — bottom nav, concierge — pinned to the
+   phone instead of riding up with the content. */
+.mg-device-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.mg-device-scroll::-webkit-scrollbar { display: none; }
+.mg-device {
+  width: 100%;
+  box-sizing: border-box;
+}
 
 /* Mobile: native full-bleed, shift clear of the notch. */
 @media (max-width: 767px) {
-  .mg-device { padding-top: env(safe-area-inset-top); }
+  .mg-device {
+    min-height: 100vh;
+    min-height: var(--mg-frame-vh);
+    padding-top: env(safe-area-inset-top);
+    -webkit-overflow-scrolling: touch;
+  }
   /* iOS zooms the page when a <16px input is focused — 16px prevents it
      without disabling pinch-zoom. */
   input, select, textarea { font-size: 16px; }
@@ -240,11 +297,14 @@ html, body {
   .mg-workbench {
     display: block;
     min-height: 100vh;
+    min-height: var(--mg-frame-vh);
     background: radial-gradient(1200px 800px at 50% -10%, #12121a 0%, #050507 60%);
+    padding: 24px 16px;
     padding: 24px max(16px, env(safe-area-inset-right)) 24px max(16px, env(safe-area-inset-left));
   }
   .mg-device {
     max-width: 680px;
+    min-height: calc(var(--mg-frame-vh) - 48px);
     margin: 0 auto;
     border-radius: 28px;
     overflow: hidden;
@@ -259,30 +319,275 @@ html, body {
   .mg-workbench {
     display: flex;
     min-height: 100vh;
+    min-height: var(--mg-frame-vh);
     align-items: center;
     justify-content: center;
     background: radial-gradient(900px 700px at 50% 0%, #14141d 0%, #0a0a10 45%, #050507 100%);
-    padding: 28px;
+    padding: var(--mg-frame-gutter);
   }
   .mg-device {
     position: relative;
-    width: 440px;
-    max-width: 440px;
-    height: min(940px, 94vh);
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    /* A REAL phone viewport, not a stretched panel. 393x852 is the modern
+       median (iPhone 14 Pro/15/16; Pixel 5 is 393x851), and it is what the app
+       lays out against at every zoom level — so media queries, columns and
+       every padding behave exactly as they do on a handset. The 2020-2026
+       range this represents runs 360x800 (Galaxy S20-S24) to 440x956 (iPhone
+       16 Pro Max); scaling presents all of them without re-flowing any.
+
+       Size is fixed and `zoom` does the fitting. Sizing in vh instead would
+       change the layout box with the window, which is the stretch this
+       deliberately avoids. */
+    /* content-box, deliberately. The base rule is border-box, under which a
+       393px width minus the 12px bezel on each side would hand the app a 369px
+       viewport — not any real phone, and the claim above would be false.
+       content-box makes 393x852 the APP's viewport and puts the bezel outside
+       it, so the number in the variable is the number the layout sees. */
+    box-sizing: content-box;
+    width: var(--mg-device-w, 393px);
+    height: var(--mg-device-h, 852px);
+
+    /* fit x user, set by device-frame.tsx. zoom (not transform) so the scale
+       participates in layout: scroll height, hit targets and fixed descendants
+       all stay correct. Defaults to 1 before hydration and on engines without
+       zoom, where the phone simply renders at 1:1. */
+    zoom: var(--mg-device-zoom, 1);
+
+    /* The device itself does NOT scroll — see .mg-device-scroll. It is the
+       containing block for fixed descendants, and a fixed child of a
+       scrolling element scrolls with that element. */
+    overflow: hidden;
     border-radius: 46px;
     border: 12px solid #0b0b12;
     box-shadow:
       0 0 0 2px #2a2a37,
       0 50px 90px -25px rgba(0, 0, 0, 0.95),
       inset 0 0 24px rgba(0, 0, 0, 0.6);
-    transform: translateZ(0);
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    contain: layout paint style;
     isolation: isolate;
   }
-  .mg-device::-webkit-scrollbar { display: none; }
+  /* .mg-device no longer scrolls; the scrollbar rule lives with
+     .mg-device-scroll in the base block. */
+
+  /* Zoom control — pinned to the workbench, never inside .mg-device, so it is
+     not scaled by the variable it sets. */
+  .mg-zoombar {
+    position: fixed;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px;
+    border-radius: 12px;
+    background: rgba(10, 10, 16, 0.86);
+    border: 1px solid #2a2a37;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(8px);
+  }
+  .mg-zoombar button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 26px;
+    height: 26px;
+    padding: 0 6px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #c9c9d4;
+    cursor: pointer;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+  .mg-zoombar button:hover:not(:disabled) { background: #1b1b26; color: #fff; }
+  .mg-zoombar button:disabled { opacity: 0.35; cursor: default; }
+  .mg-zoombar button:focus-visible { outline: 2px solid #ffcf40; outline-offset: 1px; }
+  .mg-zoombar-reset { min-width: 58px; }
+
+  /* O-V Conviction State Node — three pieces pinned to the workbench,
+     never inside .mg-device, same convention as .mg-zoombar above.
+     Colour (background/border-color) is set inline per-component so the
+     panels follow the active skin; these rules are structural only. */
+  .mg-ov-corner {
+    position: fixed;
+    left: max(16px, env(safe-area-inset-left));
+    top: max(16px, env(safe-area-inset-top));
+    z-index: 50;
+    /* 3x the prior 256px base (was 72px originally). Clamped rather than a
+       flat 768px so it doesn't overrun smaller desktop viewports — the
+       320-768 range still reads as a corner "vitrine," not an instrument
+       competing with the perp deck below it. Interactive zoom (wheel/pinch,
+       see ov-conviction-state-node.tsx) scales the mesh's camera *within*
+       this fixed box; the box itself never resizes on zoom. */
+    width: clamp(280px, 40vw, 768px);
+    height: clamp(280px, 40vw, 768px);
+    border-radius: 28px;
+    overflow: hidden;
+    touch-action: none;
+    /* A real "3D box": lift shadow, glass inner-highlight, a dark inset
+       "floor" for depth, and a faint gold backing so the case itself feels
+       lit even before the mesh renders. */
+    background: radial-gradient(120% 120% at 50% 20%, color-mix(in srgb, var(--gd, #ffd700) 5%, transparent), transparent 60%);
+    box-shadow:
+      0 24px 60px -20px rgba(0, 0, 0, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -18px 40px -20px rgba(0, 0, 0, 0.5),
+      inset 0 0 0 1px color-mix(in srgb, var(--gd, #ffd700) 18%, transparent);
+  }
+  .mg-ov-corner::before {
+    /* Glass sheen overlay, painted above the canvas — sells the "display
+       case" read without needing a 3D rendering library. */
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(155deg, rgba(255, 255, 255, 0.1) 0%, transparent 30%, transparent 70%, rgba(255, 255, 255, 0.05) 100%);
+  }
+  .mg-ov-legend {
+    position: fixed;
+    right: max(16px, env(safe-area-inset-right));
+    top: max(16px, env(safe-area-inset-top));
+    z-index: 50;
+    min-width: 168px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(8px);
+  }
+  .mg-ov-switches {
+    position: fixed;
+    left: max(16px, env(safe-area-inset-left));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    z-index: 50;
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(8px);
+  }
+}
+
+@media (min-width: 1024px) and (max-height: 760px) {
+  :root {
+    --mg-frame-gutter: 16px;
+    --mg-frame-gutter-total: 32px;
+  }
+  .mg-device {
+    min-height: 0;
+    border-width: 10px;
+    border-radius: 38px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   OCTAVIAN CREATURE — the "full" variant's canvas+info-panel grid, and the
+   double-click pop-out overlay. Deliberately OUTSIDE the desktop-only
+   @media(min-width:1024px) block above: /octavian and the /preview inline
+   embed both render on mobile, unlike the corner HUD these rules also
+   style (via .mg-ov-corner, still desktop-gated above).
+───────────────────────────────────────────────────────────────────── */
+.mg-octavian-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(240px, 1fr);
+  gap: 14px;
+  padding: 14px;
+  border-radius: 24px;
+  height: 100%; /* fills .mg-ov-popout-panel when popped out; harmless no-op in normal page flow */
+}
+@media (max-width: 720px) {
+  .mg-octavian-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mg-ov-popout-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(8px, 3vw, 32px);
+  background: rgba(3, 4, 10, 0.72);
+  backdrop-filter: blur(6px);
+}
+.mg-ov-popout-panel {
+  position: relative;
+  width: min(96vw, 1400px);
+  height: min(92vh, 1400px);
+  border-radius: 24px;
+  overflow: auto;
+  box-shadow:
+    0 40px 100px -20px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 0 1px color-mix(in srgb, var(--gd, #ffd700) 18%, transparent);
+}
+.mg-ov-popout-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid color-mix(in srgb, var(--gd, #ffd700) 40%, transparent);
+  background: color-mix(in srgb, #000 55%, transparent);
+  color: var(--gd, #ffd700);
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   INSTRUMENT CLUSTER — dials flank the chrono when there is room, and sit
+   TOGETHER above it when there is not.
+
+   A plain wrapping row broke as dial / chrono / dial on narrow widths: one
+   dial above the chrono and one below, which is the fault seen in
+   production. Ordering fixes the break point instead of leaving it to
+   whatever happens to fit.
+
+   @container, not @media: the app renders inside a 393px device frame on
+   desktop, so a viewport query would report 1920px and lay out a row that
+   cannot fit the box it is actually in.
+───────────────────────────────────────────────────────────────────── */
+.mg-cluster-row {
+  container-type: inline-size;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+}
+/* Narrow (phones, and the device frame): both dials on line one, chrono
+   forced onto line two by a full-width basis. */
+.mg-cluster-l { order: 1; }
+.mg-cluster-r { order: 2; }
+.mg-cluster-c {
+  order: 3;
+  flex-basis: 100%;
+  display: flex;
+  justify-content: center;
+}
+/* Wide enough for dial + chrono + dial on one line: chrono returns to the
+   middle and the right dial moves back to its right. 560px is the measured
+   fit — two 108px dials, the 1.2x chrono, and the two 16px gaps. */
+@container (min-width: 560px) {
+  .mg-cluster-c { order: 2; flex-basis: auto; }
+  .mg-cluster-r { order: 3; }
 }
 
 /* ─────────────────────────────────────────────────────────────────────

@@ -1,1 +1,0 @@
-// Enhanced with all behavioral nudges: suggested price, decoy deals, live counters, scarcity badges, post-resolution regret messages + Replay buttons

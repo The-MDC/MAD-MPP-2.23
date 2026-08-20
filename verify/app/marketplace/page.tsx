@@ -1,1 +1,0 @@
-// Added Anchoring, Decoy Effect, Social Proof, Scarcity, Regret Minimization across P2P listings and markets

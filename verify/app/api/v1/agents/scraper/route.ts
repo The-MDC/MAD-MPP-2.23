@@ -3,6 +3,7 @@ import { StateGraph, START, END, Annotation } from '@langchain/langgraph';
 import { ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings } from '@langchain/google-genai';
 import { fetchAllFeeds } from '@/lib/rss-feeds';
 import { getDbPool } from '@/lib/db';
+import { requireBearerSecret } from '@/lib/bearer-secret';
 
 // 1. Define State
 const ScraperState = Annotation.Root({
@@ -133,7 +134,15 @@ const workflow = new StateGraph(ScraperState)
 
 const app = workflow.compile();
 
-export async function POST() {
+// Internal pipeline, not a user-facing endpoint: two paid LLM calls (reasoning
+// + embedding) and a market_intelligence write per invocation, on no schedule
+// and with no input to scope it. Gated the same way as the other
+// scheduler-only routes (cron/rollup, perps/roll, registrar/lapse) rather than
+// just rate-limited, since there's no legitimate end-user caller to rate-limit.
+export async function POST(req: Request) {
+  const auth = requireBearerSecret(req, "CRON_SECRET");
+  if (auth) return auth;
+
   try {
     const finalState = await app.invoke({ rawNews: [], analyzedEvents: [], vectorIds: [] });
     return NextResponse.json({ success: true, data: finalState });

@@ -24,7 +24,7 @@ interface ThemeCtx {
 
 const Ctx = createContext<ThemeCtx | null>(null);
 const LS_KEY = "mad_theme_skin";
-const DEFAULT: ThemeSkin = "HolographicGoldLaser";
+const DEFAULT: ThemeSkin = "CyberOnyx";
 
 function applyVars(t: SkinTokens) {
   if (typeof document === "undefined") return;

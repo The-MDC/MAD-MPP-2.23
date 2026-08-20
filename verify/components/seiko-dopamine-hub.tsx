@@ -31,27 +31,14 @@ import { PLATFORM, STAKING_TIERS, getStakingTier } from "@/lib/gambit-game-math"
 import GambitInstrumentCluster from "@/components/gambit-instrument-cluster";
 import PlatformCarousel from "@/components/platform-carousel";
 import UnpackedCardsCarousel from "@/components/unpacked-cards-carousel";
+import SeikoFlipClock from "@/components/seiko-flip-clock";
+import { INK as T } from "@/lib/gambit-design-tokens";
+import { FEATURED_DEMO_MARKETS } from "@/lib/demo-markets";
 
-/* ── DESIGN TOKENS — verbatim from the mockup images ─────────── */
-const T = {
-  bgDeep:     "#080a12",
-  bgPanel:    "#0d1018",
-  bgCard:     "#111520",
-  bgCardHov:  "#161c28",
-  gold:       "#ffd700",
-  goldDim:    "#b8860b",
-  cyan:       "#00e5ff",
-  cyanDim:    "#007a8a",
-  pink:       "#ff007f",
-  pinkDim:    "#7a003c",
-  green:      "#00ff88",
-  greenDim:   "#008844",
-  white:      "#f0f0f8",
-  muted:      "#6b7280",
-  border:     "rgba(255,255,255,0.06)",
-  borderGold: "rgba(255,215,0,0.3)",
-  borderCyan: "rgba(0,229,255,0.25)",
-} as const;
+/* ── DESIGN TOKENS ───────────────────────────────────────────
+ * Palette now sourced from lib/gambit-design-tokens.ts (INK), imported above
+ * as `T` — the mockup colors live in exactly one place instead of being
+ * re-declared here. INK is a superset of the keys this file uses. */
 
 /* ── TICKER PRICES — live-simulated ──────────────────────────── */
 const TICKER_BASE = [
@@ -64,11 +51,16 @@ const TICKER_BASE = [
 ];
 
 /* ── FEATURED MARKETS — canonical MAD Gambit format ─────────── */
-const FEATURED_MARKETS = [
-  { id: "em1", q: "WILL ELON BUY ANOTHER COMPANY IN 2024?", yes: 2.5, no: 1.4, pool: "142.9K", hot: true },
-  { id: "em2", q: "BITCOIN TO HIT $100K BY EOY?", yes: 1.9, no: 1.8, pool: "88.5K", hot: false },
-  { id: "em3", q: "AI SURPASS HUMAN IQ BY 2030?", yes: 3.0, no: 1.2, pool: "51.2K", hot: true },
-];
+// Copy comes from lib/demo-markets. This panel held the second of three
+// hardcoded copies, and the one that still dated the Elon market to 2024.
+const FEATURED_MARKETS = FEATURED_DEMO_MARKETS.map((m) => ({
+  id: m.id,
+  q: m.question.toUpperCase(),
+  yes: m.yes,
+  no: m.no,
+  pool: m.pool ?? "—",
+  hot: m.hot ?? false,
+}));
 
 /* ── DOPAMINE CAROUSEL TILES config ─────────────────────────── */
 type TileId = "bets" | "streak" | "chaos" | "gainers";
@@ -548,26 +540,33 @@ export default function SeikoDopamineHub() {
       {/* ── 1b. MARKET-ENERGY EQUALIZER — sits below the golden ticker ── */}
       <EqualizerStrip />
 
-      {/* ── 2. HEADER ROW: title only — instrument cluster gets its own row below ── */}
-      <div style={{ padding: "14px 20px 4px", textAlign: "center" }}>
-        <div style={{
-          fontFamily: "ui-monospace, monospace",
-          fontSize: "9px",
-          fontWeight: 700,
-          letterSpacing: "3px",
-          color: T.gold,
-          textTransform: "uppercase",
-          marginBottom: "3px",
-        }}>
-          CUSTOMIZABLE DOPAMINE CAROUSEL
-        </div>
-        <div style={{
-          fontFamily: "ui-monospace, monospace",
-          fontSize: "8px",
-          color: T.muted,
-          letterSpacing: "1px",
-        }}>
-          MAD GAMBIT · PLATFORM {PLATFORM.FEE_BPS / 100}% FEE
+      {/* ── 2. HEADER ROW: title ──
+          The split-flap chrono used to sit loose here, with the instrument
+          cluster below it rendering an EMPTY centre. That was one instrument
+          torn in half: the clock is designed to be the cluster's centre slot,
+          flanked by the two dials. It has been moved into that slot in 2b
+          below — moved, not dropped. */}
+      <div style={{ padding: "14px 20px 4px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+        <div>
+          <div style={{
+            fontFamily: "ui-monospace, monospace",
+            fontSize: "9px",
+            fontWeight: 700,
+            letterSpacing: "3px",
+            color: T.gold,
+            textTransform: "uppercase",
+            marginBottom: "3px",
+          }}>
+            CUSTOMIZABLE MARKET CAROUSEL
+          </div>
+          <div style={{
+            fontFamily: "ui-monospace, monospace",
+            fontSize: "8px",
+            color: T.muted,
+            letterSpacing: "1px",
+          }}>
+            MAD GAMBIT · PLATFORM {PLATFORM.FEE_BPS / 100}% FEE
+          </div>
         </div>
       </div>
 
@@ -577,7 +576,10 @@ export default function SeikoDopamineHub() {
           Tap any dot beneath a pod/dial to swap what it shows.
           See gambit-instrument-cluster.tsx for the full rationale. */}
       <div style={{ padding: "6px 16px 16px", borderBottom: `1px solid ${T.border}` }}>
-        <GambitInstrumentCluster uid="floor-hero" />
+        <GambitInstrumentCluster
+          uid="floor-hero"
+          centerSlot={<SeikoFlipClock label="MAD·STATE · TAP A DOT TO PIN" scale={1.2} />}
+        />
       </div>
 
       {/* ── 2c. PLATFORM PILLAR CAROUSEL — right-to-left continuous scroll ──

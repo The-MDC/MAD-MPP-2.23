@@ -2,11 +2,21 @@
   "name": "applet",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "next dev --port 3000",
     "build": "next build",
     "start": "node .next/standalone/server.js",
-    "lint": "next lint"
+    "lint": "eslint app components context hooks lib proxy.ts --ext .js,.jsx,.ts,.tsx",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "migrate": "node scripts/migrate.mjs",
+    "db:smoke": "node scripts/db-smoke.mjs",
+    "migrate:deploy": "node scripts/migrate.mjs",
+    "schema:verify": "node scripts/schema-verify.mjs"
   },
   "dependencies": {
     "@langchain/community": "^1.1.29",
@@ -17,9 +27,10 @@
     "@react-three/fiber": "^9.6.1",
     "@reduxjs/toolkit": "^2.12.0",
     "@types/three": "^0.185.0",
+    "@vercel/blob": "^2.8.0",
+    "@vercel/speed-insights": "^2.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "drizzle-orm": "^0.45.2",
     "framer-motion": "^12.42.2",
     "lucide-react": "^0.553.0",
     "next": "^16.2.9",
@@ -42,9 +53,9 @@
     "@types/pg": "^8.20.0",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
-    "drizzle-kit": "^0.31.10",
     "eslint": "^8.57.0",
-    "eslint-config-next": "^16.2.9",
-    "typescript": "^5.5.2"
+    "eslint-config-next": "15.4.5",
+    "typescript": "^5.5.2",
+    "vitest": "^4.1.10"
   }
 }

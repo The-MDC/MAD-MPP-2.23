@@ -14,6 +14,11 @@ import {
   Combatant,
   PLATFORM,
 } from "@/lib/gambit-game-math";
+import { enforceRateLimit } from "@/lib/rate-limit";
+
+// PUBLIC-ROUTE: resolves in-memory with server-side RNG, no DB write — the
+// outcome isn't client-controlled even though the route is open. Rate-limited
+// as a cost ceiling only.
 
 const TOURNAMENT_TIERS = [
   { tier: 1, name: "Baby Yoda",   entryFee: 0.88,  maxPlayers: 10  },
@@ -27,6 +32,9 @@ const TOURNAMENT_TIERS = [
 ] as const;
 
 export async function POST(req: NextRequest) {
+  const limited = enforceRateLimit(req, "tournament-match", 60, 60_000);
+  if (limited) return limited;
+
   try {
     const body = await req.json() as {
       user: Combatant;
@@ -73,6 +81,7 @@ export async function POST(req: NextRequest) {
       opponent: opp,
     });
   } catch (e: any) {
-    return NextResponse.json({ success: false, error: e.message }, { status: 400 });
+    console.error("tournament/match error:", e);
+    return NextResponse.json({ success: false, error: "Request failed" }, { status: 400 });
   }
 }

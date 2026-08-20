@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+feedparser
+google-genai
+python-dotenv
+pydantic

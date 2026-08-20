@@ -1,1 +1,0 @@
-// Advanced Edge Middleware with Upstash-style rate limiting on /api/ugc/* routes

@@ -1,0 +1,42 @@
+name: Dependency Review
+
+# Blocks PRs that pull in dependencies with known high/critical advisories, at
+# the moment they are added — complementary to Dependabot (which bumps existing
+# deps on a schedule). This is the point-of-introduction gate: it diffs the
+# manifests/lockfiles a PR changes and fails on newly introduced vulnerable
+# versions before they ever reach main.
+#
+# Requires the repo's Dependency Graph to be enabled (Settings → Advanced
+# Security). If it is off, this job reports that instead of silently passing.
+
+on:
+  pull_request:
+    paths:
+      - "verify/package.json"
+      - "verify/package-lock.json"
+      - ".github/workflows/dependency-review.yml"
+
+concurrency:
+  group: dep-review-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      # Staged report-only (continue-on-error): the action hard-errors with
+      # "Dependency review is not supported on this repository" until the repo's
+      # Dependency Graph + GitHub Advanced Security are enabled in Settings →
+      # Security & analysis. Once enabled, drop continue-on-error to enforce.
+      - name: Dependency review
+        continue-on-error: true
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high

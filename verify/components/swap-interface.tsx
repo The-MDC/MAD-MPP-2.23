@@ -15,7 +15,7 @@ import React, { useState, useMemo } from "react";
 import { useGame } from "@/context/game-context";
 import {
   calculateDLLMSRPrice, calculateDLLMSRCost,
-  calculateVolumeScalingAlpha, splitFee, OV_DECKS, OVDeck,
+  calculateVolumeScalingAlpha, splitFee, OV_DECKS, OVDeck, PLATFORM,
 } from "@/lib/gambit-game-math";
 import { ArrowUpDown, Zap, AlertTriangle } from "lucide-react";
 
@@ -24,9 +24,9 @@ interface SwapRecord {
   fee: number; price: number; ts: number;
 }
 
-// Initial shares for a balanced market (YES=50, NO=50, b=100)
+// Initial shares for a balanced market (YES=50, NO=50, b = canonical 1200)
 const INIT_SHARES = { YES: 50, NO: 50 };
-const LIQUIDITY_B = 100;
+const LIQUIDITY_B = PLATFORM.LMSR_DEFAULT_B;
 
 export default function SwapInterface({ activeDeck }: { activeDeck?: OVDeck }) {
   const deck = activeDeck ?? OV_DECKS[0];
@@ -48,7 +48,7 @@ export default function SwapInterface({ activeDeck }: { activeDeck?: OVDeck }) {
   const currentPrice = buyingYes ? priceYes : priceNo;
 
   // Output shares purchased (simplified: amount / price per share with liquidity scaling)
-  const feeCalc = useMemo(() => splitFee(parsed, false), [parsed]);
+  const feeCalc = useMemo(() => splitFee(parsed, 0), [parsed]);
   const netIn = parsed - feeCalc.grossFee;
   const sharesOut = netIn > 0 ? (netIn / (currentPrice * LIQUIDITY_B)) * deck.multiplier : 0;
 

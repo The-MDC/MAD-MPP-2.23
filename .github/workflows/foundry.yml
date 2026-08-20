@@ -1,0 +1,90 @@
+name: Foundry — contracts
+
+# forge build + test for the canonical app Foundry project (contracts/src + contracts/test).
+# GitHub Actions runners are NOT network-blocked (unlike the web sandbox), so Solidity
+# compiles/tests run here. Deps (forge-std, openzeppelin-contracts) are vendored under
+# contracts/lib, so no `forge install` is needed. Scoped by contracts/foundry.toml to
+# src/test only — the un-integrated contracts/madhat-core project is intentionally excluded
+# until its reconciliation checklist lands (see contracts/madhat-core/RECONCILIATION_RUNBOOK.md).
+
+on:
+  # Scope push to main only — feature-branch pushes are already covered by the
+  # pull_request trigger, so this kills the redundant double-run per commit.
+  push:
+    branches: [main]
+    paths:
+      - "contracts/src/**"
+      - "contracts/test/**"
+      # `forge build` compiles script/ too, so a deploy script that stops
+      # compiling is a red build — but without this path it never ran.
+      # DeployPortrait.s.sol is INTERLOCK layer 4; it must be gated.
+      - "contracts/script/**"
+      - "contracts/foundry.toml"
+      - "contracts/lib/**"
+      - ".github/workflows/foundry.yml"
+  pull_request:
+    paths:
+      - "contracts/src/**"
+      - "contracts/test/**"
+      # `forge build` compiles script/ too, so a deploy script that stops
+      # compiling is a red build — but without this path it never ran.
+      # DeployPortrait.s.sol is INTERLOCK layer 4; it must be gated.
+      - "contracts/script/**"
+      - "contracts/foundry.toml"
+      - "contracts/lib/**"
+      - ".github/workflows/foundry.yml"
+
+concurrency:
+  group: foundry-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  forge:
+    name: forge build + test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: forge build
+        run: forge build --sizes
+
+      - name: forge test
+        run: forge test -vvv
+
+  # ── Static analysis (report-only) ───────────────────────────────────
+  # Slither on the canonical Foundry project. forge build+test above proves the
+  # contracts compile and behave; Slither catches the classes tests pass over —
+  # reentrancy, unchecked external calls, arbitrary-send, access-control gaps —
+  # which is table stakes for contracts that custody prediction-market funds.
+  # Foundry is installed first so crytic-compile drives `forge build` against
+  # contracts/foundry.toml (same scoping as the forge job).
+  #
+  # --filter-paths excludes vendored deps (openzeppelin/forge-std under lib/) so
+  # we gate on OUR src/ only, not library code. Staged report-only
+  # (continue-on-error) because the first run surfaced 135 findings across the
+  # MAD* contracts that need triage before enforcing — drop continue-on-error
+  # and keep fail-on: high once that backlog is worked down.
+  slither:
+    name: Slither static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Slither
+        uses: crytic/slither-action@v0.4.0
+        continue-on-error: true
+        with:
+          target: "contracts/"
+          fail-on: high
+          slither-args: --filter-paths "lib/"

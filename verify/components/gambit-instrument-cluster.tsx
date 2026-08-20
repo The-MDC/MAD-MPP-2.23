@@ -61,11 +61,40 @@ export interface DigitPairStat {
   color: string;
 }
 
+/**
+ * The crypto instrument a dial can carry.
+ *
+ * A dial without this is the original scalar gauge: one needle, one percent.
+ * A dial WITH it renders the full instrument — spectrum ring, sparkline and
+ * price readout struck inside the same gold case — because a crypto is not a
+ * scalar. It has a level (the needle), a shape over time (the sparkline) and a
+ * distribution (the spectrum), and showing only the needle throws two of the
+ * three away.
+ *
+ * `series` and `spectrum` are normalised 0..1 so the gauge never has to know
+ * what a price is; the caller scales. Both are fixed-length literals rather
+ * than generated, so server and client paint identically — a Math.random()
+ * series here would hydration-mismatch on every load.
+ */
+export interface DialCrypto {
+  symbol: string;
+  /** Pre-formatted for display — the gauge does no number formatting. */
+  price: string;
+  change: string;
+  up: boolean;
+  /** Normalised closes, oldest -> newest. Drawn as the sparkline. */
+  series: number[];
+  /** Normalised band magnitudes. Drawn as the spectrum ring. */
+  spectrum: number[];
+}
+
 export interface DialStat {
   label: string;
   value: number;
   colorA: string;
   colorB: string;
+  /** Present => render as a crypto instrument rather than a scalar gauge. */
+  crypto?: DialCrypto;
 }
 
 const DEFAULT_PAIR1_PRESETS: DigitPairStat[] = [
@@ -84,16 +113,97 @@ const DEFAULT_PAIR3_PRESETS: DigitPairStat[] = [
   { label: "SHIELD UTILIZATION", value: "31", color: "#ffcf40" },
 ];
 
+/**
+ * The three pods' preset triplets, in pod order. Exported so the split-flap
+ * chrono can drive its three digit-pairs off the SAME stats the pods use —
+ * the clock and the pods are two renderings of one instrument, and a second
+ * copy of this list would drift the moment either side gained a stat.
+ */
+export const DEFAULT_PAIR_PRESETS: DigitPairStat[][] = [
+  DEFAULT_PAIR1_PRESETS,
+  DEFAULT_PAIR2_PRESETS,
+  DEFAULT_PAIR3_PRESETS,
+];
+
+/**
+ * READINGS ARE PLACEHOLDERS. Every price, series and spectrum below is a
+ * shaped demo constant, not a measurement — these dials have no fetch. They
+ * are sized to be plausible so the instrument is honest about the range it
+ * has to render, and each is replaceable wholesale through the
+ * leftDialPresets / rightDialPresets props without touching this file.
+ *
+ * Three cryptos per dial, majors on the left and the second rank on the right,
+ * so the two sides read as different desks rather than the same desk twice.
+ */
 const DEFAULT_LEFT_DIAL_PRESETS: DialStat[] = [
-  { label: "CHAOS",        value: 67, colorA: "#ffd700", colorB: "#ff007f" },
-  { label: "SHIELD USE",   value: 41, colorA: "#00e5ff", colorB: "#ffd700" },
-  { label: "FURNACE BURN", value: 22, colorA: "#ff4500", colorB: "#ff007f" },
+  {
+    label: "BTC · MOMENTUM", value: 72, colorA: "#ffd700", colorB: "#ff9500",
+    crypto: {
+      symbol: "BTC", price: "$69,420", change: "+4.2%", up: true,
+      series: [0.42, 0.38, 0.47, 0.52, 0.49, 0.58, 0.63, 0.61, 0.70, 0.74, 0.71, 0.79],
+      spectrum: [0.35, 0.52, 0.68, 0.81, 0.62, 0.47, 0.58, 0.72, 0.44, 0.31],
+    },
+  },
+  {
+    label: "ETH · MOMENTUM", value: 58, colorA: "#00e5ff", colorB: "#8a7cff",
+    crypto: {
+      symbol: "ETH", price: "$3,500", change: "+2.5%", up: true,
+      series: [0.51, 0.55, 0.49, 0.44, 0.52, 0.57, 0.54, 0.60, 0.58, 0.64, 0.62, 0.66],
+      spectrum: [0.42, 0.61, 0.55, 0.73, 0.48, 0.66, 0.39, 0.57, 0.62, 0.35],
+    },
+  },
+  {
+    label: "SOL · MOMENTUM", value: 81, colorA: "#00ff88", colorB: "#c98aff",
+    crypto: {
+      symbol: "SOL", price: "$180", change: "+5.0%", up: true,
+      series: [0.30, 0.36, 0.34, 0.45, 0.53, 0.50, 0.62, 0.69, 0.66, 0.77, 0.83, 0.86],
+      spectrum: [0.28, 0.44, 0.72, 0.85, 0.69, 0.53, 0.77, 0.61, 0.48, 0.37],
+    },
+  },
 ];
 const DEFAULT_RIGHT_DIAL_PRESETS: DialStat[] = [
-  { label: "WIN RATE",       value: 55, colorA: "#00e5ff", colorB: "#00ff88" },
-  { label: "STAKING APY",    value: 68, colorA: "#ffd700", colorB: "#00ff88" },
-  { label: "CONVICTION ACC", value: 74, colorA: "#c98aff", colorB: "#00e5ff" },
+  {
+    label: "XRP · MOMENTUM", value: 46, colorA: "#00e5ff", colorB: "#00ff88",
+    crypto: {
+      symbol: "XRP", price: "$0.62", change: "-1.4%", up: false,
+      series: [0.62, 0.58, 0.61, 0.54, 0.49, 0.52, 0.46, 0.44, 0.48, 0.41, 0.39, 0.43],
+      spectrum: [0.55, 0.41, 0.63, 0.38, 0.57, 0.44, 0.66, 0.35, 0.51, 0.29],
+    },
+  },
+  {
+    label: "DOGE · MOMENTUM", value: 63, colorA: "#ffd700", colorB: "#ffcf40",
+    crypto: {
+      symbol: "DOGE", price: "$0.16", change: "+7.8%", up: true,
+      series: [0.33, 0.41, 0.37, 0.48, 0.44, 0.56, 0.61, 0.55, 0.67, 0.64, 0.72, 0.69],
+      spectrum: [0.31, 0.58, 0.47, 0.79, 0.52, 0.68, 0.41, 0.63, 0.36, 0.54],
+    },
+  },
+  {
+    label: "LINK · MOMENTUM", value: 54, colorA: "#c98aff", colorB: "#00e5ff",
+    crypto: {
+      symbol: "LINK", price: "$14.80", change: "+0.9%", up: true,
+      series: [0.47, 0.44, 0.50, 0.53, 0.48, 0.51, 0.57, 0.54, 0.52, 0.58, 0.55, 0.60],
+      spectrum: [0.44, 0.37, 0.59, 0.46, 0.62, 0.51, 0.43, 0.68, 0.39, 0.47],
+    },
+  },
 ];
+
+/**
+ * Sparkline path across a band. `series` is 0..1 oldest -> newest; 1 sits at
+ * yTop. Values are clamped rather than trusted, so a caller passing an
+ * out-of-range sample distorts its own line instead of escaping the dial face.
+ */
+function sparkPath(series: number[], x0: number, x1: number, yTop: number, yBot: number): string {
+  if (series.length < 2) return "";
+  const dx = (x1 - x0) / (series.length - 1);
+  return series
+    .map((v, i) => {
+      const x = x0 + i * dx;
+      const y = yBot - Math.max(0, Math.min(1, v)) * (yBot - yTop);
+      return `${i === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`;
+    })
+    .join(" ");
+}
 
 function SevenSegDigit({ x, char, color }: { x: number; char: string; color: string }) {
   const lit = DIGIT_MAP[char] ?? "";
@@ -191,8 +301,25 @@ function AnalogGauge({
   const ax1 = CX + Math.cos(sa) * (R - 13), ay1 = CY + Math.sin(sa) * (R - 13);
   const ax2 = CX + Math.cos(ea) * (R - 13), ay2 = CY + Math.sin(ea) * (R - 13);
   const large = sweepA > 180 ? 1 : 0;
+  const c = stat.crypto;
   const needleAng = ((startA + sweepA) * Math.PI) / 180;
-  const nx = CX + Math.cos(needleAng) * (R - 15), ny = CY + Math.sin(needleAng) * (R - 15);
+  // In crypto mode the needle is shortened so it stays in the upper annulus
+  // and never crosses the sparkline band below the centre.
+  const needleLen = c ? R - 27 : R - 15;
+  const nx = CX + Math.cos(needleAng) * needleLen, ny = CY + Math.sin(needleAng) * needleLen;
+
+  // Spectrum ring — one radial bar per band, swept across the same arc the
+  // ticks use so the two read as one scale.
+  const bars = c
+    ? c.spectrum.map((mag, i) => {
+        const ang = ((-214 + (i * 248) / Math.max(1, c.spectrum.length - 1)) * Math.PI) / 180;
+        const r0 = 22, r1 = r0 + Math.max(0, Math.min(1, mag)) * 7;
+        return {
+          x1: CX + Math.cos(ang) * r0, y1: CY + Math.sin(ang) * r0,
+          x2: CX + Math.cos(ang) * r1, y2: CY + Math.sin(ang) * r1,
+        };
+      })
+    : [];
   const ticks = Array.from({ length: 11 }, (_, t) => {
     const ang = ((-220 + t * 24) * Math.PI) / 180;
     return {
@@ -204,7 +331,14 @@ function AnalogGauge({
   const tap = useDoubleTap(() => onSelect((idx + 1) % presets.length));
   return (
     <div onClick={tap} title="Double-tap to cycle" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "5px", cursor: "pointer" }}>
-      <svg width={108} height={108} viewBox="0 0 108 108" role="img" aria-label={`${stat.label} gauge at ${Math.round(stat.value)}%`}>
+      <svg
+        width={108} height={108} viewBox="0 0 108 108" role="img"
+        aria-label={
+          c
+            ? `${c.symbol} ${c.price}, ${c.change}, ${stat.label} at ${Math.round(stat.value)}%`
+            : `${stat.label} gauge at ${Math.round(stat.value)}%`
+        }
+      >
         <defs>
           <linearGradient id={`gauge-gold-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
             {GOLD_CHISEL_STOPS.map(([offset, c]) => <stop key={offset} offset={`${offset}%`} stopColor={c} />)}
@@ -227,12 +361,51 @@ function AnalogGauge({
           d={`M ${ax1} ${ay1} A ${R - 13} ${R - 13} 0 ${large} 1 ${ax2} ${ay2}`}
           fill="none" stroke={`url(#gauge-arc-${uid})`} strokeWidth="5" strokeLinecap="round"
         />
+        {/* Spectrum ring — drawn under the needle so the needle stays readable. */}
+        {bars.map((b, i) => (
+          <line
+            key={`sp-${i}`} x1={b.x1} y1={b.y1} x2={b.x2} y2={b.y2}
+            stroke={stat.colorA} strokeWidth="1.6" strokeLinecap="round" opacity={0.5}
+          />
+        ))}
+
         <line x1={CX} y1={CY} x2={nx} y2={ny} stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
         <circle cx={CX} cy={CY} r="4" fill={`url(#gauge-gold-${uid})`} />
 
-        <text x={CX} y={CY + 22} textAnchor="middle" fontSize="9" fontWeight="900" fill={stat.colorB} fontFamily={INSTRUMENT_FONT}>
-          {Math.round(stat.value)}%
-        </text>
+        {c ? (
+          <>
+            {/* Symbol, struck above the centre. */}
+            <text x={CX} y={CY - 14} textAnchor="middle" fontSize="7.5" fontWeight="900"
+              fill={`url(#gauge-gold-${uid})`} fontFamily={INSTRUMENT_FONT} letterSpacing="0.6">
+              {c.symbol}
+            </text>
+
+            {/* Sparkline — the shape a single needle cannot carry. Filled to a
+                baseline so direction reads at a glance, then stroked. */}
+            <path
+              d={`${sparkPath(c.series, CX - 24, CX + 24, CY + 4, CY + 19)} L ${CX + 24} ${CY + 19} L ${CX - 24} ${CY + 19} Z`}
+              fill={stat.colorB} opacity={0.14}
+            />
+            <path
+              d={sparkPath(c.series, CX - 24, CX + 24, CY + 4, CY + 19)}
+              fill="none" stroke={stat.colorB} strokeWidth="1.4"
+              strokeLinecap="round" strokeLinejoin="round"
+            />
+
+            <text x={CX} y={CY + 28} textAnchor="middle" fontSize="7.5" fontWeight="900"
+              fill={stat.colorB} fontFamily={INSTRUMENT_FONT}>
+              {c.price}
+            </text>
+            <text x={CX} y={CY + 36} textAnchor="middle" fontSize="6" fontWeight="800"
+              fill={c.up ? "#00ff88" : "#ff4d6d"} fontFamily={INSTRUMENT_FONT}>
+              {c.change}
+            </text>
+          </>
+        ) : (
+          <text x={CX} y={CY + 22} textAnchor="middle" fontSize="9" fontWeight="900" fill={stat.colorB} fontFamily={INSTRUMENT_FONT}>
+            {Math.round(stat.value)}%
+          </text>
+        )}
       </svg>
 
       <div style={{
@@ -268,6 +441,9 @@ export interface GambitInstrumentClusterProps {
   leftDialPresets?: DialStat[];
   rightDialPresets?: DialStat[];
   uid?: string;
+  /** Optional center replacement — when set, renders INSTEAD of the 3 KPI pods
+   *  between the two dials (e.g. the split-flap chrono on the hub). */
+  centerSlot?: React.ReactNode;
 }
 
 export default function GambitInstrumentCluster({
@@ -277,6 +453,7 @@ export default function GambitInstrumentCluster({
   leftDialPresets = DEFAULT_LEFT_DIAL_PRESETS,
   rightDialPresets = DEFAULT_RIGHT_DIAL_PRESETS,
   uid = "hero",
+  centerSlot,
 }: GambitInstrumentClusterProps) {
   const [p1, setP1] = useState(0);
   const [p2, setP2] = useState(0);
@@ -296,22 +473,40 @@ export default function GambitInstrumentCluster({
         fontFamily: INSTRUMENT_FONT, fontSize: "7px", color: "#6b7280",
         letterSpacing: "1px", textAlign: "center",
       }}>
-        3 INDEPENDENT KPI PODS &middot; 2 CUSTOMIZABLE DIALS &middot; TAP ANY DOT TO SWAP
+        {centerSlot
+          ? <>SPLIT-FLAP CHRONO &middot; 2 CUSTOMIZABLE DIALS &middot; TAP ANY DOT TO SWAP</>
+          : <>3 INDEPENDENT KPI PODS &middot; 2 CUSTOMIZABLE DIALS &middot; TAP ANY DOT TO SWAP</>}
       </div>
 
-      <div style={{
-        display: "flex", alignItems: "flex-start", justifyContent: "center",
-        gap: "16px", flexWrap: "wrap", width: "100%",
-      }}>
-        <AnalogGauge presets={leftDialPresets} idx={dl} onSelect={setDl} uid={`${uid}-l`} />
-
-        <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
-          <DigitPairPod presets={pair1Presets} idx={p1} onSelect={setP1} uid={`${uid}-p1`} />
-          <DigitPairPod presets={pair2Presets} idx={p2} onSelect={setP2} uid={`${uid}-p2`} />
-          <DigitPairPod presets={pair3Presets} idx={p3} onSelect={setP3} uid={`${uid}-p3`} />
+      {/* Dial · centre · dial.
+          This was one wrapping flex row, which on a narrow container broke as
+          dial / centre / dial — one dial ABOVE the chrono and one BELOW it,
+          the fault visible in production. The row now reorders instead of
+          wrapping arbitrarily: both dials together on one line above the
+          chrono when space is short, flanking it when there is room. See
+          .mg-cluster-* in globals.css — a CONTAINER query, because the app
+          renders inside a 393px device frame on desktop and a media query
+          would answer for the monitor. */}
+      <div className="mg-cluster-row">
+        <div className="mg-cluster-l">
+          <AnalogGauge presets={leftDialPresets} idx={dl} onSelect={setDl} uid={`${uid}-l`} />
         </div>
 
-        <AnalogGauge presets={rightDialPresets} idx={dr} onSelect={setDr} uid={`${uid}-r`} />
+        <div className="mg-cluster-c">
+          {centerSlot ? (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>{centerSlot}</div>
+          ) : (
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+              <DigitPairPod presets={pair1Presets} idx={p1} onSelect={setP1} uid={`${uid}-p1`} />
+              <DigitPairPod presets={pair2Presets} idx={p2} onSelect={setP2} uid={`${uid}-p2`} />
+              <DigitPairPod presets={pair3Presets} idx={p3} onSelect={setP3} uid={`${uid}-p3`} />
+            </div>
+          )}
+        </div>
+
+        <div className="mg-cluster-r">
+          <AnalogGauge presets={rightDialPresets} idx={dr} onSelect={setDr} uid={`${uid}-r`} />
+        </div>
       </div>
     </div>
   );

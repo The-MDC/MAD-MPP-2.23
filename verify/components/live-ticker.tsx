@@ -18,6 +18,7 @@ import { Radio, Newspaper, LineChart, BarChart3 } from "lucide-react";
 import { motion, useAnimationFrame, useMotionValue } from "framer-motion";
 import { INK } from "@/lib/gambit-design-tokens";
 import { PLATFORM } from "@/lib/gambit-game-math";
+import { AutoShowcaseBadge } from "@/components/carousel";
 
 /* ── modes ─────────────────────────────────────────────────────── */
 type Mode = "markets" | "satire" | "stats";
@@ -185,6 +186,7 @@ export default function LiveTicker() {
           <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: meta.color }}>
             {meta.label}
           </span>
+          <AutoShowcaseBadge label="Auto-cycling ticker" />
         </div>
 
         <div className="flex items-center gap-3">

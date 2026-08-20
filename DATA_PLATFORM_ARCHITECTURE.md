@@ -1,1 +1,0 @@
-file_content from architecture doc

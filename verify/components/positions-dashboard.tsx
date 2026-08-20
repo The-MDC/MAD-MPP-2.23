@@ -6,12 +6,13 @@
  * Shows all open positions from game-context. Per-position card shows
  * δ-limit, shield status, φ-ratio recovery, GARCH σ², projected payout.
  * Resolves animate green (win) / red (loss) via CSS class swap.
- * Source: Gen 2 SustainableInsurancePanel userHoldings + Gen 1 ConvictionDashboard
+ * Source: Gen 2 sustainable Shield panel userHoldings + Gen 1 ConvictionDashboard
  */
 
 import React, { useState, useEffect } from "react";
+import { INK } from "@/lib/gambit-design-tokens";
 import { useGame } from "@/context/game-context";
-import { shieldPhiRatio, garchUpdate, PHI, shieldReturnCountdown } from "@/lib/gambit-game-math";
+import { shieldPhiRatio, garchUpdate, PHI, PLATFORM, shieldReturnCountdown } from "@/lib/gambit-game-math";
 import { Shield, ShieldOff, ShieldCheck, TrendingUp, TrendingDown, Clock, Zap, Timer, Radar, Brain, Loader2 } from "lucide-react";
 import WalletGateway from "./wallet-gateway";
 
@@ -21,7 +22,7 @@ function getCurrentSigma(): number {
   let s = 0.02;
   let seed = 42;
   const rand = () => { seed = (seed * 1664525 + 1013904223) % 2147483648; return seed / 2147483648; };
-  for (let i = 0; i < epoch; i++) { s = garchUpdate(0.008, 0.12, 0.82, s, (rand() - 0.5) * 0.3); }
+  for (let i = 0; i < epoch; i++) { s = garchUpdate(PLATFORM.GARCH_OMEGA, PLATFORM.GARCH_ALPHA, PLATFORM.GARCH_BETA, s, (rand() - 0.5) * 0.3); }
   return s;
 }
 
@@ -165,7 +166,7 @@ export default function PositionsDashboard() {
                           <Brain className="w-2.5 h-2.5" /> Vector DB Context:
                         </p>
                         <p className="font-mono text-[8px] italic text-neutral-400 leading-relaxed line-clamp-2">
-                          "{trade.newsContext[0].content}"
+                          &ldquo;{trade.newsContext[0].content}&rdquo;
                         </p>
                       </div>
                     )}
@@ -237,7 +238,7 @@ export default function PositionsDashboard() {
                   <MiniStat
                     label="φ-Protection"
                     value={`+${phiRecovery.toFixed(0)}`}
-                    color="#ffd700"
+                    color={INK.gold}
                     icon={<Shield className="w-2.5 h-2.5" />}
                   />
                 ) : (

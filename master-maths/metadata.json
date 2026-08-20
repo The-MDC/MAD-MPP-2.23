@@ -1,0 +1,6 @@
+{
+  "name": "MΛĐ Gambit",
+  "description": "Economic Entertainment Engine & Satirical Prediction-Conviction Marketplace",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
