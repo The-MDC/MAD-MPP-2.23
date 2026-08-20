@@ -33,11 +33,18 @@ Evidence paths are relative to repo root (`maddegen/MAD-MPP-2.23`), branch
 | Half-Kelly sizing with position cap + δ-limit | Not located in code this pass | **Conceptual** | — |
 | Projected stock move · ad-revenue-loss · virality ODE · effective-time integral | None | **Conceptual** | Boardy: non-live, specification only. |
 
-> **Regression fixed in this branch.** Commit `cdadb02` ("v2.24.2 Audit Pass") replaced
-> `verify/lib/gambit-game-math.ts` (57,003 bytes / 1,327 lines) with a **single 66-byte comment**,
-> while 10+ components still imported from it — so the branch could not build and the "live
-> mathematical engine" was, literally, absent. Restored from `d838443`. **This is why the
-> traceability discipline matters: the headline claim was unbacked for two commits.**
+> **CORRECTION (2026-08-20) — my earlier "the math engine was destroyed" claim was wrong at
+> the project level.** Commit `cdadb02` did replace `verify/lib/gambit-game-math.ts`
+> (57,003 bytes) with a 66-byte comment — but only on the stale lineage this working copy
+> sits on. **`origin/main` carries a healthy 1,405-line / 117-export version**, a superset of
+> what I restored. The engine was never lost from the project.
+>
+> This branch is **246 commits behind `main`**. My restore from `d838443` would have
+> *regressed* the file by 78 lines and 8 exports on merge. The branch now takes `main`'s
+> version verbatim; all 29 import sites resolve against it.
+>
+> The lesson stands, but it is the opposite of the one I first drew: the danger was not a
+> destroyed engine, it was **reporting a stale branch as if it were the project**.
 
 ## B. Product surfaces
 
