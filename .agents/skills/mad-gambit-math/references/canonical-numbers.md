@@ -17,8 +17,21 @@ These are the **only** numbers that may ever be stated freely. Everything else i
 - Testnet: Arbitrum Sepolia (chain ID 421614)
 - Chain story locked by founder sign-off August 2026; see docs/MAD_GAMBIT_MASTER.md Part VI §13 item 4
 - LLC jurisdiction: New Mexico (filed)
-- Seed: $1.24M–$2.48M @ $12M pre-money (public range)
-- Y3 target: $154.5M gross on $3.6B–$4.2B volume (streams 51/31/12/6: fees/NFT/staking/shield)
+- Seed: $1.24M–$2.48M @ $12M pre-money (public range), 10% token allocation
+- Infrastructure tranche: $15K–$20K · Bridge: $300K–$500K (keep separate from the seed)
+- Y3 target: **$139.6M gross, base case** on $3.6B–$4.2B volume (revised 2026-08-19 from the
+  published data room; $177.7M is BULL CASE ONLY and must never be the headline. Prior value
+  $154.5M retired.) ⚠️ The 51/31/12/6 stream split was derived from the retired $154.5M model and
+  is UNRECONCILED — re-run before use. See docs/boardy/CANONICAL_NUMBERS_2026-08-19.md
+
+⚠️ STAKING TIERS ARE IN CONFLICT: STAKING_TIERS in gambit-game-math.ts (6 tiers, 100/500/2,500/
+10,000/50,000/100,000 at 12/18/28/42/58/68%) does NOT match the data room (4 tiers, 88/888/8,888/
+88,888 at 8.8/18.8/28.8/38.8%). Treat as CONCEPTUAL; do not pitch staking yields until resolved.
+
+⚠️ A second, incompatible fee model is deployed elsewhere: a "1.888% RATE" schedule splitting
+burn 0.888% / staking 0.500% / protect 0.500%, with no creator share. Canon is 1.88% split
+creator 40% / community 28.8% / shield 28.8%. Locate and reconcile (likely Vercel project
+datahouse_mathsengine or o-v_deck26).
 
 Any change to these numbers requires explicit founder sign-off and an update to this file + SESSION_HANDOFF.md.
 

@@ -4,10 +4,29 @@ name: Placeholder Guard
 # This is the tripwire for the failure mode that overwrote main with one-line
 # descriptions (e.g. "file_content from types.ts", "Full MADStaking with rewards").
 
+# Path-filtered to exactly what the scan below reads. The guard walks
+# `git ls-files` over verify/**/*.ts(x) and contracts/{src,test}/**/*.sol, then
+# greps verify/**, contracts/src/** and contracts/test/** for placeholder
+# phrases — so if none of those paths changed, the result cannot differ from
+# the previous run. Skipping it there is safe, not merely cheaper. (It scans
+# ALL tracked files, not just the diff, which is exactly why a docs-only commit
+# re-running it is pure waste: same inputs, same answer, full runner minute.)
+# NOTE: paths are duplicated across the two triggers on purpose — GitHub
+# Actions does not reliably support YAML anchors/aliases.
 on:
   push:
     branches: [main, "mad-mpp-2.24"]
+    paths:
+      - "verify/**"
+      - "contracts/src/**"
+      - "contracts/test/**"
+      - ".github/workflows/placeholder-guard.yml"
   pull_request:
+    paths:
+      - "verify/**"
+      - "contracts/src/**"
+      - "contracts/test/**"
+      - ".github/workflows/placeholder-guard.yml"
 
 concurrency:
   group: guard-${{ github.ref }}
@@ -17,7 +36,7 @@ jobs:
   guard:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Scan for placeholder source files
         run: |
           set -euo pipefail
