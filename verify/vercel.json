@@ -14,12 +14,13 @@
       ]
     }
   ],
+  "//git": "main MUST stay true. false switches off production deploys entirely: pushes to main are accepted and then silently dropped, so main can carry a fix for days while the live site serves the last build that got through. Preview builds keep working the whole time, which is what makes it easy to miss.",
   "git": {
     "deploymentEnabled": {
-      "main": false
+      "main": true
     }
   },
-  "ignoreCommand": "case \"$VERCEL_GIT_COMMIT_REF\" in main|feat/*|claude/*) exit 1;; *) exit 0;; esac",
+  "//ignoreCommand": "exit 1 = BUILD, exit 0 = SKIP -- inverted from the usual shell convention. Exactly one of these keys. It was duplicated, and in JSON the last duplicate silently wins, so the first was dead config that still read as authoritative.",
   "ignoreCommand": "case \"$VERCEL_GIT_COMMIT_REF\" in main|feat/*|claude/*|vercel-agent/*) exit 1;; *) exit 0;; esac",
   "crons": [
     { "path": "/api/v1/cron/rollup", "schedule": "0 * * * *" },
