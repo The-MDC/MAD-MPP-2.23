@@ -47,3 +47,17 @@ updates:
     commit-message:
       prefix: "ci"
       include: "scope"
+    ignore:
+      # actions/checkout is deliberately held at v4 in every workflow.
+      #
+      # v6.1.0 (2026-06-18) shipped a documented breaking change to how
+      # pull_request_target checkouts resolve refs, and the floating `v6` tag
+      # moved onto it mid-flight — which is why this repo's runs were green on
+      # v6.0.x at 03:34 on 2026-08-16 and failing from 04:07 with no commit of
+      # ours in between. v7.0.0 goes further and refuses fork-PR checkout.
+      # v4 is still actively maintained (v4.3.1 "Port v6 cleanup to v4").
+      #
+      # Revisit when Actions is executing again (see below) and the v6+/v7
+      # behaviour can actually be exercised on a PR rather than assumed.
+      - dependency-name: "actions/checkout"
+        update-types: ["version-update:semver-major"]

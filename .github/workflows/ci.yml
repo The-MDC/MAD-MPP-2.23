@@ -50,7 +50,11 @@ jobs:
       run:
         working-directory: verify
     steps:
-      - uses: actions/checkout@v6
+      # actions/checkout is held at v4 across every workflow in this repo —
+      # v6.1.0 moved the floating `v6` tag onto a breaking pull_request_target
+      # change on 2026-06-18. Rationale and the Dependabot ignore that keeps it
+      # here live in .github/dependabot.yml. Do not bump this in isolation.
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
