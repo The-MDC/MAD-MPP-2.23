@@ -501,13 +501,23 @@ body {
    embed both render on mobile, unlike the corner HUD these rules also
    style (via .mg-ov-corner, still desktop-gated above).
 ───────────────────────────────────────────────────────────────────── */
-.mg-octavian-grid {
-  /* Container query context. The collapse below MUST be measured on this box,
-     not the viewport: the app renders inside a 393px device frame, so
-     @media (max-width: 720px) reads the 1920px monitor, never fires, and the
-     two-column rule survives inside 393px. The aside's 240px minimum then
-     leaves the canvas ~110px — the narrow strip where the creature should be. */
+/* Container query CONTEXT. This must sit on a wrapper, not on
+   .mg-octavian-grid itself: a container query only matches DESCENDANTS of the
+   container, so an element can never respond to its own container-type. With
+   container-type on the grid, the @container rule below silently never fired.
+   height:100% keeps the pop-out chain intact (.mg-ov-popout-panel -> here ->
+   .mg-octavian-grid). */
+.mg-octavian-shell {
   container-type: inline-size;
+  height: 100%;
+}
+
+.mg-octavian-grid {
+  /* The collapse below MUST be measured on this box, not the viewport: the app
+     renders inside a 393px device frame, so @media (max-width: 720px) reads the
+     1920px monitor, never fires, and the two-column rule survives inside 393px.
+     The aside's 240px minimum then leaves the canvas ~110px — the narrow strip
+     where the creature should be. */
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(240px, 1fr);
   gap: 14px;

@@ -499,6 +499,7 @@ function OctavianCanvasPanel({ variant, onPopOut }: { variant: "compact" | "full
 
   const def = NODE_REGISTRY[selected];
   return (
+    <div className="mg-octavian-shell">
     <div
       className="mg-octavian-grid"
       style={{
@@ -517,7 +518,9 @@ function OctavianCanvasPanel({ variant, onPopOut }: { variant: "compact" | "full
         style={{
           position: "relative",
           width: "min(300px, 100%)",
-          height: "min(300px, 100vw)",
+          // NOT 100vw: viewport units inside the 393px device frame are the
+          // exact bug this PR fixes. Width + aspect-ratio squares off the
+          // PANEL, so it stays square at any frame width.
           aspectRatio: "1 / 1",
           margin: "0 auto",
         }}
@@ -541,6 +544,7 @@ function OctavianCanvasPanel({ variant, onPopOut }: { variant: "compact" | "full
         </div>
         <div style={{ fontSize: 9.5, fontStyle: "italic", color: skin.muted }}>{def.quip}</div>
       </aside>
+    </div>
     </div>
   );
 }

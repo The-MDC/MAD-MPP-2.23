@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       # Staged report-only (continue-on-error): the action hard-errors with
       # "Dependency review is not supported on this repository" until the repo's
