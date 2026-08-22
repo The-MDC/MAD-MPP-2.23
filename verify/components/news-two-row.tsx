@@ -207,6 +207,11 @@ function MarqueeRow({ cards, dir }: { cards: Card[]; dir: "l" | "r" }) {
 export default function NewsTwoRow() {
   const { skin } = useSkin();
   const [cards, setCards] = useState<Card[] | null>(null);
+  // The APIs already report whether they served live data or demo
+  // constants. Nothing rendered it, so an UNCONFIGURED feed was
+  // indistinguishable from a BROKEN one — which is exactly how this was
+  // reported, and it cost real time to disprove. Surfaced below.
+  const [feedDemo, setFeedDemo] = useState(false);
   const [active, setActive] = useState<Kind | null>(null);
 
   // Left-rail categories filter this feed in place (worksheet item D). null = All.
@@ -239,6 +244,9 @@ export default function NewsTwoRow() {
           if (p.type === "gossipcop") out.push({ kind: "gossipcop", source: "GossipCop", headline: p.title, image: null, z: p.zliarScore, link: "/gambit", heat: 0, signals: null });
         });
       }
+      // `source: "demo"` from either endpoint means the wire is running on
+      // hardcoded constants — RSS unreachable, or DATABASE_URL unset.
+      setFeedDemo(news?.source === "demo" || markets?.source === "demo");
       setCards(out);
     });
   }, []);
@@ -262,6 +270,14 @@ export default function NewsTwoRow() {
         <span style={{ fontSize: 12, fontWeight: 900, letterSpacing: 2, color: skin.text, textTransform: "uppercase" }}>
           News Flow 📰 <span style={{ color: skin.accent2 }}>{active ? `· ${LABEL[active]}` : "· Satirical Two-Row Wire"}</span>
         </span>
+        {feedDemo ? (
+          <span
+            title="Serving demo constants — the RSS feed is unreachable or DATABASE_URL is unset. Not a code fault."
+            style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: skin.bg, background: skin.gold, borderRadius: 5, padding: "2px 6px", whiteSpace: "nowrap" }}
+          >
+            demo feed
+          </span>
+        ) : null}
         {active ? (
           <button
             type="button"
