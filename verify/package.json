@@ -41,7 +41,7 @@
     "react-dom": "^19.2.1",
     "recharts": "^3.9.0",
     "rss-parser": "^3.13.0",
-    "siwe": "^2.1.4",
+    "siwe": "^3.0.0",
     "tailwind-merge": "^3.0.1",
     "three": "^0.185.0",
     "tw-animate-css": "^1.0.0",
