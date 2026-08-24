@@ -13,6 +13,13 @@
 > *in here* too: 2026-08-18's went into PART 0 §7 and Workstream C, not into a dated file beside
 > this one.
 >
+> **One sanctioned exception: `docs/THREAD_CLOSEOUT.md`.** A single, fixed-path, always-overwritten
+> session handoff — never dated, never versioned, never kept in duplicate. It holds only what is
+> *transient* (what broke this session, what to paste into the next chat); everything durable is
+> folded in here first. Produced by the `close-thread` skill, with `CLAUDE.md` as the fail-safe
+> if that skill does not fire. Unactioned items are **carried forward** into the new close-out,
+> never preserved by keeping the old file.
+>
 > Outside its scope by design, and untouched: each subproject's own docs (`verify/docs/`,
 > `contracts/madhat-core/`, `master-maths/`), live tooling config (`.claude/`, `.agents/`), and
 > the decks themselves (`verify/public/pitch/*.html`).
@@ -122,7 +129,7 @@ halo's opacity breathe (`haloPulse`): low-amplitude and non-spatial.
 | **Neon three-database merge** | `mad-mpp-2-23-postgres` (target), `Neon-DB-MADMPP`, `neon-sky-park`. Ordered procedure + read-only inspection SQL in **Part II.5 below**. Agents cannot reach `*.neon.tech` (403) or TCP 5432. Until this completes there is **no single source database**, so "sync the DBs" has no well-defined target. Correct sequence: merge → `npm run schema:verify` → commit any drift as `verify/sql/0016_*.sql` (**0015 is taken** — see Part II.5). Schema-as-code is already complete: 15 migrations + `schema-verify.mjs` checking the ledger, pgvector and 39 named tables. |
 | **Generate the two `.lock.yml` files** | `gh aw compile`, then commit `agentic-security-review.lock.yml` + `agentic-quality-review.lock.yml`. Until then **both AI review gates are configured but never run**. The Actions `GITHUB_TOKEN` is *correctly* forbidden from writing `.github/workflows/` — needs a human push or a session with real push credentials. |
 | **eslint / eslint-config-next / @types/node realignment** | `eslint-config-next` is pinned at **15.4.5** while `next` resolves to **16.2.9** (and it's the only dep without a caret); `eslint` is **8.x, EOL** — config 16.x wants ESLint 9 + flat config, so those two move together; `@types/node` is **20.x** against `engines.node: 22.x`. Needs a lockfile regen — the sandbox 403s the npm registry, and hand-editing `package-lock.json` breaks `npm ci` on every job. Because Lint is report-only, the stale config is silently under-checking a Next 16 codebase rather than failing. |
-| **GitHub Actions is refusing to run jobs** | 🔴 **Most urgent item in this document.** Red on every branch including `main` since 2026-08-16 08:07 UTC; jobs never reach a runner. An agent cannot read billing — open *Settings → Billing → Actions* and check for exhausted minutes or a spending limit. Full evidence in Part 0 §1. |
+| **GitHub Actions is refusing to run jobs** | 🔴 **Most urgent item in this document, and it got worse.** Red on every branch including `main` from 2026-08-16 08:07 UTC; since 2026-08-19 runs no longer even complete — they sit in **`queued`** and never reach a runner (`runner_id: 0`, empty `runner_name`, logs 404, empty check output). **No run has completed since 2026-08-18**, yet `main` merged **#105, #108 and #131** in that window — all unchecked. An agent cannot read billing: open *Settings → Billing → Actions* and check for exhausted minutes or a spending limit. Full evidence in Part 0 §1. |
 | **Founder-gated ops** | Rotate/confirm `NEON_API_KEY` · attach `madgambit.io` · GitHub Advanced Security toggles · push `v2.24-constellation` · Phase-4 named-subject gate (KMS choice, `MADPortraitKeyRegistry` deploy, 6 signed `registry_readiness` rows). |
 
 ---
@@ -203,6 +210,21 @@ unexplained freeze. **Phases 1–2 are prerequisites for Phase 3, not parallel w
   demo-fallback code paths, that the database is unconfigured: read the build log, which prints
   `connected to Postgres` and the migration ledger on every deploy.
 - **Morpho / Aerodrome:** no such repos. Morpho returned zero across ~190; the Aerodrome lookup needed approval and never ran.
+- **The repo now lives at `The-MDC/MAD-MPP-2.23`** (transferred by 2026-08-22; it was
+  `MADdegen/`). The old remote still works by redirect, and agent sessions may still be *scoped*
+  to `maddegen/mad-mpp-2.23` — so GitHub tool calls should use owner `MADdegen` while PR links
+  resolve to `The-MDC`. **Worth retrying `The-MDC/mad-gambit-ui`** now: it was blocked as a
+  cross-tier add, and the transfer may have removed that barrier. It may simply *be* the
+  phone-frame UI, which would make most of Workstream C4 redundant.
+- **Two Part II facts went stale within a week — reconcile before trusting them.** PR #108
+  collapsed CI to one job, path-filtered `placeholder-guard.yml`, and downgraded
+  `actions/checkout` **v6 → v4** (Part II.4 still says v6). PR #131 **re-enabled production
+  deploys from `main`**, contradicting Part II.3's *"`main` does not auto-deploy"*. Both landed
+  while CI was not running, so neither was gate-checked.
+- **Session close-outs live at `docs/THREAD_CLOSEOUT.md`** — one file, overwritten each time.
+  Read it at the start of a session for where the last one stopped; write it at the end via the
+  `close-thread` skill (fail-safe instructions in `CLAUDE.md`). Durable content still belongs
+  here in MASTER, not there.
 - **`master-maths/` is the second client, not an abandoned experiment.** Three independent lines of
   evidence: `verify/lib/gambit-game-math.ts` *names its own origin in its header* as a port of v1.7
   Kotlin `GambitMath.kt` (`com.example.math`) — both carry `calculateConviction`,
@@ -281,6 +303,8 @@ Lightly detailed. Dates are from document headers or git history, not inferred.
 - **2026-08-14** — PR #80 merged (O-V HUD + stale-Supabase doc cleanup). Neon project split resolved to a concrete cause: **three** live Postgres databases under one integration, needing a founder-run merge (Part II.5). Migrations removed from the Vercel build in favour of a controlled `migrate:deploy`; `main` auto-deploy disabled; two advisory AI review gates added via gh-aw.
 - **2026-08-16** — This consolidation; frontend QOL benchmark and Chainlink VRF audit (Parts III–V). Later the same day: PR #91 merged (Octavian cephalopod creature + CI fixes), then the session handoff, the maths master, the engine-room formulas and the deck lineage were all folded in here as PART 0, Parts VI–VII and Appendix A — leaving this as the single planning document.
 - **2026-08-18** — Restore/convergence handoff folded in rather than filed beside this document (§7, Workstream C, the 2026-06 correction). Three stale facts fixed: the migration count (14 → **15**, so the Neon merge is `0016`, not `0015`), the Kotlin client's status ("abandoned" → dormant second client), and the absence of any CI gate over `master-maths/`. **Part VIII added** — the hosting-platform audit, whose finding is that Vercel coupling is one 44-line file, one import and three cron entries. **Same day, decided: stay on Vercel + Neon.** The audit established optionality, not a verdict — it never found a reason to leave, and hosting cannot be migrated while Actions is refusing to run jobs. Part VIII becomes a contingency plan with named reopen triggers.
+- **2026-08-22** — PR #105 merged (`2d53a7d`). Repo transferred to **`The-MDC/MAD-MPP-2.23`**. PRs #108 (CI collapsed to one job, guard path-filtered, `checkout` v6→v4) and #131 (production deploys re-enabled from `main`) also land — **all three merged with CI not running**.
+- **2026-08-24** — Close-out mechanism added: the `close-thread` skill plus `CLAUDE.md` as an independent fail-safe, writing to `docs/THREAD_CLOSEOUT.md`. Actions confirmed still down — runs stuck `queued`, nothing completed since 2026-08-18, so the Placeholder Guard fix merged in #105 **has still never executed**.
 
 ---
 
