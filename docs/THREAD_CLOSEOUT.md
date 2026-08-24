@@ -19,10 +19,14 @@ do not date it, version it, or keep the old one.
 > the only planning document and holds all outstanding work. Then read `CLAUDE.md` for the
 > standing constraints, and `docs/THREAD_CLOSEOUT.md` for where the last session stopped.
 >
-> **The blocking problem is that GitHub Actions is not running jobs.** Workflow runs sit in
-> `queued` and never get a runner. Nothing has completed since 2026-08-18, yet `main` has
-> merged PRs #105, #108 and #131 since — all **unchecked by CI**. Before any other work,
-> confirm whether this is resolved; if not, it needs a human in *Settings → Billing → Actions*.
+> **CI came back on 2026-08-24 ~16:18 UTC after an eight-day outage.** The first job to
+> matter is **auditing what merged while it was down**: PRs **#105, #108 and #131** were all
+> merged with *no* gate running. #108 restructured CI and moved `actions/checkout` v6→v4;
+> #131 re-enabled production deploys from `main`. Re-run the gates on `main` and read those
+> two diffs properly before building anything new.
+>
+> Ignore any workflow run still sitting in `queued` — those are orphans from the outage and
+> will never complete. Judge CI health only by runs created after 2026-08-24 16:18 UTC.
 >
 > Do not re-audit hosting (settled: staying on Vercel + Neon, MASTER Part VIII), do not
 > re-fix the `$MADx` transfer vulnerability (already fixed), and do not create a second
@@ -67,7 +71,9 @@ all pass.
 
 | # | Item | Why it is stuck |
 |---|---|---|
-| **1** | **GitHub Actions will not run jobs** | Runs sit in `queued` and never get a runner (`runner_id: 0`, empty `runner_name`, logs 404, empty check output). Last completed run: **2026-08-18**. On a private repo this is usually exhausted Actions minutes or a spending limit — **an agent cannot see billing**. *Settings → Billing → Actions.* **Everything below is downstream of this.** |
+| ~~**1**~~ | ~~**GitHub Actions will not run jobs**~~ | ✅ **RESOLVED 2026-08-24 ~16:18 UTC** — secret scan ran a real 21s job and passed. Outage ran 2026-08-16 08:07 → 2026-08-24 16:18. Root cause never visible from inside the container; if it recurs, *Settings → Billing → Actions* first. |
+| **1a** | **Audit the three PRs that merged ungated** | 🟠 **The live consequence.** #105, #108 and #131 merged during the outage with nothing checking them. **#108 restructured CI itself** (collapsed to one job, path-filtered the guard, `actions/checkout` v6→v4) and **#131 re-enabled production deploys from `main`**. Re-run the gates on `main`, then read those two diffs properly. |
+| **1b** | **Validate the Placeholder Guard fix** | It is merged to `main` and **has still never executed** — #108's path filters mean no docs-only change can trigger it. This session added `workflow_dispatch` so it can be run on demand: *Actions → Placeholder Guard → Run workflow*. Expect 19 contracts and ~321 TS/TSX files scanned; before the fix it was **0** contracts. |
 | **2** | **Neon: three databases, one app** | `mad-mpp-2-23-postgres` (target) vs `Neon-DB-MADMPP` vs `neon-sky-park`. Until merged there is **no single source database**. Read-only inspection SQL is in MASTER Part II.5; the merge migration is **`0016_neon_merge.sql`**. Agents cannot reach `*.neon.tech` or TCP 5432. |
 | **3** | **Neon free-tier ceiling** | Hit its quota on 2026-08-10; compute suspended, data intact. Independent of hosting and still unresolved. |
 | **4** | **Generate the two `.lock.yml` files** | `gh aw compile`, then commit. Until then **both AI review gates are configured but have never run**. The Actions `GITHUB_TOKEN` is correctly forbidden from writing `.github/workflows/`. |
@@ -120,9 +126,9 @@ Full detail in MASTER PART 0 §5.
 
 | What | Result | Consequence / workaround |
 |---|---|---|
-| `npm ci` / `npm install` | **403** on registry tarballs | No local type-check, build or test **for the entire session**. CI was the only verification — and CI does not run. Both are now down at once. |
-| **GitHub Actions** | Jobs never reach a runner; runs stuck `queued` | The central failure. See §3 item 1. |
-| **The guard fix is unvalidated** | Merged into `main`, **never executed** | It passes when run by hand here. It has still never run in CI. Treat as untested until a run completes. |
+| `npm ci` / `npm install` | **403** on registry tarballs | No local type-check, build or test **for the entire session**. For most of it CI was down too, so nothing could verify anything. **CI is back — use it.** |
+| **GitHub Actions** | Down 2026-08-16 → 2026-08-24; **recovered** | Dominated the session. Left three ungated merges and a set of orphan `queued` runs. See §3 items 1a/1b. |
+| **The guard fix is still unvalidated** | Merged into `main`, **never executed** | Passes when run by hand here; has never run in CI. `workflow_dispatch` was added this session so it can finally be triggered — see §3 item 1b. Treat as untested until that run completes. |
 | `get_job_logs` | **HTTP 404** for every job | Could not read any CI logs; diagnosis had to be inferred from run metadata |
 | `get_check_run` output | Empty `title`/`summary`/`text` | No error text available from the API either |
 | `actions_list` | Response too large (411k and 72k chars) twice | Had to be sliced from a saved file via `python3` |

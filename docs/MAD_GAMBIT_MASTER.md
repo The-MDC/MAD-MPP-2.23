@@ -41,35 +41,38 @@ Merged and live on `main`:
 | **Docs** | ~150 planning docs consolidated into `MAD_GAMBIT_MASTER.md`. 114 files / ~36.5k lines removed, inbound links repaired. |
 | **Maths** | Part VI (canonical algorithms, code-bound) + Part VII (the tokenomics engine room). Both live in this file. Do not create a separate maths doc. |
 | **Octavian** | One creature across all mounts (`octavian-creature.tsx` + `lib/octavian-state.ts`): shared mood/orbit/zoom/selection, firefly star swarm, live platform-activity feed, reduced-motion. |
-| **CI** | 11 checks. `actions/checkout` on v6. Agentic-compile false-green fixed. **But see the red banner immediately below — none of them have executed since 2026-08-16.** |
+| **CI** | Collapsed to fewer jobs by #108, which also path-filtered the guard and moved `actions/checkout` to **v4** (this row said v6). **Recovered 2026-08-24 after an eight-day outage — see immediately below for what merged unchecked in the meantime.** |
 | **Repo** | Verified complete: working tree fully committed; `.gitignore` excludes only secrets, Vercel link artifacts and build products. |
 
-### 🔴 CI has been red on `main` since 2026-08-16 08:07 UTC — founder action needed
+### The CI outage, 2026-08-16 → 2026-08-24 — resolved, but it left debris
 
-**This supersedes the "verified green at merge" line that stood here.** Every workflow, on every
-branch, has failed since that timestamp:
+**This supersedes the "verified green at merge" line that stood here.** For eight days every
+workflow on every branch failed, then stopped completing at all:
 
-| Workflow | Last success | First failure |
+| Workflow | Last success before | First failure |
 |---|---|---|
 | `ci.yml` | run 260 — 2026-08-16 **07:42** | run 261 — 2026-08-16 **08:07, on `main`** |
 | `placeholder-guard.yml` | run 311 — 2026-08-16 **07:42** | run 312 — 2026-08-16 **08:07, on `main`** |
 
-Four separate branches since, all identical. **It is not any one PR's change** — it reproduces on
-`main`, and the guard's own script passes when run by hand against the current tree.
+It reproduced on `main` across four branches, so it was never any one PR's change — and the
+guard's own script passed when run by hand throughout. **The jobs never reached a runner:**
+~3-second duration, `runner_id: 0`, `runner_name: ""`, logs 404, empty check output. From
+2026-08-19 they stopped even reaching `failure` and simply sat in `queued`.
 
-**The signature says the jobs never reached a runner:** ~3-second duration, `runner_id: 0`,
-`runner_name: ""`, logs 404 from the API, and an empty check-run output. That is not a failing
-script — it is a job that was refused before it started. On a **private repo under a personal
-account** the usual cause is account-level: included Actions minutes exhausted, or a spending limit
-reached. **An agent cannot see billing**, so this needs a founder to open
-*Settings → Billing → Actions* and confirm.
+**Resolved 2026-08-24 ~16:18 UTC** — secret scan ran a genuine 21-second job and passed. The root
+cause was never visible from inside an agent container (billing is not readable), so if it recurs,
+*Settings → Billing → Actions* is still the first place to look.
 
-Until it is resolved, **every gate in the table below is decorative** — Type-check, Build, Unit
-tests, Secret scan and the guard have not actually run on anything merged since 2026-08-16 07:42.
-That is a far larger hole than the report-only caveat noted below, and it is the single most
-urgent item in this document.
+**Two pieces of debris survive it, both live:**
 
-**And green ≠ done, when it comes back.** Lint, Slither and Dependency Review are **report-only** (Slither has ~135
+1. **Three PRs merged completely ungated** — #105, #108, #131. #108 restructured CI itself and
+   downgraded `actions/checkout` **v6 → v4**; #131 **re-enabled production deploys from `main`**,
+   contradicting Part II.3. Neither was checked by anything. Re-run the gates on `main`.
+2. **Orphaned `queued` runs** that will never complete: `ci.yml` #264/#265/#267/#268,
+   `placeholder-guard.yml` #316/#318/#320/#321. **Stale artifacts, not live failures** — judge CI
+   health only by runs created after 2026-08-24 16:18 UTC.
+
+**And green ≠ done, now that it is back.** Lint, Slither and Dependency Review are **report-only** (Slither has ~135
 untriaged findings — green means "ran"). Nothing blocks merge until branch protection requires
 these checks on `main`. And the Octavian creature **merged without any human ever looking at it**.
 
@@ -129,7 +132,9 @@ halo's opacity breathe (`haloPulse`): low-amplitude and non-spatial.
 | **Neon three-database merge** | `mad-mpp-2-23-postgres` (target), `Neon-DB-MADMPP`, `neon-sky-park`. Ordered procedure + read-only inspection SQL in **Part II.5 below**. Agents cannot reach `*.neon.tech` (403) or TCP 5432. Until this completes there is **no single source database**, so "sync the DBs" has no well-defined target. Correct sequence: merge → `npm run schema:verify` → commit any drift as `verify/sql/0016_*.sql` (**0015 is taken** — see Part II.5). Schema-as-code is already complete: 15 migrations + `schema-verify.mjs` checking the ledger, pgvector and 39 named tables. |
 | **Generate the two `.lock.yml` files** | `gh aw compile`, then commit `agentic-security-review.lock.yml` + `agentic-quality-review.lock.yml`. Until then **both AI review gates are configured but never run**. The Actions `GITHUB_TOKEN` is *correctly* forbidden from writing `.github/workflows/` — needs a human push or a session with real push credentials. |
 | **eslint / eslint-config-next / @types/node realignment** | `eslint-config-next` is pinned at **15.4.5** while `next` resolves to **16.2.9** (and it's the only dep without a caret); `eslint` is **8.x, EOL** — config 16.x wants ESLint 9 + flat config, so those two move together; `@types/node` is **20.x** against `engines.node: 22.x`. Needs a lockfile regen — the sandbox 403s the npm registry, and hand-editing `package-lock.json` breaks `npm ci` on every job. Because Lint is report-only, the stale config is silently under-checking a Next 16 codebase rather than failing. |
-| **GitHub Actions is refusing to run jobs** | 🔴 **Most urgent item in this document, and it got worse.** Red on every branch including `main` from 2026-08-16 08:07 UTC; since 2026-08-19 runs no longer even complete — they sit in **`queued`** and never reach a runner (`runner_id: 0`, empty `runner_name`, logs 404, empty check output). **No run has completed since 2026-08-18**, yet `main` merged **#105, #108 and #131** in that window — all unchecked. An agent cannot read billing: open *Settings → Billing → Actions* and check for exhausted minutes or a spending limit. Full evidence in Part 0 §1. |
+| ~~**GitHub Actions refusing to run jobs**~~ | ✅ **RESOLVED 2026-08-24.** Secret scan ran a real 21-second job and passed on PR #137 — a runner was assigned, versus the 2–3 second refusals of the outage. Outage window was **2026-08-16 08:07 → 2026-08-24 ~16:18**. Two consequences remain, below. |
+| **Audit what merged during the Actions outage** | 🟠 **#105, #108 and #131 all merged with no CI.** Nothing gated them — not type-check, build, unit tests, secret scan or the guard. #108 restructured CI itself and downgraded `actions/checkout` v6→v4; #131 re-enabled production deploys from `main`. Re-run the gates against `main` and read those two diffs properly. |
+| **Orphaned `queued` runs** | 🟡 Runs from the outage window sit permanently `queued` and will never complete — `ci.yml` #264/#265/#267/#268, `placeholder-guard.yml` #316/#318/#320/#321. **They are stale artifacts, not live failures.** Do not diagnose from them; judge CI health only by runs created after 2026-08-24 16:18 UTC. |
 | **Founder-gated ops** | Rotate/confirm `NEON_API_KEY` · attach `madgambit.io` · GitHub Advanced Security toggles · push `v2.24-constellation` · Phase-4 named-subject gate (KMS choice, `MADPortraitKeyRegistry` deploy, 6 signed `registry_readiness` rows). |
 
 ---
@@ -304,7 +309,7 @@ Lightly detailed. Dates are from document headers or git history, not inferred.
 - **2026-08-16** — This consolidation; frontend QOL benchmark and Chainlink VRF audit (Parts III–V). Later the same day: PR #91 merged (Octavian cephalopod creature + CI fixes), then the session handoff, the maths master, the engine-room formulas and the deck lineage were all folded in here as PART 0, Parts VI–VII and Appendix A — leaving this as the single planning document.
 - **2026-08-18** — Restore/convergence handoff folded in rather than filed beside this document (§7, Workstream C, the 2026-06 correction). Three stale facts fixed: the migration count (14 → **15**, so the Neon merge is `0016`, not `0015`), the Kotlin client's status ("abandoned" → dormant second client), and the absence of any CI gate over `master-maths/`. **Part VIII added** — the hosting-platform audit, whose finding is that Vercel coupling is one 44-line file, one import and three cron entries. **Same day, decided: stay on Vercel + Neon.** The audit established optionality, not a verdict — it never found a reason to leave, and hosting cannot be migrated while Actions is refusing to run jobs. Part VIII becomes a contingency plan with named reopen triggers.
 - **2026-08-22** — PR #105 merged (`2d53a7d`). Repo transferred to **`The-MDC/MAD-MPP-2.23`**. PRs #108 (CI collapsed to one job, guard path-filtered, `checkout` v6→v4) and #131 (production deploys re-enabled from `main`) also land — **all three merged with CI not running**.
-- **2026-08-24** — Close-out mechanism added: the `close-thread` skill plus `CLAUDE.md` as an independent fail-safe, writing to `docs/THREAD_CLOSEOUT.md`. Actions confirmed still down — runs stuck `queued`, nothing completed since 2026-08-18, so the Placeholder Guard fix merged in #105 **has still never executed**.
+- **2026-08-24** — Close-out mechanism added: the `close-thread` skill plus `CLAUDE.md` as an independent fail-safe, writing to `docs/THREAD_CLOSEOUT.md`. **Actions recovered the same afternoon (~16:18 UTC)** after eight days down, leaving three ungated merges and a set of permanently-`queued` orphan runs behind it. `workflow_dispatch` added to `placeholder-guard.yml`, because #108's path filters meant the pathspec fix from #105 could not be exercised by any docs-only change — it was merged to `main` and had still never run.
 
 ---
 
