@@ -73,7 +73,7 @@ all pass.
 |---|---|---|
 | ~~**1**~~ | ~~**GitHub Actions will not run jobs**~~ | ✅ **RESOLVED 2026-08-24 ~16:18 UTC** — secret scan ran a real 21s job and passed. Outage ran 2026-08-16 08:07 → 2026-08-24 16:18. Root cause never visible from inside the container; if it recurs, *Settings → Billing → Actions* first. |
 | **1a** | **Audit the three PRs that merged ungated** | 🟠 **The live consequence.** #105, #108 and #131 merged during the outage with nothing checking them. **#108 restructured CI itself** (collapsed to one job, path-filtered the guard, `actions/checkout` v6→v4) and **#131 re-enabled production deploys from `main`**. Re-run the gates on `main`, then read those two diffs properly. |
-| **1b** | **Validate the Placeholder Guard fix** | It is merged to `main` and **has still never executed** — #108's path filters mean no docs-only change can trigger it. This session added `workflow_dispatch` so it can be run on demand: *Actions → Placeholder Guard → Run workflow*. Expect 19 contracts and ~321 TS/TSX files scanned; before the fix it was **0** contracts. |
+| ~~**1b**~~ | ~~**Validate the Placeholder Guard fix**~~ | ✅ **DONE 2026-08-24 16:21** — `Placeholder guard passed ✓` in CI (run [32750369469](https://github.com/The-MDC/MAD-MPP-2.23/actions/runs/32750369469), 7s, success). Adding `workflow_dispatch` touched the workflow file, which is itself in the path filter, so the guard triggered and validated its own fix. **First time the pragma check has ever executed.** It is also now dispatchable on demand: *Actions → Placeholder Guard → Run workflow*. |
 | **2** | **Neon: three databases, one app** | `mad-mpp-2-23-postgres` (target) vs `Neon-DB-MADMPP` vs `neon-sky-park`. Until merged there is **no single source database**. Read-only inspection SQL is in MASTER Part II.5; the merge migration is **`0016_neon_merge.sql`**. Agents cannot reach `*.neon.tech` or TCP 5432. |
 | **3** | **Neon free-tier ceiling** | Hit its quota on 2026-08-10; compute suspended, data intact. Independent of hosting and still unresolved. |
 | **4** | **Generate the two `.lock.yml` files** | `gh aw compile`, then commit. Until then **both AI review gates are configured but have never run**. The Actions `GITHUB_TOKEN` is correctly forbidden from writing `.github/workflows/`. |
@@ -172,8 +172,11 @@ empty gates in this repo.
 
 ## 6 · Suggested — not asked for, worth doing
 
-1. **Reconcile MASTER against `main`'s last three PRs** (§4 note). Two facts in Part II are
-   already stale — `checkout` v4-vs-v6 and `main` auto-deploy. Cheap now, misleading later.
+1. **Reconsider #108's `actions/checkout` v6 → v4 downgrade.** The guard run on 2026-08-24 emitted:
+   *"Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run
+   on Node.js 24: `actions/checkout@v4`."* The v6 the repo was on does not produce that warning.
+   The downgrade landed during the outage with no gate on it, and it moved the repo *onto* a
+   deprecation path rather than off one. Worth asking whoever made it whether it was deliberate.
 2. **Retry `The-MDC/mad-gambit-ui` before building C4.** If it is the phone-frame UI, most of
    C4 is already written. The org transfer may have unblocked it.
 3. **Add a `master-maths/` Gradle job (C5) the moment CI is alive.** It is the cheapest item in

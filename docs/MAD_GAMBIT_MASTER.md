@@ -68,6 +68,9 @@ cause was never visible from inside an agent container (billing is not readable)
 1. **Three PRs merged completely ungated** — #105, #108, #131. #108 restructured CI itself and
    downgraded `actions/checkout` **v6 → v4**; #131 **re-enabled production deploys from `main`**,
    contradicting Part II.3. Neither was checked by anything. Re-run the gates on `main`.
+   *The v4 downgrade has an observable cost:* the 2026-08-24 guard run warns
+   *"actions/checkout@v4 targets Node.js 20… being forced to run on Node.js 24."* v6 did not.
+   The change moved the repo onto a deprecation path, ungated — worth confirming it was intended.
 2. **Orphaned `queued` runs** that will never complete: `ci.yml` #264/#265/#267/#268,
    `placeholder-guard.yml` #316/#318/#320/#321. **Stale artifacts, not live failures** — judge CI
    health only by runs created after 2026-08-24 16:18 UTC.
@@ -309,7 +312,7 @@ Lightly detailed. Dates are from document headers or git history, not inferred.
 - **2026-08-16** — This consolidation; frontend QOL benchmark and Chainlink VRF audit (Parts III–V). Later the same day: PR #91 merged (Octavian cephalopod creature + CI fixes), then the session handoff, the maths master, the engine-room formulas and the deck lineage were all folded in here as PART 0, Parts VI–VII and Appendix A — leaving this as the single planning document.
 - **2026-08-18** — Restore/convergence handoff folded in rather than filed beside this document (§7, Workstream C, the 2026-06 correction). Three stale facts fixed: the migration count (14 → **15**, so the Neon merge is `0016`, not `0015`), the Kotlin client's status ("abandoned" → dormant second client), and the absence of any CI gate over `master-maths/`. **Part VIII added** — the hosting-platform audit, whose finding is that Vercel coupling is one 44-line file, one import and three cron entries. **Same day, decided: stay on Vercel + Neon.** The audit established optionality, not a verdict — it never found a reason to leave, and hosting cannot be migrated while Actions is refusing to run jobs. Part VIII becomes a contingency plan with named reopen triggers.
 - **2026-08-22** — PR #105 merged (`2d53a7d`). Repo transferred to **`The-MDC/MAD-MPP-2.23`**. PRs #108 (CI collapsed to one job, guard path-filtered, `checkout` v6→v4) and #131 (production deploys re-enabled from `main`) also land — **all three merged with CI not running**.
-- **2026-08-24** — Close-out mechanism added: the `close-thread` skill plus `CLAUDE.md` as an independent fail-safe, writing to `docs/THREAD_CLOSEOUT.md`. **Actions recovered the same afternoon (~16:18 UTC)** after eight days down, leaving three ungated merges and a set of permanently-`queued` orphan runs behind it. `workflow_dispatch` added to `placeholder-guard.yml`, because #108's path filters meant the pathspec fix from #105 could not be exercised by any docs-only change — it was merged to `main` and had still never run.
+- **2026-08-24** — Close-out mechanism added: the `close-thread` skill plus `CLAUDE.md` as an independent fail-safe, writing to `docs/THREAD_CLOSEOUT.md`. **Actions recovered the same afternoon (~16:18 UTC)** after eight days down, leaving three ungated merges and a set of permanently-`queued` orphan runs behind it. `workflow_dispatch` added to `placeholder-guard.yml`, because #108's path filters meant the pathspec fix from #105 could not be exercised by any docs-only change — it was merged to `main` and had still never run. **That edit touched the workflow file, which is itself in the path filter, so the guard triggered and validated its own fix: `Placeholder guard passed ✓`, run 32750369469. The pragma check executed for the first time in the repo's history.**
 
 ---
 
