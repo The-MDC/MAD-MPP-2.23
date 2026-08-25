@@ -1,6 +1,9 @@
 name: Unit Tests
 
 on:
+  # See ci.yml — dispatchable so this gate can be run against `main` on demand
+  # rather than only as a side effect of a push.
+  workflow_dispatch:
   pull_request:
     paths:
       - "verify/**"
