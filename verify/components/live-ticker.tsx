@@ -68,18 +68,56 @@ function fmtPrice(p: number): string {
 }
 
 /* ── stats: platform KPIs + canonical numbers ─────────────────── */
-function statsRows(): { primary: [string, string, string][]; secondary: [string, string, string][] } {
-  const vol = (2.1 + Math.random() * 0.6).toFixed(1);
-  const chaos = (60 + Math.random() * 15).toFixed(0);
-  const active = (120 + Math.floor(Math.random() * 40)).toString();
-  const online = (800 + Math.floor(Math.random() * 300)).toString();
+
+/** What /api/v1/dopamine/metrics actually returns. */
+export interface TickerMetrics {
+  activeMarkets: number;
+  openBets: number;
+  volume24h: number;
+  chaos: number;
+  events24h: number;
+  source: "live" | "demo";
+}
+
+const compact = (n: number): string => {
+  if (!Number.isFinite(n)) return "0";
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return Math.round(n).toString();
+};
+
+/**
+ * The primary row is PLATFORM STATE and now comes from the database.
+ *
+ * It used to be four `Math.random()` calls re-rolled every 2500ms under a
+ * pulsing "live" pip: VOLUME (24H) was `2.1 + random*0.6`, ACTIVE BETS was
+ * `120 + random*40`, CHAOS METER `60 + random*15`, USERS ONLINE
+ * `800 + random*300`. GET /api/v1/dopamine/metrics has always returned exactly
+ * these quantities as real SQL aggregates over `bets`, `markets`,
+ * `gdelt_signals` and `events_stream` — the component simply never called it.
+ *
+ * Two deliberate changes of meaning, because the honest number is not the same
+ * number:
+ *   USERS ONLINE  → EVENTS (24H). There is no presence tracking anywhere in
+ *                   this codebase, so "users online" cannot be sourced. The
+ *                   event count is real and is what the platform can actually
+ *                   observe.
+ *   DEGEN STREAK  → dropped from the PLATFORM row. A streak is per-player state
+ *                   (game-context), not a platform KPI, and "5-DAY 🔥" was a
+ *                   literal.
+ *
+ * The secondary row was always honest — those are PLATFORM constants — and is
+ * unchanged.
+ */
+function statsRows(m: TickerMetrics | null): { primary: [string, string, string][]; secondary: [string, string, string][] } {
+  const dash = "—";
   return {
     primary: [
-      ["VOLUME (24H)", `$${vol}M`, INK.green],
-      ["ACTIVE BETS", active, INK.cyan],
-      ["CHAOS METER", `${chaos}%`, INK.pink],
-      ["USERS ONLINE", online, INK.gold],
-      ["DEGEN STREAK", "5-DAY 🔥", INK.gold],
+      ["VOLUME (24H)", m ? `${compact(m.volume24h)} $MADx` : dash, INK.green],
+      ["ACTIVE BETS", m ? compact(m.openBets) : dash, INK.cyan],
+      ["OPEN MARKETS", m ? compact(m.activeMarkets) : dash, INK.gold],
+      ["CHAOS METER", m ? `${Math.round(m.chaos)}%` : dash, INK.pink],
+      ["EVENTS (24H)", m ? compact(m.events24h) : dash, INK.gold],
     ],
     secondary: [
       ["PLATFORM FEE", `${(PLATFORM.FEE_BPS / 100).toFixed(2)}%`, INK.cyan],
@@ -97,7 +135,22 @@ export default function LiveTicker() {
   const [reduced, setReduced] = useState(false);
   const [crypto, setCrypto] = useState<Tick[]>(CRYPTO_SEED);
   const [commodities, setCommodities] = useState<Tick[]>(COMMODITY_SEED);
-  const [stats, setStats] = useState(statsRows());
+  const [metrics, setMetrics] = useState<TickerMetrics | null>(null);
+  const stats = statsRows(metrics);
+
+  /** Per-mode provenance. The three modes have genuinely different backing. */
+  const sourceBadge: { label: string; tone: string } =
+    mode === "stats"
+      ? metrics
+        ? metrics.source === "live"
+          ? { label: "live", tone: INK.green }
+          : { label: "demo", tone: INK.muted }
+        : { label: "loading", tone: INK.muted }
+      : mode === "satire"
+        ? status === "live"
+          ? { label: "live", tone: INK.green }
+          : { label: "offline", tone: INK.muted }
+        : { label: "simulated", tone: INK.gold };
 
   // restore persisted mode + reduced-motion preference
   useEffect(() => {
@@ -129,13 +182,30 @@ export default function LiveTicker() {
     return () => { alive = false; };
   }, []);
 
-  // micro-price / stats simulation (paused under reduced-motion for calm)
+  // Real platform stats. Polled on a 30s cadence — these are SQL aggregates,
+  // not a price feed, and re-reading them every 2.5s would be pure load for a
+  // number that moves on the scale of minutes.
+  useEffect(() => {
+    let alive = true;
+    const load = () => {
+      fetch("/api/v1/dopamine/metrics")
+        .then((r) => r.json())
+        .then((d) => { if (alive && d?.metrics) setMetrics(d.metrics as TickerMetrics); })
+        .catch(() => {});
+    };
+    load();
+    const id = setInterval(load, 30_000);
+    return () => { alive = false; clearInterval(id); };
+  }, []);
+
+  // Price jitter stays a simulation — there is no price oracle in this repo yet
+  // (no route, no price_ticks table), which is why the CRYPTO/COMMODITY rows
+  // still carry their own "simulated" marking rather than a live badge.
   useEffect(() => {
     if (reduced) return;
     const id = setInterval(() => {
       setCrypto((c) => jitter(c));
       setCommodities((c) => jitter(c));
-      setStats(statsRows());
     }, 2500);
     return () => clearInterval(id);
   }, [reduced]);
@@ -187,6 +257,26 @@ export default function LiveTicker() {
             {meta.label}
           </span>
           <AutoShowcaseBadge label="Auto-cycling ticker" />
+          {/* AutoShowcaseBadge means "this rail advances on its own" — it has
+              never meant "this data is real", and five surfaces in this repo
+              were leaning on it as if it did. Say where THIS mode's numbers
+              come from, per mode, explicitly. */}
+          <span
+            className="font-mono text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded"
+            title={
+              mode === "stats"
+                ? "Platform stats are SQL aggregates from /api/v1/dopamine/metrics."
+                : mode === "satire"
+                  ? "Headlines come from the live RSS feed."
+                  : "No price oracle is connected yet — these ticks are simulated."
+            }
+            style={{
+              background: sourceBadge.tone + "22",
+              color: sourceBadge.tone,
+            }}
+          >
+            {sourceBadge.label}
+          </span>
         </div>
 
         <div className="flex items-center gap-3">
