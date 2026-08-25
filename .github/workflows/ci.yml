@@ -1,6 +1,13 @@
 name: CI
 
 on:
+  # Dispatchable on purpose. The 2026-08-16 → 08-24 Actions outage let three PRs
+  # merge ungated, and afterwards there was no way to answer "is main actually
+  # green?" — every trigger here is push/PR, so `main`'s tip could only be gated
+  # by pushing to it again. `workflow_dispatch` makes the question answerable
+  # without inventing a commit. Same reasoning as placeholder-guard.yml, which
+  # gained it for exactly this in 8324cf6.
+  workflow_dispatch:
   pull_request:
     paths:
       - "verify/**"
