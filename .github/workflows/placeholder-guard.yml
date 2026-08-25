@@ -27,6 +27,14 @@ on:
       - "contracts/src/**"
       - "contracts/test/**"
       - ".github/workflows/placeholder-guard.yml"
+  # On-demand, because the path filters above make this workflow unrunnable when
+  # you most want to run it. The scan reads ALL tracked files, not the diff — so
+  # after a change to the scan logic itself, or after an Actions outage, the only
+  # way to confirm it still passes was to wait for an unrelated PR to touch
+  # verify/ or contracts/. That is how the pathspec bug fixed in #105 ended up
+  # merged to main and still never executed. This makes verifying the guard a
+  # button rather than a coincidence.
+  workflow_dispatch:
 
 concurrency:
   group: guard-${{ github.ref }}

@@ -13,6 +13,13 @@
 > *in here* too: 2026-08-18's went into PART 0 §7 and Workstream C, not into a dated file beside
 > this one.
 >
+> **One sanctioned exception: `docs/THREAD_CLOSEOUT.md`.** A single, fixed-path, always-overwritten
+> session handoff — never dated, never versioned, never kept in duplicate. It holds only what is
+> *transient* (what broke this session, what to paste into the next chat); everything durable is
+> folded in here first. Produced by the `close-thread` skill, with `CLAUDE.md` as the fail-safe
+> if that skill does not fire. Unactioned items are **carried forward** into the new close-out,
+> never preserved by keeping the old file.
+>
 > Outside its scope by design, and untouched: each subproject's own docs (`verify/docs/`,
 > `contracts/madhat-core/`, `master-maths/`), live tooling config (`.claude/`, `.agents/`), and
 > the decks themselves (`verify/public/pitch/*.html`).
@@ -34,35 +41,41 @@ Merged and live on `main`:
 | **Docs** | ~150 planning docs consolidated into `MAD_GAMBIT_MASTER.md`. 114 files / ~36.5k lines removed, inbound links repaired. |
 | **Maths** | Part VI (canonical algorithms, code-bound) + Part VII (the tokenomics engine room). Both live in this file. Do not create a separate maths doc. |
 | **Octavian** | One creature across all mounts (`octavian-creature.tsx` + `lib/octavian-state.ts`): shared mood/orbit/zoom/selection, firefly star swarm, live platform-activity feed, reduced-motion. |
-| **CI** | 11 checks. `actions/checkout` on v6. Agentic-compile false-green fixed. **But see the red banner immediately below — none of them have executed since 2026-08-16.** |
+| **CI** | Collapsed to fewer jobs by #108, which also path-filtered the guard and moved `actions/checkout` to **v4** (this row said v6). **Recovered 2026-08-24 after an eight-day outage — see immediately below for what merged unchecked in the meantime.** |
 | **Repo** | Verified complete: working tree fully committed; `.gitignore` excludes only secrets, Vercel link artifacts and build products. |
 
-### 🔴 CI has been red on `main` since 2026-08-16 08:07 UTC — founder action needed
+### The CI outage, 2026-08-16 → 2026-08-24 — resolved, but it left debris
 
-**This supersedes the "verified green at merge" line that stood here.** Every workflow, on every
-branch, has failed since that timestamp:
+**This supersedes the "verified green at merge" line that stood here.** For eight days every
+workflow on every branch failed, then stopped completing at all:
 
-| Workflow | Last success | First failure |
+| Workflow | Last success before | First failure |
 |---|---|---|
 | `ci.yml` | run 260 — 2026-08-16 **07:42** | run 261 — 2026-08-16 **08:07, on `main`** |
 | `placeholder-guard.yml` | run 311 — 2026-08-16 **07:42** | run 312 — 2026-08-16 **08:07, on `main`** |
 
-Four separate branches since, all identical. **It is not any one PR's change** — it reproduces on
-`main`, and the guard's own script passes when run by hand against the current tree.
+It reproduced on `main` across four branches, so it was never any one PR's change — and the
+guard's own script passed when run by hand throughout. **The jobs never reached a runner:**
+~3-second duration, `runner_id: 0`, `runner_name: ""`, logs 404, empty check output. From
+2026-08-19 they stopped even reaching `failure` and simply sat in `queued`.
 
-**The signature says the jobs never reached a runner:** ~3-second duration, `runner_id: 0`,
-`runner_name: ""`, logs 404 from the API, and an empty check-run output. That is not a failing
-script — it is a job that was refused before it started. On a **private repo under a personal
-account** the usual cause is account-level: included Actions minutes exhausted, or a spending limit
-reached. **An agent cannot see billing**, so this needs a founder to open
-*Settings → Billing → Actions* and confirm.
+**Resolved 2026-08-24 ~16:18 UTC** — secret scan ran a genuine 21-second job and passed. The root
+cause was never visible from inside an agent container (billing is not readable), so if it recurs,
+*Settings → Billing → Actions* is still the first place to look.
 
-Until it is resolved, **every gate in the table below is decorative** — Type-check, Build, Unit
-tests, Secret scan and the guard have not actually run on anything merged since 2026-08-16 07:42.
-That is a far larger hole than the report-only caveat noted below, and it is the single most
-urgent item in this document.
+**Two pieces of debris survive it, both live:**
 
-**And green ≠ done, when it comes back.** Lint, Slither and Dependency Review are **report-only** (Slither has ~135
+1. **Three PRs merged completely ungated** — #105, #108, #131. #108 restructured CI itself and
+   downgraded `actions/checkout` **v6 → v4**; #131 **re-enabled production deploys from `main`**,
+   contradicting Part II.3. Neither was checked by anything. Re-run the gates on `main`.
+   *The v4 downgrade has an observable cost:* the 2026-08-24 guard run warns
+   *"actions/checkout@v4 targets Node.js 20… being forced to run on Node.js 24."* v6 did not.
+   The change moved the repo onto a deprecation path, ungated — worth confirming it was intended.
+2. **Orphaned `queued` runs** that will never complete: `ci.yml` #264/#265/#267/#268,
+   `placeholder-guard.yml` #316/#318/#320/#321. **Stale artifacts, not live failures** — judge CI
+   health only by runs created after 2026-08-24 16:18 UTC.
+
+**And green ≠ done, now that it is back.** Lint, Slither and Dependency Review are **report-only** (Slither has ~135
 untriaged findings — green means "ran"). Nothing blocks merge until branch protection requires
 these checks on `main`. And the Octavian creature **merged without any human ever looking at it**.
 
@@ -122,7 +135,9 @@ halo's opacity breathe (`haloPulse`): low-amplitude and non-spatial.
 | **Neon three-database merge** | `mad-mpp-2-23-postgres` (target), `Neon-DB-MADMPP`, `neon-sky-park`. Ordered procedure + read-only inspection SQL in **Part II.5 below**. Agents cannot reach `*.neon.tech` (403) or TCP 5432. Until this completes there is **no single source database**, so "sync the DBs" has no well-defined target. Correct sequence: merge → `npm run schema:verify` → commit any drift as `verify/sql/0016_*.sql` (**0015 is taken** — see Part II.5). Schema-as-code is already complete: 15 migrations + `schema-verify.mjs` checking the ledger, pgvector and 39 named tables. |
 | **Generate the two `.lock.yml` files** | `gh aw compile`, then commit `agentic-security-review.lock.yml` + `agentic-quality-review.lock.yml`. Until then **both AI review gates are configured but never run**. The Actions `GITHUB_TOKEN` is *correctly* forbidden from writing `.github/workflows/` — needs a human push or a session with real push credentials. |
 | **eslint / eslint-config-next / @types/node realignment** | `eslint-config-next` is pinned at **15.4.5** while `next` resolves to **16.2.9** (and it's the only dep without a caret); `eslint` is **8.x, EOL** — config 16.x wants ESLint 9 + flat config, so those two move together; `@types/node` is **20.x** against `engines.node: 22.x`. Needs a lockfile regen — the sandbox 403s the npm registry, and hand-editing `package-lock.json` breaks `npm ci` on every job. Because Lint is report-only, the stale config is silently under-checking a Next 16 codebase rather than failing. |
-| **GitHub Actions is refusing to run jobs** | 🔴 **Most urgent item in this document.** Red on every branch including `main` since 2026-08-16 08:07 UTC; jobs never reach a runner. An agent cannot read billing — open *Settings → Billing → Actions* and check for exhausted minutes or a spending limit. Full evidence in Part 0 §1. |
+| ~~**GitHub Actions refusing to run jobs**~~ | ✅ **RESOLVED 2026-08-24.** Secret scan ran a real 21-second job and passed on PR #137 — a runner was assigned, versus the 2–3 second refusals of the outage. Outage window was **2026-08-16 08:07 → 2026-08-24 ~16:18**. Two consequences remain, below. |
+| **Audit what merged during the Actions outage** | 🟠 **#105, #108 and #131 all merged with no CI.** Nothing gated them — not type-check, build, unit tests, secret scan or the guard. #108 restructured CI itself and downgraded `actions/checkout` v6→v4; #131 re-enabled production deploys from `main`. Re-run the gates against `main` and read those two diffs properly. |
+| **Orphaned `queued` runs** | 🟡 Runs from the outage window sit permanently `queued` and will never complete — `ci.yml` #264/#265/#267/#268, `placeholder-guard.yml` #316/#318/#320/#321. **They are stale artifacts, not live failures.** Do not diagnose from them; judge CI health only by runs created after 2026-08-24 16:18 UTC. |
 | **Founder-gated ops** | Rotate/confirm `NEON_API_KEY` · attach `madgambit.io` · GitHub Advanced Security toggles · push `v2.24-constellation` · Phase-4 named-subject gate (KMS choice, `MADPortraitKeyRegistry` deploy, 6 signed `registry_readiness` rows). |
 
 ---
@@ -203,6 +218,21 @@ unexplained freeze. **Phases 1–2 are prerequisites for Phase 3, not parallel w
   demo-fallback code paths, that the database is unconfigured: read the build log, which prints
   `connected to Postgres` and the migration ledger on every deploy.
 - **Morpho / Aerodrome:** no such repos. Morpho returned zero across ~190; the Aerodrome lookup needed approval and never ran.
+- **The repo now lives at `The-MDC/MAD-MPP-2.23`** (transferred by 2026-08-22; it was
+  `MADdegen/`). The old remote still works by redirect, and agent sessions may still be *scoped*
+  to `maddegen/mad-mpp-2.23` — so GitHub tool calls should use owner `MADdegen` while PR links
+  resolve to `The-MDC`. **Worth retrying `The-MDC/mad-gambit-ui`** now: it was blocked as a
+  cross-tier add, and the transfer may have removed that barrier. It may simply *be* the
+  phone-frame UI, which would make most of Workstream C4 redundant.
+- **Two Part II facts went stale within a week — reconcile before trusting them.** PR #108
+  collapsed CI to one job, path-filtered `placeholder-guard.yml`, and downgraded
+  `actions/checkout` **v6 → v4** (Part II.4 still says v6). PR #131 **re-enabled production
+  deploys from `main`**, contradicting Part II.3's *"`main` does not auto-deploy"*. Both landed
+  while CI was not running, so neither was gate-checked.
+- **Session close-outs live at `docs/THREAD_CLOSEOUT.md`** — one file, overwritten each time.
+  Read it at the start of a session for where the last one stopped; write it at the end via the
+  `close-thread` skill (fail-safe instructions in `CLAUDE.md`). Durable content still belongs
+  here in MASTER, not there.
 - **`master-maths/` is the second client, not an abandoned experiment.** Three independent lines of
   evidence: `verify/lib/gambit-game-math.ts` *names its own origin in its header* as a port of v1.7
   Kotlin `GambitMath.kt` (`com.example.math`) — both carry `calculateConviction`,
@@ -278,9 +308,11 @@ Lightly detailed. Dates are from document headers or git history, not inferred.
 - **2026-08-12** — PR #72: full-stack reconciliation + new Vercel project standup (`VERCEL_PROJECT_SETUP.md`). Same day: #73 (manual prod deploys), #74 (dark theme + Blob portraits), #75 (SafeERC20, 3 open routes closed), #76 (ERC-2771 gasless relayer), #77 (`MADDisputeVoting.sol`).
 - **2026-08-13** — O-V Conviction State Node HUD shipped.
 - **2026-08-14** — The Octavian visual becomes a *living* mesh. Lineage: a 2026-07-13 Three.js/R3F/WebGPU "Master Octavian" experiment (Vulkan-derived pipeline notes, shader + bundle optimization) → the 2D-canvas `octavian-mesh.tsx` shipped 2026-08-07 in PR #63 → `72dccda` static high-fidelity orb → `fb73122` two-axis weave → **`11b8a6f` the living-mesh moment**: a three-tier pointer-driven mood system (idle cool topaz/emerald/cyan → agitated yellow/green/blue → yellow/orange/red, fastest spin, pitch tipping away as if not wanting to be bothered), decaying back to idle on its own. The palette layering is explicitly modelled on **cephalopod chromatophore-over-iridophore skin** — cool/structural at rest, pigment-dominant when agitated — not an arbitrary colour pick. `bb99269` then merged both visuals into one engine. Note: no trace of this originates in the O-V deck repo; it is native to this codebase.
-- **2026-08-14** — PR #80 merged (O-V HUD + stale-Supabase doc cleanup). Neon project split resolved to a concrete cause: **three** live Postgres databases under one integration, needing a founder-run merge (Part II.5). Migrations removed from the Vercel build in favour of a controlled `migrate:deploy`; `main` auto-deploy disabled; two advisory AI review gates added via gh-aw.
+- **2026-08-14** — PR #80 merged (O-V HUD + removal of stale docs describing a rejected data layer). Neon project split resolved to a concrete cause: **three** live Postgres databases under one integration, needing a founder-run merge (Part II.5). Migrations removed from the Vercel build in favour of a controlled `migrate:deploy`; `main` auto-deploy disabled; two advisory AI review gates added via gh-aw.
 - **2026-08-16** — This consolidation; frontend QOL benchmark and Chainlink VRF audit (Parts III–V). Later the same day: PR #91 merged (Octavian cephalopod creature + CI fixes), then the session handoff, the maths master, the engine-room formulas and the deck lineage were all folded in here as PART 0, Parts VI–VII and Appendix A — leaving this as the single planning document.
 - **2026-08-18** — Restore/convergence handoff folded in rather than filed beside this document (§7, Workstream C, the 2026-06 correction). Three stale facts fixed: the migration count (14 → **15**, so the Neon merge is `0016`, not `0015`), the Kotlin client's status ("abandoned" → dormant second client), and the absence of any CI gate over `master-maths/`. **Part VIII added** — the hosting-platform audit, whose finding is that Vercel coupling is one 44-line file, one import and three cron entries. **Same day, decided: stay on Vercel + Neon.** The audit established optionality, not a verdict — it never found a reason to leave, and hosting cannot be migrated while Actions is refusing to run jobs. Part VIII becomes a contingency plan with named reopen triggers.
+- **2026-08-22** — PR #105 merged (`2d53a7d`). Repo transferred to **`The-MDC/MAD-MPP-2.23`**. PRs #108 (CI collapsed to one job, guard path-filtered, `checkout` v6→v4) and #131 (production deploys re-enabled from `main`) also land — **all three merged with CI not running**.
+- **2026-08-24** — Close-out mechanism added: the `close-thread` skill plus `CLAUDE.md` as an independent fail-safe, writing to `docs/THREAD_CLOSEOUT.md`. **Actions recovered the same afternoon (~16:18 UTC)** after eight days down, leaving three ungated merges and a set of permanently-`queued` orphan runs behind it. `workflow_dispatch` added to `placeholder-guard.yml`, because #108's path filters meant the pathspec fix from #105 could not be exercised by any docs-only change — it was merged to `main` and had still never run. **That edit touched the workflow file, which is itself in the path filter, so the guard triggered and validated its own fix: `Placeholder guard passed ✓`, run 32750369469. The pragma check executed for the first time in the repo's history.**
 
 ---
 
@@ -301,7 +333,16 @@ Everything below is believed true as of 2026-08-16. Where something is stale or 
 | AI | `@langchain/google-genai` + `langgraph`, **inside Next.js API routes** |
 | Dev | Claude Code against GitHub PRs |
 
-**Explicitly rejected, do not reintroduce:** Supabase · Drizzle · Prisma · NestJS · MongoDB · Privy · NextAuth · tRPC · a separate Python/FastAPI backend · "mEth" secondary currency.
+**The data layer is closed, not merely preferred.** ADR-008 makes `pg` Pool + Next.js Route
+Handlers against Neon the **only** data pattern in this codebase: `lib/db.ts` is the single
+client and `verify/app/api/**/route.ts` is the sole backend boundary. **No other database
+platform, BaaS, or ORM is part of this orchestration** — any such dependency appearing in
+`package.json` is by definition a regression, and needs an ADR superseding 008 before it is
+anything else. That rule is positive and exhaustive, so it does not depend on maintaining a
+list of named alternatives.
+
+**Also explicitly rejected, do not reintroduce:** Drizzle · Prisma · NestJS · MongoDB · Privy ·
+NextAuth · tRPC · a separate Python/FastAPI backend · "mEth" secondary currency.
 
 Next 16 renamed `middleware.ts` → **`proxy.ts`**; confirmed on disk. The guest Basic-auth gate covers pages *and* `/api` (except `/api/health` and `/api/v1/health/db`).
 
