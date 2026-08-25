@@ -26,7 +26,11 @@ the build or the demo.
 | `0009_gdelt_url_unique.sql` | Partial unique index on `gdelt_signals(url)` for idempotent ingest |
 | `0010_auth_identity.sql` | `siwe_nonces` (SIWE replay protection), `user_profiles` (user-asserted identity) |
 | `0011_customer_accounts.sql` | `customer_accounts`, `customer_login_events`, `customer_profile_audit` (system-asserted account state + ledgers) |
+| `0012_perp_markets.sql` | `perp_markets`, `faces_simplex`, `zeitgeist_slates`, `zeitgeist_succession`, `epiphany_models`, `perp_positions`, `portrait_keys`, `portrait_key_destructions` — the three perp families, legs not expiries |
+| `0013_registrar.sql` | `registrar_queue`, `subject_replies`, `subject_complaints`, `subject_identity_map`, `pause_state`, `pause_events`, `registry_readiness` — named-subject governance |
+| `0014_slot_auction.sql` | `slot_auctions`, `slot_nominations`, `slot_bids` — ZEITGEIST sealed-bid slot auction with a Dutch reserve clock |
 | `0015_pack_open_counter.sql` | `customer_accounts.pack_open_count` — per-wallet monotonic counter, closes the open-pack grindable-nonce bug |
+| `0016_market_book.sql` | `market_book` (DL-LMSR share vector + liquidity + GARCH state), `market_prices` (append-only price tape), and the priced-fill columns on `bets` |
 
 ## One migration owns each table
 

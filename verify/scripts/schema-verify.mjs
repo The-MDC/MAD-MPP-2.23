@@ -20,6 +20,7 @@ const REQUIRED_TABLES = [
   "portrait_keys", "portrait_key_destructions", "registrar_queue", "subject_replies",
   "subject_complaints", "subject_identity_map", "pause_state", "pause_events",
   "registry_readiness", "slot_auctions", "slot_nominations", "slot_bids",
+  "market_book", "market_prices",
 ];
 
 const connectionString = process.env.DATABASE_URL
