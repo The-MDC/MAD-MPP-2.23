@@ -76,7 +76,8 @@ CREATE TABLE IF NOT EXISTS market_prices (
   id             BIGSERIAL PRIMARY KEY,
   market_id      TEXT NOT NULL,
   ts             TIMESTAMPTZ NOT NULL DEFAULT now(),
-  prices         JSONB NOT NULL,                    -- {"YES":0.53,"NO":0.47} — full book, index-aligned
+  prices         JSONB NOT NULL,                    -- {"YES":0.53,"NO":0.47} — keyed by OUTCOME LABEL, not index,
+                                                    --   so a stored row stays readable if a book's arity changes
   mark           NUMERIC NOT NULL,                  -- headline probability 0..1 (outcome 0) — what `series` plots
   cum_volume     NUMERIC NOT NULL DEFAULT 0,
   open_interest  NUMERIC NOT NULL DEFAULT 0,
