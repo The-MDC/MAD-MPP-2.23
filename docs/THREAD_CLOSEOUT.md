@@ -86,7 +86,7 @@ all pass.
 
 | Item | Blocker | Fix |
 |---|---|---|
-| **Supabase + Windsor.ai connectors** | Unauthorized; this session cannot run OAuth | Authorize in **claude.ai → connector settings**. Supabase is dead code per D03 — low priority. |
+| **Windsor.ai connector** | Unauthorized; this session cannot run OAuth | Authorize in **claude.ai → connector settings**, or disconnect it if it is not wanted. |
 | **`The-MDC/mad-gambit-ui`** | Session scope is `maddegen/*`; cross-tier `add_repo` refused | **This may now be easier** — the main repo has moved to `The-MDC`. Worth retrying, because that repo may simply *be* the phone-frame UI, which would make Workstream C4 mostly redundant. |
 | **`v2.24-constellation` tag** | Git proxy fails tag pushes (`send-pack: unexpected disconnect`); MCP is read-only for tags | One local `git tag -a … && git push origin …` |
 | **npm registry** | 403 from the container | No local type-check/build/test is possible. **Never hand-edit `package-lock.json`.** |
@@ -133,7 +133,7 @@ Full detail in MASTER PART 0 §5.
 | `get_check_run` output | Empty `title`/`summary`/`text` | No error text available from the API either |
 | `actions_list` | Response too large (411k and 72k chars) twice | Had to be sliced from a saved file via `python3` |
 | MCP servers | Disconnected and reconnected mid-session (github, Vercel, Neon, others) | Tool schemas had to be re-loaded via `ToolSearch` |
-| Supabase / Windsor.ai | Unauthorized | Session is non-interactive; cannot run OAuth |
+| Windsor.ai connector | Unauthorized | Session is non-interactive; cannot run OAuth |
 | `sevalla.com`, `docs.sevalla.com` | Egress-blocked | **4 facts in Part VIII §7 are ‹verify›.** Check the pod price first — the reported S1→S2 jump is 4× price for 2× resources, odd enough to be a transcription artefact, and it is the difference between a $20 and a $40 baseline |
 | `The-MDC/mad-gambit-ui` | `add_repo` refused, cross-tier | Retry now that the main repo has moved to `The-MDC` |
 | `git push` of tags | Proxy `send-pack: unexpected disconnect` | Tag pushes must be done locally |
