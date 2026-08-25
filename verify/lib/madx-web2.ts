@@ -281,18 +281,39 @@ export async function claim(pool: Pool, owner: string): Promise<{ account: MadxA
 
 /** Debit credits to back a market / bet / pack. Returns false on insufficient balance. */
 export async function spend(pool: Pool, owner: string, amount: number, note: string): Promise<boolean> {
+  return withTx(pool, (c) => spendWithin(c, owner, amount, note));
+}
+
+/**
+ * The debit leg of `spend`, on a caller-owned transaction.
+ *
+ * `spend` opens its own transaction, which makes it unusable inside one — and a
+ * market fill MUST be one transaction: debiting the buyer and moving the book
+ * are the same event, and a crash between them either takes money without
+ * giving shares or gives shares without taking money. Neither is recoverable
+ * from the ledger, because there would be nothing in it to reverse.
+ *
+ * Returns false (does NOT throw) when the balance is short, so the caller can
+ * roll back its own work and answer 409 rather than 500. The `balance >= $2`
+ * predicate is what makes that atomic: two concurrent fills cannot both pass
+ * it, because the row is locked by whichever UPDATE lands first.
+ */
+export async function spendWithin(
+  c: PoolClient,
+  owner: string,
+  amount: number,
+  note: string,
+): Promise<boolean> {
   const o = norm(owner);
   const amt = round6(amount);
   if (amt <= 0) return false;
-  return withTx(pool, async (c) => {
-    const upd = await c.query(
-      `UPDATE madx_accounts SET balance = balance - $2, updated_at = now() WHERE owner = $1 AND balance >= $2 RETURNING owner`,
-      [o, amt],
-    );
-    if ((upd.rowCount ?? 0) === 0) return false;
-    await insertLedger(c, o, "spend", amt, null, note);
-    return true;
-  });
+  const upd = await c.query(
+    `UPDATE madx_accounts SET balance = balance - $2, updated_at = now() WHERE owner = $1 AND balance >= $2 RETURNING owner`,
+    [o, amt],
+  );
+  if ((upd.rowCount ?? 0) === 0) return false;
+  await insertLedger(c, o, "spend", amt, null, note);
+  return true;
 }
 
 export async function getSupply(pool: Pool): Promise<{ minted: number; cap: number; remaining: number }> {

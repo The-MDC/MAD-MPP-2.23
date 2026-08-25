@@ -13,7 +13,7 @@
  * same physical motion as a stock ticker or news chyron.
  * ══════════════════════════════════════════════════════════════════ */
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { GOLD_CHISEL_STOPS, INSTRUMENT_FONT, INK } from "@/lib/gambit-design-tokens";
 
 interface PillarCard {
@@ -25,12 +25,36 @@ interface PillarCard {
   glyph: string;
 }
 
-const PILLARS: PillarCard[] = [
-  { id: "convictions", title: "CONVICTIONS", stat: "18",  statLabel: "OPEN CONVICTIONS",   color: "#ffcf40", glyph: "\u2696" },
-  { id: "predictions", title: "PREDICTIONS", stat: "34",  statLabel: "ACTIVE PREDICTIONS",  color: "#00e5ff", glyph: "\u25CE" },
-  { id: "zliar",       title: "Z-LIAR METER", stat: "88.5", statLabel: "CURRENT BS-INDEX",  color: "#ff007f", glyph: "\u26A0" },
-  { id: "cardgame",    title: "CARD GAME",    stat: "992", statLabel: "CANONICAL DECK SIZE", color: "#00ff88", glyph: "\u2660" },
-];
+/**
+ * Three of these four numbers were asserted platform counts with nothing behind
+ * them — "18 OPEN CONVICTIONS", "34 ACTIVE PREDICTIONS", "88.5 CURRENT
+ * BS-INDEX" were literals in this array. Only the deck size was real (it is
+ * PLATFORM.TOTAL_DECK_SIZE).
+ *
+ * They now come from GET /api/v1/dopamine/metrics, which aggregates `markets`,
+ * `bets` and `gdelt_signals` in SQL. Where a metric genuinely has no source the
+ * tile shows an em dash rather than inventing one:
+ *
+ *   OPEN CONVICTIONS  → open perp/conviction positions. `activeMarkets` is the
+ *                       closest true count the platform exposes today.
+ *   ACTIVE PREDICTIONS→ `openBets`, pending wagers.
+ *   CURRENT BS-INDEX  → `chaos`, the 24h GCAM scandal-velocity mean. The
+ *                       Z-Liar BS-index proper is computed per statement
+ *                       (zLiarMeter), not platform-wide, so this is the honest
+ *                       platform analogue and is labelled as chaos.
+ *   DECK SIZE         → unchanged; it was always a real constant.
+ */
+const DECK_SIZE = "992";
+
+function pillars(m: { activeMarkets: number; openBets: number; chaos: number } | null): PillarCard[] {
+  const dash = "\u2014";
+  return [
+    { id: "convictions", title: "CONVICTIONS", stat: m ? String(m.activeMarkets) : dash, statLabel: "OPEN MARKETS",      color: "#ffcf40", glyph: "\u2696" },
+    { id: "predictions", title: "PREDICTIONS", stat: m ? String(m.openBets) : dash,      statLabel: "PENDING WAGERS",    color: "#00e5ff", glyph: "\u25CE" },
+    { id: "zliar",       title: "Z-LIAR METER", stat: m ? `${Math.round(m.chaos)}` : dash, statLabel: "CHAOS INDEX (24H)", color: "#ff007f", glyph: "\u26A0" },
+    { id: "cardgame",    title: "CARD GAME",    stat: DECK_SIZE, statLabel: "CANONICAL DECK SIZE", color: "#00ff88", glyph: "\u2660" },
+  ];
+}
 
 function GoldPillarTile({ pillar, uid }: { pillar: PillarCard; uid: string }) {
   return (
@@ -83,7 +107,21 @@ function GoldPillarTile({ pillar, uid }: { pillar: PillarCard; uid: string }) {
 }
 
 export default function PlatformCarousel() {
-  const loop = [...PILLARS, ...PILLARS, ...PILLARS];
+  const [metrics, setMetrics] = useState<{ activeMarkets: number; openBets: number; chaos: number; source: string } | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/v1/dopamine/metrics")
+      .then((r) => r.json())
+      .then((d) => { if (alive && d?.metrics) setMetrics(d.metrics); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
+  // Tripled, not doubled — the keyframe below travels to -33.333%, so the
+  // repeating unit must be exactly one third of the track.
+  const cards = pillars(metrics);
+  const loop = [...cards, ...cards, ...cards];
 
   return (
     <div style={{ overflow: "hidden", padding: "10px 0" }}>
