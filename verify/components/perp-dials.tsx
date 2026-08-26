@@ -21,6 +21,8 @@
  * would otherwise sit unsized and blank at its default 300×150.
  */
 import React, { useEffect, useMemo, useState } from "react";
+import HoldHint from "@/components/hold-hint";
+import { bookForDeckId, type PerpFamilyBook } from "@/lib/perp-family-markets";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import GambitInstrumentCluster from "@/components/gambit-instrument-cluster";
@@ -496,6 +498,78 @@ function Slider({
   );
 }
 
+
+/**
+ * Every market in one perp family, opened by tapping that card's instrument or
+ * its ticker — the same gesture the Z-Liar gauge already answers to.
+ *
+ * A signal-only family renders the reason instead of a list. Three of the six
+ * families have no perp book (market-view.ts: "The other three are
+ * signal-only"), and inventing rows so all six cards behave identically would
+ * make the deck assert positions the platform cannot take.
+ */
+function PerpBookDialog({ book, onClose }: { book: PerpFamilyBook; onClose: () => void }) {
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      role="dialog" aria-modal="true" aria-label={`${book.label} — all markets`}
+      onClick={onClose}
+      style={{ position: "fixed", inset: 0, zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(3,4,10,.72)", backdropFilter: "blur(6px)" }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ width: "min(460px,94vw)", maxHeight: "86vh", display: "flex", flexDirection: "column", background: "var(--bg,#080a12)", border: "1px solid color-mix(in srgb, var(--tx,#f0f0f8) 12%, transparent)", borderRadius: 16, padding: 16, boxShadow: "0 18px 60px rgba(0,0,0,.55)" }}
+      >
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 2 }}>
+          <span style={{ flex: 1, fontSize: 11, fontWeight: 900, letterSpacing: 2, color: TX, textTransform: "uppercase" }}>{book.label}</span>
+          <button
+            type="button" onClick={onClose} aria-label="Close"
+            style={{ flex: "none", width: 26, height: 26, borderRadius: 8, border: "1px solid color-mix(in srgb, var(--tx,#f0f0f8) 14%, transparent)", background: "transparent", color: "var(--mu,#6b7280)", cursor: "pointer", fontSize: 13, lineHeight: 1 }}
+          >×</button>
+        </div>
+        <div style={{ fontSize: 7, letterSpacing: 1.2, color: "var(--mu,#6b7280)", textTransform: "uppercase", marginBottom: 12 }}>{book.kicker}</div>
+
+        {book.tradeable ? (
+          <>
+            <div style={{ fontSize: 8, color: "var(--mu,#6b7280)", marginBottom: 9 }}>{book.note}</div>
+            <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+              {book.markets.map((m) => (
+                <div key={m.id} style={{ border: "1px solid color-mix(in srgb, var(--tx,#f0f0f8) 9%, transparent)", background: "var(--cd,#111520)", borderRadius: 10, padding: 10 }}>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                    <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1, color: TX, textTransform: "uppercase" }}>{m.subject}</span>
+                    <span style={{ flex: "none", fontSize: 12, fontWeight: 900, color: C }}>{Math.round(m.reading * 100)}%</span>
+                  </div>
+                  <div style={{ fontSize: 9.5, fontStyle: "italic", color: "var(--mu,#6b7280)", margin: "3px 0 7px" }}>{m.claim}</div>
+                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    <span style={{ flex: 1, textAlign: "center", borderRadius: 6, padding: "3px 0", fontSize: 8.5, fontWeight: 800, color: PO, background: "color-mix(in srgb, var(--po,#00ff88) 12%, transparent)" }}>LONG {m.longOdds}x</span>
+                    <span style={{ flex: 1, textAlign: "center", borderRadius: 6, padding: "3px 0", fontSize: 8.5, fontWeight: 800, color: "var(--a2,#ff007f)", background: "color-mix(in srgb, var(--a2,#ff007f) 12%, transparent)" }}>SHORT {m.shortOdds}x</span>
+                    <span style={{ flex: "none", fontSize: 7, letterSpacing: 0.8, color: "var(--mu,#6b7280)", textTransform: "uppercase" }}>{m.legDays}d leg · {m.maxLeverage}x max</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div style={{ border: "1px solid color-mix(in srgb, var(--gd,#ffd700) 24%, transparent)", background: "color-mix(in srgb, var(--gd,#ffd700) 6%, transparent)", borderRadius: 10, padding: 12 }}>
+            <div style={{ fontSize: 8, fontWeight: 800, letterSpacing: 1.4, color: GD, textTransform: "uppercase", marginBottom: 6 }}>Signal-only</div>
+            <p style={{ margin: 0, fontSize: 11, lineHeight: 1.6, color: "var(--mu,#6b7280)" }}>{book.note}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function PerpDials({
   showInstrument = true,
 }: {
@@ -513,6 +587,9 @@ export default function PerpDials({
   showInstrument?: boolean;
 } = {}) {
   const { skin, toggle, name } = useSkin();
+  // Which family's book is open, by DECK card id (not the canonical family
+  // key — see DECK_ID_TO_FAMILY in lib/perp-family-markets.ts).
+  const [openBook, setOpenBook] = React.useState<string | null>(null);
 
   const [tk, setTk] = useControl(CONTROLS.tk);
   const [sym, setSym] = useControl(CONTROLS.sym);
@@ -630,6 +707,24 @@ export default function PerpDials({
         @keyframes mgPulse { 0%,100% { opacity:.35; transform: scale(1); } 50% { opacity:1; transform: scale(1.35); } }
         @keyframes mgBar { 0%,100% { transform: scaleY(.72); } 50% { transform: scaleY(1); } }
         @keyframes mgSeg { 0%,100% { opacity:.55; } 50% { opacity:1; } }
+
+        /* Hover + focus on the two controls each card now carries.
+           The deck had no hover state at all — six instruments and six live
+           tickers, none of which gave any sign they could be interacted with.
+           Both cues are drawn from the card's own accent (--c), so each family
+           highlights in its own colour rather than in one borrowed grey. */
+        .mg-perp-well, .mg-perp-tape { transition: background .16s ease, box-shadow .16s ease, filter .16s ease; }
+        .mg-perp-well:hover { filter: brightness(1.07); }
+        .mg-perp-tape:hover { background: color-mix(in srgb, var(--c) 12%, transparent); }
+        .mg-perp-well:focus-visible, .mg-perp-tape:focus-visible {
+          outline: 2px solid var(--c); outline-offset: 2px;
+        }
+        /* The instrument is a canvas, so it cannot carry its own affordance —
+           a ring on the well says "this whole panel is the control". */
+        .mg-perp-well:hover { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 30%, transparent); border-radius: 12px; }
+        @media (prefers-reduced-motion: reduce) {
+          .mg-perp-well, .mg-perp-tape { transition: none; }
+        }
         @media (prefers-reduced-motion: reduce) {
           .mg-tape, .mg-pip, .mg-bar, .mg-seg { animation: none !important; }
         }
@@ -722,6 +817,21 @@ export default function PerpDials({
       >
         {CARDS.map((card) => {
           const tCanvas = tickerCanvas(card.id);
+          // Engine-derived, and honest for the three signal-only families.
+          const book = bookForDeckId(card.id);
+          const openThis = () => setOpenBook(card.id);
+          // Shared by the instrument and the ticker: both open the same book,
+          // because to a reader they are two views of one family.
+          const cardHint = book
+            ? {
+                title: book.label,
+                kind: book.tradeable ? ("measured" as const) : undefined,
+                body: book.tradeable
+                  ? `Tap for all ${book.markets.length} open position${book.markets.length === 1 ? "" : "s"} in this family. Readings come from GARCH(1,1) with the platform's own coefficients; legs are paced by the lunar phase multiplier.`
+                  : book.note,
+                action: { label: book.tradeable ? "Open all markets" : "What this means", onSelect: openThis },
+              }
+            : undefined;
           return (
             <section
               key={card.id}
@@ -755,8 +865,21 @@ export default function PerpDials({
                 </span>
               </div>
 
-              {/* Instrument well */}
-              <div style={{ minHeight: "calc(183px * var(--dial, 1))", display: "flex", flexDirection: "column", alignItems: card.id === "scandal" ? "stretch" : "center", justifyContent: "center", gap: card.id === "scandal" ? 9 : 0 }}>
+              {/* Instrument well — now a control.
+                  Every card in this deck was inert: no onClick, no href, no
+                  hover state anywhere on the six instruments. The Z-Liar gauge
+                  on its own panel opens that family's markets on tap, and there
+                  was no reason the other five should behave differently. */}
+              <HoldHint hint={cardHint}>
+              <div
+                className="mg-perp-well"
+                role="button"
+                tabIndex={0}
+                aria-label={book ? `${book.label} — open all markets` : undefined}
+                onClick={openThis}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openThis(); } }}
+                style={{ minHeight: "calc(183px * var(--dial, 1))", display: "flex", flexDirection: "column", alignItems: card.id === "scandal" ? "stretch" : "center", justifyContent: "center", gap: card.id === "scandal" ? 9 : 0, cursor: "pointer" }}
+              >
                 {card.id === "scandal" ? (
                   <>
                     <div style={{ display: "flex", alignItems: "flex-end", gap: 12 }}>
@@ -810,6 +933,7 @@ export default function PerpDials({
                   </>
                 )}
               </div>
+              </HoldHint>
 
               {/* 3-up KPI strip — margin-top:auto keeps every card's row aligned */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginTop: "auto", paddingTop: 8, borderTop: "1px solid color-mix(in srgb, var(--tx,#f0f0f8) 7%, transparent)" }}>
@@ -821,8 +945,19 @@ export default function PerpDials({
                 ))}
               </div>
 
-              {/* Live ticker — bespoke per market, in the shared strip chrome */}
-              <div style={{ display: "flex", alignItems: "stretch", width: "100%", marginTop: 9, borderTop: "1px solid color-mix(in srgb, var(--c) 24%, transparent)", borderBottom: "1px solid color-mix(in srgb, var(--c) 16%, transparent)", background: "color-mix(in srgb, var(--c) 5%, transparent)", overflow: "hidden" }}>
+              {/* Live ticker — bespoke per market, in the shared strip chrome.
+                  Also a control, and pointed at the same book as the instrument
+                  above it: a reader who taps the tape is asking about the same
+                  family as a reader who taps the dial. */}
+              <div
+                className="mg-perp-tape"
+                role="button"
+                tabIndex={0}
+                aria-label={book ? `${book.label} — open all markets` : undefined}
+                onClick={openThis}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openThis(); } }}
+                style={{ display: "flex", alignItems: "stretch", width: "100%", marginTop: 9, borderTop: "1px solid color-mix(in srgb, var(--c) 24%, transparent)", borderBottom: "1px solid color-mix(in srgb, var(--c) 16%, transparent)", background: "color-mix(in srgb, var(--c) 5%, transparent)", overflow: "hidden", cursor: "pointer" }}
+              >
                 {card.plate ? (
                   <span style={{ flex: "none", display: "flex", flexDirection: "column", justifyContent: "center", gap: 1, padding: "3px 8px", background: "color-mix(in srgb, var(--c) 16%, transparent)", borderRight: "1px solid color-mix(in srgb, var(--c) 30%, transparent)" }}>
                     <span style={{ whiteSpace: "nowrap", fontSize: 6, fontWeight: 800, letterSpacing: 1.2, color: C, textTransform: "uppercase" }}>{card.plate.label}</span>
@@ -975,6 +1110,10 @@ export default function PerpDials({
         </span>
       </div>
       </div>
+
+      {openBook && bookForDeckId(openBook) ? (
+        <PerpBookDialog book={bookForDeckId(openBook)!} onClose={() => setOpenBook(null)} />
+      ) : null}
     </div>
   );
 }
