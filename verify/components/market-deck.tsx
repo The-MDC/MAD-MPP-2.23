@@ -116,15 +116,22 @@ const PERPS: PerpMarket[] = PERP_FAMILIES.map((family, i) => ({
 
 /* ── Deck ──────────────────────────────────────────────────────────────── */
 
-function Deck({ title, note, views, render }: {
+function Deck({ title, note, views, render, anchorId }: {
   title: string;
   note: string;
   views: MarketView[];
   render: (v: MarketView) => React.ReactNode;
+  /**
+   * Anchor id, so the four desk buttons on /preview can deep-link straight to
+   * the class they name (/markets#prediction) instead of dumping the visitor
+   * at the top of an undifferentiated list. scrollMarginTop keeps the heading
+   * clear of the sticky header on arrival.
+   */
+  anchorId?: string;
 }) {
   return (
     <DeckShell>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+      <div id={anchorId} style={{ scrollMarginTop: 72, display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
         <SectionTitle>{title}</SectionTitle>
         <span style={{ ...TYPE.brandSub, color: ENGRAVED }}>{note}</span>
       </div>
@@ -166,6 +173,7 @@ export default function MarketDeck() {
 
         <Deck
           title="Prediction"
+          anchorId="prediction"
           note="dated · resolves against a stated criterion · de-vigged"
           views={predictions}
           render={(v) => <PredictionCard view={v} />}
@@ -173,6 +181,7 @@ export default function MarketDeck() {
 
         <Deck
           title="Conviction"
+          anchorId="conviction"
           note="graded belief · no settle leg · creator ladder"
           views={convictions}
           render={(v) => <ConvictionCard view={v} />}
@@ -180,6 +189,7 @@ export default function MarketDeck() {
 
         <Deck
           title="Perps"
+          anchorId="perps"
           note="no expiry · advanced by lunar leg · three families are signal-only"
           views={perps}
           render={(v) => <PerpCard view={v} />}
