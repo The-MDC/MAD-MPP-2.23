@@ -791,6 +791,28 @@ export interface ZLiarReading {
   volatility: number;
   lunarTilt: number;
 }
+/** The five bands and the score at which each opens — one table, so a surface
+ *  that renders a band cannot drift from the one the engine returned.
+ *  `perp-dials.tsx` carried its own copy with the thresholds at 38 and 84,
+ *  which printed MOSTLY CANDID over a score this engine called SLIPPERY, and
+ *  SERIAL EMBELLISHER over one it called TOTAL FABRICATION. Read this instead. */
+export const ZLIAR_BANDS: ReadonlyArray<{ min: number; verdict: ZLiarVerdict }> = [
+  { min: 80, verdict: 'TOTAL FABRICATION' },
+  { min: 60, verdict: 'SERIAL EMBELLISHER' },
+  { min: 40, verdict: 'SLIPPERY' },
+  { min: 20, verdict: 'MOSTLY CANDID' },
+  { min: 0, verdict: 'STRAIGHT SHOOTER' },
+];
+
+/** The band a score falls in. Indexed loop, not for-of: this file compiles at
+ *  target es5 without downlevelIteration. */
+export function zLiarVerdictFor(score: number): ZLiarVerdict {
+  for (let i = 0; i < ZLIAR_BANDS.length; i++) {
+    if (score >= ZLIAR_BANDS[i].min) return ZLIAR_BANDS[i].verdict;
+  }
+  return 'STRAIGHT SHOOTER';
+}
+
 export function zLiarMeter(params: {
   narrativeVariance: number;
   sourceCredibility: number;
@@ -807,12 +829,7 @@ export function zLiarMeter(params: {
   const volPenalty = Math.min(20, Math.sqrt(variance) * 100); // volatility inflates doubt
   const lunarTilt = (getLunarPhaseMultiplier(params.nowMs) - 1.0) * 100; // 0..15 lunacy bump
   const score = Math.min(100, Math.max(0, bs + volPenalty + lunarTilt * 0.5));
-  let verdict: ZLiarVerdict = 'STRAIGHT SHOOTER';
-  if (score >= 80) verdict = 'TOTAL FABRICATION';
-  else if (score >= 60) verdict = 'SERIAL EMBELLISHER';
-  else if (score >= 40) verdict = 'SLIPPERY';
-  else if (score >= 20) verdict = 'MOSTLY CANDID';
-  return { score, verdict, bs, volatility: variance, lunarTilt };
+  return { score, verdict: zLiarVerdictFor(score), bs, volatility: variance, lunarTilt };
 }
 
 /* ====================================================================
