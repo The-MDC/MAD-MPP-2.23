@@ -8,6 +8,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import Script from "next/script";
 import LunarVars from "@/components/lunar-vars";
 import DeviceFrame from "@/components/device-frame";
+import HoldHintProvider from "@/components/hold-hint-provider";
 
 // Display typography uses local/system fallbacks so builds do not depend on Google Fonts availability.
 export const metadata: Metadata = {
@@ -48,7 +49,14 @@ export default function RootLayout({
                   All responsive behaviour is CSS (.mg-workbench / .mg-device in
                   globals.css): full-bleed under 768px, a centred 680px card on
                   tablet, and a 440px phone bezel at 1024px+. */}
-              <DeviceFrame>{children}</DeviceFrame>
+              {/* HoldHintProvider wraps DeviceFrame rather than sitting inside
+                  it: the hint surface portals to document.body and must not be
+                  clipped or transformed by the frame it is explaining. One
+                  provider here gives every route the affordance — the same
+                  reasoning that moved DeviceFrame itself up to this level. */}
+              <HoldHintProvider>
+                <DeviceFrame>{children}</DeviceFrame>
+              </HoldHintProvider>
             </MppProvider>
           </WorkspaceProvider>
         </ThemeProvider>

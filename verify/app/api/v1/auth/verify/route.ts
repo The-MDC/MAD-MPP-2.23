@@ -4,6 +4,8 @@ import { createSession, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/session";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { recordSuccessfulLogin } from "@/lib/customer-store";
 
+// PUBLIC-ROUTE: The sign-in endpoint itself. It cannot require a session to establish one; its guard is SIWE signature verification plus a single-use nonce.
+// Rate-limited, because open still needs a cost ceiling.
 export async function POST(req: NextRequest) {
   const limited = enforceRateLimit(req, "auth-verify", 10, 60_000); // 10/min/IP
   if (limited) return limited;

@@ -23,6 +23,8 @@ const opt = (v: unknown): number | undefined => (Number.isFinite(Number(v)) ? Nu
  * POST /api/v1/bayesian/garch — EGARCH (asymmetric) + CGARCH (long/short split)
  * volatility steps (Part X — surfaces egarchLogVar + cgarchUpdate). Pure, no DB.
  */
+// PUBLIC-ROUTE: GARCH variance update — pure maths, no DB, no external call.
+// Rate-limited, because open still needs a cost ceiling.
 export async function POST(req: Request) {
   const limited = enforceRateLimit(req, "bayesian-garch", 60, 60_000);
   if (limited) return limited;

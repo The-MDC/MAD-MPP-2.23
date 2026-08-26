@@ -34,6 +34,8 @@ function isRarity(v: unknown): v is Rarity {
  *    (uses Math.random; the real roll is on-chain VRF, Phase-3 gated).
  * Pure, no DB, no card destroyed — never mutates a real collection.
  */
+// PUBLIC-ROUTE: Evolution preview — computes a projected result and persists nothing.
+// Rate-limited, because open still needs a cost ceiling.
 export async function POST(req: Request) {
   const limited = enforceRateLimit(req, "cards-evolve", 60, 60_000);
   if (limited) return limited;

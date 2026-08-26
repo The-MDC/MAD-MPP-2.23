@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { hasDatabaseUrl } from "@/lib/database-url";
-import { enforceRateLimit } from "@/lib/rate-limit";
+import { requireBearerSecret } from "@/lib/bearer-secret";
 import { listReplies, postReply } from "@/lib/registrar-queue";
 
 const VERIFICATION = ["domain", "press_office", "legal_rep", "platform_verified"] as const;
@@ -44,11 +44,17 @@ export async function GET(req: Request) {
   }
 }
 
+/**
+ * OPERATOR ONLY (CRON_SECRET) for writes. A reply is published on behalf of a
+ * named subject in the registrar flow, so an anonymous POST is an impersonation
+ * of that subject. GET stays open — registrar-panel.tsx reads replies for
+ * display and must keep working.
+ */
 export async function POST(req: Request) {
+  const denied = requireBearerSecret(req, "CRON_SECRET");
+  if (denied) return denied;
   // Rate-limited, not moderated. The limit is abuse control on the endpoint;
   // it never inspects, scores or rejects the content of a reply.
-  const limited = enforceRateLimit(req, "registrar-reply", 10, 60_000);
-  if (limited) return limited;
 
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: false, error: "reply needs DATABASE_URL" }, { status: 503 });

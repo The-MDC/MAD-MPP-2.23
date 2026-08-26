@@ -49,6 +49,14 @@ concurrency:
 # "Lint (eslint)", "Build (next build)", "Route-guard check"), those names no
 # longer exist and required-checks must be repointed at "Verify" or merges
 # will block forever waiting on checks that can never report.
+
+# Least privilege. Without this block a workflow inherits the REPOSITORY
+# default token scope, which on older repos is read-write across the API — an
+# action compromise then reaches far past the job that ran it. The four
+# workflows that already declared this were fine; these did not.
+permissions:
+  contents: read
+
 jobs:
   verify:
     name: Verify

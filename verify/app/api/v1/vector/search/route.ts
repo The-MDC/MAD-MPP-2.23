@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
-import { enforceRateLimit } from "@/lib/rate-limit";
+import { withRouteGuard } from "@/lib/with-route-guard";
 import { searchIntel, vectorSearchAvailable, type IntelDoc } from "@/lib/vector-store";
 
 interface SearchBody {
@@ -14,9 +14,13 @@ interface SearchBody {
  * Gemini embeddings. Degrades to an empty "demo" result when DB or
  * GOOGLE_API_KEY is absent, so the surface never hard-fails.
  */
-export async function POST(req: Request) {
-  const limited = enforceRateLimit(req, "vector-search", 30, 60_000);
-  if (limited) return limited;
+/**
+ * Signed-in only. A search still embeds the query, so it is a paid call even
+ * though it only reads. No client caller.
+ */
+export const POST = withRouteGuard(
+  { mode: "session", bucket: "vector-search", limit: 30, windowMs: 60_000 },
+  async (req) => {
 
   const body = (await req.json().catch(() => null)) as SearchBody | null;
   if (!body || typeof body.query !== "string" || body.query.trim() === "") {
@@ -37,4 +41,5 @@ export async function POST(req: Request) {
     console.error("vector/search error:", e);
     return NextResponse.json({ success: true, results: empty, source: "demo" });
   }
-}
+  },
+);

@@ -56,6 +56,15 @@ const nextConfig = (phase: string): NextConfig => {
  * reports are quiet, move the directives into the enforced list — that promotion
  * is a two-line change and is the intended follow-up.
  *
+ * "Once the reports are quiet" needs somewhere for reports to GO. For a long
+ * while there was nowhere: neither policy named a `report-uri`, a `report-to`,
+ * or a `Reporting-Endpoints` header, so browsers evaluated the Report-Only
+ * policy, found the violations, and discarded them. The follow-up above was
+ * therefore not merely un-done but un-doable — its precondition was
+ * unmeasurable. Both policies now report to /api/v1/csp-report, and
+ * `GET /api/v1/csp-report` (CRON_SECRET) answers the promotion question
+ * directly with `quiet: true|false`.
+ *
  * connect-src is the one directive worth reviewing before promotion: the app
  * talks to Neon (server-side only, so not listed), Vercel Speed Insights, and
  * an Arbitrum RPC from the client via viem. If RELAYER_RPC_URL is pointed at a
@@ -83,11 +92,34 @@ const nextConfig = (phase: string): NextConfig => {
 // genuinely never uses, and no fallback directive that could reach the ones it
 // does. Anything governing normal page resources belongs in Report-Only until
 // its violation reports are quiet.
+/**
+ * Where violation reports go, named twice on purpose.
+ *
+ * `report-uri` is deprecated but is what Firefox and Safari actually implement;
+ * `report-to` is the replacement and is what Chrome prefers. A browser that
+ * understands `report-to` ignores `report-uri`, so listing both is not double
+ * delivery — it is the only way to be heard by all three engines.
+ *
+ * The path is relative, deliberately. Both the Reporting API and report-uri
+ * resolve it against the document, which keeps reports same-origin on preview
+ * deployments as well as production. An absolute production URL would make
+ * every preview's reports cross-origin, which adds a CORS preflight the
+ * reporting fetch does not perform — i.e. it would silently break exactly the
+ * environment where new violations are most likely to appear first.
+ */
+const CSP_REPORT_PATH = "/api/v1/csp-report";
+const CSP_REPORTING = [`report-uri ${CSP_REPORT_PATH}`, "report-to csp-endpoint"];
+
+// The enforced set reports too. These four directives should never fire in
+// normal use, so anything they do catch — a framing attempt, an injected
+// <base>, a form re-pointed off-origin — is worth seeing rather than silently
+// blocking. Cost is zero: nothing is expected to arrive.
 const CSP_ENFORCED = [
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "object-src 'none'",
   "form-action 'self'",
+  ...CSP_REPORTING,
 ].join("; ");
 
 const CSP_REPORT_ONLY = [
@@ -103,11 +135,17 @@ const CSP_REPORT_ONLY = [
   "base-uri 'self'",
   "object-src 'none'",
   "form-action 'self'",
+  ...CSP_REPORTING,
 ].join("; ");
 
 const SECURITY_HEADERS = [
   { key: "Content-Security-Policy", value: CSP_ENFORCED },
   { key: "Content-Security-Policy-Report-Only", value: CSP_REPORT_ONLY },
+  // Defines the `csp-endpoint` group that `report-to` above refers to. Without
+  // this header `report-to` names a group that does not exist and the modern
+  // browsers silently drop every report — which is precisely the failure this
+  // whole change exists to fix, so the two must stay together.
+  { key: "Reporting-Endpoints", value: `csp-endpoint="${CSP_REPORT_PATH}"` },
   // Stops MIME sniffing turning an uploaded blob into executable script.
   { key: "X-Content-Type-Options", value: "nosniff" },
   // Referrer leaks wallet addresses when they appear in a path; send origin

@@ -44,6 +44,7 @@ export default function MarketsForTodayPanel() {
   const [data, setData] = useState<Resp | null>(null);
   const [filter, setFilter] = useState<MarketType | "all">("all");
   const [pulling, setPulling] = useState(false);
+  const [pullNote, setPullNote] = useState<string | null>(null);
 
   const load = useCallback(() => {
     fetch("/api/v1/markets/proposals?limit=16")
@@ -62,7 +63,18 @@ export default function MarketsForTodayPanel() {
   // without a DB — the button still spins and reloads the demo set.)
   const pullFresh = async () => {
     setPulling(true);
-    await fetch("/api/v1/ingest/gdelt", { method: "POST" }).catch(() => {});
+
+    // Operator-only route (CRON_SECRET): a browser cannot hold that secret, so
+    // this has been 401ing silently. The refusal is now shown, not swallowed.
+    setPullNote(null);
+    const res = await fetch("/api/v1/ingest/gdelt", { method: "POST" }).catch(() => null);
+    if (!res || !res.ok) {
+      setPullNote(
+        res?.status === 401
+          ? "Manual refresh is operator-only — the scheduled job pulls this feed."
+          : "Refresh failed. Showing the last stored signals.",
+      );
+    }
     load();
     setPulling(false);
   };
@@ -96,6 +108,16 @@ export default function MarketsForTodayPanel() {
           >
             {pulling ? "…" : "⚡ Pull fresh"}
           </button>
+          {/* Rendered, not just stored. A note nobody displays swallows the
+              failure exactly as the empty .catch() used to. */}
+          {pullNote && (
+            <span
+              role="status"
+              style={{ fontSize: 7, letterSpacing: 0.6, color: skin.muted, fontFamily: INSTRUMENT_FONT, maxWidth: 220 }}
+            >
+              {pullNote}
+            </span>
+          )}
           {data && (
             <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "2px 6px", borderRadius: 4, color: live ? skin.accent : skin.muted, background: `${live ? skin.accent : skin.muted}18`, border: `1px solid ${live ? skin.accent : skin.muted}40` }}>
               {live ? "live" : "demo"}

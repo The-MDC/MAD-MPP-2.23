@@ -3,28 +3,33 @@
 /**
  * MAD Gambit — Z-Liar Section
  * ------------------------------------------------------------------
- * Z-Liar meter/dial + "Liar of the Day" Yes/No vote (celebration on cast)
- * + carousel of ALL Z-Liar credibility markets (shared Carousel primitive).
+ * What is left here is the "Liar of the Day" Yes/No vote. The meter and the
+ * markets carousel are both inside ZLiarMeter now — this file used to wrap the
+ * instrument in a second header of the same name and keep a rival copy of the
+ * market list, and both of those were removed rather than reconciled.
  * INK tokens, reduced-motion friendly, SSR-safe.
  */
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Gauge, ThumbsUp, ThumbsDown, Flame } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Flame } from "lucide-react";
 import { INK } from "@/lib/gambit-design-tokens";
-import Carousel, { AutoShowcaseBadge } from "@/components/carousel";
 import ZLiarMeter from "@/components/zliar-meter";
 import { celebrate } from "@/components/joy-layer";
+import { zliarMarketsByCredibility } from "@/lib/zliar-markets";
 
-interface ZMarket { id: string; subject: string; claim: string; credibility: number; yes: number; no: number; }
-const MARKETS: ZMarket[] = [
-  { id: "z1", subject: "ANON CEO",     claim: "“Funds are SAFU, trust me.”",  credibility: 22, yes: 2.4, no: 1.5 },
-  { id: "z2", subject: "MEME FOUNDER", claim: "“Not a rug — LP is locked.”",  credibility: 38, yes: 1.9, no: 1.8 },
-  { id: "z3", subject: "CELEB SHILL",  claim: "“Definitely not a paid post.”", credibility: 15, yes: 3.1, no: 1.3 },
-  { id: "z4", subject: "AI LAB",       claim: "“AGI ships next quarter.”",     credibility: 44, yes: 1.7, no: 2.0 },
-  { id: "z5", subject: "EXCHANGE",     claim: "“Reserves are fully 1:1.”",     credibility: 57, yes: 1.5, no: 2.4 },
-];
-const LIAR_OF_DAY = MARKETS[0];
+/**
+ * The market list moved to lib/zliar-markets.ts and is now DERIVED from
+ * zLiarMeter() rather than hand-typed. The five literals that used to sit here
+ * — `credibility: 22`, `yes: 2.4` and friends — had no relationship to the
+ * engine driving the needle directly above them, so the instrument and the
+ * cards beneath it were two sources of truth for the same quantity.
+ *
+ * The carousel that used to render them also moved: it now lives at the foot
+ * of the meter card itself, so a page that mounts the meter always gets the
+ * markets it grades, and the two cannot be separated by a later edit.
+ */
+const LIAR_OF_DAY = zliarMarketsByCredibility()[0];
 
 export default function ZLiarSection() {
   const [vote, setVote] = useState<null | "yes" | "no">(null);
@@ -42,12 +47,11 @@ export default function ZLiarSection() {
 
   return (
     <div className="rounded-2xl border p-5 space-y-4" style={{ borderColor: INK.border, background: "rgba(8,10,18,0.55)" }}>
-      <div className="flex items-center gap-2">
-        <Gauge className="w-4 h-4" style={{ color: INK.pink }} />
-        <h3 className="font-mono text-sm font-bold uppercase tracking-widest" style={{ color: INK.white }}>Z-Liar Meter</h3>
-        <span className="font-mono text-[9px] uppercase tracking-wider" style={{ color: INK.muted }}>credibility markets</span>
-      </div>
-
+      {/* No section header here, on purpose. This wrapper used to render
+          "⌗ Z-LIAR METER · credibility markets" immediately above ZLiarMeter's
+          own "THE Z-LIAR METER · Narrative Credibility Instrument" — two
+          headers, same title, one on top of the other, inside one card. The
+          instrument names itself; the wrapper does not need to name it again. */}
       <ZLiarMeter />
 
       {/* Liar of the Day — Yes/No vote */}
@@ -75,16 +79,8 @@ export default function ZLiarSection() {
         )}
       </div>
 
-      {/* ALL Z-Liar markets — carousel */}
-      <div>
-        <p className="flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: INK.muted }}>
-          All Z-Liar Markets
-          <AutoShowcaseBadge />
-        </p>
-        <Carousel auto ariaLabel="Z-Liar markets">
-          {MARKETS.map((m) => <MarketCard key={m.id} m={m} />)}
-        </Carousel>
-      </div>
+      {/* The "All Z-Liar Markets" carousel that used to sit here now renders at
+          the foot of the meter card — see the note at the top of this file. */}
     </div>
   );
 }
@@ -98,23 +94,5 @@ function VoteBtn({ active, disabled, onClick, color, icon, label }: {
       style={{ background: active ? `${color}28` : `${color}12`, color, border: `1px solid ${color}${active ? "" : "55"}` }}>
       {icon}{label}
     </button>
-  );
-}
-
-function MarketCard({ m }: { m: ZMarket }) {
-  const col = m.credibility < 35 ? INK.pink : m.credibility < 60 ? INK.gold : INK.green;
-  return (
-    <div className="w-[168px] rounded-xl border p-3" style={{ borderColor: INK.border, background: INK.bgCard }}>
-      <p className="font-mono text-[10px] font-bold uppercase tracking-wide" style={{ color: INK.white }}>{m.subject}</p>
-      <p className="font-sans text-[10px] italic mb-2" style={{ color: INK.muted, minHeight: 26 }}>{m.claim}</p>
-      <div className="flex items-center justify-between mb-2">
-        <span className="font-mono text-[9px] uppercase" style={{ color: INK.muted }}>credibility</span>
-        <span className="font-mono text-[13px] font-black" style={{ color: col }}>{m.credibility}%</span>
-      </div>
-      <div className="flex gap-1.5">
-        <span className="flex-1 text-center rounded-md py-1 font-mono text-[9px] font-bold" style={{ background: `${INK.pink}18`, color: INK.pink }}>LIAR {m.yes}x</span>
-        <span className="flex-1 text-center rounded-md py-1 font-mono text-[9px] font-bold" style={{ background: `${INK.green}18`, color: INK.green }}>TRUTH {m.no}x</span>
-      </div>
-    </div>
   );
 }

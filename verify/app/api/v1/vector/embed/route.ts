@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
-import { enforceRateLimit } from "@/lib/rate-limit";
+import { withRouteGuard } from "@/lib/with-route-guard";
 import { upsertIntel, vectorSearchAvailable } from "@/lib/vector-store";
 
 interface EmbedBody {
@@ -15,9 +15,14 @@ interface EmbedBody {
  * pgvector store (Part R build). Requires DB + GOOGLE_API_KEY; returns 503 when
  * unavailable so callers can degrade. Rate-limited (embedding calls cost).
  */
-export async function POST(req: Request) {
-  const limited = enforceRateLimit(req, "vector-embed", 20, 60_000);
-  if (limited) return limited;
+/**
+ * Signed-in only. Each call is a paid embedding request to a third-party
+ * model AND a write, so an anonymous caller could spend the project's budget
+ * and fill the table at the rate limiter's ceiling. No client caller.
+ */
+export const POST = withRouteGuard(
+  { mode: "session", bucket: "vector-embed", limit: 20, windowMs: 60_000 },
+  async (req) => {
 
   const body = (await req.json().catch(() => null)) as EmbedBody | null;
   if (!body || typeof body.title !== "string" || typeof body.content !== "string") {
@@ -47,4 +52,5 @@ export async function POST(req: Request) {
     console.error("vector/embed error:", e);
     return NextResponse.json({ success: false, error: "embed failed" }, { status: 500 });
   }
-}
+  },
+);
