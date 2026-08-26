@@ -207,7 +207,7 @@ export default function HoldHintProvider({ children }: { children: React.ReactNo
                     border: `1px solid ${hint.spec.kind === "measured" ? skin.positive : skin.gold}55`,
                   }}
                 >
-                  {KIND_LABEL[hint.spec.kind]}
+                  {KIND_LABEL[hint.spec.kind] ?? hint.spec.kind}
                 </span>
               ) : null}
             </div>

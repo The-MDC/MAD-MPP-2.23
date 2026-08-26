@@ -11,6 +11,8 @@ interface TreeBody {
  * tree with conviction bonuses (Part T, pure). Depth-bounded (64) and tolerant
  * of malformed nodes. No DB.
  */
+// PUBLIC-ROUTE: Decision-tree evaluation — pure maths, no DB, no external call.
+// Rate-limited, because open still needs a cost ceiling.
 export async function POST(req: Request) {
   const limited = enforceRateLimit(req, "bayesian-tree", 60, 60_000);
   if (limited) return limited;

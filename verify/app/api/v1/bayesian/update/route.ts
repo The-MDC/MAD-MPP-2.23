@@ -21,6 +21,8 @@ interface UpdateBody {
  * Given a prior + one or more likelihood ratios, returns the log-odds and
  * posterior. Optionally applies the hybrid MADConv update. No DB.
  */
+// PUBLIC-ROUTE: Posterior update — pure maths, no DB, no external call.
+// Rate-limited, because open still needs a cost ceiling.
 export async function POST(req: Request) {
   const limited = enforceRateLimit(req, "bayesian-update", 60, 60_000);
   if (limited) return limited;

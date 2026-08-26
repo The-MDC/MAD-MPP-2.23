@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
-import { enforceRateLimit } from "@/lib/rate-limit";
+import { withRouteGuard } from "@/lib/with-route-guard";
 import { createCardStats } from "@/lib/card-evolution";
 import { hasDatabaseUrl } from "@/lib/database-url";
 
 interface CreateBody {
   id?: unknown;
-  owner?: unknown;
   name?: unknown;
   faction?: unknown;
   virtualSeed?: unknown;
@@ -16,14 +15,17 @@ interface CreateBody {
  * POST /api/v1/cards/evolution/create — mint a fresh VIRTUAL (off-chain,
  * Level-1, unminted) living card (Part V). No gas, no token — cards stay virtual
  * until they evolve to L3+. 503 without DATABASE_URL.
+ *
+ * `owner` is the session address. It used to be a free-text body field behind
+ * a rate limit, so a card could be created under any owner string at all —
+ * including one that is not an address and one belonging to someone else.
  */
-export async function POST(req: Request) {
-  const limited = enforceRateLimit(req, "card-evo-create", 30, 60_000);
-  if (limited) return limited;
-
+export const POST = withRouteGuard(
+  { mode: "session", bucket: "card-evo-create", limit: 30, windowMs: 60_000 },
+  async (req, { owner }) => {
   const body = (await req.json().catch(() => null)) as CreateBody | null;
-  if (!body || typeof body.owner !== "string" || body.owner.trim() === "") {
-    return NextResponse.json({ success: false, error: "owner required" }, { status: 400 });
+  if (!body) {
+    return NextResponse.json({ success: false, error: "invalid JSON" }, { status: 400 });
   }
 
   if (!hasDatabaseUrl()) {
@@ -42,7 +44,7 @@ export async function POST(req: Request) {
     const pool = getDbPool();
     const card = await createCardStats(pool, {
       id,
-      owner: body.owner.trim(),
+      owner,
       name: typeof body.name === "string" ? body.name : null,
       faction: typeof body.faction === "string" ? body.faction : null,
       virtualSeed: typeof body.virtualSeed === "string" ? body.virtualSeed : null,
@@ -52,4 +54,5 @@ export async function POST(req: Request) {
     console.error("card-evolution/create error:", e);
     return NextResponse.json({ success: false, error: "create failed" }, { status: 500 });
   }
-}
+  },
+);

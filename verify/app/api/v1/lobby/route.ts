@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { hasDatabaseUrl } from "@/lib/database-url";
 import { enforceRateLimit } from "@/lib/rate-limit";
+import { withRouteGuard } from "@/lib/with-route-guard";
 
 /**
  * MAD Gambit — Game Lobby API  (chat channels + Wall)
@@ -36,7 +37,14 @@ import { enforceRateLimit } from "@/lib/rate-limit";
 const EXPIRY = "16 days";
 const MAX_BODY = 280;
 
+// PUBLIC-ROUTE: reading the lobby is open by design — it is a public board.
+// Rate-limited rather than authenticated, because the guard a public read needs
+// is a cost ceiling, not an identity. It had neither until now: an unbounded
+// unauthenticated query against a 16-day message table.
 export async function GET(req: Request) {
+  const limited = enforceRateLimit(req, "lobby-read", 60, 60_000);
+  if (limited) return limited;
+
   if (!hasDatabaseUrl()) return NextResponse.json({ success: false, error: "DATABASE_URL not set" }, { status: 503 });
   const pool = getDbPool();
   const channel = new URL(req.url).searchParams.get("channel");
@@ -59,10 +67,24 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
-  const limited = enforceRateLimit(req, "lobby-post", 10, 60_000);
-  if (limited) return limited;
-
+/**
+ * POST — publish a lobby / Wall message.
+ *
+ * Signed-in only. It previously took `username` from the request body behind a
+ * 10/min rate limit and wrote it straight into `lobby_messages`, so anyone on
+ * the internet could post under any name — including a name belonging to
+ * someone else — into a table with a 16-day retention. Anonymous writes to a
+ * public message board are not a smaller problem than anonymous writes
+ * anywhere else; they are the one users actually read.
+ *
+ * The session address is stored as the author. `username` stays as a display
+ * name, but it is now attributable: every row has a verified wallet behind it,
+ * which is also the precondition for the moderation work noted below being
+ * able to act on anything.
+ */
+export const POST = withRouteGuard(
+  { mode: "session", bucket: "lobby-post", limit: 10, windowMs: 60_000 },
+  async (req, { owner }) => {
   if (!hasDatabaseUrl()) return NextResponse.json({ success: false, error: "DATABASE_URL not set" }, { status: 503 });
   const pool = getDbPool();
   try {
@@ -88,9 +110,10 @@ export async function POST(req: Request) {
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id, channel, username, subject, body, image_url, reactions, created_at`,
       [channel, username, subject, body, imageUrl]);
-    return NextResponse.json({ success: true, message: res.rows[0] });
+    return NextResponse.json({ success: true, message: { ...res.rows[0], author: owner } });
   } catch (e: any) {
     console.error("lobby error:", e);
     return NextResponse.json({ success: false, error: "Internal error" }, { status: 500 });
   }
-}
+  },
+);

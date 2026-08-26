@@ -15,6 +15,8 @@ const nums = (v: unknown): number[] =>
  * brierScore + logScore). Forecasts vs outcomes → Brier (lower better) + Log
  * (higher better). Pure, no DB. Feeds the "Master Forecaster" meta-reward.
  */
+// PUBLIC-ROUTE: Bayesian scoring — pure maths, no DB, no external call.
+// Rate-limited, because open still needs a cost ceiling.
 export async function POST(req: Request) {
   const limited = enforceRateLimit(req, "bayesian-score", 60, 60_000);
   if (limited) return limited;
