@@ -22,7 +22,7 @@
  */
 import React, { useEffect, useMemo, useState } from "react";
 import HoldHint from "@/components/hold-hint";
-import { bookForDeckId, type PerpFamilyBook } from "@/lib/perp-family-markets";
+import { DECK_ID_TO_FAMILY, pendingBook, type PerpFamilyBook } from "@/lib/perp-family-markets";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import GambitInstrumentCluster from "@/components/gambit-instrument-cluster";
@@ -508,7 +508,28 @@ function Slider({
  * signal-only"), and inventing rows so all six cards behave identically would
  * make the deck assert positions the platform cannot take.
  */
-function PerpBookDialog({ book, onClose }: { book: PerpFamilyBook; onClose: () => void }) {
+function PerpBookDialog({ deckId, onClose }: { deckId: string; onClose: () => void }) {
+  // Starts as the pending shell, then fills from the scrape. Signal-only
+  // families never fetch — their answer is a statement, not a list.
+  const [book, setBook] = React.useState<PerpFamilyBook | null>(() => pendingBook(deckId));
+
+  React.useEffect(() => {
+    const family = DECK_ID_TO_FAMILY[deckId];
+    if (!family) return;
+    let alive = true;
+    fetch(`/api/v1/perps/family?family=${encodeURIComponent(family)}&limit=8`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!alive || !d?.success) return;
+        setBook({
+          family: d.family, label: d.label, tradeable: d.tradeable,
+          source: d.source, markets: d.markets ?? [], note: d.note ?? "",
+        });
+      })
+      .catch(() => {/* keep the pending shell; the note already says so */});
+    return () => { alive = false; };
+  }, [deckId]);
+
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
@@ -519,6 +540,8 @@ function PerpBookDialog({ book, onClose }: { book: PerpFamilyBook; onClose: () =
       document.body.style.overflow = prev;
     };
   }, [onClose]);
+
+  if (!book) return null;
 
   return (
     <div
@@ -537,23 +560,38 @@ function PerpBookDialog({ book, onClose }: { book: PerpFamilyBook; onClose: () =
             style={{ flex: "none", width: 26, height: 26, borderRadius: 8, border: "1px solid color-mix(in srgb, var(--tx,#f0f0f8) 14%, transparent)", background: "transparent", color: "var(--mu,#6b7280)", cursor: "pointer", fontSize: 13, lineHeight: 1 }}
           >×</button>
         </div>
-        <div style={{ fontSize: 7, letterSpacing: 1.2, color: "var(--mu,#6b7280)", textTransform: "uppercase", marginBottom: 12 }}>{book.kicker}</div>
+        <div style={{ fontSize: 7, letterSpacing: 1.2, color: "var(--mu,#6b7280)", textTransform: "uppercase", marginBottom: 12 }}>
+          {book.source === "live" ? "From the latest scrape" : book.source === "demo" ? "Demo signals · real classifier" : "Signal-only"}
+        </div>
 
         {book.tradeable ? (
           <>
             <div style={{ fontSize: 8, color: "var(--mu,#6b7280)", marginBottom: 9 }}>{book.note}</div>
             <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+              {book.markets.length === 0 ? (
+                <div style={{ fontSize: 10, color: "var(--mu,#6b7280)", padding: "10px 0" }}>
+                  Nothing in this family yet — the note above says why.
+                </div>
+              ) : null}
               {book.markets.map((m) => (
                 <div key={m.id} style={{ border: "1px solid color-mix(in srgb, var(--tx,#f0f0f8) 9%, transparent)", background: "var(--cd,#111520)", borderRadius: 10, padding: 10 }}>
                   <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
                     <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1, color: TX, textTransform: "uppercase" }}>{m.subject}</span>
                     <span style={{ flex: "none", fontSize: 12, fontWeight: 900, color: C }}>{Math.round(m.reading * 100)}%</span>
                   </div>
-                  <div style={{ fontSize: 9.5, fontStyle: "italic", color: "var(--mu,#6b7280)", margin: "3px 0 7px" }}>{m.claim}</div>
+                  {/* The satirical one-liner leads; the headline it rewrites sits
+                      under it. A rewrite shown without its source is the
+                      attribution problem the ticker already had. */}
+                  <div style={{ fontSize: 9.5, fontStyle: "italic", color: TX, margin: "3px 0 2px" }}>{m.oneLiner ?? m.subject}</div>
+                  {m.realHeadline ? (
+                    <div style={{ fontSize: 7.5, color: "var(--mu,#6b7280)", margin: "0 0 7px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <span style={{ color: GD }}>satire</span> · {m.realHeadline}
+                    </div>
+                  ) : <div style={{ height: 5 }} />}
                   <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                     <span style={{ flex: 1, textAlign: "center", borderRadius: 6, padding: "3px 0", fontSize: 8.5, fontWeight: 800, color: PO, background: "color-mix(in srgb, var(--po,#00ff88) 12%, transparent)" }}>LONG {m.longOdds}x</span>
                     <span style={{ flex: 1, textAlign: "center", borderRadius: 6, padding: "3px 0", fontSize: 8.5, fontWeight: 800, color: "var(--a2,#ff007f)", background: "color-mix(in srgb, var(--a2,#ff007f) 12%, transparent)" }}>SHORT {m.shortOdds}x</span>
-                    <span style={{ flex: "none", fontSize: 7, letterSpacing: 0.8, color: "var(--mu,#6b7280)", textTransform: "uppercase" }}>{m.legDays}d leg · {m.maxLeverage}x max</span>
+                    <span style={{ flex: "none", fontSize: 7, letterSpacing: 0.8, color: "var(--mu,#6b7280)", textTransform: "uppercase" }}>{m.legDays}d leg · {m.horizonDays}d horizon</span>
                   </div>
                 </div>
               ))}
@@ -817,8 +855,9 @@ export default function PerpDials({
       >
         {CARDS.map((card) => {
           const tCanvas = tickerCanvas(card.id);
-          // Engine-derived, and honest for the three signal-only families.
-          const book = bookForDeckId(card.id);
+          // The shell only — the real list comes from the scrape when the
+          // dialog opens. Enough to word the hint and the aria-label.
+          const book = pendingBook(card.id);
           const openThis = () => setOpenBook(card.id);
           // Shared by the instrument and the ticker: both open the same book,
           // because to a reader they are two views of one family.
@@ -827,7 +866,7 @@ export default function PerpDials({
                 title: book.label,
                 kind: book.tradeable ? ("measured" as const) : undefined,
                 body: book.tradeable
-                  ? `Tap for all ${book.markets.length} open position${book.markets.length === 1 ? "" : "s"} in this family. Readings come from GARCH(1,1) with the platform's own coefficients; legs are paced by the lunar phase multiplier.`
+                  ? "Tap for every market in this family, straight from the latest scrape — each one classified by the same engine and carrying its satirical one-liner. Readings from GARCH(1,1); legs paced by the lunar phase multiplier."
                   : book.note,
                 action: { label: book.tradeable ? "Open all markets" : "What this means", onSelect: openThis },
               }
@@ -1111,9 +1150,7 @@ export default function PerpDials({
       </div>
       </div>
 
-      {openBook && bookForDeckId(openBook) ? (
-        <PerpBookDialog book={bookForDeckId(openBook)!} onClose={() => setOpenBook(null)} />
-      ) : null}
+      {openBook ? <PerpBookDialog deckId={openBook} onClose={() => setOpenBook(null)} /> : null}
     </div>
   );
 }
