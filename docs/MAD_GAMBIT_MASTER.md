@@ -83,9 +83,30 @@ these checks on `main`. And the Octavian creature **merged without any human eve
 
 ## 2 · Do these first
 
-### 2.1 — Visual pass on the Octavian creature 🔴 *still unreviewed by a human*
+### 2.1 — Visual pass on the Octavian creature 🟡 *rendered and reviewed 2026-08-26; human eyes still wanted*
 It compiles, lints, type-checks, builds and passes tests. None of that catches a canvas that
 renders wrong. Look at `/octavian`, the `/preview` inline mesh, and the desktop corner HUD.
+
+**It has now been rendered.** The draw pipeline was reproduced in a headless-Chromium harness
+importing the real `instrument-chrome` / `octavian-state` / `node-registry` (see §7 for the
+recipe), which found and fixed a defect no source read had caught: node badges were drawn at
+`7.5 * scale` — 20.5px on the 300px panel, **47.8px** in the 700px pop-out — with a depth
+threshold of `p.k > 0.36` that sat barely above the *floor* of k's actual range `[0.339, 0.541]`,
+so nearly every node was labelled at once. The creature was behind a wall of its own labels.
+Font clamped to 6–10px, threshold raised to 0.47 (~the nearest quarter), selected node always
+labelled. Measured envelope, worst painted pixel as a fraction of the half-box:
+
+| case | envelope | |
+|---|---|---|
+| phone panel 300×300, calm | 73.3% | fits (82.2% before the label fix) |
+| phone panel 300×300, agitated | 65.9% | fits |
+| corner HUD 140×140 | 73.3% | fits |
+| pop-out 700×700 | 73.3% | fits |
+| zoom ×4 (max pinch-in) | 293.3% | clipped — expected, that *is* zooming in |
+
+Identical figures at 140/300/700px confirm the `ORB_FIT` derivation is size-invariant as claimed.
+**What a render still cannot answer:** whether the body reads well in motion, and whether the
+mood-tier colour crossfade lands. That part still needs a person.
 
 **A container-sizing bug was found and fixed since this item was written** (`0.42` → derived
 `~0.262` of `min(w,h)`). `project()` places the sphere silhouette at exactly `R`, but nothing
@@ -189,11 +210,38 @@ unexplained freeze. **Phases 1–2 are prerequisites for Phase 3, not parallel w
 | Cross-org `add_repo` | *"cross-tier adds are not supported"* | Session scoped to `maddegen`; `The-MDC/*` repos unreachable. |
 | v0 MCP server | disconnected | Couldn't query v0 chats (Part 0 §7). |
 
+### Not as blocked as this table has been saying (corrected 2026-08-26)
+
+"No `npm install`, no local typecheck" was half right and cost a lot of
+verification that was available all along. `npm install` is genuinely dead. The
+rest is not:
+
+| Actually available | Where | What it buys |
+|---|---|---|
+| `tsc` | `/opt/node22/bin/tsc` (global, no `node_modules` needed) | Real **parse / syntax / JSX-nesting / arity** checking. Run it with `--ignoreConfig --noEmit --skipLibCheck --jsx preserve --moduleResolution bundler` over the changed files and filter out `TS2307` (unresolved module), `TS70xx` (implicit any) and `TS18046/TS2571` (unknown) — those are all artefacts of missing `@types`. **Anything left is a real error.** All 332 files under `app/ components/ lib/ hooks/ context/` parse clean today, so that filtered set is a working baseline, not a wish. |
+| `eslint` 10 | global | Not wired up — no flat config resolves without `eslint-config-next`. Noted so the next session does not re-discover the binary and assume it is usable. |
+| Chromium + `http-server` | `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`, global `http-server` | **Components can be rendered and looked at locally.** See §7 for the recipe. |
+
+The npm-registry block never implied a rendering block; the two were merged into
+one sentence and the second half was never tested.
+
 ---
 
 ## 7 · Things a future session will get wrong without this
 
 - **`octavian-mesh.tsx` does not exist.** Merged into `octavian-creature.tsx` (`compact`/`full` variants). Zoom, two-axis orbit, click-select, pop-out, mood system, shared state and the firefly swarm **all already ship** — don't rebuild them.
+
+- **You can render a canvas component and LOOK at it. Do that before claiming it is fine.** `octavian-creature.tsx` was merged three times without anyone seeing it, and was drawing its node badges at 20px on the phone panel and **48px** in the pop-out, on ~20 nodes at once — the creature was behind a wall of its own grey labels, and no amount of reading the source made that obvious. The recipe, ~5 minutes end to end:
+
+  1. `tsc --ignoreConfig --outDir <scratch> --target es2022 --module esnext --moduleResolution bundler --skipLibCheck lib/<deps>.ts` — emits JS even with type errors, so missing `@types` do not stop it.
+  2. A harness `.html` with `<script type="importmap">` mapping `@/lib/x` → `./x.js`, importing the **real** transpiled modules. Copy only the `draw()` body from the component; never re-implement the maths, or you are reviewing a different creature.
+  3. Serve it: `npx http-server -p 8899 <scratch>`. **This step is not optional** — Chromium refuses ES-module imports over `file://` (CORS), and the symptom is a silent blank page, not an error.
+  4. `chrome --headless=new --no-sandbox --disable-gpu --no-proxy-server --virtual-time-budget=5000 --window-size=W,H --screenshot=out.png http://127.0.0.1:8899/harness.html`
+  5. Read the PNG. Draw a 1px frame at the true canvas bounds and print a measured envelope figure per case, so the answer is a number and not an impression.
+
+  `--no-proxy-server` matters: the agent proxy 403s `madgambit.io`, so **the live app cannot be screenshotted** — only locally-served harnesses. Do not go looking for a way around that again.
+
+- **The repo's default branch is `The-MDC`, not `main`, and that quietly disables `.github/dependabot.yml`.** Dependabot reads its config from the default branch, so the `actions/checkout` v4 hold reasoned out on `main` is **not in force** — `The-MDC`'s copy has no `ignore` block. It also opens PRs against the default branch, which is why `The-MDC` carries a bump `main` has never seen (eslint 8→10, typescript 5→7, siwe 2→3, framer-motion 12→13) sitting on a tree that predates main's SIWE and market-book work. **Do not port that `package.json` to `main`**: the lockfile cannot be regenerated here and `npm ci` fails when the two disagree. Fix is one repo setting — Settings → General → Default branch → `main` — and only the founder can make it.
 - **The build no longer runs migrations.** `next build` only; migrations are a controlled `npm run migrate:deploy`. Don't set `SKIP_MIGRATIONS` on Vercel.
 - **The `$MADx` transfer vulnerability is FIXED.** A stale-tree review reported it open; all seven `madx` routes use `lib/madx-route-auth.ts`. **Do not re-fix it.**
 - **The `.agents/` swarm verdicts are static-only.** All four 2026-07-01 milestones returned CLEAN, but every shell command in that run timed out — nothing was ever executed.
