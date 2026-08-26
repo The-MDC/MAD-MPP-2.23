@@ -187,7 +187,54 @@ function drawFirefly(
   ctx.globalAlpha = 1;
 }
 
-function OctavianCanvasPanel({ variant, onPopOut }: { variant: "compact" | "full"; onPopOut?: () => void }) {
+/**
+ * The dismiss ×, in the panel's top-right.
+ *
+ * Universal by construction: it is rendered by OctavianCanvasPanel itself, so
+ * every presentation of the creature carries it — the corner HUD, the inline
+ * /preview mesh, the /octavian instrument. The one place it is deliberately
+ * absent is inside the pop-out, which already owns a × of its own; two stacked
+ * close buttons in the same corner is a worse answer than one.
+ *
+ * Positioned against the CANVAS box rather than the grid, so inside the phone
+ * frame it lands on the creature's own top-right corner and not somewhere off
+ * beside the info panel.
+ */
+function DismissButton({ onDismiss, gold }: { onDismiss: () => void; gold: string }) {
+  return (
+    <button
+      type="button"
+      aria-label="Hide Octavian"
+      onClick={(e) => { e.stopPropagation(); onDismiss(); }}
+      // The canvas beneath swallows pointer gestures to orbit the mesh; without
+      // stopping propagation here, closing the panel would also prod the
+      // creature on the way out.
+      onPointerDown={(e) => e.stopPropagation()}
+      onDoubleClick={(e) => e.stopPropagation()}
+      style={{
+        position: "absolute", top: 4, right: 4, zIndex: 3,
+        width: 20, height: 20, borderRadius: 999,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        border: `1px solid ${gold}55`, background: "rgba(0,0,0,0.5)",
+        color: gold, fontSize: 11, lineHeight: 1, cursor: "pointer", padding: 0,
+        fontFamily: INSTRUMENT_FONT,
+      }}
+    >
+      ×
+    </button>
+  );
+}
+
+function OctavianCanvasPanel({
+  variant,
+  onPopOut,
+  onDismiss,
+}: {
+  variant: "compact" | "full";
+  onPopOut?: () => void;
+  /** Omitted inside the pop-out, which has its own close control. */
+  onDismiss?: () => void;
+}) {
   const { skin } = useSkin();
   const cvRef = useRef<HTMLCanvasElement | null>(null);
   const full = variant === "full";
@@ -495,9 +542,30 @@ function OctavianCanvasPanel({ variant, onPopOut }: { variant: "compact" | "full
     />
   );
 
-  if (!full) return canvas;
+  if (!full) {
+    // Wrapped so the × has a positioning context. The wrapper takes the size
+    // the parent was already giving the canvas, so the corner HUD's layout is
+    // unchanged.
+    return (
+      <div style={{ position: "relative", width: "100%", height: "100%" }}>
+        {canvas}
+        {onDismiss ? <DismissButton onDismiss={onDismiss} gold={skin.gold} /> : null}
+      </div>
+    );
+  }
 
   const def = NODE_REGISTRY[selected];
+  const at = Math.max(0, NODE_IDS.indexOf(selected));
+  /** Wrap-around, so the row is a loop rather than a track with two dead ends. */
+  const step = (delta: number) =>
+    setSharedSelection(NODE_IDS[(at + delta + NODE_IDS.length) % NODE_IDS.length]);
+  const arrowStyle: React.CSSProperties = {
+    width: 26, height: 22, borderRadius: 7, flex: "none",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    border: `1px solid ${skin.border}`, background: "transparent",
+    color: skin.gold, fontSize: 12, lineHeight: 1, cursor: "pointer", padding: 0,
+    fontFamily: INSTRUMENT_FONT,
+  };
   return (
     <div className="mg-octavian-shell">
     <div
@@ -509,6 +577,11 @@ function OctavianCanvasPanel({ variant, onPopOut }: { variant: "compact" | "full
         color: skin.text,
       }}
     >
+      {/* One grid cell holding the canvas AND the stepper beneath it.
+          .mg-octavian-grid is a two-column grid, so a third direct child would
+          auto-place into column 2 and shove the aside down into a second row —
+          the stepper has to travel with the canvas, not beside it. */}
+      <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
       {/* A 300x300 square, not a 420px-tall column.
           The creature is drawn from Math.min(w, h), so a tall box wastes every
           pixel of the extra height — it made the panel half a phone screen high
@@ -529,9 +602,43 @@ function OctavianCanvasPanel({ variant, onPopOut }: { variant: "compact" | "full
         <div style={{ position: "absolute", left: 2, top: 2, fontSize: 6.5, letterSpacing: 0.9, color: skin.muted, textTransform: "uppercase" }}>
           Drag to orbit · tap a node · double-click to expand
         </div>
+        {onDismiss ? <DismissButton onDismiss={onDismiss} gold={skin.gold} /> : null}
       </div>
 
-      <aside style={{ display: "flex", flexDirection: "column", gap: 10, minWidth: 0 }}>
+      {/* Node stepper — directly beneath the canvas box.
+          Tapping a node means hitting a few pixels of firefly on a sphere that
+          is rotating, and roughly half the nodes are on the far side at any
+          moment: there was no way to reach a specific node except waiting for
+          it to come round. These arrows walk the registry in order, and because
+          selection lives in the shared octavian-state store, stepping here moves
+          the selection on every other mount of the creature too. */}
+      <div
+        style={{
+          width: "min(300px, 100%)", margin: "6px auto 0",
+          display: "flex", alignItems: "center", gap: 8,
+        }}
+      >
+        <button type="button" aria-label="Previous node" onClick={() => step(-1)} style={arrowStyle}>‹</button>
+        <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
+          <div style={{ fontSize: 7, fontWeight: 800, letterSpacing: 1.2, color: skin.gold, textTransform: "uppercase", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {def.badge}
+          </div>
+          <div style={{ fontSize: 6.5, letterSpacing: 0.8, color: skin.muted }}>
+            {at + 1} / {NODE_IDS.length}
+          </div>
+        </div>
+        <button type="button" aria-label="Next node" onClick={() => step(1)} style={arrowStyle}>›</button>
+      </div>
+      </div>
+
+      {/* minHeight:0 + overflowY:auto is what makes the pop-out wrap instead of
+          clip. The grid row stretches this aside to the panel's full height, and
+          a flex/grid item's default min-height:auto refuses to shrink below its
+          content — so long copy overflowed the panel invisibly rather than
+          scrolling. overflowWrap on the text below handles the other half: a
+          single long unbroken token (a URL in a stat line, a compound badge)
+          would otherwise push the column wider than its track. */}
+      <aside style={{ display: "flex", flexDirection: "column", gap: 10, minWidth: 0, minHeight: 0, overflowY: "auto", overflowWrap: "anywhere" }}>
         <div style={{ fontSize: 7, fontWeight: 800, letterSpacing: 1.4, color: skin.gold, textTransform: "uppercase" }}>
           {def.badge}{def.comingSoon ? " · soon" : ""}
         </div>
@@ -555,6 +662,13 @@ export interface OctavianCreatureProps {
 
 export default function OctavianCreature({ variant }: OctavianCreatureProps) {
   const [poppedOut, setPoppedOut] = useState(false);
+  // Dismissal is per-mount, NOT shared through octavian-state like mood and
+  // selection are. Those are properties of the creature; this is a property of
+  // one window onto it. Hiding the corner HUD should not blank the /octavian
+  // instrument in another tab, which is exactly what a module-scope flag would
+  // do given "one creature, many windows".
+  const [dismissed, setDismissed] = useState(false);
+  const { skin } = useSkin();
 
   useEffect(() => {
     if (!poppedOut) return;
@@ -570,9 +684,37 @@ export default function OctavianCreature({ variant }: OctavianCreatureProps) {
     };
   }, [poppedOut]);
 
+  // Dismissed collapses to a chip rather than rendering nothing. A × that
+  // removes a surface with no way back is a one-way door on the page's most
+  // distinctive element, and the founder's own spec has the creature reacting
+  // to being prodded — permanently closing it by accident is the one
+  // interaction that cannot be undone by prodding it again.
+  if (dismissed) {
+    return (
+      <button
+        type="button"
+        onClick={() => setDismissed(false)}
+        style={{
+          display: "inline-flex", alignItems: "center", gap: 6,
+          padding: "5px 11px", borderRadius: 999,
+          border: `1px solid ${skin.gold}55`, background: "transparent",
+          color: skin.gold, cursor: "pointer",
+          fontFamily: INSTRUMENT_FONT, fontSize: 8, fontWeight: 800,
+          letterSpacing: 1.2, textTransform: "uppercase",
+        }}
+      >
+        <span aria-hidden>◉</span> Show Octavian
+      </button>
+    );
+  }
+
   return (
     <>
-      <OctavianCanvasPanel variant={variant} onPopOut={() => setPoppedOut(true)} />
+      <OctavianCanvasPanel
+        variant={variant}
+        onPopOut={() => setPoppedOut(true)}
+        onDismiss={() => setDismissed(true)}
+      />
       {poppedOut && (
         <div className="mg-ov-popout-backdrop" onClick={() => setPoppedOut(false)}>
           <div className="mg-ov-popout-panel" onClick={(e) => e.stopPropagation()}>
