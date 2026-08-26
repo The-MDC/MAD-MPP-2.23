@@ -511,10 +511,29 @@ function OctavianCanvasPanel({
             ctx.stroke();
           }
 
-          if (full && p.k > 0.36) {
+          // Badge labels. Two bugs lived in the three lines this replaces, and
+          // both were only visible by rendering the thing:
+          //
+          // SIZE. `7.5 * scale` grows linearly with the sphere radius, and
+          // scale = R / 28.8. At the 300px panel that is 7.5 * 2.73 = 20.5px;
+          // in the 700px pop-out, 7.5 * 6.37 = 47.8px. Twenty words of 48px
+          // type over a 700px canvas is not a label layer, it is a wall of grey
+          // text with a creature somewhere behind it. Clamped to a caption-sized
+          // 6–10px, which is what the 7.5 was always reaching for.
+          //
+          // COUNT. k = 1/(2.4 + z2*0.55) with z2 in [-1,1], so k only ever spans
+          // [0.339, 0.541] — a threshold of 0.36 sat barely above the FLOOR and
+          // therefore labelled almost every node, front and back alike, all
+          // overlapping. 0.47 keeps roughly the nearest quarter.
+          //
+          // The selected node is always labelled regardless of depth: the aside
+          // and the stepper both name it, so it has to be findable on the mesh
+          // even when it has rotated to the back.
+          const labelled = full && (isSelected || p.k > 0.47);
+          if (labelled) {
             const def = NODE_REGISTRY[NODE_IDS[i]];
-            ctx.globalAlpha = Math.min(1, (p.k - 0.3) * 5);
-            ctx.font = `800 ${7.5 * scale}px ${INSTRUMENT_FONT}`;
+            ctx.globalAlpha = isSelected ? 1 : Math.min(1, (p.k - 0.44) * 12);
+            ctx.font = `800 ${Math.max(6, Math.min(10, 7.5 * scale))}px ${INSTRUMENT_FONT}`;
             ctx.fillStyle = isSelected ? skin.gold : skin.muted;
             ctx.textAlign = "center";
             ctx.fillText(def.badge, p.x, p.y - r - 5 * scale);
