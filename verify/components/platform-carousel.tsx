@@ -15,6 +15,8 @@
 
 import React, { useEffect, useState } from "react";
 import { GOLD_CHISEL_STOPS, INSTRUMENT_FONT, INK } from "@/lib/gambit-design-tokens";
+import HoldHint from "@/components/hold-hint";
+import type { HoldHintSpec } from "@/lib/hold-hint-context";
 
 interface PillarCard {
   id: string;
@@ -46,19 +48,78 @@ interface PillarCard {
  */
 const DECK_SIZE = "992";
 
-function pillars(m: { activeMarkets: number; openBets: number; chaos: number } | null): PillarCard[] {
+interface Metrics {
+  activeMarkets: number;
+  openBets: number;
+  chaos: number;
+  source: "live" | "demo" | string;
+}
+
+/**
+ * `source` was being fetched and then thrown away, and that was not cosmetic.
+ * /api/v1/dopamine/metrics answers a database-less deployment with a ZEROED
+ * metrics object tagged source:"demo" \u2014 so the tiles rendered "0 OPEN MARKETS"
+ * and "0 PENDING WAGERS", which is a specific, confident, false claim. A
+ * platform with no database and a platform with genuinely nothing open are not
+ * the same state and must not read the same.
+ *
+ * Demo therefore falls back to the em dash, exactly as a failed fetch already
+ * did, and the hint on each tile says which of the two it is in words.
+ */
+function isLive(m: Metrics | null): m is Metrics {
+  return !!m && m.source === "live";
+}
+
+function pillars(m: Metrics | null): PillarCard[] {
   const dash = "\u2014";
+  const live = isLive(m);
   return [
-    { id: "convictions", title: "CONVICTIONS", stat: m ? String(m.activeMarkets) : dash, statLabel: "OPEN MARKETS",      color: "#ffcf40", glyph: "\u2696" },
-    { id: "predictions", title: "PREDICTIONS", stat: m ? String(m.openBets) : dash,      statLabel: "PENDING WAGERS",    color: "#00e5ff", glyph: "\u25CE" },
-    { id: "zliar",       title: "Z-LIAR METER", stat: m ? `${Math.round(m.chaos)}` : dash, statLabel: "CHAOS INDEX (24H)", color: "#ff007f", glyph: "\u26A0" },
+    { id: "convictions", title: "CONVICTIONS", stat: live ? String(m.activeMarkets) : dash, statLabel: "OPEN MARKETS",      color: "#ffcf40", glyph: "\u2696" },
+    { id: "predictions", title: "PREDICTIONS", stat: live ? String(m.openBets) : dash,      statLabel: "PENDING WAGERS",    color: "#00e5ff", glyph: "\u25CE" },
+    { id: "zliar",       title: "Z-LIAR METER", stat: live ? `${Math.round(m.chaos)}` : dash, statLabel: "CHAOS INDEX (24H)", color: "#ff007f", glyph: "\u26A0" },
     { id: "cardgame",    title: "CARD GAME",    stat: DECK_SIZE, statLabel: "CANONICAL DECK SIZE", color: "#00ff88", glyph: "\u2660" },
   ];
 }
 
-function GoldPillarTile({ pillar, uid }: { pillar: PillarCard; uid: string }) {
+/**
+ * What each tile explains on hover / press-and-hold. The deck size is a
+ * compile-time constant from the maths engine and is always "measured"; the
+ * other three are only measured when the database actually answered.
+ */
+function hintFor(id: string, m: Metrics | null): HoldHintSpec {
+  const live = isLive(m);
+  const noSource = "No database reading \u2014 the tile shows an em dash rather than a zero, because \u201Cnothing open\u201D and \u201Cnothing to ask\u201D are different answers.";
+  const kind = live ? ("measured" as const) : ("estimated" as const);
+  switch (id) {
+    case "convictions":
+      return { title: "Open markets", kind, body: live ? "Live count of markets in the `open` state, straight from the markets table." : noSource };
+    case "predictions":
+      return { title: "Pending wagers", kind, body: live ? "Live count of bets still in the `pending` state \u2014 placed, not yet settled." : noSource };
+    case "zliar":
+      return {
+        title: "Chaos index",
+        kind,
+        body: live
+          ? "24h mean GCAM scandal velocity from gdelt_signals, scaled to 0\u2013100. Not the Z-Liar BS-index itself: that one is computed per statement by zLiarMeter(), so it has no platform-wide value. This is its honest platform analogue."
+          : noSource,
+      };
+    default:
+      return {
+        title: "Canonical deck",
+        kind: "measured",
+        body: "PLATFORM.TOTAL_DECK_SIZE from lib/gambit-game-math \u2014 992 cards. A constant, not a reading, so it is the one number here that cannot go stale.",
+      };
+  }
+}
+
+function GoldPillarTile({ pillar, uid, hint }: { pillar: PillarCard; uid: string; hint: HoldHintSpec }) {
   return (
+    <HoldHint hint={hint}>
     <div
+      // Focusable so the explanation is reachable by keyboard, not just by
+      // pointer — the tile is a readout, so tabIndex 0 with no role is the
+      // honest description: something you can inspect, not something you press.
+      tabIndex={0}
       style={{
         flex: "0 0 auto",
         width: "168px",
@@ -103,11 +164,12 @@ function GoldPillarTile({ pillar, uid }: { pillar: PillarCard; uid: string }) {
         </div>
       </div>
     </div>
+    </HoldHint>
   );
 }
 
 export default function PlatformCarousel() {
-  const [metrics, setMetrics] = useState<{ activeMarkets: number; openBets: number; chaos: number; source: string } | null>(null);
+  const [metrics, setMetrics] = useState<Metrics | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -133,7 +195,7 @@ export default function PlatformCarousel() {
         }}
       >
         {loop.map((p, i) => (
-          <GoldPillarTile key={`${p.id}-${i}`} pillar={p} uid={`pillar-${i}`} />
+          <GoldPillarTile key={`${p.id}-${i}`} pillar={p} uid={`pillar-${i}`} hint={hintFor(p.id, metrics)} />
         ))}
       </div>
       <style>{`

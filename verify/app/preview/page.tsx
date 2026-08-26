@@ -44,6 +44,8 @@ import { KaitoPriceTicker, PredictionCircus } from "@/components/kaito-and-circu
 // second clock the founder rejected.
 import PlatformCarousel from "@/components/platform-carousel";
 import UnpackedCardsCarousel from "@/components/unpacked-cards-carousel";
+import HoldHint from "@/components/hold-hint";
+import type { HoldHintSpec } from "@/lib/hold-hint-context";
 import GambitCardsAuctionSection from "@/components/gambit-cards-auction-section";
 import InstrumentDeckSection from "@/components/instrument-deck-section";
 import OctavianCreature from "@/components/octavian-creature";
@@ -81,18 +83,52 @@ import { GambitNodeProvider, useGambitNode } from "@/components/gambit-node";
  * deep-link into /markets at their own class anchor (see market-deck.tsx's
  * `anchorId`), and Octavian opens its dedicated /octavian instrument.
  *
- * NOTE — Affliction maps to /markets#perps. Affliction is the MADHATs game,
- * and its markets are the perpetual families (GossipCop, Five Faces,
- * Zeitgeist, Epiphanies) which live under the Perps deck. That mapping is an
- * inference from the taxonomy, not a stated instruction; if Affliction should
- * land somewhere else, this line is the only thing to change.
+ * AFFLICTION — corrected. This previously pointed at /markets#perps on the
+ * reasoning that Affliction's markets were the perpetual families. That was an
+ * inference, and the codebase already disagreed with it in four places:
+ *
+ *   perp-dials.tsx:439   Affliction → "MADHATs game", href /preview#affliction
+ *   pack-opening.tsx     "the Affliction Step 1: Rip Scandal Pack"
+ *   dopamine-engine.tsx  "Variable Reward · Affliction Layer"
+ *   roast-share.tsx      "Step 6 of The Affliction"
+ *   (and PredictionCircusScreen.kt: "AFFLICTION (The Hook)")
+ *
+ * Affliction is the dopamine loop — the card game, the pack rip, the hook —
+ * not the perps deck. Perps are their own class and already have their own
+ * button-free anchor at /markets#perps. So Affliction now lands on the game
+ * block on this page, at the #affliction anchor, which is the href perp-dials
+ * has been pointing at all along — an anchor that did not exist until now, so
+ * that link silently dumped visitors at the top of /preview.
+ *
+ * "All markets" is likewise wrong for it: the card game has no market list.
+ * Its "everything of this kind" is the deck — all 992 cards.
  */
 const DESKS: { label: string; sub: string; href: string }[] = [
   { label: "Prediction", sub: "All markets", href: "/markets#prediction" },
   { label: "Conviction", sub: "All markets", href: "/markets#conviction" },
-  { label: "Affliction", sub: "All markets", href: "/markets#perps" },
+  { label: "Affliction", sub: "All cards", href: "#affliction" },
   { label: "Octavian", sub: "Node mesh", href: "/octavian" },
 ];
+
+/** What each desk button explains on hover / press-and-hold. */
+const DESK_HINTS: Record<string, HoldHintSpec> = {
+  Prediction: {
+    title: "Prediction",
+    body: "Dated markets that resolve against a stated criterion, priced de-vigged. You take a side, it settles on a date. Opens the full prediction deck.",
+  },
+  Conviction: {
+    title: "Conviction",
+    body: "Graded belief with no settle leg — you stake how strongly you hold a view, and creators ladder off it. Opens the full conviction deck.",
+  },
+  Affliction: {
+    title: "Affliction",
+    body: "The hook: scandal packs, the rip, and the MADHATs Gambit deck. Rarity comes from openCardPack() in the maths engine, so what drops is the real distribution. Jumps to the game block below.",
+  },
+  Octavian: {
+    title: "Octavian",
+    body: "The node mesh — every platform subsystem as a light on one sphere, brightening with what the platform is actually doing. Drag to orbit, tap a node to read it.",
+  },
+};
 
 /** Dopamine tap — a small celebration burst at the click point. */
 function tap(e: React.MouseEvent, intensity = 0.5) {
@@ -291,8 +327,8 @@ function PreviewInner() {
           }}
         >
           {DESKS.map((d) => (
+            <HoldHint key={d.label} hint={DESK_HINTS[d.label]}>
             <a
-              key={d.label}
               href={d.href}
               onClick={(e) => tap(e, 0.5)}
               style={{
@@ -309,6 +345,7 @@ function PreviewInner() {
                 {d.sub} ›
               </span>
             </a>
+            </HoldHint>
           ))}
         </nav>
 
@@ -428,8 +465,13 @@ function PreviewInner() {
                 you form a conviction, you buy the cards that back it, the
                 auction sets the price. Apart, they read as three unrelated
                 features. */}
+            {/* id="affliction", not the orphaned "mg-game" it replaced: nothing
+                linked to mg-game, while perp-dials.tsx has always linked to
+                /preview#affliction — an anchor that did not exist, so that tile
+                dropped visitors at the top of the page. Same block, the name the
+                rest of the app was already using. */}
             <div
-              id="mg-game"
+              id="affliction"
               style={{
                 display: "grid",
                 gridTemplateColumns: wide ? "1fr 1fr" : "1fr",

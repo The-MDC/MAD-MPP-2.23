@@ -4,15 +4,34 @@
  * MΛĐ Gambit — Kaito Dynamic Ticker
  * ------------------------------------------------------------------
  * Ported from MainActivity.kt GlobalSkinsAndKaitoHUD.
- * Shows $MADx / $ETH / $SOL / $PEPE with pulsing live indicator.
- * PLACEHOLDER: wire to real price oracle in prod
- * (see docs/BACKEND_PLACEHOLDERS.md → ORACLE).
+ * Shows $MADx / $ETH / $SOL / $PEPE.
+ *
+ * ── This tape is simulated, and now says so ──────────────────────────
+ * It previously read "KAITO LIVE FEED" beside a pulsing green dot, over four
+ * hardcoded prices jittered by Math.random() every three seconds. It renders on
+ * /preview and /mpp2.23 — both shipped — so a visitor was shown "$ETH 3,140 ▼
+ * 2.15%" under a live indicator, and every part of that except the ticker
+ * symbol was invented on the spot.
+ *
+ * A price is the one number a user is most likely to act on and least able to
+ * sanity-check, so the "PLACEHOLDER: wire to real oracle" comment that used to
+ * sit up here was load-bearing documentation for a claim the interface was
+ * making out loud to end users. A comment cannot carry that.
+ *
+ * The tape stays — it is part of the instrument language — but the LIVE claim
+ * and the green pulse are gone, and the label says SIMULATED. Wiring it for
+ * real is a product decision, not a code cleanup: it needs a chosen provider
+ * (Chainlink feeds via the existing viem client, or the Kaito API), a key, and
+ * that provider's origin added to `connect-src` in next.config.ts, which is
+ * currently Report-Only and would otherwise fail silently at first and loudly
+ * on promotion. Until those three exist, honest beats fabricated.
  */
 
 import React, { useState, useEffect } from "react";
 import { Radio } from "lucide-react";
+import HoldHint from "@/components/hold-hint";
 
-// PLACEHOLDER price data — prod wires to Chainlink price feeds / Kaito API
+// SIMULATED price data — see the header. Prod wires to Chainlink / Kaito.
 const BASE_PRICES: { symbol: string; price: number; change: number }[] = [
   { symbol: "$MADx", price: 2.48,    change: 18.42 },
   { symbol: "$ETH",  price: 3140,    change: -2.15 },
@@ -30,15 +49,25 @@ function fmtPrice(p: number): string {
 export function KaitoPriceTicker() {
   const [prices, setPrices] = useState(BASE_PRICES);
 
-  // Simulate micro price movements (PLACEHOLDER — replace with real feed)
+  // Micro price movements, mean-reverting toward BASE_PRICES rather than a free
+  // random walk. The old form added an unbounded increment to `change` every
+  // three seconds forever, so a tab left open drifted to absurd percentages —
+  // a simulated tape should at least stay in the range a real one would.
+  //
+  // Runs only in the effect, never during render, so the server and the first
+  // client paint agree on BASE_PRICES and there is no hydration mismatch.
   useEffect(() => {
     const t = setInterval(() => {
       setPrices((p) =>
-        p.map((item) => ({
-          ...item,
-          price: item.price * (1 + (Math.random() - 0.499) * 0.002),
-          change: item.change + (Math.random() - 0.5) * 0.1,
-        }))
+        p.map((item, i) => {
+          const base = BASE_PRICES[i];
+          const pull = (b: number, v: number) => v + (b - v) * 0.06;
+          return {
+            ...item,
+            price: pull(base.price, item.price) * (1 + (Math.random() - 0.499) * 0.002),
+            change: pull(base.change, item.change) + (Math.random() - 0.5) * 0.1,
+          };
+        })
       );
     }, 3000);
     return () => clearInterval(t);
@@ -46,16 +75,24 @@ export function KaitoPriceTicker() {
 
   return (
     <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-neutral-850 bg-[#05070c] w-full">
-      <div className="flex items-center gap-1.5 shrink-0">
-        <span className="relative flex h-1.5 w-1.5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-        </span>
+      <HoldHint
+        hint={{
+          title: "Kaito tape",
+          kind: "sample",
+          body: "Simulated, not a market feed. Four seeded prices drifting around fixed baselines — no oracle is connected. Wiring it needs a provider (Chainlink via viem, or the Kaito API), a key, and that origin added to connect-src.",
+        }}
+      >
+      <div className="flex items-center gap-1.5 shrink-0" tabIndex={0}>
+        {/* The pulsing green dot is gone with the word LIVE. A "live" indicator
+            over invented numbers is the part a user reads fastest and trusts
+            most. Amber, static — a status light for a bench rig. */}
+        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500" />
         <Radio className="w-3 h-3 text-yellow-400" />
         <span className="font-mono text-[8px] uppercase tracking-widest text-yellow-400 font-bold">
-          KAITO LIVE FEED
+          KAITO FEED · SIMULATED
         </span>
       </div>
+      </HoldHint>
       <div className="flex items-center gap-4 overflow-x-auto flex-1 scrollbar-none">
         {prices.map(({ symbol, price, change }) => {
           const up = change >= 0;

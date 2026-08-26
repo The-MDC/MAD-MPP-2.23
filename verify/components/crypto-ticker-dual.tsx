@@ -35,6 +35,7 @@ import React from "react";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import MetricPopover, { type MetricRow } from "@/components/metric-popover";
+import HoldHint from "@/components/hold-hint";
 
 interface Tick {
   symbol: string;
@@ -52,6 +53,22 @@ interface Tick {
    * WITHOUT one stays a <button> to the explainer.
    */
   url?: string;
+  /**
+   * True when `value` is MAD Gambit's satirical rewrite rather than the words
+   * the publisher actually printed.
+   *
+   * This flag exists because the two facts on a headline tick pull in opposite
+   * directions: the text is ours, invented; the link is theirs, real. A reader
+   * who sees an invented sentence, clicks it, and lands on a genuine outlet has
+   * been handed a false impression of what that outlet said — and the outlet
+   * has been handed words it never wrote. Neither is acceptable as a default,
+   * and neither is fixed by a `title` attribute nobody sees on a phone. So a
+   * satirical tick carries a visible SATIRE tag before the headline.
+   *
+   * Removing the tag is not a styling decision. It is a decision to publish
+   * invented quotes under real mastheads.
+   */
+  satirical?: boolean;
 }
 
 const CRYPTO: Tick[] = [
@@ -181,6 +198,10 @@ export default function CryptoTickerDual() {
             symbol: (it.source ?? "WIRE").toUpperCase().slice(0, 8),
             value: it.satiricalHeadline,
             url: it.link || undefined,
+            // Every tick from this endpoint is a rewrite by construction — the
+            // field is literally named satiricalHeadline — so the tag is not
+            // conditional on anything. See the Tick.satirical doc comment.
+            satirical: true,
           }));
         if (ticks.length) setLiveHeadlines(ticks);
       })
@@ -239,20 +260,52 @@ export default function CryptoTickerDual() {
             summoned by double-tap instead, which is also what frees a single
             tap to mean "open this story". */}
 
-        {/* Keyboard equivalent for the double-tap, which has none. Visually
-            hidden but focusable, so the picker stays reachable without a
-            pointer — the pill used to serve this role. */}
-        <button
-          type="button"
-          onClick={() => setTrayOpen((o) => !o)}
-          aria-haspopup="listbox"
-          aria-expanded={trayOpen}
-          aria-label={`Ticker feed: ${feed.label}. Activate to choose a different feed.`}
-          style={{
-            position: "absolute", left: 0, top: 0, width: 1, height: 1,
-            opacity: 0, padding: 0, border: "none", background: "transparent",
+        {/* The picker handle — 16px, and no longer invisible.
+
+            This was a 1x1 transparent button: a keyboard escape hatch, and
+            nothing else. Which meant the ONLY way a sighted pointer user could
+            learn the feed picker existed was a `title` tooltip — two seconds of
+            hover, desktop only, and on touch not rendered at all. So on the
+            devices this app is designed around, a control with four feeds
+            behind it had zero discoverable affordance. An undiscoverable
+            feature is not a feature.
+
+            A visible chevron restores the signal without restoring the pill: it
+            is ~16px against the ~130px of permanent chrome (feed name, four
+            state dots, chevron) that was removed for good reason. Double-tap on
+            the tape still works and is still the fast path; this is the part
+            that tells you it is there — and, wrapped in HoldHint, explains the
+            gesture on hover or press-and-hold and offers the action outright
+            for anyone who would rather not perform it.
+
+            `order: 2` puts it last visually while keeping it FIRST in the DOM,
+            so tabbing reaches the picker before the tape's headline links
+            rather than after all twelve of them. */}
+        <HoldHint
+          hint={{
+            title: "Ticker feeds",
+            body: `Showing ${feed.label}. Four perpetual tapes share this rail — double-tap the tape to switch, or use this control.`,
+            action: { label: "Choose a feed", onSelect: () => { setInfo(false); setTrayOpen(true); } },
           }}
-        />
+        >
+          <button
+            type="button"
+            onClick={() => setTrayOpen((o) => !o)}
+            onDoubleClick={(e) => e.stopPropagation()}
+            aria-haspopup="listbox"
+            aria-expanded={trayOpen}
+            aria-label={`Ticker feed: ${feed.label}. Activate to choose a different feed.`}
+            style={{
+              order: 2, flex: "none", width: 18, alignSelf: "stretch",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              padding: 0, border: "none", background: "transparent",
+              color: `${accent}aa`, cursor: "pointer", fontSize: 9, lineHeight: 1,
+              fontFamily: INSTRUMENT_FONT,
+            }}
+          >
+            <span aria-hidden style={{ transform: trayOpen ? "rotate(180deg)" : "none", transition: "transform 0.16s ease" }}>▾</span>
+          </button>
+        </HoldHint>
 
         {trayOpen ? (
           <div
@@ -304,8 +357,9 @@ export default function CryptoTickerDual() {
           </div>
         ) : null}
 
-        {/* The one perpetual marquee. */}
-        <div style={{ flex: 1, minWidth: 0, overflow: "hidden", padding: "5px 0" }}>
+        {/* The one perpetual marquee. order:1 keeps it left of the picker
+            handle, which is order:2 but earlier in the DOM — see above. */}
+        <div style={{ order: 1, flex: 1, minWidth: 0, overflow: "hidden", padding: "5px 0" }}>
           <div key={feed.key} className="mg-ck-track" style={{ display: "inline-flex", whiteSpace: "nowrap", willChange: "transform", animationDuration: `${feed.dur}s` }}>
             {run.map((t, i) => {
               // A tick with a source article is a real link — right-click,
@@ -324,6 +378,20 @@ export default function CryptoTickerDual() {
               const inner = (
                 <>
                   <span style={{ color: accent, textShadow: `0 0 8px ${accent}66` }}>{t.symbol}</span>
+                  {t.satirical ? (
+                    <span
+                      style={{
+                        fontSize: 7, fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase",
+                        padding: "1px 4px", borderRadius: 4, color: skin.gold,
+                        background: `${skin.gold}1e`, border: `1px solid ${skin.gold}55`,
+                        // The tag must not be the first thing trimmed when the
+                        // tape is dense — it is the disclosure, not decoration.
+                        flex: "none", alignSelf: "center",
+                      }}
+                    >
+                      satire
+                    </span>
+                  ) : null}
                   {t.value ? <span style={{ color: skin.text }}>{t.value}</span> : null}
                   {t.change ? <span style={{ color: t.up ? skin.positive : skin.accent2, fontWeight: 900 }}>{t.change}</span> : null}
                   <span style={{ color: `${accent}55`, marginLeft: 4 }}>|</span>
@@ -340,7 +408,11 @@ export default function CryptoTickerDual() {
                   // Stops a fast double-click on a tick from also tripping the
                   // row's picker — the same double-fire the removed pill hit.
                   onDoubleClick={(e) => e.stopPropagation()}
-                  title={`${t.symbol} — ${t.value ?? ""} · open the source article`.replace(/\s+/g, " ").trim()}
+                  title={
+                    t.satirical
+                      ? `Satirical rewrite by MAD Gambit — ${t.symbol} did not write this. Opens their original article.`
+                      : `${t.symbol} — ${t.value ?? ""} · open the source article`.replace(/\s+/g, " ").trim()
+                  }
                   {...shared}
                 >
                   {inner}
