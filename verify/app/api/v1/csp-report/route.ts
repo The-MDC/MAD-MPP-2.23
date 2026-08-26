@@ -169,23 +169,34 @@ function isExtensionNoise(v: Violation): boolean {
 /** Same directive + same blocked resource + same source = the same problem. */
 const keyOf = (v: Violation): string => `${v.directive}|${v.blockedUri}|${v.sourceFile}`;
 
+/**
+ * Map.forEach, not `for...of` over the map.
+ *
+ * tsconfig.json targets **es5** with no `downlevelIteration`, so `for...of` and
+ * spread over a Map, a Set or any iterator are compile errors — arrays and
+ * strings are the only things TypeScript special-cases at that target. forEach
+ * is the portable form and needs no config change to accommodate one route.
+ */
 function prune(now: number): void {
-  for (const [k, a] of actionable) {
-    if (now - a.lastSeen > WINDOW_MS) actionable.delete(k);
-  }
+  const stale: string[] = [];
+  actionable.forEach((a, k) => {
+    if (now - a.lastSeen > WINDOW_MS) stale.push(k);
+  });
+  stale.forEach((k) => actionable.delete(k));
 }
 
 /** At the ceiling, drop the least recently seen so a flood can't grow memory. */
 function evictOldest(): void {
-  let oldestKey: string | null = null;
-  let oldest = Infinity;
-  for (const [k, a] of actionable) {
-    if (a.lastSeen < oldest) {
-      oldest = a.lastSeen;
-      oldestKey = k;
-    }
-  }
-  if (oldestKey) actionable.delete(oldestKey);
+  // Collected into an array rather than tracking a running minimum in a
+  // closure variable: TypeScript's control-flow analysis does not follow
+  // assignments made inside a callback, so a `let oldestKey: string | null`
+  // written by forEach still narrows to `null` afterwards and the guard below
+  // it becomes unreachable. n is capped at MAX_KEYS, so the sort is cheap.
+  const rows: { key: string; lastSeen: number }[] = [];
+  actionable.forEach((a, k) => rows.push({ key: k, lastSeen: a.lastSeen }));
+  if (rows.length === 0) return;
+  rows.sort((x, y) => x.lastSeen - y.lastSeen);
+  actionable.delete(rows[0].key);
 }
 
 function record(v: Violation, now: number): void {
@@ -279,8 +290,15 @@ export async function GET(req: Request): Promise<Response> {
   const now = Date.now();
   prune(now);
 
-  const rows = [...actionable.values()].sort((a, b) => b.count - a.count);
+  // Not `[...actionable.values()]` — spreading an iterator is the same es5
+  // downlevelIteration error as `for...of` over the map. See prune() above.
+  const rows: Aggregate[] = [];
+  actionable.forEach((a) => rows.push(a));
+  rows.sort((a, b) => b.count - a.count);
+
   const byDirective: Record<string, number> = {};
+  // `rows` is an array, so this for...of is fine at es5 — arrays and strings
+  // are the two things TypeScript special-cases.
   for (const r of rows) byDirective[r.directive] = (byDirective[r.directive] ?? 0) + r.count;
 
   return NextResponse.json({

@@ -218,7 +218,32 @@ rest is not:
 
 | Actually available | Where | What it buys |
 |---|---|---|
-| `tsc` | `/opt/node22/bin/tsc` (global, no `node_modules` needed) | Real **parse / syntax / JSX-nesting / arity** checking. Run it with `--ignoreConfig --noEmit --skipLibCheck --jsx preserve --moduleResolution bundler` over the changed files and filter out `TS2307` (unresolved module), `TS70xx` (implicit any) and `TS18046/TS2571` (unknown) — those are all artefacts of missing `@types`. **Anything left is a real error.** All 332 files under `app/ components/ lib/ hooks/ context/` parse clean today, so that filtered set is a working baseline, not a wish. |
+| `tsc` | `/opt/node22/bin/tsc` (global, no `node_modules` needed) | Real **parse / syntax / JSX-nesting / arity / iteration-target** checking — see the exact invocation below. Filter out `TS2307` (unresolved module), `TS70xx` (implicit any) and `TS18046/TS2571` (unknown): those are artefacts of missing `@types`. **Anything left is a real error.** |
+
+**Use the project's own compiler settings, or the check is worse than useless.**
+`tsconfig.json` targets **`es5`** with no `downlevelIteration`. A first attempt at
+this ran `--target es2022`, passed 333 files clean, and shipped a route that
+failed Vercel's type-check immediately on `for (const [k, a] of someMap)` —
+`TS2802`. At `es5`, `for...of` and spread over a **Map, Set or any iterator** are
+compile errors; arrays and strings are the only things TypeScript
+special-cases. Use `.forEach()`.
+
+The global `tsc` is a 7.x build, which **hard-errors on `target=es5`**
+(`TS5107`) unless `--ignoreDeprecations 6.0` is passed — and it errors *before
+type-checking*, so the run prints nothing and looks clean. That is this repo's
+signature trap: a green gate that scanned nothing. Always prove the invocation
+can still fail by compiling a two-line probe with a `for...of` over a `Map`
+first; if it does not report `TS2802`, the real run means nothing.
+
+```sh
+tsc --ignoreConfig --noEmit --skipLibCheck --strict --ignoreDeprecations 6.0 \
+    --jsx react-jsx --target es5 --lib dom,dom.iterable,esnext \
+    --module esnext --moduleResolution bundler \
+    $(find app components lib hooks context -name '*.ts' -o -name '*.tsx' | grep -v '\.test\.ts')
+```
+
+Next's build bails at the FIRST type error, so CI shows one; this shows all of
+them. The same route had three.
 | `eslint` 10 | global | Not wired up — no flat config resolves without `eslint-config-next`. Noted so the next session does not re-discover the binary and assume it is usable. |
 | Chromium + `http-server` | `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`, global `http-server` | **Components can be rendered and looked at locally.** See §7 for the recipe. |
 
