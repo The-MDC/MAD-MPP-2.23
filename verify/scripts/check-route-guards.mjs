@@ -95,13 +95,10 @@ const OPT_OUT = /(?:\/\/|\*)\s*PUBLIC-ROUTE:/;
  * or a `// PUBLIC-ROUTE:` marker — and the line comes out of here.
  */
 const KNOWN_COST_ONLY = new Set([
-  "app/api/concierge/chat/route.ts",        // LLM spend, anonymous
-  "app/api/v1/gdelt/ingest/route.ts",       // writes gdelt_signals
-  "app/api/v1/gdelt/whitelist/route.ts",    // writes celebrity_whitelist
-  "app/api/v1/markets/route.ts",            // creates a market
-  "app/api/v1/registrar/reply/route.ts",    // writes subject_replies
-  "app/api/v1/vector/embed/route.ts",       // embedding spend + writes
-  "app/api/v1/vector/search/route.ts",      // embedding spend + reads
+  // Empty, and the aim is to keep it that way. Every entry that was here has
+  // been resolved: four session-guarded, three bearer-guarded, one marked
+  // PUBLIC-ROUTE because the openness was already a written-down decision, and
+  // one route deleted outright. A new line here should require an argument.
 ]);
 
 /** Normalise to a repo-relative POSIX path so the allowlist is CWD-independent. */

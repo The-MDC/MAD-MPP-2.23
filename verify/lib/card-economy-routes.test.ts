@@ -4,10 +4,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * Regression tests for the routes that used to accept a caller-supplied
  * identity.
  *
- * The worst of them, `cards/collect`, read `walletAddress` AND `rarity` from
- * the request body behind nothing but a rate limit, so any anonymous caller
- * could mint a Legendary into any wallet at 30 requests a minute — bypassing
- * openCardPack()'s weighted-rarity engine and the paid pack path entirely.
+ * The worst offender, `cards/collect`, has since been DELETED rather than
+ * guarded: it read `walletAddress` and `rarity` from the request body behind
+ * nothing but a rate limit, and open-pack already generates, charges
+ * (PLATFORM.CARD_PACK_COST from madx_accounts) and persists in one
+ * authenticated transaction. Nothing in the client ever called collect. A
+ * second write path into `cards` that accepts a client-declared rarity can
+ * only ever record a card the engine did not roll, so guarding it would have
+ * preserved a route whose entire purpose was to bypass openCardPack().
  *
  * These assert the 401 arrives BEFORE the handler reaches a database, which is
  * the property that actually matters: a guard that runs after the write, or
@@ -35,19 +39,6 @@ describe("card-economy route authorization", () => {
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     });
-
-  it("cards/collect rejects an unauthenticated mint, and does not honour a body wallet", async () => {
-    const { POST } = await import("@/app/api/v1/cards/collect/route");
-
-    const res = await POST(
-      post({ walletAddress: "0x" + "a".repeat(40), rarity: "Legendary", name: "free money" }),
-    );
-
-    expect(res.status).toBe(401);
-    // Not 503: the guard must run before the DATABASE_URL check, or the route
-    // is only closed on deployments that have no database to write to.
-    await expect(res.json()).resolves.toMatchObject({ success: false });
-  });
 
   it("shield/opt-in rejects an unauthenticated position opened against another wallet", async () => {
     const { POST } = await import("@/app/api/v1/shield/opt-in/route");
@@ -83,10 +74,18 @@ describe("card-economy route authorization", () => {
 });
 
 /**
- * Engine cross-check. `RARITY_ORDER` lists every rarity that exists;
- * `RARITY_DROP_WEIGHTS` lists what a pack can actually produce. They differ by
- * exactly one entry — Mythic, the 1-of-1 — and cards/collect was validating
- * against the wrong one of the two.
+ * Engine invariant, kept after the route that motivated it was deleted.
+ *
+ * `RARITY_ORDER` lists every rarity that exists; `RARITY_DROP_WEIGHTS` lists
+ * what a pack can actually produce. They differ by exactly one entry — Mythic,
+ * the 1-of-1 with stakingApy 88 — and the deleted cards/collect validated
+ * against the wrong one of the two, so a body field could name it.
+ *
+ * The distinction is documented only in a comment inside gambit-game-math
+ * ("Mythic (1-of-1) is never in packs"). This pins it, so any future code that
+ * validates user-supplied rarity has an executable statement of which list is
+ * the right one — and so the two tables converging becomes a visible decision
+ * rather than a silent widening of what a pack can contain.
  */
 describe("rarity validation matches the pack engine, not the full rarity list", () => {
   it("RARITY_ORDER contains Mythic but the drop table does not", async () => {
@@ -94,8 +93,9 @@ describe("rarity validation matches the pack engine, not the full rarity list", 
 
     expect(RARITY_ORDER).toContain("Mythic");
     expect(Object.keys(RARITY_DROP_WEIGHTS)).not.toContain("Mythic");
-    // If these ever converge, the guard in cards/collect becomes redundant
-    // rather than wrong — but until then the distinction is load-bearing.
+    // Mythic is the only difference. If that ever stops being true, the
+    // change was either deliberate or a mistake — this makes it impossible
+    // for it to be neither.
     expect(Object.keys(RARITY_DROP_WEIGHTS).length).toBe(RARITY_ORDER.length - 1);
   });
 });

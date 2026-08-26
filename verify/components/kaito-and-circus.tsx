@@ -154,11 +154,24 @@ export function PredictionCircus({ activeDeck }: { activeDeck?: OVDeck }) {
   // AI State
   const [scenarios, setScenarios] = useState<any[]>(DEFAULT_SCENARIOS);
   const [isScanning, setIsScanning] = useState(false);
+  const [scanNote, setScanNote] = useState<string | null>(null);
 
   async function scanLiveNews() {
     setIsScanning(true);
     try {
+
+      // Operator-only route (CRON_SECRET): a browser cannot hold that secret, so
+      // this has been 401ing silently. The refusal is now shown, not swallowed.
+      setScanNote(null);
       const res = await fetch('/api/v1/agents/scraper', { method: 'POST' });
+      if (!res.ok) {
+        setScanNote(
+          res.status === 401
+            ? 'Live scan is operator-only — showing the stored scenarios.'
+            : 'Live scan unavailable — showing the stored scenarios.',
+        );
+        return;
+      }
       const json = await res.json();
       if (json.success && json.data?.analyzedEvents) {
         // Map AI output to component schema
@@ -228,6 +241,9 @@ export function PredictionCircus({ activeDeck }: { activeDeck?: OVDeck }) {
             Scan Live RSS
           </button>
           <span className="font-mono text-[9px] px-2 py-1 rounded-full border border-cyan-500/30 text-cyan-400">{deck.version}</span>
+          {scanNote && (
+            <span role="status" className="font-mono text-[9px] text-neutral-500 max-w-[240px]">{scanNote}</span>
+          )}
         </div>
       </div>
 

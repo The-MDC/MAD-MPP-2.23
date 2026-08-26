@@ -22,6 +22,16 @@ function getRiskDirective(risk: number): string {
     return "Risk posture: MAX DEGEN. Full send energy — no caution, all conviction.";
 }
 
+// PUBLIC-ROUTE: guest-facing by design — the concierge is a front-door
+// feature and requiring a wallet to ask it a question would defeat the point.
+// This is a decision that was already made and written down here; the audit
+// flagged the route because the CI gate had no way to tell a deliberate
+// exemption from a forgotten one, which is what this marker fixes.
+//
+// The exposure is real and bounded rather than absent: unbounded Gemini calls
+// billed to GOOGLE_API_KEY, capped at 20/min/IP. If that bill ever bites, the
+// answer is a session guard here and a signed-in-only concierge — a product
+// decision, not a security one.
 export async function POST(req: NextRequest) {
     // Guest-facing by design (no wallet/session required to talk to the
     // concierge) — but every paid-LLM route in this codebase rate-limits
