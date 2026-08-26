@@ -33,6 +33,15 @@ const PUBLIC_PATHS = new Set([
   "/favicon.png",
   "/robots.txt",
   "/sitemap.xml",
+  // CSP violation reports are sent by the browser out-of-band, not by page
+  // code — the Reporting API may deliver a batch minutes later, from no page
+  // context at all — so whether the guest Basic credentials ride along is
+  // browser- and timing-dependent. Gating this path would drop reports
+  // unpredictably and leave the Report-Only policy unmeasurable, which is the
+  // exact defect it was added to fix. The route caps its own exposure: POST is
+  // rate-limited and write-only, and its GET summary requires CRON_SECRET
+  // regardless of what happens here.
+  "/api/v1/csp-report",
 ]);
 
 // Cron routes verify their own `Authorization: Bearer` secret (lib/bearer-secret.ts),
