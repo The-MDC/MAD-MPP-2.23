@@ -15,11 +15,26 @@ const mk = (n: number): Branch[] =>
   Array.from({ length: n }, (_, i) => ({ id: `b${i}`, claim: `what if ${i}`, shares: 100 + i * 40 }));
 
 describe("frontier", () => {
-  it("rejects a frontier narrower than 3 or wider than 5 — the founder bound", () => {
+  // MUTATION-DRIVEN. Written first as `mk(FRONTIER_MAX + 1)`, which moves with
+  // the constant: changing FRONTIER_MAX to 6 changed no test. A bound the
+  // founder decided has to be pinned to a literal, or the test only says "the
+  // function obeys whatever the constant currently is".
+  it("pins the founder's bound to the literal 3 and 5", () => {
+    expect(FRONTIER_MIN).toBe(3);
+    expect(FRONTIER_MAX).toBe(5);
+  });
+
+  it("rejects 2 and 6 branches, accepts 3, 4 and 5", () => {
+    expect(() => frontierPrices(mk(2))).toThrow(FrontierError);
+    expect(() => frontierPrices(mk(6))).toThrow(FrontierError);
+    expect(() => frontierPrices(mk(3))).not.toThrow();
+    expect(() => frontierPrices(mk(4))).not.toThrow();
+    expect(() => frontierPrices(mk(5))).not.toThrow();
+  });
+
+  it("stays consistent with its own constants", () => {
     expect(() => frontierPrices(mk(FRONTIER_MIN - 1))).toThrow(FrontierError);
     expect(() => frontierPrices(mk(FRONTIER_MAX + 1))).toThrow(FrontierError);
-    expect(() => frontierPrices(mk(FRONTIER_MIN))).not.toThrow();
-    expect(() => frontierPrices(mk(FRONTIER_MAX))).not.toThrow();
   });
 
   it("prices sum to exactly 1 — the tree cannot leak value at a fork", () => {

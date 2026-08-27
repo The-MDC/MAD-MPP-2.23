@@ -25,6 +25,23 @@ describe("the gate that used to lie", () => {
 });
 
 describe("assertionRiskOf", () => {
+  // MUTATION-DRIVEN. Every assertion here was written against
+  // ASSERTION_REVIEW_THRESHOLD itself, so moving it 50 -> 95 (which would let
+  // almost anything through the review gate) changed no test.
+  it("pins the review threshold to the literal 50", () => {
+    expect(ASSERTION_REVIEW_THRESHOLD).toBe(50);
+  });
+
+  it("scores a named party with an assertive verb at or above 50, in absolute terms", () => {
+    expect(assertionRiskOf("Jordan Fairweather was arrested for fraud last night"))
+      .toBeGreaterThanOrEqual(50);
+  });
+
+  it("scores a situational joke below 50, in absolute terms", () => {
+    expect(assertionRiskOf("The quarterly meeting achieved sentience and adjourned itself"))
+      .toBeLessThan(50);
+  });
+
   it("fails CLOSED on an empty or unscoreable line", () => {
     expect(assertionRiskOf("")).toBe(100);
     expect(assertionRiskOf("   ")).toBe(100);
