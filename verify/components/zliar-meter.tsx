@@ -5,9 +5,14 @@
  * ------------------------------------------------------------------
  * A live narrative-credibility gauge. The needle is driven by the
  * composite zLiarMeter() (Sentinel BS-Index + GARCH volatility + lunar
- * tilt). Verdict bands map to the MADHAT'r's Jersey-accented read.
- * AI verdict copy: PLACEHOLDER local generator now; wire to Tri-Agent
- * route /api/v1/madhatr/zliar in prod (docs/BACKEND_PLACEHOLDERS.md).
+ * tilt) — that maths was always real and is unchanged.
+ *
+ * The MADHAT'r's read is now real too: POST /api/v1/madhatr/zliar makes a
+ * Gemini call in the shared persona voice against THIS claim, and returns
+ * `quipSource` so the panel can distinguish a live read from the stock line
+ * for that verdict band. It previously rendered a five-entry lookup keyed by
+ * verdict, which ignored the user's statement entirely while the header said
+ * "The MADHAT'r reads it".
  */
 
 import React, { useMemo, useState } from "react";
@@ -30,18 +35,21 @@ const VERDICT_COLOR: Record<ZLiarVerdict, string> = {
   "TOTAL FABRICATION": "#ff00f0",
 };
 
-// PLACEHOLDER: MADHAT'r persona lines (local). Prod streams from Gemini
-// Tri-Agent (Agent A: Sentinel) with the AGENTS.md system instruction.
-const QUIPS: Record<ZLiarVerdict, string> = {
-  "STRAIGHT SHOOTER": "Ayo, this one's legit, kid. Cleaner than my Sunday fedora.",
-  "MOSTLY CANDID": "Mostly candid — a little spin, like meatballs, rolled just enough.",
-  "SLIPPERY": "Slippery. Somethin' smells off, and it ain't the cannolis. Watch ya wallet.",
-  "SERIAL EMBELLISHER": "A serial embellisher — every retelling gains a zero and loses a witness.",
-  "TOTAL FABRICATION": "Fuhgeddaboudit. Total fabrication. Pure fan-fiction.",
-};
+/**
+ * The MADHAT'r line now comes from POST /api/v1/madhatr/zliar, which makes a
+ * real Gemini call in the shared persona voice and hands back `quipSource`.
+ *
+ * This component used to render a five-entry lookup keyed by verdict under the
+ * words "🎩 The MADHAT'r reads it" — a line that ignored the user's statement
+ * entirely while implying something had read it. The table still exists as the
+ * offline fallback, but it lives in the route now, so a canned line is always
+ * labelled as one instead of being indistinguishable from a live read.
+ */
 
 export default function ZLiarMeter() {
   const { runZLiar, zLiarHistory } = useGame();
+  const [quip, setQuip] = useState<{ text: string; source: "llm" | "canned" } | null>(null);
+  const [auditing, setAuditing] = useState(false);
   const [statement, setStatement] = useState("Bitcoin will hit $250k before the next halving — guaranteed.");
   const [variance, setVariance] = useState(0.7);
   const [credibility, setCredibility] = useState(0.35);
@@ -129,8 +137,33 @@ export default function ZLiarMeter() {
 
           {/* MADHAT'r quip */}
           <div className="rounded-xl border px-4 py-3" style={{ borderColor: color + "33", background: "#03050880" }}>
-            <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-500 mb-1">🎩 The MADHAT&apos;r reads it</p>
-            <p className="text-sm text-neutral-200 italic leading-relaxed">{QUIPS[reading.verdict]}</p>
+            <div className="flex items-center gap-2 mb-1">
+              <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-500">🎩 The MADHAT&apos;r reads it</p>
+              {quip && (
+                <span
+                  className="font-mono text-[8px] uppercase tracking-widest px-1 rounded"
+                  title={
+                    quip.source === "llm"
+                      ? "Written by the model for this specific claim."
+                      : "Model unavailable — this is the stock line for this verdict, not a read of your claim."
+                  }
+                  style={
+                    quip.source === "llm"
+                      ? { background: "#7cffc733", color: "#7cffc7" }
+                      : { background: "#ffffff1a", color: "#9aa4b2" }
+                  }
+                >
+                  {quip.source === "llm" ? "live" : "stock line"}
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-neutral-200 italic leading-relaxed">
+              {auditing
+                ? "Sentinel is reading it…"
+                : quip
+                  ? quip.text
+                  : "Run the Sentinel audit to get the MADHAT'r's read on this claim."}
+            </p>
           </div>
 
           {/* breakdown */}
@@ -151,11 +184,38 @@ export default function ZLiarMeter() {
           </div>
 
           <button
-            onClick={() => runZLiar(statement, { variance, credibility, corroboration })}
+            onClick={async () => {
+              // Keep the local maths call — it drives the dials and the audit
+              // log instantly, and it is the same canon zLiarMeter the server
+              // runs. The fetch is for the VOICE, which is the only part that
+              // was ever fake here.
+              runZLiar(statement, { variance, credibility, corroboration });
+              setAuditing(true);
+              try {
+                const res = await fetch("/api/v1/madhatr/zliar", {
+                  method: "POST",
+                  headers: { "content-type": "application/json" },
+                  body: JSON.stringify({
+                    statement,
+                    narrativeVariance: variance,
+                    sourceCredibility: credibility,
+                    corroboration,
+                  }),
+                });
+                const d = await res.json();
+                if (d?.success && typeof d.quip === "string") {
+                  setQuip({ text: d.quip, source: d.quipSource === "llm" ? "llm" : "canned" });
+                }
+              } catch {
+                /* the dials already updated; the voice is the optional half */
+              } finally {
+                setAuditing(false);
+              }
+            }}
             className="w-full rounded-xl py-2.5 font-mono text-xs uppercase tracking-widest font-bold transition-all hover:scale-[1.01]"
             style={{ background: color + "18", border: `1px solid ${color}55`, color }}
           >
-            Run Sentinel Audit
+            {auditing ? "Auditing…" : "Run Sentinel Audit"}
           </button>
         </div>
       </div>
