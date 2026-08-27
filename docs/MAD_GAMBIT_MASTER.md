@@ -137,7 +137,7 @@ halo's opacity breathe (`haloPulse`): low-amplitude and non-spatial.
 | Item | The tension |
 |---|---|
 | **`@neondatabase/serverless`** | You asked to install it + add a `neon()` helper. **ADR-008 (2026-08-05) explicitly evaluated and rejected exactly that**, mandates `pg` Pool + Route Handlers, and is marked *"Settled. Do not reopen without a new ADR superseding this one."* Options: (a) drop it, ADR stands — **my recommendation**; (b) write a superseding ADR; (c) use the ADR's own escape hatch — one edge-latency-sensitive route, its own ADR, never the default. |
-| **Near-miss on real-money surfaces** | `dopamine-engine.tsx` renders some losses as almost-wins (`isNear = !won && roll < 0.58`). Ordinary game feel on free-play `madCredits`; on real `$MADx` stakes it is the single most regulated pattern in this space. Recommendation: confine to credits/demo, make the boundary explicit in code. Unchanged pending your call. |
+| **Near-miss on real-money surfaces** | `dopamine-engine.tsx` renders some losses as almost-wins (`isNear = !won && roll < 0.58`, `components/dopamine-engine.tsx:34`). Verified 2026-08-27: it is on free-play `madCredits` behind a `Math.random()` PLACEHOLDER, so today it is the benign case. On real `$MADx` stakes it is the single most regulated pattern in this space. Recommendation: confine to credits/demo, make the boundary explicit in code. **Now has a second surface:** any branching market generates near-misses structurally at every roll — that is why the Paseome settlement rule REFUNDS untaken branches rather than writing them off (§3 decided rows below). Unchanged pending your call. |
 | **Promote `main` to production** | `vercel.json` sets `git.deploymentEnabled.main = false`; production deploys are manual. |
 | **`$MADx` supply** | Canon says 888,888,888 fixed. The deployed Arbitrum One contract is mutable/mint-on-purchase, cap 224,573,096, Pausable. Two candidate addresses in the archive (`0xb61ae772…fd18`, `0x6972370e…151f`). Needs an on-chain check and one written answer. |
 | **Chain topology** | Work targets Arbitrum One only, but canon restates Nova + One + HyperLiquid as founder-locked and `contracts/foundry.toml` still configures `arbitrum_nova`. |
@@ -145,6 +145,9 @@ halo's opacity breathe (`haloPulse`): low-amplitude and non-spatial.
 | **O-V deck — 2 canon conflicts** | `MADdegen/OV-Deck-2026` says **"Wyoming L.C."** (slides 0, 7) against a **New Mexico** formation record filed 2026-03-25 — a legal-entity fact on an investor slide. And slide 3 reintroduces **"MAD Upshot"**, which canon bans; the deck is *newer* than the ban. *(A third conflict — the Creator Ladder — turned out to be the master doc's error, not the deck's; already corrected.)* |
 | **React18 / Hono / HonoX** | Never clarified. `verify/` is already Next.js 16 + React **19.2.1** + Tailwind v4, live. Hono/HonoX appears once in the whole archive as a speculative Phase-4 API-gateway idea — not a frontend, not tied to React 18. |
 | **Containerizing the platform** | Deferred by the 2026-08-18 decision to stay on Vercel — but **correct the reasoning, because the old one was wrong.** It was declined as "an architectural reversal for a Vercel-native Next.js app"; the coupling audit (Part VIII §1) shows the app is **not** Vercel-native. `next.config.ts` already builds `output: "standalone"` and its own comment names Cloud Run; total Vercel surface is one 44-line Blob adapter behind a pre-existing interface, one analytics import, three cron entries, and **zero** `process.env.VERCEL*` references. So containerizing is a config change, not a reversal — it is deferred for want of a reason to do it, **not** because it is hard. |
+| ~~**Paseome — untaken branches**~~ | **DECIDED 2026-08-27: refund, do not write off.** Foresight refunds every untaken sibling at the leg roll; Hindsight writes off nothing because nothing there is ever unrealised. Two reasons and both hold: conditional markets fail when nobody will fund a bet that pays only if a *separate* event also occurs, and a refunded branch cannot be a near-miss. Encoded in `verify/lib/paseome.ts#settleFrontier`, tested in `paseome.test.ts`. |
+| ~~**Paseome — frontier width**~~ | **DECIDED 2026-08-27: 3 to 5 branches.** Three keeps prices legible and liquidity deep; five matches the Five Faces simplex and the existing dial geometry; past five the top branch stops meaning anything. `FRONTIER_MIN`/`FRONTIER_MAX` in `verify/lib/paseome.ts`, enforced by a throw, not a comment. |
+| ~~**Paseome — who authors a branch**~~ | **DECIDED 2026-08-27: gated, VIP *or* creator-ladder.** Eligible at `VIP_STATUS_MIN_MADX` (capital axis) **or** MinorCreator and above (creator axis). Deliberately a disjunction over two axes this engine keeps separate — Part II §7 and `gambit-game-math.ts` both state VIP is "never a creator tier", so they are evaluated and reported independently rather than merged into one score. `canAuthorBranch` in `verify/lib/paseome.ts`. |
 | ~~**Leaving Vercel**~~ | **DECIDED 2026-08-18: stay on Vercel + Neon.** Founder's call, and the audit supports it. Part VIII is retained as a **contingency plan, not a pending recommendation** — see the note at its head for what would reopen it. |
 
 ---
@@ -253,6 +256,38 @@ one sentence and the second half was never tested.
 ---
 
 ## 7 · Things a future session will get wrong without this
+
+- **`satireMetrics().brandSafe` was never a safety gate — corrected 2026-08-27.** It computed
+  `zLiarScore >= 60 && sentiment.intensity >= 0.3`, and Z-Liar ≥ 60 is SERIAL EMBELLISHER or
+  TOTAL FABRICATION. So it **passed wild fabrications and failed measured, credible lines**: a
+  juiciness bar wearing a safety bar's name, consumed by `app/api/satire-engine/route.ts` as
+  `brand_safe` and described there as "fails closed". It did not. The maths is now
+  `entertainmentGrade` (unchanged, legitimate, high-is-good); `assertionRisk` /
+  `lowAssertionRisk` are the actual safety signals and **fail closed** on an empty or
+  unscoreable line. `brandSafe` survives as a deprecated alias so no caller silently flipped
+  meaning. **Do not "fix" the alias by pointing it at the safety signal** — that would invert
+  the value under every existing caller.
+
+- **The local-model roast tier cannot work on Vercel, and that is not a bug.** Ollama listens on
+  the machine that started it; a Vercel serverless function cannot reach a desktop. With
+  `OLLAMA_BASE_URL`/`OLLAMA_MODEL` unset the tier is simply off and the route degrades to the
+  deterministic writer exactly as before. It is for local development and for a self-hosted
+  deployment where the model sits beside the app. `lib/local-satire.ts` calls Ollama's HTTP API
+  over plain `fetch` **on purpose** — `@langchain/community` ships a ChatOllama, but a new
+  dependency means regenerating `package-lock.json`, which cannot be done here and breaks
+  `npm ci` on every job.
+
+- **`satirizeHeadline` must stay pure and deterministic — a model may never be called inside it.**
+  It renders on the server and again on the client, so any divergence is a React hydration
+  error. That is why the model tiers live behind route handlers and are fetched. This is stated
+  in the file's own header and is easy to undo by accident.
+
+- **`propagateTree` does not check that a node's edges sum to 1.** It computes whatever weighted
+  sum it is handed, and its one caller — `app/api/v1/bayesian/tree/route.ts` — takes the tree
+  from a **request body**, so a node totalling 0.8 returned a confident, meaningless number.
+  `treeConservationError` now validates it at that boundary (2026-08-27). Paseome frontiers are
+  conserved by construction instead, because DL-LMSR prices sum to 1 — keep it that way rather
+  than adding a normalisation step later.
 
 - **`octavian-mesh.tsx` does not exist.** Merged into `octavian-creature.tsx` (`compact`/`full` variants). Zoom, two-axis orbit, click-select, pop-out, mood system, shared state and the firefly swarm **all already ship** — don't rebuild them.
 
