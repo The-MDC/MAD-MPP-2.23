@@ -54,6 +54,11 @@ const AUTH_CALLS = [
   "getSessionFromRequest(",
   'mode: "session"',
   'mode: "bearer"',
+  // A role credential carried in a named header — `x-pause-guardian`,
+  // `x-registrar`. Timing-safe, and fails CLOSED when its env var is unset
+  // rather than degrading to session auth. This is the general form of the
+  // guardianAuthorised special case below, and a real auth guard.
+  "requireHeaderSecret(",
   // registrar/pause carries its own guardian check against PAUSE_GUARDIAN_TOKEN
   // rather than going through requireBearerSecret, because the pause credential
   // is a separate custody model from CRON_SECRET. It is a real auth guard and

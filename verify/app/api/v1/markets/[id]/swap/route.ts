@@ -4,6 +4,7 @@ import { hasDatabaseUrl } from "@/lib/database-url";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { getSessionFromRequest } from "@/lib/session";
 import { ensureBook, fill, type FillFailure } from "@/lib/market-book";
+import { getPauseState } from "@/lib/registrar-queue";
 
 /**
  * POST /api/v1/markets/<id>/swap  { outcome | outcomeIndex, amount }
@@ -75,6 +76,22 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   try {
     const pool = getDbPool();
+
+    // PAUSE_GUARDIAN halts the platform. This is the only path in the app that
+    // debits a real $MADx balance, and it was not checking — so an emergency
+    // stop halted new conviction on the perp families while leaving the actual
+    // money path open. An emergency stop that does not stop the money is not an
+    // emergency stop; it is a partial one that reads as total.
+    //
+    // Deliberately NOT behind the governance timelock, per the same reasoning
+    // the guardian role itself uses: a fire alarm must not be on a timer.
+    const pause = await getPauseState(pool);
+    if (pause.paused) {
+      return NextResponse.json(
+        { success: false, error: "trading is halted", reason: pause.reason },
+        { status: 503 },
+      );
+    }
 
     // A market that has never traded has no book row yet. Opening one is
     // idempotent and never overwrites an existing vector.
