@@ -22,7 +22,27 @@ export interface SatireMetrics {
   satireScore: number; // 0..100 entertainment/satire quality
   roastSeverity: number; // 0..100, throttleable by user preference
   dopaminePotential: boolean;
-  brandSafe: boolean; // clears the entertainment quality gate
+  /** Clears the entertainment QUALITY bar — dramatic and non-credible enough
+   *  to be worth roasting. High is good. This is what `brandSafe` always
+   *  computed; only the name was wrong. */
+  entertainmentGrade: boolean;
+  /** 0..100 — how much this line looks like it makes a checkable factual
+   *  assertion about a specific named party. HIGH IS BAD. Heuristic tripwire,
+   *  never a defamation classifier: it cannot tell absurd exaggeration from a
+   *  false claim of fact, and human review remains the real control. */
+  assertionRisk: number;
+  /** assertionRisk under the review threshold. Fails CLOSED — an empty or
+   *  unscoreable line is not safe. */
+  lowAssertionRisk: boolean;
+  /**
+   * @deprecated Reads `entertainmentGrade`. The name said safety and the maths
+   * said juiciness: it required `zLiarScore >= 60`, i.e. SERIAL EMBELLISHER or
+   * TOTAL FABRICATION, so a measured credible line FAILED it and a wild
+   * fabrication PASSED. Callers wanting a safety signal want
+   * `lowAssertionRisk`; callers wanting the quality bar want
+   * `entertainmentGrade`. Kept so no caller silently flips meaning.
+   */
+  brandSafe: boolean;
   verdict: SatireVerdict;
 }
 
@@ -32,6 +52,57 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
 export interface SatireOptions {
   corroboration?: number; // 0..1 source/social corroboration
   roastThrottle?: number; // 0..1 severity throttle (user pref)
+}
+
+/** Above this, a line goes to human review rather than straight out. */
+export const ASSERTION_REVIEW_THRESHOLD = 50;
+
+/** Capitalised runs that are not sentence-initial and not all-caps shouting —
+ *  a cheap proxy for "names a specific party". */
+const NAMEY = /(?:^|[^.!?]\s)([A-Z][a-z]{2,}(?:\s+[A-Z][a-z]{2,})+)/g;
+
+/** Verbs that turn a joke into a checkable claim of fact. */
+const ASSERTIVE = [
+  "arrested", "charged", "indicted", "convicted", "guilty", "fraud", "stole",
+  "lied", "cheated", "abused", "assaulted", "trafficking", "laundering",
+  "bribed", "corrupt", "addict", "overdose", "affair", "cheating", "paedophile",
+  "pedophile", "rapist", "predator", "criminal", "felon", "embezzled",
+];
+
+/** Hedges that mark the line as opinion, absurdity or counterfactual — the
+ *  benign-violation move, and the irrealis mood the Paseome family relies on. */
+const HEDGES = [
+  "allegedly", "reportedly", "apparently", "if", "would", "could", "might",
+  "imagine", "what if", "somehow", "presumably", "rumour", "rumor", "claims",
+];
+
+/**
+ * A crude, deliberately conservative read on whether a line asserts a
+ * checkable fact about a named party. Named parties raise it; assertive verbs
+ * raise it a lot; hedges and counterfactual mood lower it.
+ *
+ * This is a TRIPWIRE. It routes to human review; it does not clear anything.
+ */
+export function assertionRiskOf(text: string): number {
+  const t = (text ?? "").trim();
+  if (!t) return 100; // fails closed — an unscoreable line is not safe
+  const lower = t.toLowerCase();
+
+  NAMEY.lastIndex = 0;
+  let names = 0;
+  while (NAMEY.exec(t) !== null) names++;
+
+  let assertive = 0;
+  for (let i = 0; i < ASSERTIVE.length; i++) {
+    if (lower.indexOf(ASSERTIVE[i]) !== -1) assertive++;
+  }
+  let hedges = 0;
+  for (let i = 0; i < HEDGES.length; i++) {
+    if (lower.indexOf(HEDGES[i]) !== -1) hedges++;
+  }
+
+  const raw = 30 * Math.min(names, 2) + 34 * Math.min(assertive, 2) - 18 * Math.min(hedges, 2);
+  return clamp(Math.round(raw), 0, 100);
 }
 
 /** Score one headline for satirical-market worthiness. */
@@ -51,7 +122,9 @@ export function satireMetrics(headline: string, opts: SatireOptions = {}): Satir
   );
   const throttle = clamp(opts.roastThrottle ?? 1, 0, 1);
   const roastSeverity = round2(satireScore * throttle);
-  const brandSafe = zLiarScore >= 60 && sentiment.intensity >= 0.3;
+  const entertainmentGrade = zLiarScore >= 60 && sentiment.intensity >= 0.3;
+  const assertionRisk = assertionRiskOf(headline);
+  const lowAssertionRisk = assertionRisk < ASSERTION_REVIEW_THRESHOLD;
   const verdict: SatireVerdict =
     satireScore >= 75 ? "PRIME SATIRE" : satireScore >= 50 ? "BETTABLE" : satireScore >= 30 ? "WATCH" : "SKIP";
 
@@ -63,7 +136,10 @@ export function satireMetrics(headline: string, opts: SatireOptions = {}): Satir
     satireScore,
     roastSeverity,
     dopaminePotential: sentiment.dopaminePotential,
-    brandSafe,
+    entertainmentGrade,
+    assertionRisk,
+    lowAssertionRisk,
+    brandSafe: entertainmentGrade,
     verdict,
   };
 }

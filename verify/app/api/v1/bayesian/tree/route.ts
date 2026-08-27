@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { propagateTree, type TreeNode } from "@/lib/bayesian-conviction";
+import { propagateTree, treeConservationError, type TreeNode } from "@/lib/bayesian-conviction";
 import { enforceRateLimit } from "@/lib/rate-limit";
 
 interface TreeBody {
@@ -23,6 +23,16 @@ export async function POST(req: Request) {
   }
 
   try {
+    // The tree arrives from the request body, so its edges are not conserved
+    // by construction. A node whose children sum to 0.8 or 1.3 does not fail
+    // here — it returns a confident number that means nothing. Reject it.
+    const violation = treeConservationError(body.tree as TreeNode);
+    if (violation) {
+      return NextResponse.json(
+        { success: false, error: `tree does not conserve probability — ${violation}` },
+        { status: 400 },
+      );
+    }
     const value = propagateTree(body.tree as TreeNode);
     return NextResponse.json({ success: true, value });
   } catch (e) {
