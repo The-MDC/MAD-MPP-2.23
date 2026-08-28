@@ -29,7 +29,7 @@
  * rather than loudly. The translations are explicit here and nowhere else.
  * ══════════════════════════════════════════════════════════════════════ */
 import { garchUpdate, getLunarPhaseMultiplier, PLATFORM } from "@/lib/gambit-game-math";
-import { FAMILY_META, type PerpFamily6 } from "@/lib/market-view";
+import { FAMILY_META, TRADEABLE_FAMILIES, type PerpFamily6 } from "@/lib/market-view";
 import type { MarketProposal, MarketType } from "@/lib/market-classifier";
 
 export type { PerpFamily6 };
@@ -56,12 +56,16 @@ export const CLASSIFIER_TYPE: Record<PerpFamily6, MarketType> = {
   zeitgeist: "zeitgeist",
 };
 
-/** Mirrors TRADEABLE_FAMILIES in market-view.ts, which is not exported. */
-export const TRADEABLE: ReadonlySet<PerpFamily6> = new Set<PerpFamily6>([
-  "faces",
-  "zeitgeist",
-  "epiphany",
-]);
+/**
+ * Re-exported from lib/market-view.ts, which now owns it.
+ *
+ * This used to be a hand-written duplicate of that set, kept only because the
+ * original was private. Two copies of the rule that decides whether a family
+ * can be traded is a divergence waiting to happen: the deck would offer a
+ * position the route rejects, or refuse one it would accept. Kept as an alias
+ * so existing callers do not have to change.
+ */
+export const TRADEABLE: ReadonlySet<PerpFamily6> = TRADEABLE_FAMILIES;
 
 export const SIGNAL_ONLY_NOTE: Partial<Record<PerpFamily6, string>> = {
   scandal:
