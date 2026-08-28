@@ -21,8 +21,10 @@
  *               τ trans .66 = 1.00.
  *   ZEITGEIST   Legs, not expiries. `lib/lunar-legs.ts`: LEG_DAYS 59.061177…
  *               (2 × LUNAR_CYCLE_MS), LEGS_PER_TURNING 6.
- *   FEES        1.88% platform · 28.8% community = PLATFORM.COMMUNITY_SHARE_BPS
- *               2880, via `splitFee`.
+ *   FEES        Flat 1.88% platform rake. The community's 28.8%
+ *               (PLATFORM.COMMUNITY_SHARE_BPS 2880) is taken off the NET that
+ *               remains after the creator is paid, not off the gross — a
+ *               two-stage waterfall. See `splitFee`.
  *
  * WHAT IS DELIBERATELY ABSENT. No funding rate, no mark/index basis, no
  * margin and no liquidation price. This platform's perpetuals are perpetual

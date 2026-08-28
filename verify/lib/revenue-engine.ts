@@ -2,7 +2,8 @@
  * MAD Gambit — 5-Stream Revenue Engine (Phase 4)
  * ────────────────────────────────────────────────────────────────
  * The platform's five revenue streams share ONE fee primitive: the canonical
- * 1.88% `splitFee()` (40% creator / 28.8% community / remainder protocol) plus
+ * 1.88% `splitFee()` — a two-stage waterfall: creator off the gross on their
+ * own markets, then community at 28.8% OF THE REMAINING NET — plus
  * the Furnace burn — both from lib/gambit-game-math.ts. This module layers the
  * stream taxonomy + projection on top of that primitive so every stream's
  * economics are computed the same way and can never drift from the canon.
@@ -101,6 +102,8 @@ export interface RevenueRollup {
   totalVolume: number;
   totalGrossFee: number;
   totalCreator: number;
+  /** grossFee − creator. The base the community share is taken from. */
+  totalPlatformNet: number;
   totalCommunity: number;
   totalProtocol: number;
   totalBurn: number;
@@ -120,6 +123,7 @@ export function projectAllStreams(
     totalVolume: sum((p) => p.volume),
     totalGrossFee: sum((p) => p.grossFee),
     totalCreator: sum((p) => p.creatorCut),
+    totalPlatformNet: sum((p) => p.platformNet),
     totalCommunity: sum((p) => p.communityCut),
     totalProtocol: sum((p) => p.netProtocol),
     totalBurn: sum((p) => p.burnAmount),

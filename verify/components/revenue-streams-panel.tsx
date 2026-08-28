@@ -50,7 +50,7 @@ export default function RevenueStreamsPanel() {
   const splitRows: [string, number, string][] = rollup
     ? [
         ["Creator (40%)", rollup.totalCreator, skin.accent],
-        ["Community (28.8%)", rollup.totalCommunity, skin.positive],
+        ["Community (28.8% of net)", rollup.totalCommunity, skin.positive],
         ["Protocol (net)", rollup.totalProtocol, skin.gold],
         ["Burned (Furnace)", rollup.totalBurn, skin.accent2],
       ]
@@ -74,7 +74,7 @@ export default function RevenueStreamsPanel() {
             5-Stream Revenue Engine
           </div>
           <div style={{ fontSize: 8, color: skin.muted, letterSpacing: 1, marginTop: 2 }}>
-            One 1.88% fee · 40% creator / 28.8% community · Furnace burn ≤4.9%
+            One 1.88% rake · creator off gross · community 28.8% of net · Furnace ≤4.9%
           </div>
         </div>
       </div>

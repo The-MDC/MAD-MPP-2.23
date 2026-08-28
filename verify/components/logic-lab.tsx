@@ -33,7 +33,7 @@ const CHECK_LOGS = [
   "[Tournament] 8-tier prize distribution → verified",
   "[Z-Liar] Sentinel BS-Index engine online",
   "[MADx] Supply 888,888,888 — immutable ✓",
-  "[Fee Engine] 1.88% rake → 40% creator / 28.8% community / protocol remainder",
+  "[Fee Engine] 1.88% rake → creator off gross (own markets) → community 28.8% of net",
   "[Elomatic] PvP clamp [0.12, 0.88] → verified",
   "[Kelly] Fractional criterion scale 0.5 → nominal",
   "[Build] ALL SYSTEMS GREEN. Platform integrity: 100%",

@@ -49,7 +49,6 @@
 import {
   CREATOR_LADDER,
   VIP_STATUS_MIN_MADX,
-  calculateDLLMSRPrice,
   creatorStatus,
 } from "@/lib/gambit-game-math";
 import { cgarchUpdate } from "@/lib/bayesian-conviction";
@@ -102,14 +101,42 @@ export function frontierPrices(branches: Branch[], b: number = FRONTIER_B): Pric
   if (!(b > 0)) throw new FrontierError("liquidity b must be > 0");
 
   const q = branches.map((x) => (Number.isFinite(x.shares) ? x.shares : 0));
-  const raw = q.map((qi) => calculateDLLMSRPrice(qi, q, b));
-  // DL-LMSR is already normalised; renormalising costs nothing and makes the
-  // invariant hold exactly under floating-point rather than approximately.
-  let total = 0;
-  for (let i = 0; i < raw.length; i++) total += raw[i];
-  if (!(total > 0)) throw new FrontierError("degenerate frontier — prices summed to zero");
 
-  return branches.map((br, i) => ({ ...br, price: raw[i] / total }));
+  // LOG-SUM-EXP, not the naive softmax.
+  //
+  // `calculateDLLMSRPrice` computes e^(q_i/b) / Σ e^(q_j/b) directly. A double
+  // overflows to Infinity once q/b passes ~709, which at b = 1200 is roughly
+  // 851,000 shares on a single branch — reachable in a deep book, not a
+  // theoretical edge. Every price then came back NaN and the whole frontier
+  // became unpriceable.
+  //
+  // Subtracting the maximum before exponentiating is mathematically identical
+  // (the constant cancels in the ratio) and cannot overflow, because the
+  // largest exponent is now exactly 0:
+  //
+  //   e^(q_i/b) / Σ e^(q_j/b)  ==  e^(q_i/b − m) / Σ e^(q_j/b − m),  m = max(q/b)
+  //
+  // The shared engine's `calculateDLLMSRPrice` is left alone deliberately: it
+  // is canon-locked and used by the binary book, where q is bounded far lower.
+  let m = -Infinity;
+  for (let i = 0; i < q.length; i++) {
+    const z = q[i] / b;
+    if (z > m) m = z;
+  }
+  if (!Number.isFinite(m)) throw new FrontierError("degenerate frontier — non-finite share vector");
+
+  const exps: number[] = [];
+  let total = 0;
+  for (let i = 0; i < q.length; i++) {
+    const e = Math.exp(q[i] / b - m);
+    exps.push(e);
+    total += e;
+  }
+  if (!(total > 0) || !Number.isFinite(total)) {
+    throw new FrontierError("degenerate frontier — prices summed to zero");
+  }
+
+  return branches.map((br, i) => ({ ...br, price: exps[i] / total }));
 }
 
 /** Σ of a frontier's prices. Should be 1 to floating-point tolerance. */
