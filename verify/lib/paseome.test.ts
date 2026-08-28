@@ -54,6 +54,45 @@ describe("frontier", () => {
     expect(b.price).toBeGreaterThan(a.price);
   });
 
+  it("survives a book deep enough to overflow the naive softmax", () => {
+    // REGRESSION. calculateDLLMSRPrice computes e^(q/b) / Σ e^(q/b) directly,
+    // and a double overflows to Infinity past q/b ≈ 709 — about 851,000 shares
+    // at b = 1200. Every price came back NaN and the frontier was unpriceable.
+    // Log-sum-exp cannot overflow because the largest exponent is exactly 0.
+    const deep = frontierPrices([
+      { id: "a", claim: "x", shares: 900_000 },
+      { id: "b", claim: "y", shares: 100 },
+      { id: "c", claim: "z", shares: 100 },
+    ]);
+    for (const br of deep) {
+      expect(Number.isFinite(br.price)).toBe(true);
+      expect(Number.isNaN(br.price)).toBe(false);
+    }
+    expect(frontierSum(deep)).toBeCloseTo(1, 12);
+    // The overwhelming branch takes essentially all of the mass, and the
+    // others stay non-negative rather than going NaN.
+    expect(deep[0].price).toBeGreaterThan(0.999);
+    expect(deep[1].price).toBeGreaterThanOrEqual(0);
+  });
+
+  it("conserves at absurd depth too — 5,000,000 shares on one branch", () => {
+    const s = frontierSum(frontierPrices([
+      { id: "a", claim: "x", shares: 5_000_000 },
+      { id: "b", claim: "y", shares: 1 },
+      { id: "c", claim: "z", shares: 1 },
+    ]));
+    expect(s).toBeCloseTo(1, 12);
+  });
+
+  it("an all-zero frontier is uniform, not degenerate", () => {
+    const p = frontierPrices([
+      { id: "a", claim: "x", shares: 0 },
+      { id: "b", claim: "y", shares: 0 },
+      { id: "c", claim: "z", shares: 0 },
+    ]);
+    for (const br of p) expect(br.price).toBeCloseTo(1 / 3, 12);
+  });
+
   it("DL-LMSR prices feed straight into a tree that conserves", () => {
     const priced = frontierPrices(mk(4));
     const tree: TreeNode = {

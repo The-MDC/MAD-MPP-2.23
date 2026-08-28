@@ -123,17 +123,57 @@ describe("creator ladder — 28.8% → 40% → 60% on the creator's own markets"
 
 describe("splitFee — ladder-aware non-additive split", () => {
   it("platform market: no creator cut, 28.8% community", () => {
+    // Platform-made market: no creator, so net == gross and the community
+    // takes 28.8% of the whole rake.
     const s = splitFee(10_000, 0);
     expect(s.grossFee).toBeCloseTo(188, 6);
     expect(s.creatorCut).toBe(0);
+    expect(s.platformNet).toBeCloseTo(188, 6);
     expect(s.communityCut).toBeCloseTo(188 * 0.288, 6);
     expect(s.protocolCut).toBeCloseTo(188 - 188 * 0.288, 6);
   });
+
   it("creator cut follows the rung passed in (User / MinorCreator / CR8TR)", () => {
     expect(splitFee(10_000, CREATOR_LADDER[0].shareBps).creatorCut).toBeCloseTo(188 * 0.288, 6);
     expect(splitFee(10_000, CREATOR_LADDER[1].shareBps).creatorCut).toBeCloseTo(188 * 0.4, 6);
     expect(splitFee(10_000, CREATOR_LADDER[2].shareBps).creatorCut).toBeCloseTo(188 * 0.6, 6);
   });
+
+  it("community is 28.8% of NET, not of gross — the two-stage waterfall", () => {
+    // Founder, 2026-08-27: flat 1.88% rake; community is 28.8% of NET profits;
+    // creator earns only on their own markets. The worked example canon gives:
+    // 10,000 volume at the 40% rung -> gross 188, creator 75.20, net 112.80,
+    // community 32.4864, protocol 80.3136.
+    const s = splitFee(10_000, 4000);
+    expect(s.grossFee).toBeCloseTo(188, 6);
+    expect(s.creatorCut).toBeCloseTo(75.2, 6);
+    expect(s.platformNet).toBeCloseTo(112.8, 6);
+    expect(s.communityCut).toBeCloseTo(32.4864, 6);
+    expect(s.protocolCut).toBeCloseTo(80.3136, 6);
+  });
+
+  it("the community cut is 17.28% of gross on a 40% creator market", () => {
+    const s = splitFee(10_000, 4000);
+    expect((s.communityCut / s.grossFee) * 100).toBeCloseTo(17.28, 6);
+  });
+
+  it("REGRESSION: the old gross-based cut over-allocated by 11.52pp of gross", () => {
+    // Guards the exact bug docs/boardy/CANONICAL_NUMBERS_2026-08-19.md logged.
+    // If someone reverts the base to grossFee, this is the number that moves.
+    const s = splitFee(10_000, 4000);
+    const oldCommunity = s.grossFee * 0.288;
+    expect(((oldCommunity - s.communityCut) / s.grossFee) * 100).toBeCloseTo(11.52, 6);
+  });
+
+  it("every part reconciles back to the gross fee, at every rung", () => {
+    for (const bps of [0, 2880, 4000, 6000]) {
+      const s = splitFee(10_000, bps);
+      expect(s.creatorCut + s.platformNet).toBeCloseTo(s.grossFee, 9);
+      expect(s.communityCut + s.protocolCut).toBeCloseTo(s.platformNet, 9);
+      expect(s.creatorCut + s.communityCut + s.protocolCut).toBeCloseTo(s.grossFee, 9);
+    }
+  });
+
   it("cuts never exceed the gross fee", () => {
     const s = splitFee(10_000, 6000);
     expect(s.creatorCut + s.communityCut).toBeLessThanOrEqual(s.grossFee + 1e-9);
