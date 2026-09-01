@@ -425,7 +425,7 @@ function GambitInner() {
 
         <footer className="mt-12 text-center space-y-2">
           <p className="font-mono text-[10px] uppercase tracking-widest text-neutral-600">
-            Platform Fee 1.88% · Creator Share 40% · Community 28.8% · $MADx 888,888,888 fixed
+            Platform Fee 1.88% · Creator Share 40% · Community 28.8% · $MADx 888,888,888 cap, mint-on-purchase
           </p>
           <p className="font-mono text-[9px] text-neutral-700">
             © 2026 MΛĐ GAMBIT LLC · Conviction · Prediction · Affliction

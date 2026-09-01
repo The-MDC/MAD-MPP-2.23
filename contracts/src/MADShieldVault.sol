@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {ERC2771Context} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
@@ -11,7 +12,15 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 /// _msgSender(), so they work relayed through the MAD Gambit forwarder (see
 /// verify/app/api/v1/relay/execute) as well as called directly. onlyOwner
 /// functions needed no change — Ownable already resolves through _msgSender().
-contract MADShieldVault is Ownable, ERC2771Context {
+///
+/// ReentrancyGuard: this is the one fund-custody contract in this directory
+/// that previously lacked it, unlike MADStaking/MADMarketFactory/
+/// MADOptimisticOracle, which all guard their token-moving entry points the
+/// same way. Applied to stake/claim/resolveLoss/withdraw — every function
+/// that calls token.safeTransfer(From). requestUnstake makes no external
+/// call (state-only), so it isn't a reentrancy surface and doesn't need the
+/// modifier.
+contract MADShieldVault is Ownable, ReentrancyGuard, ERC2771Context {
     using SafeERC20 for IERC20;
 
     enum ShieldTier { Standard, Shielded, Whale }
@@ -91,7 +100,7 @@ contract MADShieldVault is Ownable, ERC2771Context {
         uint256 stakeAmount,
         ShieldTier tier,
         uint256 premiumTierBps
-    ) external returns (uint256 positionId) {
+    ) external nonReentrant returns (uint256 positionId) {
         require(stakeAmount > 0, "Cannot stake 0");
         address user = _msgSender();
         if (tier == ShieldTier.Whale) {
@@ -147,7 +156,7 @@ contract MADShieldVault is Ownable, ERC2771Context {
      * @notice Claims the staked amount after the cooldown window.
      * @param positionId The ID of the position to claim.
      */
-    function claim(uint256 positionId) external {
+    function claim(uint256 positionId) external nonReentrant {
         address user = _msgSender();
         require(positionId < positions[user].length, "Invalid position ID");
         Position storage pos = positions[user][positionId];
@@ -169,7 +178,7 @@ contract MADShieldVault is Ownable, ERC2771Context {
      * @param user The address of the position owner.
      * @param positionId The ID of the position.
      */
-    function resolveLoss(address user, uint256 positionId) external onlyOwner {
+    function resolveLoss(address user, uint256 positionId) external onlyOwner nonReentrant {
         require(positionId < positions[user].length, "Invalid position ID");
         Position storage pos = positions[user][positionId];
         require(pos.isActive, "Position is not active");
@@ -251,7 +260,7 @@ contract MADShieldVault is Ownable, ERC2771Context {
      * @notice Withdraws token premiums or surplus.
      * @param amount The amount of tokens to withdraw.
      */
-    function withdraw(uint256 amount) external onlyOwner {
+    function withdraw(uint256 amount) external onlyOwner nonReentrant {
         token.safeTransfer(owner(), amount);
     }
 

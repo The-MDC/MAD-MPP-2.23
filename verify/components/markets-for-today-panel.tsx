@@ -59,19 +59,21 @@ export default function MarketsForTodayPanel() {
     load();
   }, [load]);
 
-  // Yank fresh chaos from GDELT, then re-classify. (Live in prod; a no-op flourish
-  // without a DB — the button still spins and reloads the demo set.)
+  // Yank fresh chaos from GDELT, then re-classify. Calls the public, rate-limited
+  // refresh route (not /api/v1/ingest/gdelt directly — that one is CRON_SECRET-gated
+  // for the scheduled job and a browser can never supply that header, so calling it
+  // here always 401/503'd). That route does real work now instead of always refusing;
+  // a genuine failure (rate-limited, network error) is surfaced via pullNote rather
+  // than swallowed by an empty .catch(). Degrades the same way the route does: without
+  // a DB it still fetches+scores a preview, persisting nothing, rather than failing.
   const pullFresh = async () => {
     setPulling(true);
-
-    // Operator-only route (CRON_SECRET): a browser cannot hold that secret, so
-    // this has been 401ing silently. The refusal is now shown, not swallowed.
     setPullNote(null);
-    const res = await fetch("/api/v1/ingest/gdelt", { method: "POST" }).catch(() => null);
+    const res = await fetch("/api/v1/markets/proposals/refresh", { method: "POST" }).catch(() => null);
     if (!res || !res.ok) {
       setPullNote(
-        res?.status === 401
-          ? "Manual refresh is operator-only — the scheduled job pulls this feed."
+        res?.status === 429
+          ? "Refresh is rate-limited — try again in a few minutes."
           : "Refresh failed. Showing the last stored signals.",
       );
     }

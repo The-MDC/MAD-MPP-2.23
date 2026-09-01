@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MAD Gambit — Investor Overview</title>
+<meta name="description" content="General investor and strategic-partner overview of MAD Gambit, evidence-labelled.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg-deep:#080a12; --bg-panel:#0d1018; --bg-card:#111520; --bg-card-hov:#161c28;
+  --gold:#ffd700; --gold-dim:#b8860b; --gold-lcd:#ffcf40;
+  --cyan:#00e5ff; --cyan-dim:#007a8a;
+  --pink:#ff007f; --pink-dim:#7a003c;
+  --green:#00ff88; --green-dim:#008844;
+  --white:#f0f0f8; --muted:#6b7280;
+  --border:rgba(255,255,255,.06); --border-gold:rgba(255,215,0,.3); --border-cyan:rgba(0,229,255,.25);
+  --display:"Chakra Petch",system-ui,sans-serif;
+  --body:"Manrope",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg-deep); color:var(--white);
+  font-family:var(--body); -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+.rig{position:fixed; inset:0; display:flex; flex-direction:column}
+.topbar{
+  display:flex; align-items:center; gap:1rem; flex-wrap:wrap;
+  padding:.7rem clamp(1rem,3vw,2.2rem);
+  background:var(--bg-panel); border-bottom:1px solid var(--border);
+}
+.wordmark{font-family:Georgia,"Times New Roman",serif; font-weight:700; letter-spacing:.02em;
+  font-size:1rem; color:var(--gold); white-space:nowrap}
+.sub{font-family:var(--mono); font-size:.58rem; letter-spacing:.22em; text-transform:uppercase; color:var(--muted)}
+.spacer{flex:1 1 auto}
+.btn{
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--white); background:var(--bg-card); border:1px solid var(--border);
+  padding:.45rem .75rem; border-radius:.35rem; cursor:pointer; transition:background .15s,border-color .15s;
+}
+.btn:hover{background:var(--bg-card-hov); border-color:var(--border-cyan)}
+.btn:focus-visible{outline:2px solid var(--cyan); outline-offset:2px}
+.rail{display:flex; gap:4px; padding:0 clamp(1rem,3vw,2.2rem) .55rem; background:var(--bg-panel)}
+.dot{flex:1; height:3px; background:#1b2130; border-radius:2px}
+.dot.done{background:var(--gold-dim)}
+.dot.now{background:var(--gold)}
+.stage{flex:1; position:relative; overflow:hidden}
+.slide{
+  position:absolute; inset:0; display:none;
+  padding:clamp(1.4rem,4vh,3rem) clamp(1.2rem,5vw,4rem);
+  overflow-y:auto;
+}
+.slide.on{display:flex; flex-direction:column; justify-content:center}
+.eyebrow{
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.28em; text-transform:uppercase;
+  color:var(--cyan); margin-bottom:.85rem; display:flex; align-items:center; gap:.7rem; flex-wrap:wrap;
+}
+.eyebrow .t{color:var(--muted); letter-spacing:.16em}
+h1{
+  font-family:var(--display); font-weight:700; margin:0 0 1rem;
+  font-size:clamp(1.5rem,4.2vw,2.9rem); line-height:1.08; letter-spacing:-.01em;
+  text-wrap:balance; max-width:24ch;
+}
+h1 em{font-style:normal; color:var(--gold)}
+h1 .cy{color:var(--cyan)}
+.lede{
+  font-size:clamp(.95rem,1.6vw,1.15rem); line-height:1.55; color:#c9cddb;
+  max-width:64ch; margin:0 0 1.2rem; text-wrap:pretty;
+}
+.lede strong{color:var(--white); font-weight:700}
+.chip{
+  display:inline-flex; align-items:center; gap:.32rem; vertical-align:middle;
+  font-family:var(--mono); font-size:.55rem; font-weight:600; letter-spacing:.14em; text-transform:uppercase;
+  padding:.16rem .42rem; border-radius:.25rem; white-space:nowrap;
+}
+.chip::before{content:""; width:5px; height:5px; border-radius:50%; background:currentColor}
+.chip.live{color:var(--green); background:rgba(0,255,136,.09); border:1px solid var(--green-dim)}
+.chip.demo{color:var(--cyan); background:rgba(0,229,255,.08); border:1px solid var(--cyan-dim)}
+.chip.spec{color:var(--muted); background:rgba(107,114,128,.1); border:1px solid #2c3444}
+.grid{display:grid; gap:.65rem; margin:.3rem 0 0}
+.g2{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.card{
+  background:var(--bg-card); border:1px solid var(--border); border-radius:.6rem;
+  padding:.85rem .95rem;
+}
+.card.gold{border-color:var(--border-gold)}
+.card h3{
+  font-family:var(--display); font-weight:600; margin:.15rem 0 .3rem;
+  font-size:.95rem; letter-spacing:.01em; color:var(--white);
+}
+.card p{margin:0; font-size:.79rem; line-height:1.5; color:#a8aec0}
+.card .q{font-family:var(--mono); font-size:.58rem; letter-spacing:.05em; color:var(--cyan); display:block; margin-top:.4rem}
+.figs{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:.65rem; margin:.2rem 0 0}
+.fig{background:var(--bg-card); border:1px solid var(--border-gold); border-radius:.6rem; padding:.85rem 1rem}
+.fig .n{
+  font-family:var(--mono); font-weight:600; font-variant-numeric:tabular-nums;
+  font-size:clamp(1.4rem,3.2vw,2.1rem); line-height:1;
+  background:linear-gradient(150deg,#fffcf0 0%,#efc76d 25%,#ab7b29 50%,#f7d983 75%,#5c3c04 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.fig .l{font-family:var(--mono); font-size:.56rem; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--muted); margin-top:.4rem; display:block; line-height:1.4}
+.truth{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:.65rem}
+.tcol{background:var(--bg-card); border:1px solid var(--border); border-radius:.6rem; padding:.8rem .9rem}
+.tcol.live{border-color:var(--green-dim)}
+.tcol.demo{border-color:var(--cyan-dim)}
+.tcol.spec{border-color:#2c3444}
+.tcol ul{margin:.5rem 0 0; padding-left:1rem}
+.tcol li{font-size:.77rem; line-height:1.55; color:#a8aec0}
+.ask{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:.65rem}
+.askcard{background:var(--bg-card); border:1px solid var(--border-gold); border-radius:.6rem; padding:.95rem 1.05rem}
+.askcard .amt{font-family:var(--mono); font-weight:600; font-size:1.4rem; color:var(--gold); letter-spacing:.01em;
+  font-variant-numeric:tabular-nums}
+.askcard .k{font-family:var(--mono); font-size:.56rem; letter-spacing:.16em; text-transform:uppercase; color:var(--cyan)}
+.askcard p{margin:.4rem 0 0; font-size:.79rem; line-height:1.5; color:#a8aec0}
+table.data{width:100%; border-collapse:collapse; font-size:.78rem; margin-top:.3rem}
+table.data th{font-family:var(--mono); font-size:.55rem; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--muted); text-align:left; padding:.4rem .6rem; border-bottom:1px solid var(--border-gold)}
+table.data td{padding:.45rem .6rem; border-bottom:1px solid var(--border); color:#c9cddb}
+table.data td.n{font-family:var(--mono); color:var(--gold); font-variant-numeric:tabular-nums}
+.closer{
+  margin-top:1rem; padding:.8rem 1rem; border-left:2px solid var(--gold);
+  background:rgba(255,215,0,.04); font-size:.9rem; line-height:1.55; color:var(--white); max-width:64ch;
+}
+.foot{
+  font-family:var(--mono); font-size:.55rem; letter-spacing:.1em; color:var(--muted);
+  padding:.5rem clamp(1rem,3vw,2.2rem) .7rem; background:var(--bg-panel); border-top:1px solid var(--border);
+  display:flex; gap:1rem; align-items:center; flex-wrap:wrap;
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+@media (max-width:640px){ body{overflow:auto} .rig{position:static; min-height:100%} .stage{min-height:80vh} }
+</style>
+</head>
+<body>
+<div class="rig">
+
+  <div class="topbar">
+    <div>
+      <div class="wordmark">MΛĐ GAMBIT</div>
+      <div class="sub">Investor Overview</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn" id="prev">← Prev</button>
+    <button class="btn" id="next">Next →</button>
+  </div>
+
+  <div class="rail" id="rail" aria-hidden="true"></div>
+
+  <div class="stage" id="stage">
+
+    <section class="slide on">
+      <div class="eyebrow"><span>01 · Cover</span></div>
+      <h1>MAD Gambit — markets that price <em>culture</em>, continuously.</h1>
+      <p class="lede">An entertainment prediction-market platform where creators turn live
+      headlines into markets and earn a share of what they build. Evidence-labelled throughout
+      — every number here traces to code, not just copy.</p>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>02 · The problem</span></div>
+      <h1>Prediction markets today settle facts <em>once</em>. Culture doesn't wait.</h1>
+      <p class="lede">Polymarket and Kalshi are truth machines — they settle at resolution.
+      DraftKings and Stake are liquidity machines — they move money on outcomes that already
+      have odds. Neither prices the thing that actually moves fastest: culture, in real time,
+      before anyone agrees on how it ends.</p>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>03 · What it is</span></div>
+      <h1>A creator turns a headline into a market. The market never has to close to matter.</h1>
+      <div class="grid g4">
+        <div class="card"><h3>1 · Create</h3><p>A creator turns a live headline into a market.</p></div>
+        <div class="card"><h3>2 · Position</h3><p>People take a side and stake conviction.</p></div>
+        <div class="card"><h3>3 · Price</h3><p>The market prices continuously, not just at resolution.</p></div>
+        <div class="card"><h3>4 · Earn</h3><p>The creator earns a traction-gated share of the fee.</p></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>04 · The wedge</span></div>
+      <h1>Not one market type — a family of <em>specialised perpetuals</em>.</h1>
+      <p class="lede">Is this person telling the truth? Does this story hold up? What happens
+      next in a story that keeps compounding? Different human questions, one continuous-pricing
+      engine underneath.</p>
+      <div class="grid g2">
+        <div class="card"><h3>Z-Liar Meter</h3><p>Deception signal across language, contradiction, and sentiment shift.</p></div>
+        <div class="card"><h3>Progression &amp; Saga</h3><p>Chained outcomes that compound across episodes.</p></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>05 · The economics</span></div>
+      <h1>Enforced in the contract, worked out on real numbers.</h1>
+      <p class="lede">On a $1,000-volume market: <strong>1.88%</strong> platform fee, always.
+      A creator who's proven traction (34 markets, 888 followers) takes <strong>60%</strong> of
+      that fee — $11.28. A brand-new creator takes <strong>28.8%</strong> — $5.41. Same fee,
+      different split, gated by what they've actually built, not negotiated.</p>
+      <div class="figs">
+        <div class="fig"><div class="n">1.88%</div><span class="l">Platform fee, global <span class="chip live">Live</span></span></div>
+        <div class="fig"><div class="n">28.8→60%</div><span class="l">Creator share, by rung <span class="chip live">Live</span></span></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>06 · MAD Shield</span></div>
+      <h1>Losses aren't final. <em>Loss mitigation</em> — never insurance.</h1>
+      <p class="lede">Opt in, pay a premium — live today, a 2–4% dial on your stake — and if
+      the market goes against you, get back <strong>28.8%</strong> of the loss at the standard
+      tier, scaling to <strong>40%</strong> shielded, <strong>60%</strong> at our highest tier.
+      This is a stop-loss, not a guarantee, and never described as insurance — that's a
+      regulated term with licensing this product doesn't have.</p>
+      <div class="card" style="max-width:64ch"><h3>Honest note on the mechanism</h3>
+      <p>A more sophisticated, volatility-priced version of this formula is built and tested;
+      the version actually live today is the simpler flat-percentage dial above. We'd rather
+      tell you that than let a technical reviewer find the gap first.</p></div>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>07 · What's actually real</span></div>
+      <h1>Here's what's live — and what <em>isn't</em>.</h1>
+      <div class="truth">
+        <div class="tcol live">
+          <div class="eyebrow" style="margin:0"><span style="color:var(--green)">Live in code</span></div>
+          <ul>
+            <li>DL-LMSR market pricing</li>
+            <li>GARCH(1,1) volatility model</li>
+            <li>Fee split &amp; Shield recovery dial</li>
+            <li>SIWE auth · 10 contracts, 90+ tests</li>
+          </ul>
+        </div>
+        <div class="tcol demo">
+          <div class="eyebrow" style="margin:0"><span style="color:var(--cyan)">Demo</span></div>
+          <ul>
+            <li>Market Factory (front end)</li>
+            <li>Live price-movement simulator</li>
+            <li>Scraper / trader agent layer</li>
+          </ul>
+        </div>
+        <div class="tcol spec">
+          <div class="eyebrow" style="margin:0"><span style="color:var(--muted)">Not yet</span></div>
+          <ul>
+            <li>On-chain settlement, wired to the oracle</li>
+            <li>Any contract deployed to a real network</li>
+            <li>Independent security audit</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>08 · Traction</span></div>
+      <h1>15,000 people pre-registered. <em>That's a waitlist</em> — not traction.</h1>
+      <p class="lede">We won't sell it as more than it is: interest, not usage. There is no
+      measured retention yet — the 70%+ D30 figure occasionally quoted elsewhere is a target,
+      not a result, and this deck treats it as one everywhere it appears.</p>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>09 · Who's building this</span></div>
+      <h1>Founder-led, building in the open.</h1>
+      <p class="lede">Third-time founder, 14+ years building startups, one prior exit. The
+      codebase, tests, and this diligence package itself are the primary evidence of execution
+      speed — not a team-size claim we can't back yet. The bridge tranche exists specifically to
+      bring on an accountable technical partner against explicit milestones.</p>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>10 · The ask</span></div>
+      <h1>Two asks, kept <em>separate</em>.</h1>
+      <div class="ask">
+        <div class="askcard">
+          <div class="k">Tranche 01 · Infrastructure</div>
+          <div class="amt">$15K – $20K</div>
+          <p>3–6 months of build infrastructure, frontier-model usage, and one capable
+          development machine. This keeps the engine running.</p>
+        </div>
+        <div class="askcard">
+          <div class="k">Tranche 02 · Bridge</div>
+          <div class="amt">$300K – $500K</div>
+          <p>Product, testing, security, and an accountable technical partner working against
+          explicit milestones.</p>
+        </div>
+      </div>
+      <p class="lede" style="margin-top:.8rem">Separately, a seed round of
+      <strong>$1.24M–$2.48M at a $12M pre-money valuation</strong> (SAFE or equity) is referenced
+      elsewhere in our materials. <strong>None of these raises are closed.</strong></p>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>11 · Close</span></div>
+      <h1>Not looking for passive capital.</h1>
+      <div class="closer">We want an operator or a studio who can pressure-test the market
+      design — and we'll give equity against milestones, not a retainer. Full technical
+      backup for everything in this deck — a one-page truth sheet, a feature traceability
+      matrix, a complete math-engine appendix, and a security &amp; oracle risk register — is
+      available on request.</div>
+    </section>
+
+  </div>
+
+  <div class="foot">
+    <span id="counter">01 / 11</span>
+    <span class="spacer"></span>
+    <span>Evidence-labelled · Informational only — not an offer or solicitation · © 2026 MAD Gambit LLC (New Mexico)</span>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0;
+  var rail = document.getElementById('rail');
+  slides.forEach(function(){ var d = document.createElement('div'); d.className='dot'; rail.appendChild(d); });
+  var dots = Array.prototype.slice.call(rail.children);
+  var counter = document.getElementById('counter');
+  function pad(n){ return (n<10?'0':'') + n; }
+  function paint(){
+    slides.forEach(function(s,n){ s.classList.toggle('on', n===i); });
+    dots.forEach(function(d,n){ d.className = 'dot' + (n < i ? ' done' : n === i ? ' now' : ''); });
+    counter.textContent = pad(i+1) + ' / ' + pad(slides.length);
+  }
+  function go(n){ i = Math.max(0, Math.min(slides.length-1, n)); slides[i].scrollTop = 0; paint(); }
+  document.getElementById('next').addEventListener('click', function(){ go(i+1); });
+  document.getElementById('prev').addEventListener('click', function(){ go(i-1); });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight' || e.key === 'PageDown'){ e.preventDefault(); go(i+1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); go(i-1); }
+  });
+  var x0 = null;
+  document.getElementById('stage').addEventListener('touchstart', function(e){ x0 = e.changedTouches[0].clientX; }, {passive:true});
+  document.getElementById('stage').addEventListener('touchend', function(e){
+    if(x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    if(Math.abs(dx) > 55) go(dx < 0 ? i+1 : i-1);
+    x0 = null;
+  }, {passive:true});
+  paint();
+})();
+</script>
+</body>
+</html>

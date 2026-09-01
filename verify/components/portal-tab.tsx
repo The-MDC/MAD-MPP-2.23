@@ -34,7 +34,7 @@ const SLIDES: Slide[] = [
       { label: "Furnace burn cap", value: "4.9% / epoch" },
       { label: "Evolution burns",   value: "100→1,000 cards" },
       { label: "Protocol cut",      value: "~53.2% of fee" },
-      { label: "Supply floor",      value: "888,888,888 $MADx" },
+      { label: "Supply cap",        value: "888,888,888 $MADx (mint-on-purchase)" },
     ],
     cta: "Every loss feeds the furnace. Every evolution is deflationary.",
   },

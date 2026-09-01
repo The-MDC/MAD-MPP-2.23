@@ -12,14 +12,20 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
  * @title MADStaking
  * @notice On-chain implementation of the MAD Gambit $MADx staking tiers.
  *         Mirrors STAKING_TIERS in verify/lib/gambit-game-math.ts — the APY a
- *         position earns is a step function of its currently-staked balance:
+ *         position earns is a step function of its currently-staked balance.
  *
- *           Bronze    ≥      100 MADx → 12% APY
- *           Silver    ≥      500 MADx → 18% APY
- *           Gold      ≥    2,500 MADx → 28% APY
- *           Platinum  ≥   10,000 MADx → 42% APY
- *           Diamond   ≥   50,000 MADx → 58% APY
- *           MAD Tier  ≥  100,000 MADx → 68% APY
+ *         Reconciled to the 4-tier canon (founder sign-off 31 Jul 2026, per
+ *         verify/lib/gambit-game-math.ts and verify/lib/node-registry.ts's
+ *         own "4-tier staking eights ladder (not 6)" note) on 2026-09-01 —
+ *         this contract previously still had the older 6-tier table below,
+ *         which had drifted out of sync with its own "mirrors STAKING_TIERS"
+ *         claim above. Nothing was deployed under the old table, so this is
+ *         a straight correction, not a migration:
+ *
+ *           Bronze    ≥       88 MADx →  8.8% APY
+ *           Silver    ≥      888 MADx → 18.8% APY
+ *           Gold      ≥    8,888 MADx → 28.8% APY
+ *           MAD Tier  ≥   88,888 MADx → 38.8% APY
  *
  *         Rewards accrue linearly per second and are paid from a reward reserve
  *         the owner funds separately from staked principal, so a user's stake is
@@ -75,12 +81,10 @@ contract MADStaking is Ownable, ReentrancyGuard, ERC2771Context {
         madx = IERC20(_madx);
 
         // Canonical STAKING_TIERS — do not reorder (kept ascending by minStake).
-        tiers.push(Tier(100 * 1e18, 1_200));
-        tiers.push(Tier(500 * 1e18, 1_800));
-        tiers.push(Tier(2_500 * 1e18, 2_800));
-        tiers.push(Tier(10_000 * 1e18, 4_200));
-        tiers.push(Tier(50_000 * 1e18, 5_800));
-        tiers.push(Tier(100_000 * 1e18, 6_800));
+        tiers.push(Tier(88 * 1e18, 880));
+        tiers.push(Tier(888 * 1e18, 1_880));
+        tiers.push(Tier(8_888 * 1e18, 2_880));
+        tiers.push(Tier(88_888 * 1e18, 3_880));
     }
 
     /* ─────────────────────────── views ─────────────────────────── */
@@ -93,7 +97,7 @@ contract MADStaking is Ownable, ReentrancyGuard, ERC2771Context {
         return 0;
     }
 
-    /// @notice 1-indexed tier (1=Bronze … 6=MAD Tier); 0 = below Bronze.
+    /// @notice 1-indexed tier (1=Bronze … 4=MAD Tier); 0 = below Bronze.
     function tierFor(uint256 balance) external view returns (uint256) {
         for (uint256 i = tiers.length; i > 0; --i) {
             if (balance >= tiers[i - 1].minStake) return i;
