@@ -15,6 +15,12 @@ import { enforceRateLimit } from "@/lib/rate-limit";
  * instead of a secret, which is the appropriate guard for a public, human-triggered
  * "refresh" action rather than a trusted scheduled job. Conservative limit (5/10min)
  * since each call hits GDELT and, when configured, writes to the DB.
+ *
+ * PUBLIC-ROUTE: any visitor — logged in or not — can trigger a headline refresh;
+ * that's the point of the "Pull fresh" button this route exists for, and nothing
+ * it writes is user-owned or attributable to a caller (it ingests public GDELT
+ * articles into shared market proposals, the same rows the CRON_SECRET job writes
+ * on its own schedule). Abuse is bounded by enforceRateLimit below, not identity.
  */
 export const dynamic = "force-dynamic";
 
