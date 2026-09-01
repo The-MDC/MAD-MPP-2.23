@@ -32,9 +32,10 @@ fast and finds its bugs in production.
 Not a roadmap slide. Every item below is checkable against the repository:
 
 - **DL-LMSR market pricing** — a full liquidity-sensitive market-scoring-rule implementation
-  (`verify/lib/gambit-game-math.ts`), unit-tested.
+  (`verify/lib/gambit-game-math.ts`), correct as read, though its unit-test coverage is
+  currently zero — named here, not left for a reviewer to find.
 - **GARCH(1,1) volatility modeling** — feeds the pricing engine's uncertainty term, clamped to
-  documented bounds, unit-tested.
+  documented bounds, unit-tested — the best-covered formula in the file.
 - **A fee-split and loss-recovery ("MAD Shield") formula layer** — implemented and tested in
   code, though one allocation base is under founder review before mainnet (documented
   transparently in this package's math appendix, not hidden).
@@ -44,9 +45,12 @@ Not a roadmap slide. Every item below is checkable against the repository:
   written against Foundry/OpenZeppelin.
 
 What's not yet live, stated as plainly as what is: the on-chain settlement cascade that turns a
-resolved market into an actual payout is not fully wired end-to-end, and none of the
-fund-custody contracts have had an independent security review. Those two gaps are exactly what
-this grant would close.
+resolved market into an actual payout is not fully wired end-to-end (the dispute/settlement
+oracle contract is built and tested but isn't yet called by the market factory), the vault
+holding Shield stakes doesn't yet have a reentrancy guard that its sibling contracts have, and
+none of the fund-custody contracts have had an independent security review. Those gaps are
+exactly what this grant would close. (A separate, legacy contract package elsewhere in the repo
+doesn't currently compile and isn't part of this proposal's scope.)
 
 ## Ecosystem value
 
