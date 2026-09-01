@@ -314,10 +314,18 @@ describe("DL-LMSR — volume-scaled bond pricing (previously untested)", () => {
     expect(calculateDLLMSRPrice(q0, [q0, q1], b)).toBeCloseTo(expected, 9);
   });
   it("price never scales with volume — it is a display probability, not a marginal cost", () => {
+    // calculateDLLMSRPrice(qI, shares, b) has exactly 3 parameters — there is no
+    // volume argument to pass it, by construction, not by convention.
+    expect(calculateDLLMSRPrice.length).toBe(3);
     const shares = [500, 200];
-    const priceAtNoVolume = calculateDLLMSRPrice(0, shares, 1200);
-    const priceAtHighVolume = calculateDLLMSRPrice(0, shares, 5_000_000);
-    expect(priceAtHighVolume).toBeCloseTo(priceAtNoVolume, 12); // calculateDLLMSRPrice doesn't take volume at all
+    const b = 1200;
+    const price = calculateDLLMSRPrice(0, shares, b);
+    // The only place volume enters this system is calculateDLLMSRMarginalCost's
+    // alpha multiplier. Dividing it back out at two very different volumes must
+    // recover the exact same fixed price, proving alpha is the sole volume-sensitive
+    // factor and calculateDLLMSRPrice itself never moves.
+    expect(calculateDLLMSRMarginalCost(0, shares, b, 0) / calculateVolumeScalingAlpha(0)).toBeCloseTo(price, 9);
+    expect(calculateDLLMSRMarginalCost(0, shares, b, 5_000_000) / calculateVolumeScalingAlpha(5_000_000)).toBeCloseTo(price, 9);
   });
   it("price guards: empty shares or non-positive b return 0, never NaN", () => {
     expect(calculateDLLMSRPrice(0, [], 1200)).toBe(0);
