@@ -417,7 +417,7 @@ function PreviewInner() {
                   style={{ background: "transparent", border: "none", padding: 0, cursor: "pointer", color: skin.gold, fontSize: "inherit", fontWeight: 900, letterSpacing: "inherit", textDecoration: "underline dotted", fontFamily: INSTRUMENT_FONT }}>
                   1.88%
                 </button>
-                {" "}· Creator Ladder 28.8–60% · Community 28.8% · $MADx 888,888,888 fixed
+                {" "}· Creator Ladder 28.8–60% · Community 28.8% · $MADx 888,888,888 cap, mint-on-purchase
               </div>
               <div style={{ fontSize: 8, color: skin.muted, marginTop: 4 }}>
                 Faithful assembly of the mockup · clickable tickers, rails, nav, cards + platform links · live news /

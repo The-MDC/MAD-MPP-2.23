@@ -21,23 +21,25 @@ app, zero test coverage). Both combinations appear below — don't collapse them
 |---|---|---|
 | Platform fee constants, `splitFee()` waterfall | **Implemented, partially Validated** | Creator-cut scaling is tested across all three ladder rungs; the community-cut-on-gross-fee behavior (the open bug) is not itself asserted by a test. |
 | Creator Ladder (28.8% → 40% → 60%) | **Implemented, Validated** | Founder-sign-off dated in-code; tested including the exact follower-count boundary case. |
-| Staking tiers (4-tier, TS engine) | **Implemented, Validated** | Fully tested. The *deployed-intent* Solidity contract (`MADStaking.sol`) still encodes the old 6-tier table and has drifted from this — see security register. |
-| DL-LMSR pricing (cost + price functions) | **Implemented, not Validated** | Zero unit-test coverage of the actual pricing math; a real internal inconsistency exists between the cost and price functions (see math appendix §5). |
+| Staking tiers (4-tier, TS engine) | **Implemented, Validated** | Fully tested. ✅ FIXED 2026-09-01: the Solidity contract (`MADStaking.sol`) previously still encoded the old 6-tier table and had drifted from this — it is now reconciled to the same 4-tier canon (see Section C and the security register). |
+| DL-LMSR pricing (cost, price, and marginal-cost functions) | **Implemented, Validated** | ✅ FIXED 2026-09-01: 14 new tests (previously zero); the cost/price inconsistency was resolved by adding a dedicated `calculateDLLMSRMarginalCost` function rather than changing price's display semantics, and an overflow guard was added matching `calculateSoftmax` elsewhere in the file (see math appendix §5). |
 | GARCH(1,1) volatility | **Implemented, Validated** | The best-tested formula in the file; defensively coded. |
 | MAD Shield premium — GARCH-priced version (`shieldPremium`) | **Implemented, Validated, NOT Demonstrated** | Well-tested, well-documented — but not called anywhere in the file; not the live formula. |
-| MAD Shield premium — the live version (`calculateShieldPremium`) | **Implemented, Demonstrated, NOT Validated** | This is what the opt-in flow actually calls. Flat 2–4% dial, no volatility input, zero tests. |
-| Shield payout resolver (`calculateShieldPayoutFull`) | **Implemented, NOT Validated** | The function the code's own comments call canonical. Zero test coverage, along with its whale-eligibility gate. |
+| MAD Shield premium — the live version (`calculateShieldPremium`) | **Implemented, Demonstrated, NOT Validated** | This is what the opt-in flow actually calls. Flat 2–4% dial, no volatility input, zero tests — untouched by this session's fixes. |
+| Shield payout resolver (`calculateShieldPayoutFull`) | **Implemented, Validated** | ✅ FIXED 2026-09-01: 12 new tests (previously zero) across the resolver, its whale-eligibility gate, and the tiered-dial variant — all three tiers and every eligibility gate now covered (see math appendix §7). |
 | Z-Liar meter composite score | **Implemented, Validated** | Real formula, tested. |
-| Overall math-engine test coverage | — | **21.5%** (20 of 93 runtime-testable exports). Cards/packs/factions, evolution, PvP tournaments, virality/EigenTrust, Dutch auctions, prediction scenarios, and the shield payout resolvers have zero coverage. |
+| Overall math-engine test coverage | — | **≈28.7%** (27 of 94 runtime-testable exports), up from 21.5% (20/93) this session. Cards/packs/factions, evolution, PvP tournaments, virality/EigenTrust, and Dutch auctions still have zero coverage — none of it fund-custody or pricing-critical. |
 
 ## B. Headline-to-market pipeline — full detail from the pipeline audit
 
 | Step (per the demo sequence) | State | Notes |
 |---|---|---|
 | Live headline ingestion (RSS fetch) | **Implemented, Demonstrated** | 26 real publisher feeds, genuine network calls, honest failure handling. |
+| "Pull fresh" manual ingestion trigger (`markets-for-today-panel.tsx`) | **Implemented, Demonstrated** | ✅ FIXED 2026-09-01: previously called the CRON_SECRET-gated `/api/v1/ingest/gdelt` route directly from the browser, so the button silently failed for every real (non-dev) user — no bearer secret is available client-side by design. Now calls a new public, rate-limited route (`/api/v1/markets/proposals/refresh`, 5 requests/10min) that runs the same ingest logic. A `vercel.json` cron entry was also added so ingestion runs on a schedule (`*/30 * * * *`) independent of anyone clicking the button. |
 | Market-type classification | **Implemented, Demonstrated, Validated** | A real deterministic rules engine (not ML/LLM) composing tested math-engine functions with keyword cascades. |
 | Headline rewriting/roast (satire engine) | **Implemented, Demonstrated** | Real Gemini LLM call with a self-reporting deterministic fallback when no API key or on parse failure. |
-| Automatic market creation from a classified headline | **Conceptual** | Does not exist. The branded "Market Factory" Create button has no click handler at all. |
+| Automatic market creation from a classified headline (zero human clicks) | **Conceptual** | Still does not exist — no code path creates a market without a human clicking Create. This row is specifically about *full* automation; see the next row for the human-in-the-loop path, which changed this session. |
+| Market Factory "Create" button (human-in-the-loop, from a classified/typed headline) | **Implemented, Demonstrated (interim)** | ✅ FIXED 2026-09-01: previously the branded Create button had no click handler at all — clicking it did nothing, silently. It now POSTs to the same real market-creation API the manual form below uses (title, category, and yes/no odds derived from the on-screen probability inputs), so it creates a real, DB-backed market. This is an interim fix, not the originally-envisioned automatic pipeline: a human still has to click Create, and it does not yet run automatically off a freshly classified headline. |
 | Manual market creation (typed title → DB row) | **Implemented, Demonstrated** | Real, works today, but disconnected from the headline/classifier pipeline; odds default to static 2.0/2.0. |
 | On-chain `MADMarketFactory` market creation | **Implemented, Validated, NOT Demonstrated** | Real, tested Solidity — not deployed, not called from any frontend code. |
 | Resolution-condition text generation | **Implemented, Demonstrated** | Real per-market-type generated description. Describes a condition; nothing evaluates whether it's been met. |
@@ -56,8 +58,8 @@ app, zero test coverage). Both combinations appear below — don't collapse them
 | MADCard721 | 9 | No | **Implemented, Validated** |
 | MADCard1155 | 15 | No | **Implemented, Validated** |
 | MADMarketFactory | 18 | No | **Implemented, Validated** — see settlement caveats in B and the security register |
-| MADShieldVault | 10 | No | **Implemented, Validated** — missing `ReentrancyGuard`, see security register |
-| MADStaking | 9 | No | **Implemented, Validated** — 6-tier table has drifted from the TS engine's 4-tier canon |
+| MADShieldVault | 10 | No | **Implemented, Validated** — ✅ FIXED 2026-09-01: now inherits OpenZeppelin `ReentrancyGuard`, with `nonReentrant` on every fund-moving function (`stake`, `claim`, `resolveLoss`, `withdraw`); see security register |
+| MADStaking | 9 | No | **Implemented, Validated** — ✅ FIXED 2026-09-01: the 6-tier table has been reconciled to the TS engine's 4-tier canon (Bronze/Silver/Gold/MAD Tier at 8.8/18.8/28.8/38.8%); tier-boundary and reward-accrual tests rewritten to match |
 | MADOptimisticOracle | 11 | No | **Implemented, Validated** — self-contained, not wired to MADMarketFactory |
 | MADDisputeVoting | 10 | No | **Implemented, Validated** |
 | MADPortrait + KeyRegistry | 18+ | No | **Implemented, Validated** |
@@ -89,7 +91,7 @@ only about the ten contracts this repo authors and tests.)
 | "15,000 pre-registered" | State as **waitlist**. Never users/revenue/retention/PMF. |
 | "70%+ D30 retention" | State as a **target**, never a measurement. |
 | "100% USD solvency, 1,000 Monte-Carlo scenarios" | Qualify with sample size/assumptions/methodology, or say "modeled, not audited." No matching simulation code was located in this repository. |
-| "888,888,888 $MADx fixed supply" | State as the **design spec**, not a live/deployed figure — see item C above. |
+| "888,888,888 $MADx fixed supply" | $MADx is deployed (`0x6972...151f`, Arbitrum One) as **mint-on-purchase**, not fixed/minted-once — say "supply cap" or "design cap," never "fixed supply, minted once." The cap figure itself is unreconciled between docs (888,888,888) and `verify/lib/contracts.ts` (224,573,096) — flag both instead of quoting either as final. See item C above and `12-DILIGENCE-QUESTIONS.md` R1. |
 | "MAD Shield is GARCH-priced" | Correct to: the GARCH-priced formula exists and is tested; the live opt-in flow uses a simpler flat-percentage formula instead. |
 | "Oracle-resolved markets" / "no counterparty risk" | Do not use. No live oracle feed exists; resolution today is owner-attested, which is itself a counterparty. |
 | "Industry's first," "regulatory-safe," "SEC-compliant" | Banned outright — no prior-art research or legal review backs any of these. |
@@ -97,7 +99,12 @@ only about the ten contracts this repo authors and tests.)
 
 ## F. Open questions this matrix cannot close on its own
 
-See `12-DILIGENCE-QUESTIONS.md` for the full list — most load-bearing here: whether the
-Solidity staking table gets updated to match the TS engine, whether `MADShieldVault` gets a
-reentrancy guard before any real funds touch it, and whether the optimistic oracle gets wired
-into the market factory before "settlement" is described as anything but a roadmap item.
+See `12-DILIGENCE-QUESTIONS.md` for the full list. Two of the three items previously flagged
+here were fixed 2026-09-01: the Solidity staking table now matches the TS engine (Section A/C
+above), and `MADShieldVault` now has a reentrancy guard (Section C above). Most load-bearing
+remaining: whether the optimistic oracle gets wired into the market factory before "settlement"
+is described as anything but a roadmap item — this is scoped as Milestone 1 in
+`08-TECHNICAL-PARTNER-MILESTONE-BRIEF.md` rather than fixed here, since correctly resolving a
+fund-settling contract's trust assumptions is an architectural decision, not a same-session
+patch. The `splitFee()` community-cut-on-gross-fee behavior (Section A) is the other item
+awaiting a founder product decision rather than a code fix.

@@ -24,7 +24,12 @@ export const PLATFORM = {
   SHIELD_PREMIUM_MIN: 0.02, // MAD-Shield opt-in fee 2%..4% of stake
   SHIELD_PREMIUM_MAX: 0.04,
   SHIELD_SAFETY_MARGIN: 0.35, // Premium = Stake·P(win)·σ·0.35 (17-corrections #4 — was 1.05)
-  MADX_FIXED_SUPPLY: 888_888_888,
+  MADX_FIXED_SUPPLY: 888_888_888, // the design cap, per founder direction — the deployed contract
+                                   // (0x6972...151f, Arbitrum One) mints on purchase, not once at
+                                   // launch; "FIXED" in this name describes the cap, not a one-time
+                                   // mint. verify/lib/contracts.ts separately records the on-chain
+                                   // cap as 224,573,096 — which of the two is current needs founder
+                                   // confirmation before either number is pitched.
   FURNACE_BURN_CAP: 0.049, // The Furnace burn cap (≤4.9%)
   LMSR_DEFAULT_B: 1200, // DL-LMSR liquidity parameter (17-corrections #3 — was 100)
   PERP_TRIGGER_THRESHOLD: 0.60, // perpetual conversion gate (17-corrections #2 — was 0.65)
@@ -303,25 +308,60 @@ export function getLunarIllumination(currentTimeMs: number = Date.now()): number
  * 3. VOLUME-SCALED BOND PRICING (DL-LMSR)
  *    α(V) = 1 + 0.05·log10(1+V)
  *    C(q) = α(V)·b·ln(Σ e^(q_i/b))
- *    P_i  = e^(q_i/b) / Σ e^(q_j/b)
+ *    P_i  = e^(q_i/b) / Σ e^(q_j/b)                    — DISPLAY PROBABILITY, unscaled by α
+ *    M_i  = α(V)·e^(q_i/b) / Σ e^(q_j/b) = ∂C/∂q_i      — MARGINAL COST, scaled by α
  *    Source: MATH_REPORT §2
+ *
+ *    P_i and M_i are deliberately different functions, not the same value in
+ *    two places. P_i is the plain softmax: it stays in (0,1) and sums to 1
+ *    across outcomes no matter how much volume the market has seen, which is
+ *    the contract a "price" shown as a percentage in the UI must honor — if
+ *    it were scaled by α(V) (>1 for any nonzero volume), a busy market would
+ *    render probabilities that don't sum to 100%. M_i is the true marginal
+ *    dollar cost of the next infinitesimal share — the correct ∂C/∂q_i once
+ *    C itself is volume-scaled — and is what any execution/slippage
+ *    calculation should use instead of P_i. Do not substitute one for the
+ *    other; a caller that needs "what will the next share cost me" wants
+ *    calculateDLLMSRMarginalCost, not calculateDLLMSRPrice.
+ *
+ *    All three functions below clamp q/b to [-700, 700] before exponentiating,
+ *    matching the guard calculateSoftmax already uses in this file — without
+ *    it, Math.exp overflows to Infinity past that point and downstream sums
+ *    silently produce Infinity or NaN instead of erroring.
  * ==================================================================== */
 export function calculateVolumeScalingAlpha(volume: number): number {
   const safe = Math.max(volume, 0);
   return 1.0 + 0.05 * Math.log10(1.0 + safe);
 }
 
+function lmsrExp(q: number, b: number): number {
+  return Math.exp(Math.min(700, Math.max(-700, q / b)));
+}
+
 export function calculateDLLMSRCost(shares: number[], b: number, volume: number): number {
   if (shares.length === 0 || b <= 0) return 0;
   const alpha = calculateVolumeScalingAlpha(volume);
-  const sumExp = shares.reduce((s, q) => s + Math.exp(q / b), 0);
+  const sumExp = shares.reduce((s, q) => s + lmsrExp(q, b), 0);
   return alpha * b * Math.log(sumExp);
 }
 
+/** Display/probability price — softmax over shares, always in (0,1), always
+ *  sums to 1 across the full `shares` vector. Intentionally NOT scaled by
+ *  α(V); see the section-3 header comment above for why. */
 export function calculateDLLMSRPrice(qI: number, shares: number[], b: number): number {
   if (shares.length === 0 || b <= 0) return 0;
-  const sumExp = shares.reduce((s, q) => s + Math.exp(q / b), 0);
-  return Math.exp(qI / b) / sumExp;
+  const sumExp = shares.reduce((s, q) => s + lmsrExp(q, b), 0);
+  return lmsrExp(qI, b) / sumExp;
+}
+
+/** Marginal cost — the true ∂C/∂q_i of calculateDLLMSRCost, i.e. the dollar
+ *  cost of the next infinitesimal share of outcome i once the cost surface
+ *  is volume-scaled by α(V). This is what an execution-price or slippage
+ *  calculation should read; calculateDLLMSRPrice is for display instead. */
+export function calculateDLLMSRMarginalCost(qI: number, shares: number[], b: number, volume: number): number {
+  if (shares.length === 0 || b <= 0) return 0;
+  const alpha = calculateVolumeScalingAlpha(volume);
+  return alpha * calculateDLLMSRPrice(qI, shares, b);
 }
 
 /* ====================================================================
@@ -422,8 +462,19 @@ export function shieldPremium(stake: number, pWin: number, nextVariance: number)
     Math.max(safeStake * PLATFORM.SHIELD_PREMIUM_MIN, raw),
   );
 }
+/** @deprecated superseded by calculateShieldPayoutFull (below), which is the
+ *  function product code should call — see its own doc comment for the full
+ *  three-tier resolution order. Kept callable for existing call sites; its
+ *  own behavior is unchanged here, only this comment is corrected.
+ *
+ *  This function has exactly two outputs — 40% (vip=false) or 60% (vip=true)
+ *  — using hardcoded literals rather than the PLATFORM.SHIELD_RECOVERY_*
+ *  constants. It has no path that returns the canonical 28.8% standard-tier
+ *  rate at all, despite a prior version of this comment claiming it does;
+ *  that claim did not match the code and has been removed. Use
+ *  calculateShieldPayoutFull for the standard (28.8%), shielded (28.8%→40%
+ *  dial), and whale (60%, gated) tiers this function does not implement. */
 export function shieldRecovery(loss: number, vip = false): number {
-  // Canonical pool recovery 28.8%; loss-recovery tier 40% base / 60% VIP.
   const tier = vip ? 0.6 : 0.4;
   return loss * tier;
 }

@@ -38,16 +38,25 @@ and `verify/lib/contracts.ts` already degrades gracefully by rendering an unset 
 deployed" — so this is a documentation-consistency risk, not an app-stability one. Reconcile
 which supply model is current before any deck states either the mechanism or the number.
 
-### 🔴 `MADShieldVault.sol` has no reentrancy guard
+### ✅ FIXED 2026-09-01 — `MADShieldVault.sol` now has a reentrancy guard
 
-The one contract that custodies user MAD Shield stakes and pays out losses does not import or
-use `ReentrancyGuard`, unlike every sibling fund-moving contract in the same directory
-(`MADStaking.sol`, `MADMarketFactory.sol`, `MADOptimisticOracle.sol` all do). `stake`,
-`requestUnstake`, `claim`, `resolveLoss`, and `withdraw` all move `$MADx`. State is written
-before external token transfers (correct checks-effects-interactions ordering), so this is a
-defense-in-depth gap rather than a demonstrated exploit path today, and no test in
-`MADShieldVault.t.sol` exercises a reentrancy scenario either way. Close before any real value
-touches this contract.
+Was: the one contract that custodies user MAD Shield stakes and pays out losses did not import
+or use `ReentrancyGuard`, unlike every sibling fund-moving contract in the same directory
+(`MADStaking.sol`, `MADMarketFactory.sol`, `MADOptimisticOracle.sol` all did). State was already
+written before external token transfers (correct checks-effects-interactions ordering), so this
+was a defense-in-depth gap rather than a demonstrated exploit path — but a real one, on the one
+contract in the directory missing it.
+
+Fix: `ReentrancyGuard` added to the inheritance list; `nonReentrant` added to `stake`, `claim`,
+`resolveLoss`, and `withdraw` — every function that calls `token.safeTransfer(From)`.
+`requestUnstake` makes no external call and doesn't need it. Pattern matches the three sibling
+contracts exactly (same OZ import, same modifier placement). Not independently verified via
+`forge test` in this environment (`forge` isn't installed here); verified instead by confirming
+the import path exists in the vendored OpenZeppelin library, brace-balance, and byte-for-byte
+pattern match against three contracts CI already compiles and tests successfully — CI on the
+next PR is the actual compile/test confirmation. **A dedicated reentrancy-attack simulation
+test is not included** — that's better scoped to the paid audit engagement
+(`08-TECHNICAL-PARTNER-MILESTONE-BRIEF.md` M1) than invented here without the ability to run it.
 
 ### 🟠 No independent security review of any contract
 
@@ -79,16 +88,25 @@ read from," but nothing in the code does that yet. This is the single largest ga
 settlement primitives exist" and "the platform settles trustlessly" — see the technical-partner
 milestone brief for how this closes.
 
-### 🟠 The Solidity staking contract has drifted from its own TypeScript twin
+### ✅ FIXED 2026-09-01 — the Solidity staking contract no longer drifts from its TypeScript twin
 
-`MADStaking.sol` still encodes the old 6-tier staking table (100/500/2,500/10,000/50,000/100,000
-$MADx at 12/18/28/42/58/68% APY). Its own header comment claims to mirror `STAKING_TIERS` in
-`verify/lib/gambit-game-math.ts` — but that TypeScript file was updated to a 4-tier table on
-2026-07-31 (Bronze/Silver/Gold/MAD Tier at 88/888/8,888/88,888 $MADx, 8.8/18.8/28.8/38.8% APY,
-carrying an explicit founder-sign-off comment) and the contract was never updated to match. This
-is drift between a deployed-intent contract and its documented app-layer source of truth, not a
-documentation ambiguity — it needs an engineering decision (update the contract or formally
-retire the mismatch note) before staking numbers are pitched from either surface with confidence.
+Was: `MADStaking.sol` still encoded the old 6-tier staking table
+(100/500/2,500/10,000/50,000/100,000 $MADx at 12/18/28/42/58/68% APY) while its own header
+comment claimed to mirror `STAKING_TIERS` in `verify/lib/gambit-game-math.ts` — which had moved
+to a 4-tier table on 2026-07-31 (Bronze/Silver/Gold/MAD Tier at 88/888/8,888/88,888 $MADx,
+8.8/18.8/28.8/38.8% APY, carrying an explicit founder-sign-off comment) without the contract
+being updated to match.
+
+Fix: the four `tiers.push(...)` calls in the constructor updated to the 4-tier canon; the header
+comment rewritten to state the reconciliation explicitly rather than just claim a mirror; the
+9-test suite in `MADStaking.t.sol` updated — `testApyTierBoundaries` rewritten for the new
+boundaries, and the two reward-accrual tests (`testRewardAccrualOneYear`,
+`testClaimTransfersRewardsFromReserve`) re-derived for the tier their existing stake amounts now
+fall into under the new table (worked by hand and cross-checked with a standalone script before
+editing: 2,500 $MADx now lands in Silver at 18.8% → 470 $MADx/year, not Gold at 28% → 700; 10,000
+$MADx now lands in Gold at 28.8% → 2,880/year, not Platinum at 42% → 4,200). The other six tests
+in the file don't depend on tier/APY values and were left unchanged. Nothing was deployed under
+the old table, so this is a correction, not a migration — no live positions to reconcile.
 
 ### 🟡 `contracts/madhat-core/` does not compile and should not be cited as evidence of anything
 
@@ -151,24 +169,49 @@ market resolution today is owner-attested, which is itself a counterparty.
 
 ## 3. App-layer / pipeline findings
 
-### 🟠 The advertised "create a market from a live headline" flow does not exist end-to-end
+### ✅ PARTIALLY FIXED 2026-09-01 — the "create a market from a live headline" flow still isn't automatic, but the dead button is now a working one
 
-Article ingestion (real RSS fetch, 26 real publisher feeds) and market-type classification (a
-real deterministic rules engine — keyword cascades plus the real `zLiarMeter`/sentiment/GDELT
-math, not an LLM) are both genuinely live. But nothing in the app automatically turns a
-classified headline into a persisted, tradeable market: the branded "Market Factory" UI's
-Create button has **no click handler at all**, and the one code path that does create a real
-database market row requires a human typing a title by hand, disconnected from the
-classifier. Demo this honestly as "ingestion and classification are live; market creation is
-currently manual" rather than implying the pipeline is automatic.
+Was: article ingestion (real RSS fetch, 26 real publisher feeds) and market-type classification
+(a real deterministic rules engine — keyword cascades plus the real `zLiarMeter`/sentiment/GDELT
+math, not an LLM) were both genuinely live, but nothing in the app automatically turned a
+classified headline into a persisted, tradeable market — and the branded "Market Factory" UI's
+Create button had **no click handler at all**, silently doing nothing when clicked.
 
-### 🟡 The classification "proposals" endpoint runs on a hardcoded fallback by default
+Fix: the Create button now posts to the same real, DB-backed `/api/v1/markets` route the manual
+markets panel uses, seeded with this panel's own live DL-LMSR preview odds (converted
+probability → decimal odds) instead of that path's flat 2.0/2.0 defaults. This is explicitly an
+interim wiring, documented as such in the component's own header comment — it does not make
+headline-to-market automatic, and does not touch the on-chain factory (still not deployed). It
+turns a button that did nothing into one that does something real. **Still open:** nothing
+automatically calls this from a classified headline; that remains a milestone-brief item.
 
-The route serving classified headline proposals falls back to a static 5-item array whenever
-the database or its signal table is empty — and no scheduled job currently populates that
-table (the Vercel cron config lists three unrelated jobs, not this one). In the platform's
-current operational state, the honest default is the fallback content, not the live pipeline —
-worth knowing before promising a live-headline demo will show fresh content on the day.
+### ✅ FIXED 2026-09-01 — the "Pull fresh" button no longer silently fails on every click
+
+Was: `pullFresh()` called `/api/v1/ingest/gdelt` directly — a route gated by `CRON_SECRET`,
+which a browser can never supply. Every click 401'd or 503'd, silently swallowed by a
+`.catch(() => {})`, then just reloaded the same already-stale proposals behind a spinner that
+implied something had happened.
+
+Fix: added `/api/v1/markets/proposals/refresh`, a new route that does the same ingest work
+(same `ingestGdelt`/`fetchGdeltDoc` calls) but is protected by IP rate-limiting (5 requests per
+10 minutes) instead of a secret — the appropriate guard for a public, human-triggered action
+versus the cron's trusted scheduled path, which keeps its stronger secret gate unchanged. The
+button now calls this route and the refresh genuinely runs.
+
+### ✅ MITIGATED 2026-09-01 — the classification "proposals" endpoint no longer depends solely on manual clicks to get fresh data
+
+Was: the route serving classified headline proposals falls back to a static 5-item array
+whenever the database or its signal table is empty, and no scheduled job populated that table —
+the Vercel cron config listed three unrelated jobs, not this one. In practice, the fallback
+content was the default, not the live pipeline.
+
+Fix: added a fourth cron entry, `/api/v1/ingest/gdelt` on a 30-minute schedule (matching that
+route's own suggested cadence in its doc comment), to `verify/vercel.json`. **Depends on
+`CRON_SECRET` actually being set as a Vercel project environment variable** — Vercel signs
+cron-triggered requests with that value automatically when it's configured, but this audit
+cannot confirm from the repository alone whether it's set in the live project. If it isn't,
+this cron entry will 503 harmlessly on each scheduled run rather than silently doing nothing —
+worth a one-time check in the Vercel dashboard.
 
 ### 🟡 The live "price movement" and "volatility" demo surfaces are real formulas over synthetic inputs
 

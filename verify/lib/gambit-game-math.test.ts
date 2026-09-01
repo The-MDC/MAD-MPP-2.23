@@ -21,6 +21,14 @@ import {
   PHI,
   splitFee,
   shieldPremium,
+  calculateShieldPayoutFull,
+  calculateShieldPayoutTiered,
+  isWhaleShieldEligible,
+  WHALE_SHIELD_ELIGIBILITY,
+  calculateVolumeScalingAlpha,
+  calculateDLLMSRCost,
+  calculateDLLMSRPrice,
+  calculateDLLMSRMarginalCost,
   garchUpdate,
   garchSigma,
   garchAmplification,
@@ -154,6 +162,165 @@ describe("shieldPremium — Stake · P(win) · sigma · 0.35, clamped 2%–4% of
   it("uses 0.35, not the retired 1.05 multiplier", () => {
     const raw = 1000 * 0.5 * Math.sqrt(0.04);
     expect(shieldPremium(1000, 0.5, 0.04)).toBeCloseTo(raw * 0.35, 6);
+  });
+});
+
+describe("calculateShieldPayoutFull — the canonical resolver (previously untested)", () => {
+  const eligible = { lifetimeVolume: 250_000, accountAgeDays: 90, trustScore: 85, goldenHandCardsStaked: 1 };
+  const notEligible = { ...eligible, lifetimeVolume: 249_999 };
+
+  it("standard tier: premiumTier=0, no whale request -> flat 28.8%", () => {
+    const r = calculateShieldPayoutFull(1000, 0, eligible, false);
+    expect(r.tier).toBe("standard");
+    expect(r.effectivePct).toBeCloseTo(0.288, 9);
+    expect(r.payout).toBeCloseTo(288, 6);
+  });
+  it("shielded tier: the dial at its midpoint, 28.8% -> 40%", () => {
+    const r = calculateShieldPayoutFull(1000, 0.5, eligible, false);
+    expect(r.tier).toBe("shielded");
+    expect(r.effectivePct).toBeCloseTo(0.344, 9);
+    expect(r.payout).toBeCloseTo(344, 6);
+  });
+  it("shielded tier: the dial at its ceiling equals 40%, not 60%", () => {
+    const r = calculateShieldPayoutFull(1000, 1, eligible, false);
+    expect(r.effectivePct).toBeCloseTo(0.4, 9);
+    expect(r.payout).toBeCloseTo(400, 6);
+  });
+  it("whale tier: 60% flat, only when eligible AND requested", () => {
+    const r = calculateShieldPayoutFull(1000, 0, eligible, true);
+    expect(r.tier).toBe("whale");
+    expect(r.effectivePct).toBeCloseTo(0.6, 9);
+    expect(r.payout).toBeCloseTo(600, 6);
+  });
+  it("whale tier requested but not eligible falls back to standard/shielded, never partially applies", () => {
+    const r = calculateShieldPayoutFull(1000, 0, notEligible, true);
+    expect(r.tier).toBe("standard");
+    expect(r.payout).toBeCloseTo(288, 6);
+  });
+  it("premiumTier clamps to [0,1] — above 1 behaves like exactly 1", () => {
+    const over = calculateShieldPayoutFull(1000, 1.5, eligible, false);
+    const atCeiling = calculateShieldPayoutFull(1000, 1, eligible, false);
+    expect(over.payout).toBeCloseTo(atCeiling.payout, 9);
+  });
+  it("premiumTier clamps to [0,1] — below 0 behaves like the standard tier", () => {
+    const under = calculateShieldPayoutFull(1000, -0.5, eligible, false);
+    expect(under.tier).toBe("standard");
+    expect(under.payout).toBeCloseTo(288, 6);
+  });
+  it("non-finite or negative stake is treated as 0, never NaN", () => {
+    expect(calculateShieldPayoutFull(NaN, 0, eligible, false).payout).toBe(0);
+    expect(calculateShieldPayoutFull(-500, 0, eligible, false).payout).toBe(0);
+  });
+});
+
+describe("isWhaleShieldEligible — all four gates required simultaneously", () => {
+  const eligible = { lifetimeVolume: 250_000, accountAgeDays: 90, trustScore: 85, goldenHandCardsStaked: 1 };
+  it("true at exactly the documented thresholds", () => {
+    expect(isWhaleShieldEligible(eligible)).toBe(true);
+    expect(eligible.lifetimeVolume).toBe(WHALE_SHIELD_ELIGIBILITY.MIN_LIFETIME_VOLUME);
+    expect(eligible.accountAgeDays).toBe(WHALE_SHIELD_ELIGIBILITY.MIN_ACCOUNT_AGE_DAYS);
+    expect(eligible.trustScore).toBe(WHALE_SHIELD_ELIGIBILITY.MIN_TRUST_SCORE);
+    expect(eligible.goldenHandCardsStaked).toBe(WHALE_SHIELD_ELIGIBILITY.MIN_GOLDEN_HAND_CARDS);
+  });
+  it("false if any single gate misses by one unit — meeting 3 of 4 is not enough", () => {
+    expect(isWhaleShieldEligible({ ...eligible, lifetimeVolume: 249_999 })).toBe(false);
+    expect(isWhaleShieldEligible({ ...eligible, accountAgeDays: 89 })).toBe(false);
+    expect(isWhaleShieldEligible({ ...eligible, trustScore: 84 })).toBe(false);
+    expect(isWhaleShieldEligible({ ...eligible, goldenHandCardsStaked: 0 })).toBe(false);
+  });
+});
+
+describe("calculateShieldPayoutTiered — the 2-tier dial without the whale ceiling", () => {
+  it("interpolates 28.8% -> 40% across premiumTier 0..1", () => {
+    expect(calculateShieldPayoutTiered(1000, 0)).toBeCloseTo(288, 6);
+    expect(calculateShieldPayoutTiered(1000, 0.5)).toBeCloseTo(344, 6);
+    expect(calculateShieldPayoutTiered(1000, 1)).toBeCloseTo(400, 6);
+  });
+  it("has no path to the 60% whale rate — that ceiling only exists in calculateShieldPayoutFull", () => {
+    expect(calculateShieldPayoutTiered(1000, 1)).toBeLessThan(600);
+  });
+});
+
+describe("DL-LMSR — volume-scaled bond pricing (previously untested)", () => {
+  it("alpha(0) = 1, and alpha is non-decreasing in volume", () => {
+    expect(calculateVolumeScalingAlpha(0)).toBeCloseTo(1, 9);
+    expect(calculateVolumeScalingAlpha(1_000_000)).toBeGreaterThan(calculateVolumeScalingAlpha(1000));
+    expect(calculateVolumeScalingAlpha(1000)).toBeGreaterThan(calculateVolumeScalingAlpha(0));
+  });
+  it("alpha treats negative volume as zero, never drops below 1", () => {
+    expect(calculateVolumeScalingAlpha(-500)).toBeCloseTo(1, 9);
+  });
+
+  it("price is a symmetric 0.5/0.5 split when shares are equal", () => {
+    expect(calculateDLLMSRPrice(0, [0, 0], 100)).toBeCloseTo(0.5, 9);
+    expect(calculateDLLMSRPrice(50, [50, 50], 100)).toBeCloseTo(0.5, 9);
+  });
+  it("prices sum to 1 across every outcome, for any share vector", () => {
+    // qI must be the outcome's own share value (shares[i]), not its array index.
+    const shares = [820, -140, 305, 0];
+    const b = 1200; // PLATFORM.LMSR_DEFAULT_B
+    const sum = shares.reduce((s, q) => s + calculateDLLMSRPrice(q, shares, b), 0);
+    expect(sum).toBeCloseTo(1, 9);
+  });
+  it("the outcome with more shares always prices higher", () => {
+    const shares = [900, 100];
+    expect(calculateDLLMSRPrice(900, shares, 1200)).toBeGreaterThan(calculateDLLMSRPrice(100, shares, 1200));
+  });
+  it("2-outcome price matches the standard LMSR-reduces-to-logistic identity: P0 = 1/(1+e^-((q0-q1)/b))", () => {
+    const q0 = 340, q1 = -120, b = 1200;
+    const expected = 1 / (1 + Math.exp(-(q0 - q1) / b));
+    expect(calculateDLLMSRPrice(q0, [q0, q1], b)).toBeCloseTo(expected, 9);
+  });
+  it("price never scales with volume — it is a display probability, not a marginal cost", () => {
+    const shares = [500, 200];
+    const priceAtNoVolume = calculateDLLMSRPrice(0, shares, 1200);
+    const priceAtHighVolume = calculateDLLMSRPrice(0, shares, 5_000_000);
+    expect(priceAtHighVolume).toBeCloseTo(priceAtNoVolume, 12); // calculateDLLMSRPrice doesn't take volume at all
+  });
+  it("price guards: empty shares or non-positive b return 0, never NaN", () => {
+    expect(calculateDLLMSRPrice(0, [], 1200)).toBe(0);
+    expect(calculateDLLMSRPrice(0, [100], 0)).toBe(0);
+    expect(calculateDLLMSRPrice(0, [100], -5)).toBe(0);
+  });
+  it("price stays finite and bounded even with extreme share counts (overflow guard)", () => {
+    const p = calculateDLLMSRPrice(0, [1e9, -1e9], 1);
+    expect(Number.isFinite(p)).toBe(true);
+    expect(p).toBeGreaterThan(0);
+    expect(p).toBeLessThanOrEqual(1);
+  });
+
+  it("cost is zero for an all-zero share vector minus the ln(n) baseline, matching ln(sumExp)", () => {
+    // shares [0,0], b=100, volume=0 -> alpha=1, sumExp=2, cost = 100*ln(2)
+    expect(calculateDLLMSRCost([0, 0], 100, 0)).toBeCloseTo(100 * Math.log(2), 9);
+  });
+  it("cost scales linearly with alpha(volume) for a fixed share vector", () => {
+    const shares = [400, 100];
+    const b = 1200;
+    const costAtZeroVolume = calculateDLLMSRCost(shares, b, 0);
+    const costAtVolume = calculateDLLMSRCost(shares, b, 50_000);
+    const alpha = calculateVolumeScalingAlpha(50_000);
+    expect(costAtVolume).toBeCloseTo(costAtZeroVolume * alpha, 6);
+  });
+  it("cost guards: empty shares or non-positive b return 0", () => {
+    expect(calculateDLLMSRCost([], 1200, 0)).toBe(0);
+    expect(calculateDLLMSRCost([100], 0, 0)).toBe(0);
+  });
+
+  it("marginal cost equals price exactly when volume is 0 (alpha=1)", () => {
+    const shares = [300, -50, 120];
+    for (const q of shares) {
+      expect(calculateDLLMSRMarginalCost(q, shares, 1200, 0)).toBeCloseTo(calculateDLLMSRPrice(q, shares, 1200), 9);
+    }
+  });
+  it("marginal costs sum to exactly alpha(volume) across all outcomes — the true dC/dq invariant", () => {
+    const shares = [800, -200, 50, 0];
+    const b = 1200, volume = 250_000;
+    const sum = shares.reduce((s, q) => s + calculateDLLMSRMarginalCost(q, shares, b, volume), 0);
+    expect(sum).toBeCloseTo(calculateVolumeScalingAlpha(volume), 9);
+  });
+  it("marginal cost guards: empty shares or non-positive b return 0", () => {
+    expect(calculateDLLMSRMarginalCost(0, [], 1200, 0)).toBe(0);
+    expect(calculateDLLMSRMarginalCost(0, [100], 0, 0)).toBe(0);
   });
 });
 

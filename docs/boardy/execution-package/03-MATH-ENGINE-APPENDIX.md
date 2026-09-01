@@ -1,20 +1,23 @@
 # Mathematical Engine Appendix
 
-**Scope:** every live equation in `verify/lib/gambit-game-math.ts` (1,405 lines), read in full
-against the current code — not against any prior description of this file, not against docs.
-Every claim below carries a `file:line` citation. Companion test file:
-`verify/lib/gambit-game-math.test.ts` (228 lines).
+**Scope:** every live equation in `verify/lib/gambit-game-math.ts`, read in full against the
+current code — not against any prior description of this file, not against docs. Every claim
+below carries a `file:line` citation. Companion test file: `verify/lib/gambit-game-math.test.ts`.
+Updated 2026-09-01 to reflect fixes made in this session — see the "FIXED" markers in §5 and §7.
 
-**Headline number:** of 93 runtime-testable exports in this file (63 functions + 30 constants;
-19 interfaces and 5 types are excluded as non-runtime), **20 have a direct unit-test assertion
-— 21.5%.** The 20 that are tested cluster tightly around the platform-fee constants, the
-creator ladder, staking tiers, `splitFee`, `shieldPremium` (see the discrepancy below —
-this is the *untested-in-practice* formula), GARCH, the Z-Liar meter, the VRS reward system,
-and `votingPower`. Nearly everything to do with cards/packs/factions, PvP tournaments,
-evolution, virality/attention decay, EigenTrust, Dutch auctions, and — critically — the shield
-*payout* resolvers that actually decide what a user gets back, has zero test coverage. Treat
-"implemented" and "tested" as two different claims throughout this appendix; they are marked
-separately.
+**Headline number:** of 94 runtime-testable exports in this file (64 functions + 30 constants;
+19 interfaces and 5 types are excluded as non-runtime — one new function,
+`calculateDLLMSRMarginalCost`, was added this session; see §5), **27 have a direct unit-test
+assertion — ≈28.7%**, up from 20/93 (21.5%) before this session. The newly-tested set closed
+the two highest-priority gaps: DL-LMSR pricing (`calculateVolumeScalingAlpha`,
+`calculateDLLMSRCost`, `calculateDLLMSRPrice`, `calculateDLLMSRMarginalCost`) and the full Shield
+payout resolver (`calculateShieldPayoutFull`, `isWhaleShieldEligible`,
+`calculateShieldPayoutTiered`) — previously the two most consequential zero-coverage surfaces in
+the file, since one prices every market and the other decides what a user gets back on a loss.
+Nearly everything to do with cards/packs/factions, PvP tournaments, evolution,
+virality/attention decay, EigenTrust, and Dutch auctions still has zero test coverage — none of
+it fund-custody or pricing-critical. Treat "implemented" and "tested" as two different claims
+throughout this appendix; they are marked separately.
 
 ---
 
@@ -145,12 +148,13 @@ opt-in dial). They share endpoint values (28.8% and 40%) but are gated by differ
 resolved by different functions — nothing in the file ties them together. Presenting these as
 one unified "recovery ladder" to investors would overstate how integrated the systems are.
 
-## 5. DL-LMSR pricing — lines 309-325
+## 5. DL-LMSR pricing — lines 307-365
 
 ```ts
-calculateVolumeScalingAlpha(volume)  →  1.0 + 0.05·log10(1 + max(volume,0))
-calculateDLLMSRCost(shares, b, volume)  →  α(V) · b · ln(Σ e^(qᵢ/b))
-calculateDLLMSRPrice(qI, shares, b)     →  e^(qI/b) / Σ e^(qⱼ/b)
+calculateVolumeScalingAlpha(volume)                 →  1.0 + 0.05·log10(1 + max(volume,0))
+calculateDLLMSRCost(shares, b, volume)               →  α(V) · b · ln(Σ e^(qᵢ/b))
+calculateDLLMSRPrice(qI, shares, b)                  →  e^(qI/b) / Σ e^(qⱼ/b)              — display probability, unscaled by α
+calculateDLLMSRMarginalCost(qI, shares, b, volume)   →  α(V) · calculateDLLMSRPrice(qI, shares, b)  — the true ∂C/∂qᵢ
 ```
 
 **Plain English.** `b` (default 1,200) is the market's liquidity depth — how many shares must
@@ -163,29 +167,48 @@ market's effective liquidity widens on its own rather than staying fixed forever
 shares relative to the others, its price asymptotically approaches 1 (others approach 0) —
 never reaching the bound exactly for a finite share count.
 
-**A genuine internal inconsistency, not previously documented anywhere in this repo's docs:**
-`calculateDLLMSRCost` scales its output by `α(V)`. In LMSR, price is formally the *marginal*
-cost `∂C/∂qᵢ` — so if cost is volume-scaled, price should be too. But
-`calculateDLLMSRPrice` takes no `volume` argument at all and never applies `α`; it always
-returns the plain (α=1) softmax. **A caller reading "cost" from one function and "price" from
-the other, on the same volume-scaled market, gets two numbers that are not derivatives of each
-other.** This should be disclosed as a known modeling gap, not presented as a fully-reconciled
-pricing system.
+### ✅ FIXED 2026-09-01 — the cost/price inconsistency, and the missing overflow guard
 
-**Failure modes.** `b ≤ 0` or an empty share array: both functions guard explicitly and return
-`0` — a silent fallback indistinguishable downstream from "zero probability." Negative volume
-is floored to 0 (`α = 1`, no crash). **Overflow is not guarded**: `Math.exp(q/b)` has no bound
-check in any of these three functions. Beyond roughly `q/b ≈ 709`, `Math.exp` overflows to
-`Infinity` in JS, which can propagate to `NaN` in the price function. Notably, **a different
-function in the same file, `calculateSoftmax` (`line 1160-1168`), explicitly clamps its exponent
-to `[-700, 700]`** — proof the codebase knows this failure mode and guards against it elsewhere,
-but did not apply the same guard here. At `b=1200` this would need a single outcome's share
-count to exceed ~850,000 to trigger — implausible in normal trading, not addressed by any test.
+**Was:** `calculateDLLMSRCost` scaled its output by `α(V)`, but `calculateDLLMSRPrice` took no
+`volume` argument and never applied `α` — a caller reading "cost" from one function and "price"
+from the other, on the same volume-scaled market, got two numbers that were not derivatives of
+each other. Separately, none of the three functions clamped `q/b` before exponentiating, unlike
+`calculateSoftmax` elsewhere in the same file (`line 1160-1168` at the time), which already
+guarded the identical overflow failure mode.
 
-**Test coverage: zero.** None of `calculateVolumeScalingAlpha`, `calculateDLLMSRCost`, or
-`calculateDLLMSRPrice` is imported or exercised anywhere in `gambit-game-math.test.ts`. Only the
-constant `LMSR_DEFAULT_B` itself is asserted. **The market-pricing engine this platform is
-demoed on has no automated test coverage of its actual pricing math.**
+**Fix — and why it isn't "make price match cost" instead:** the naive fix, scaling
+`calculateDLLMSRPrice`'s own output by `α(V)`, would have broken the property that makes it
+usable as a displayed probability — at any volume above zero `α(V) > 1`, so a set of α-scaled
+"prices" would sum to more than 100% across outcomes. That's not a display bug to patch, it's
+the wrong quantity for the job. Instead this session added a fourth function,
+**`calculateDLLMSRMarginalCost(qI, shares, b, volume)`** (`line 361-365`), returning
+`α(V) · calculateDLLMSRPrice(qI, shares, b)` — the actual `∂C/∂qᵢ` of the volume-scaled cost
+curve. `calculateDLLMSRPrice` itself is untouched and still deliberately returns the plain
+(α=1) softmax; the new section header comment (`line 307-331`) states which function is for
+which purpose: "a caller that needs 'what will the next share cost me' wants
+`calculateDLLMSRMarginalCost`, not `calculateDLLMSRPrice`." Separately, a new private
+`lmsrExp(q, b)` helper (`line 337-339`) now clamps `q/b` to `[-700, 700]` before exponentiating
+and is used inside all of `calculateDLLMSRCost`, `calculateDLLMSRPrice`, and (via the price call)
+`calculateDLLMSRMarginalCost` — matching the guard `calculateSoftmax` already used elsewhere.
+
+**Failure modes, current state.** `b ≤ 0` or an empty share array: all functions guard
+explicitly and return `0` — still a silent fallback indistinguishable downstream from "zero
+probability," unchanged by this fix. Negative volume is floored to 0 (`α = 1`, no crash).
+Overflow is now guarded by `lmsrExp` as described above.
+
+**Test coverage: 14 new tests, `test.ts:244-325`** (previously zero). Covers: `α` is 1 at zero
+volume and non-decreasing in volume; `α` floors negative volume to 0; price is symmetric at
+equal shares; prices sum to exactly 1 across the outcome vector; more shares always prices
+higher; the 2-outcome case matches the closed-form LMSR-reduces-to-logistic identity
+`P0 = 1/(1+e^-((q0-q1)/b))`; price is volume-independent by construction; price guards
+(empty shares / non-positive `b`) return 0 not NaN; price stays finite and bounded at an
+extreme share count (`[1e9, -1e9]`) — the overflow-guard regression test; cost matches the
+closed-form baseline for an all-zero share vector; cost scales linearly with `α(volume)` for a
+fixed share vector; cost guards return 0; marginal cost equals price exactly at zero volume
+(`α=1`); and the load-bearing invariant the whole fix rests on — **marginal costs sum to
+exactly `α(volume)` across every outcome** (`Σ Mᵢ = α(V)`), confirming
+`calculateDLLMSRMarginalCost` really is the derivative of `calculateDLLMSRCost`, not just a
+plausible-looking new function.
 
 ## 6. GARCH(1,1) volatility — lines 335-365
 
@@ -221,7 +244,7 @@ This is the single most consequential correction this appendix makes to existing
 copy, including language in `verify/components/whitepaper-sheet.tsx` describing MAD Shield as
 "GARCH(1,1)-priced."
 
-**Formula A — `shieldPremium()`, lines 416-424** (the one that matches that description):
+**Formula A — `shieldPremium()`, lines 456-464** (the one that matches that description):
 
 ```ts
 export function shieldPremium(stake, pWin, nextVariance): number {
@@ -237,7 +260,7 @@ boundary cases and a regression test confirming the 0.35 multiplier, not the pre
 1.05). **This function is not called anywhere else in this file** — nothing in
 `gambit-game-math.ts` wires it into an actual shield-creation flow.
 
-**Formula B — `calculateShieldPremium()`, lines 159-170** (the one actually used):
+**Formula B — `calculateShieldPremium()`, lines 164-175** (the one actually used):
 
 ```ts
 export function calculateShieldPremium(stake, tier, premiumTier = 0): number {
@@ -249,8 +272,9 @@ export function calculateShieldPremium(stake, tier, premiumTier = 0): number {
 
 **No `P_win`, no σ, no GARCH input of any kind** — a flat percentage of stake, linear 2%→4%
 by an opt-in dial, or a flat 3% for whale tier. This is the function `createShieldOptIn()`
-(`line 174-197`) actually calls (`line 186`) when a user opts into MAD Shield — i.e., **this is
-the live, wired premium formula**, and it has **zero test coverage**.
+(`line 179-201`) actually calls (`line 191`) when a user opts into MAD Shield — i.e., **this is
+the live, wired premium formula**, and it still has **zero test coverage** — untouched by this
+session's fixes, and not the same thing as the payout-resolver testing described below.
 
 **What this means for every pitch document:** MAD Shield's premium is live and implemented —
 but as a flat percentage dial, not as the volatility-aware formula. The GARCH-priced version
@@ -260,24 +284,46 @@ GARCH-volatility-priced version of the premium formula exists and is unit-tested
 yet the one wired to the live opt-in flow" if asked for detail. Do not say "MAD Shield is
 GARCH-priced" without that qualifier.
 
-**A second, smaller inconsistency:** `shieldRecovery()` (`line 425-429`) is still exported and
-callable. Its comment claims "Canonical pool recovery 28.8%," but the function body is a
-hardcoded binary switch between `0.4` (non-VIP) and `0.6` (VIP) with **no path that returns
-28.8% at all**, and uses raw literals instead of the `PLATFORM.SHIELD_RECOVERY_*` constants.
-Nothing in code marks it deprecated (only a comment on a different function, `line 1215`, calls
-it "superseded").
+### ✅ FIXED 2026-09-01 — `shieldRecovery()`'s comment mismatch, and zero coverage on the canonical resolver
 
-**The recovery-tier resolver.** `calculateShieldPayoutFull()` (`lines 1225-1246`) is the
+**Was:** `shieldRecovery()` (`line 477-480`) was still exported and callable with a comment
+claiming "Canonical pool recovery 28.8%," while the function body was a hardcoded binary switch
+between `0.4` (non-VIP) and `0.6` (VIP) with **no path that returned 28.8% at all**, using raw
+literals instead of the `PLATFORM.SHIELD_RECOVERY_*` constants. Nothing in code marked it
+deprecated. Separately, `calculateShieldPayoutFull()` — the function the code's own comments
+already identified as canonical — had zero test coverage, along with its supporting functions
+`isWhaleShieldEligible` and the older `calculateShieldPayoutTiered`.
+
+**Fix:** `shieldRecovery()`'s doc comment (`line 465-476`) is rewritten `@deprecated`, states
+plainly that the function has no 28.8% path and that the prior comment's claim "did not match
+the code and has been removed," and points callers to `calculateShieldPayoutFull` for the
+standard/shielded/whale tiers this function doesn't implement. **The function's own behavior is
+intentionally unchanged** — this was a documentation correction, not a behavior change, since
+existing call sites still depend on its current 0.4/0.6 output. `calculateShieldPayoutFull`
+itself was not modified; it already correctly implemented the three-tier resolution below and
+only needed test coverage, not a fix.
+
+**The recovery-tier resolver.** `calculateShieldPayoutFull()` (`lines 1276-1297`) is the
 function the code's own comments identify as canonical ("this is the function product code
 should call... supersedes `shieldRecovery()`"). Tier logic: whale (60% flat) only if requested
 *and* `isWhaleShieldEligible()` passes all four independent gates simultaneously (lifetime
 volume ≥250,000, account age ≥90 days, trust score ≥85, ≥1 Golden Hand card staked — the code
-comment at `line 1194-1196` states explicitly "meeting three of four is not sufficient");
-else shielded, a **continuous linear dial from 28.8% to 40%** (not a flat 40% — an existing doc
-comment at `line 125` says "Shielded 40%" as if it were the only value, which overstates the
-floor); else standard, flat 28.8%. **`calculateShieldPayoutFull` — the function the code calls
-canonical — has zero test coverage**, as do its supporting functions `isWhaleShieldEligible`
-and the older `calculateShieldPayoutTiered`.
+comment at `line 1245-1247` states explicitly "meeting three of four is not sufficient, by
+design"); else shielded, a **continuous linear dial from 28.8% to 40%** (not a flat 40% — an
+existing doc comment at `line 130` says "Shielded 40%" as if it were the only value, which
+overstates the floor — that comment describes the tier's ceiling, not its full range, and is
+not itself wrong, just easy to misread in isolation); else standard, flat 28.8%.
+
+**Test coverage: 12 new tests** (previously zero) across three `describe` blocks: standard tier
+at flat 28.8%; the shielded dial at its midpoint (`premiumTier=0.5` → 34.4%) and at its ceiling
+(`premiumTier=1` → exactly 40%, not 60%); whale tier at 60% flat when both requested and
+eligible; whale tier requested-but-ineligible falling back to standard/shielded rather than
+partially applying; `premiumTier` clamping outside `[0,1]`; non-finite/negative stake treated as
+0, never `NaN` (`test.ts:168-214`, 8 tests) — `isWhaleShieldEligible` true only at all four
+documented thresholds simultaneously, false if any single gate misses by exactly one unit
+(`test.ts:216-231`, 2 tests) — and `calculateShieldPayoutTiered`'s 28.8%→40% interpolation, plus
+confirmation it has no path to the 60% whale rate at all, that ceiling existing only in
+`calculateShieldPayoutFull` (`test.ts:233-242`, 2 tests).
 
 ## 8. Test-coverage summary
 
@@ -286,13 +332,17 @@ and the older `calculateShieldPayoutTiered`.
 | Platform fee / creator ladder / staking constants | Most | `CREATOR_SHARE_BPS`, `SHIELD_RECOVERY_PCT`, `SHIELD_RECOVERY_PREMIUM_PCT`, `getStakingTier()` |
 | GARCH volatility | All 3 functions | — |
 | `splitFee`, `shieldPremium` (Formula A) | Yes | — |
-| DL-LMSR pricing (the actual market-pricing math) | **None** | All 3 functions |
-| Shield premium actually wired live (Formula B) + all payout resolvers | — | **All of it** |
+| DL-LMSR pricing (the actual market-pricing math) | **✅ FIXED 2026-09-01 — all 4 functions** (`calculateVolumeScalingAlpha`, `calculateDLLMSRCost`, `calculateDLLMSRPrice`, and the new `calculateDLLMSRMarginalCost`), 14 tests — see §5 | — |
+| Shield payout resolvers (`calculateShieldPayoutFull`, `isWhaleShieldEligible`, `calculateShieldPayoutTiered`) | **✅ FIXED 2026-09-01 — all 3 functions**, 12 tests — see §7 | — |
+| Shield premium actually wired live (Formula B, `calculateShieldPremium`) | — | **Still zero.** Untouched by this session — the live opt-in premium remains an untested flat dial. |
 | Z-Liar meter, VRS rewards, votingPower | Yes | — |
 | Cards, packs, factions, evolution, PvP tournaments, virality, EigenTrust, Dutch auctions, prediction scenarios | — | **All of it (≈50 exports)** |
 
-**93 runtime-testable exports total; 20 tested (21.5%).** This number belongs on the truth
-sheet and in the traceability matrix, not just here.
+**94 runtime-testable exports total (93 + the new `calculateDLLMSRMarginalCost`); 27 tested
+(≈28.7%), up from 20/93 (21.5%) before this session.** The 26 newly-tested assertions (14
+DL-LMSR + 12 Shield-resolver) closed the two highest-priority zero-coverage gaps in the file —
+one prices every market, the other decides what a user gets back on a loss. This number belongs
+on the truth sheet and in the traceability matrix, not just here.
 
 ## 9. Self-documented correction history ("17-corrections")
 
@@ -304,9 +354,9 @@ historical fixes, all still visible in the live code:
    `CAP DETECTED`) are explicitly tested as forbidden, `test.ts:189-196`.
 2. `PERP_TRIGGER_THRESHOLD` corrected 0.65 → 0.60 (`line 30`).
 3. `LMSR_DEFAULT_B` corrected 100 → 1200 (`line 29`).
-4. Shield safety margin corrected 1.05 (unclamped) → 0.35 (clamped 2-4%) (`lines 26, 412`).
+4. Shield safety margin corrected 1.05 (unclamped) → 0.35 (clamped 2-4%) (`lines 26, 452`).
 5. A second, undisaggregated correction tagged "#5" alongside #4 at the same comment
-   (`line 412`) — the comment doesn't specify whether this is the clamp itself or something
+   (`line 452`) — the comment doesn't specify whether this is the clamp itself or something
    else; not resolvable from this file alone.
 
 No `TODO`, `FIXME`, `HACK`, `XXX`, or `BUG` markers exist anywhere in the file — a full
@@ -319,9 +369,9 @@ the security register, alongside the very real gaps in §5 and §7.
 
 | Formula | Key assumption | What breaks it | Guarded? |
 |---|---|---|---|
-| `splitFee` | creator+community bps never exceed 10,000 total | A future ladder/community change could | No — no joint check |
-| DL-LMSR cost/price | price = ∂cost/∂q | Not true once volume-scaling is applied to cost only | No — inconsistency is live |
-| DL-LMSR exp terms | `q/b` stays well under ~709 | Extreme/adversarial share counts | No overflow guard (unlike `calculateSoftmax` elsewhere in the same file) |
+| `splitFee` | creator+community bps never exceed 10,000 total | A future ladder/community change could | No — no joint check (still open, founder decision) |
+| DL-LMSR cost vs. marginal cost | `calculateDLLMSRMarginalCost` = ∂cost/∂q, not `calculateDLLMSRPrice` | Reading `calculateDLLMSRPrice` where an execution/slippage calculation needs the marginal cost | ✅ FIXED 2026-09-01 — dedicated marginal-cost function added, tested; see §5 |
+| DL-LMSR exp terms | `q/b` stays well under ~709 | Extreme/adversarial share counts | ✅ FIXED 2026-09-01 — `lmsrExp` clamps to `[-700, 700]`, matching `calculateSoftmax` elsewhere in the same file; see §5 |
 | GARCH σ | bounded to [0.09, 0.68] | Nothing — clamp is unconditional | Yes |
-| Shield premium (live, Formula B) | flat % is an acceptable proxy for risk | Ignores actual position volatility/win-probability entirely | By design, not a bug — but should not be described as risk-priced |
-| Shield payout resolver | whale eligibility requires all 4 gates | Nothing — AND logic, explicitly commented | Yes |
+| Shield premium (live, Formula B) | flat % is an acceptable proxy for risk | Ignores actual position volatility/win-probability entirely | By design, not a bug — but should not be described as risk-priced. Still zero test coverage — untouched by this session. |
+| Shield payout resolver | whale eligibility requires all 4 gates | Nothing — AND logic, explicitly commented | Yes — and as of 2026-09-01 this invariant (and the standard/shielded tiers) is unit-tested, not just code-reviewed; see §7 |

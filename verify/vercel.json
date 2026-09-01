@@ -23,6 +23,7 @@
   "crons": [
     { "path": "/api/v1/cron/rollup", "schedule": "0 * * * *" },
     { "path": "/api/v1/perps/roll", "schedule": "0 0 * * *" },
-    { "path": "/api/v1/registrar/lapse", "schedule": "30 0 * * *" }
+    { "path": "/api/v1/registrar/lapse", "schedule": "30 0 * * *" },
+    { "path": "/api/v1/ingest/gdelt", "schedule": "*/30 * * * *" }
   ]
 }

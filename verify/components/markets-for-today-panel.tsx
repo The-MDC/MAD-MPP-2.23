@@ -58,11 +58,15 @@ export default function MarketsForTodayPanel() {
     load();
   }, [load]);
 
-  // Yank fresh chaos from GDELT, then re-classify. (Live in prod; a no-op flourish
-  // without a DB — the button still spins and reloads the demo set.)
+  // Yank fresh chaos from GDELT, then re-classify. Calls the public, rate-limited
+  // refresh route (not /api/v1/ingest/gdelt directly — that one is CRON_SECRET-gated
+  // for the scheduled job and a browser can never supply that header, so calling it
+  // here always 401/503'd and silently no-op'd behind a spinning button). Degrades
+  // the same way either route does: without a DB it still fetches+scores a preview,
+  // persisting nothing, rather than failing.
   const pullFresh = async () => {
     setPulling(true);
-    await fetch("/api/v1/ingest/gdelt", { method: "POST" }).catch(() => {});
+    await fetch("/api/v1/markets/proposals/refresh", { method: "POST" }).catch(() => {});
     load();
     setPulling(false);
   };
