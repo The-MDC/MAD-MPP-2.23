@@ -64,10 +64,13 @@ app, zero test coverage). Both combinations appear below — don't collapse them
 | FounderRegistry | 0 | No | **Implemented, NOT Validated** |
 | `contracts/madhat-core/` (all 12 contracts) | Mixed, several broken | No | **Do not cite.** Excluded from CI, does not currently compile (undefined errors, signature-mismatched tests, a broken deploy script). Treat as abandoned scaffolding, not a second product line. |
 | `EvolutionVRFConsumer.sol` (real Chainlink VRF) | 0 | No | **Implemented, deliberately excluded from the build** — a positive signal (correct implementation), not yet integrated. |
-| $MADx token | — | **Confirmed NOT deployed** | Neither address this repo cites as canonical is actually $MADx (verified on-chain, see diligence questions R1). 888,888,888 fixed supply is a design spec, not a live figure. |
+| $MADx token | — | **Deployed** — `0x6972...151f`, Arbitrum One, verified | Mint-on-purchase per the founder, not the "fixed 888,888,888, minted once" copy used elsewhere — reconcile the model and the cap (contract's own code comment records 224,573,096) before pitching either. A second address some docs cite as $MADx is confirmed unrelated (`12-DILIGENCE-QUESTIONS.md` R1). |
 
-**Zero contracts have any `broadcast/` record anywhere in the repository — no evidence any
-MAD-authored contract has ever been deployed to a real network from this codebase.**
+**Zero of the MAD-authored contracts in `contracts/src/` (Market Factory, Shield Vault,
+Staking, Oracle, Cards, Portrait) have any `broadcast/` record anywhere in the repository — no
+evidence any of them has ever been deployed to a real network from this codebase.** ($MADx
+itself is a separately-launched token, already deployed — see the row above; this statement is
+only about the ten contracts this repo authors and tests.)
 
 ## D. Product surfaces
 

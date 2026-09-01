@@ -14,17 +14,30 @@ that no longer need asking, because a direct check already answered them.
 
 ## Resolved by this audit — recorded here so they aren't re-asked
 
-**R1. $MADx has not been deployed under either address this repo treats as canonical.**
-Two addresses are cited as "$MADx" in different files (`0xb61ae7727579e3781ca0ec4902b6ba21d335fd18`
-in `contracts/madhat-core/DEPLOYED_ADDRESSES.md`; `0x6972370e1caAA3624F37D7e87C28e1089D00151f` in
-`contracts/script/Deploy.s.sol`, `verify/lib/contracts.ts`, and `MADxToken.sol`'s header). Queried
-both directly on Arbitrum One (chain 42161) via Blockscout, 2026-08-28: the first is an unrelated
-token, "Serpentine Orkain" (`ORKx`, 2 holders) — a coincidental prior deployment, nothing to do
-with this project. The second is a verified contract named **"MyToken"** with no token metadata
-at all — almost certainly an unmodified template deploy never actually configured as $MADx.
-**No deck, truth sheet, or narrative in this package may call $MADx "deployed," "live," or
-"on-chain."** 888,888,888 is the fixed-supply design constant in the TypeScript math engine and
-the intended contract spec — not a number backed by a live contract today.
+**R1. $MADx is deployed — at `0x6972...151f` — as a mint-on-purchase token, not the fixed
+888,888,888 supply described elsewhere in the repo; a second candidate address is unrelated.**
+Two addresses are cited as "$MADx" in different files. Queried both directly on Arbitrum One
+(chain 42161) via Blockscout, 2026-08-28, then corrected against the founder's direct
+clarification: `0xb61ae7727579e3781ca0ec4902b6ba21d335fd18` (cited in
+`contracts/madhat-core/DEPLOYED_ADDRESSES.md`) is confirmed **unrelated** — an unverified token
+called "Serpentine Orkain" (`ORKx`, 2 holders, ~60M supply already minted), nothing to do with
+this project; that citation should be removed. `0x6972370e1caAA3624F37D7e87C28e1089D00151f`
+(cited in `Deploy.s.sol`, `verify/lib/contracts.ts`, `MADxToken.sol`'s header) is the real
+MADDEX/$MADx contract — **per the founder, a fair-launch governance / GameFi / platform token
+where a purchase must be made for any of it to mint.** That mechanism is exactly consistent with
+its low/near-zero current on-chain supply and its generic Blockscout-indexed name ("MyToken" —
+a contract with little or no mint activity yet often shows this way; not evidence of a fake or
+misconfigured deploy).
+
+**The real open item is not whether it's deployed — it is — but which supply *model* is
+current.** Existing copy (whitepaper, several math-engine comments, `node-registry.ts`) states
+"888,888,888 fixed supply, minted once" — a one-time, capped-forever design. The live contract
+and the founder's own description are mint-on-purchase, and `verify/lib/contracts.ts`
+separately records that cap as **224,573,096**, a different number from 888,888,888. These are
+two different tokenomics models, not the same fact worded two ways. Confirm with Nick which is
+current before any deck states either the mechanism or the supply figure. Low-priority,
+cosmetic: consider setting the contract's on-chain name/symbol metadata so explorers show
+"MADx"/"MADDEX" instead of the generic "MyToken."
 
 **R2. The creator-share model is the 3-rung ladder (28.8% → 40% → 60%), not a flat 40%.**
 `CANONICAL_NUMBERS_2026-08-19.md` §10 states this was "resolved" to a flat 40% with no range, and

@@ -14,19 +14,29 @@ before mainnet) · 🟡 Medium (should close, not blocking a testnet/demo) · �
 
 ## 1. Contract-layer findings
 
-### 🔴 No $MADx token is actually deployed
+### 🟡 $MADx's supply model is inconsistent across the repo — fixed vs. mint-on-purchase
 
-Two addresses are treated as canonical `$MADx` in different repo files. Both were queried
-directly on Arbitrum One (chain 42161) via Blockscout, 2026-08-28. **Neither is $MADx.**
-`0xb61ae7727579e3781ca0ec4902b6ba21d335fd18` is an unrelated token, "Serpentine Orkain"
-(`ORKx`, 2 holders). `0x6972370e1caAA3624F37D7e87C28e1089D00151f` is a verified contract named
-"MyToken" with no token metadata — almost certainly an unconfigured template deploy. Every
-downstream contract that expects a live $MADx (`MADMarketFactory`, `MADStaking`,
-`MADShieldVault`) has nothing real to point at today. `verify/.env.example` ships the frontend's
-`NEXT_PUBLIC_MADX_ADDRESS` and every other contract address blank by default, and
-`verify/lib/contracts.ts` explicitly renders unset addresses as "not deployed" — so the app
-itself already degrades gracefully; the risk is entirely in what gets *said* about this state,
-not in the app crashing.
+Two addresses are cited as canonical `$MADx` in different repo files. Verified directly on
+Arbitrum One (chain 42161) via Blockscout, 2026-08-28, then corrected against the founder's
+direct clarification: `0xb61ae7727579e3781ca0ec4902b6ba21d335fd18` is confirmed **unrelated** —
+a different, unverified token ("Serpentine Orkain," `ORKx`, 2 holders) — that citation in
+`contracts/madhat-core/DEPLOYED_ADDRESSES.md` should be removed.
+`0x6972370e1caAA3624F37D7e87C28e1089D00151f` is the real, deployed MADDEX/$MADx contract: per
+the founder, a fair-launch governance/GameFi/platform token that mints only against investment
+— consistent with its currently low/near-zero on-chain supply and its generic-looking indexed
+name ("MyToken" on Blockscout, likely just unset display metadata on a contract with little
+mint activity yet, not a sign of a fake or misconfigured deploy).
+
+**What genuinely needs reconciling is the supply *model*, not the deployment.** Whitepaper copy
+and several code comments describe "888,888,888 fixed supply, minted once" — a one-time,
+capped-forever design. The live contract and its own description are **mint-on-purchase**
+against a cap, and `verify/lib/contracts.ts` separately records that cap as **224,573,096**, a
+different number from 888,888,888. These describe two different token mechanisms, not the same
+fact worded two ways. `MADMarketFactory`, `MADStaking`, and `MADShieldVault` all expect a live
+`$MADx` address; `verify/.env.example` ships every contract-address env var blank by default,
+and `verify/lib/contracts.ts` already degrades gracefully by rendering an unset address as "not
+deployed" — so this is a documentation-consistency risk, not an app-stability one. Reconcile
+which supply model is current before any deck states either the mechanism or the number.
 
 ### 🔴 `MADShieldVault.sol` has no reentrancy guard
 
