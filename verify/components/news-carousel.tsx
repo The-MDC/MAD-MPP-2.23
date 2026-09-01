@@ -21,7 +21,9 @@ interface Item {
   satiricalHeadline: string;
   satireScore: number;
   verdict: string;
-  brandSafe: boolean;
+  entertainmentGrade: boolean;
+  assertionRisk: number;
+  needsReview: boolean;
   link: string;
 }
 interface Resp {

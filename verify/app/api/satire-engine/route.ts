@@ -15,26 +15,41 @@
  *   3. INGEST   — fetch the winning article as plain .txt + up to 2 images, so
  *                 the roast is written against the actual story rather than ten
  *                 words of headline.
- *   4. ROAST    — Gemini, MAD Magazine × South Park at the canonical +15% edge
+ *   4. ROAST    — MAD Magazine × South Park at the canonical +15% edge
  *                 (EDGE_THRESHOLD in lib/satire-headline.ts), parsed through
- *                 safeParseJSON with one stiffened retry.
- *   5. FALLBACK — no GOOGLE_API_KEY, or the model fails twice: serve the
+ *                 safeParseJSON with one stiffened retry. Three tiers, tried
+ *                 in order, each degrading into the next:
+ *                   a. OLLAMA — a model on the operator's own machine. Tried
+ *                      FIRST when configured: it is free, it is private, and
+ *                      the story text never leaves the box. Guarded by a ~1.5s
+ *                      reachability probe so a configured-but-down Ollama
+ *                      costs a probe rather than a full generation timeout.
+ *                   b. GEMINI — the hosted tier, when GOOGLE_API_KEY is set.
+ *                   c. DETERMINISTIC — see 5.
+ *   5. FALLBACK — no model reachable, or every model fails: serve the
  *                 deterministic satirizeHeadline() rewrite. The route returns
  *                 200 with `engine: "deterministic"` instead of 500ing.
  *
- * Brand safety: satire lands on the situation, never slurs or real-person
- * defamation. Both the SOURCE headline and the GENERATED roast are scored by
- * satireMetrics(); `brand_safe` is the conjunction, so it fails closed if
- * either trips, with `brand_safe_source`/`brand_safe_output` exposed for
- * callers that need to know which side failed.
+ * BRAND SAFETY — CORRECTED. This route used to report `brand_safe` as
+ * `sourceMetrics.brandSafe && outputMetrics.brandSafe` and describe it as
+ * failing closed. It did not. `satireMetrics().brandSafe` was
+ * `zLiarScore >= 60 && intensity >= 0.3` — and Z-Liar >= 60 is SERIAL
+ * EMBELLISHER or TOTAL FABRICATION. The gate therefore PASSED wild
+ * fabrications and FAILED measured, credible lines: a juiciness bar wearing a
+ * safety bar's name, and the only gate standing over generated output.
  *
- * Be clear about what that gate is and isn't: satireMetrics() composes the
- * Z-Liar meter with lexicon sentiment. It is a heuristic quality/tone signal,
- * NOT a defamation classifier — it cannot tell "absurd exaggeration" from "a
- * false claim of fact about a real person". It is a useful tripwire and a
- * necessary condition, not a sufficient one. The real control for anything
- * user-facing is human review, the same posture scandal-scraper.ts already
- * takes with requireHumanReviewAbove.
+ * `brand_safe` now means what it says — `lowAssertionRisk` on both the source
+ * and the roast, which fails closed on an empty or unscoreable line. The
+ * juiciness bar still exists and is still useful; it is reported separately as
+ * `entertainment_grade_*`.
+ *
+ * Be clear about what the safety gate is and isn't: `assertionRisk` is a
+ * lexical tripwire for "does this make a checkable factual claim about a named
+ * party". It is NOT a defamation classifier — it cannot tell "absurd
+ * exaggeration" from "a false claim of fact about a real person". It is a
+ * necessary condition and a review trigger, never a sufficient one. The real
+ * control for anything user-facing is human review, the same posture
+ * scandal-scraper.ts already takes with requireHumanReviewAbove.
  */
 import { NextResponse } from "next/server";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
@@ -44,6 +59,7 @@ import { satireMetrics } from "@/lib/satire-metrics";
 import { satirizeHeadline, type NewsCategory } from "@/lib/satire-headline";
 import { ingestArticle } from "@/lib/article-ingest";
 import { parseWithRetry } from "@/lib/safe-json";
+import { localRoast, localSatireAvailable, localSatireConfig, fitRoast } from "@/lib/local-satire";
 
 export const dynamic = "force-dynamic";
 
@@ -177,13 +193,54 @@ export async function GET() {
       })),
     };
 
+    // Stage 4a — the local model, first refusal. Free, private, and the
+    // ingested article text never leaves the operator's machine.
+    const localCfg = localSatireConfig();
+    if (localCfg.configured && (await localSatireAvailable())) {
+      const local = await localRoast(winner.title, category, article?.text ?? "");
+      if (local.ok) {
+        const localTake = fitRoast(local.value.satire_take);
+        if (localTake) {
+          const corr = winner.trust_score / 10;
+          const srcM = satireMetrics(winner.title, { corroboration: corr });
+          const outM = satireMetrics(localTake, { corroboration: corr });
+          return NextResponse.json({
+            ...baseResponse,
+            satire_take: localTake,
+            scandal_velocity: clamp100(local.value.scandal_velocity),
+            z_liar_index: clamp100(local.value.z_liar_index),
+            brand_safe: srcM.lowAssertionRisk && outM.lowAssertionRisk,
+            brand_safe_source: srcM.lowAssertionRisk,
+            brand_safe_output: outM.lowAssertionRisk,
+            assertion_risk_source: srcM.assertionRisk,
+            assertion_risk_output: outM.assertionRisk,
+            needs_human_review: !outM.lowAssertionRisk,
+            entertainment_grade_source: srcM.entertainmentGrade,
+            entertainment_grade_output: outM.entertainmentGrade,
+            satire_score: srcM.satireScore,
+            output_satire_score: outM.satireScore,
+            verdict: srcM.verdict,
+            engine: "ollama",
+            model: localCfg.model,
+            repaired: local.repaired,
+          });
+        }
+      }
+      console.warn(
+        "satire-engine: local model unusable, trying next tier —",
+        local.ok ? "empty take" : local.error,
+      );
+    }
+
     // Stage 5 — degrade gracefully instead of 500ing when unkeyed.
     if (!process.env.GOOGLE_API_KEY) {
       return NextResponse.json({
         ...baseResponse,
         ...deterministicTake(winner.title, category),
         engine: "deterministic",
-        note: "GOOGLE_API_KEY not configured — served the deterministic satire engine.",
+        note: localCfg.configured
+          ? "No model reachable (local probe failed, GOOGLE_API_KEY unset) — served the deterministic satire engine."
+          : "No model configured — served the deterministic satire engine.",
       });
     }
 
@@ -223,11 +280,8 @@ export async function GET() {
     const take = parsed.value;
     const satireTake = take.satire_take.trim();
     const corroboration = winner.trust_score / 10;
-    // Score BOTH sides. Scoring only the source headline (the previous
-    // behaviour) means a clean headline can yield an ugly one-liner that still
-    // reports brand_safe: true — the gate would be measuring the input to the
-    // joke rather than the joke. `brand_safe` is now the conjunction, so it
-    // fails closed if either side trips.
+    // Score BOTH sides — a clean headline can still yield an ugly one-liner,
+    // and a gate that reads only the input is measuring the wrong thing.
     const sourceMetrics = satireMetrics(winner.title, { corroboration });
     const outputMetrics = satireMetrics(satireTake, { corroboration });
 
@@ -236,9 +290,14 @@ export async function GET() {
       satire_take: satireTake,
       scandal_velocity: clamp100(take.scandal_velocity),
       z_liar_index: clamp100(take.z_liar_index),
-      brand_safe: sourceMetrics.brandSafe && outputMetrics.brandSafe,
-      brand_safe_source: sourceMetrics.brandSafe,
-      brand_safe_output: outputMetrics.brandSafe,
+      brand_safe: sourceMetrics.lowAssertionRisk && outputMetrics.lowAssertionRisk,
+      brand_safe_source: sourceMetrics.lowAssertionRisk,
+      brand_safe_output: outputMetrics.lowAssertionRisk,
+      assertion_risk_source: sourceMetrics.assertionRisk,
+      assertion_risk_output: outputMetrics.assertionRisk,
+      needs_human_review: !outputMetrics.lowAssertionRisk,
+      entertainment_grade_source: sourceMetrics.entertainmentGrade,
+      entertainment_grade_output: outputMetrics.entertainmentGrade,
       satire_score: sourceMetrics.satireScore,
       output_satire_score: outputMetrics.satireScore,
       verdict: sourceMetrics.verdict,
@@ -264,9 +323,14 @@ function deterministicTake(headline: string, category: NewsCategory) {
     satire_take: satireTake,
     scandal_velocity: clamp100(sourceMetrics.satireScore),
     z_liar_index: clamp100(sourceMetrics.zLiarScore),
-    brand_safe: sourceMetrics.brandSafe && outputMetrics.brandSafe,
-    brand_safe_source: sourceMetrics.brandSafe,
-    brand_safe_output: outputMetrics.brandSafe,
+    brand_safe: sourceMetrics.lowAssertionRisk && outputMetrics.lowAssertionRisk,
+    brand_safe_source: sourceMetrics.lowAssertionRisk,
+    brand_safe_output: outputMetrics.lowAssertionRisk,
+    assertion_risk_source: sourceMetrics.assertionRisk,
+    assertion_risk_output: outputMetrics.assertionRisk,
+    needs_human_review: !outputMetrics.lowAssertionRisk,
+    entertainment_grade_source: sourceMetrics.entertainmentGrade,
+    entertainment_grade_output: outputMetrics.entertainmentGrade,
     satire_score: sourceMetrics.satireScore,
     output_satire_score: outputMetrics.satireScore,
     verdict: sourceMetrics.verdict,

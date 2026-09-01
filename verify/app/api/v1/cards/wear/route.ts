@@ -22,6 +22,8 @@ function isRarity(v: unknown): v is Rarity {
  * calculateUsageWear + applyUsageWear (rarity-tiered durability loss, 2–16% per
  * use, floored at 0). No DB — always available.
  */
+// PUBLIC-ROUTE: Durability preview — computes wear and persists nothing.
+// Rate-limited, because open still needs a cost ceiling.
 export async function POST(req: Request) {
   const limited = enforceRateLimit(req, "cards-wear", 60, 60_000);
   if (limited) return limited;

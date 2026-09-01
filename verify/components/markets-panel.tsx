@@ -46,14 +46,24 @@ export default function MarketsPanel() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ title: title.trim() }),
     })
-      .then((r) => r.json())
-      .then((d) => {
+      // The status is read BEFORE the body. Creating a market is signed-in only
+      // now, and a 401 arrives as {success:false,error:"unauthorized"} — which
+      // this panel would otherwise have surfaced to the user as the bare word
+      // "unauthorized" in a status line, next to a form that still looked
+      // usable. A person who is simply not signed in deserves to be told that,
+      // not handed the API's word for it.
+      .then(async (r) => ({ status: r.status, body: await r.json().catch(() => null) }))
+      .then(({ status, body: d }) => {
+        if (status === 401) {
+          setNote("Sign in with your wallet to create a market.");
+          return;
+        }
         if (d?.success) {
           setTitle("");
           load();
-        } else {
-          setNote(d?.error === "markets need DATABASE_URL" ? "Connect the DB to create markets." : d?.error || "failed");
+          return;
         }
+        setNote(d?.error === "markets need DATABASE_URL" ? "Connect the DB to create markets." : d?.error || "failed");
       })
       .catch(() => setNote("failed"))
       .finally(() => setBusy(false));

@@ -15,6 +15,8 @@ interface Body {
  * `contributions` → quadratic match; `baseThreshold`+`governanceWeight` → the
  * MADConv-weighted proposal threshold.
  */
+// PUBLIC-ROUTE: Quadratic-match + threshold calculator — its own header says 'Pure, no DB'.
+// Rate-limited, because open still needs a cost ceiling.
 export async function POST(req: Request) {
   const limited = enforceRateLimit(req, "governance", 60, 60_000);
   if (limited) return limited;

@@ -20,6 +20,8 @@ interface VoiBody {
  * edge + act signal; optional gains/cost → VOI; optional `netOdds` → conviction
  * Kelly fraction. No DB.
  */
+// PUBLIC-ROUTE: Value-of-information — pure maths, no DB, no external call.
+// Rate-limited, because open still needs a cost ceiling.
 export async function POST(req: Request) {
   const limited = enforceRateLimit(req, "bayesian-voi", 60, 60_000);
   if (limited) return limited;

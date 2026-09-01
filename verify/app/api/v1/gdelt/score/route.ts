@@ -33,6 +33,8 @@ function asEmotions(v: unknown): EmotionScores {
  * optional whitelist, and returns the Perp-market trigger probability. Always
  * available — the calculator behind the Z-Liar / scandal-velocity surfaces.
  */
+// PUBLIC-ROUTE: Scandal scoring on a supplied payload — pure maths, no DB.
+// Rate-limited, because open still needs a cost ceiling.
 export async function POST(req: Request) {
   const limited = enforceRateLimit(req, "gdelt-score", 60, 60_000);
   if (limited) return limited;

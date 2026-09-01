@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
-import { enforceRateLimit } from "@/lib/rate-limit";
+import { requireBearerSecret } from "@/lib/bearer-secret";
 import { getWhitelist, addToWhitelist } from "@/lib/whitelist";
 import { hasDatabaseUrl } from "@/lib/database-url";
 
@@ -29,9 +29,15 @@ export async function GET() {
  * serverless-native "hot reload": the write busts the in-memory cache so the
  * next read re-queries Neon — no file watcher, no eBPF, no kernel probe.
  */
+/**
+ * OPERATOR ONLY (CRON_SECRET) for writes. The whitelist decides which subjects
+ * gdelt/ingest will accept at all, so an anonymous writer here could widen the
+ * ingest filter and then push through it. GET stays open — reading which
+ * subjects are tracked is not sensitive.
+ */
 export async function POST(req: Request) {
-  const limited = enforceRateLimit(req, "gdelt-whitelist", 20, 60_000);
-  if (limited) return limited;
+  const denied = requireBearerSecret(req, "CRON_SECRET");
+  if (denied) return denied;
 
   const body = (await req.json().catch(() => null)) as WhitelistBody | null;
   if (!body || typeof body.name !== "string" || body.name.trim() === "") {

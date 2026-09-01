@@ -1,7 +1,28 @@
 version: 2
 
-# Dependabot config is read from the DEFAULT branch (main) — enhancements here
-# take effect once merged. Version updates below surface out-of-range bumps
+# ⚠️ THIS FILE IS NOT CURRENTLY IN FORCE. Dependabot reads its config from the
+# repository's DEFAULT branch, and this repo's default branch is `The-MDC`, not
+# `main`. The header here used to assert "read from the DEFAULT branch (main)",
+# which was true when it was written and stopped being true at the org move.
+#
+# The consequence is measurable, not theoretical: the `actions/checkout` ignore
+# rule at the bottom of this file — the one holding it at v4 with the incident
+# timestamps written out — exists on `main` and does NOT exist on `The-MDC`. So
+# the rule that was reasoned through and committed is being ignored, and
+# Dependabot is running the older config instead. It also opens its PRs against
+# the default branch, which is why `The-MDC` carries a dependency bump (eslint
+# 8→10, typescript 5→7, siwe 2→3, framer-motion 12→13) that `main` has never
+# seen, on top of a tree that predates main's SIWE and market-book work.
+#
+# FIX (repo admin, one setting): Settings → General → Default branch → `main`.
+# Production already deploys from `main`; nothing else is served by `The-MDC`
+# being default. Editing this file cannot fix it — a config that is not read
+# cannot tell Dependabot where to read the config from.
+#
+# Until then, treat everything below as documentation of intent rather than
+# active configuration.
+#
+# Version updates below surface out-of-range bumps
 # (e.g. postcss ≥ 8.5.10 flows through the /verify npm updater on the next run).
 #
 # For the HIGH/critical advisories specifically, also enable — in repo Settings →

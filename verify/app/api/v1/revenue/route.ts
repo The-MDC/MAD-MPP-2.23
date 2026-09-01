@@ -16,6 +16,10 @@ import {
  *   ?volume=<n>             → roll-up across all streams at that volume
  *   ?volume=<n>&stream=<id> → one stream's projection
  *   &creator=true           → treat as a creator-made market (routes the 40% cut)
+ *
+ * Fee model is a TWO-STAGE WATERFALL, corrected 2026-08-27: the creator is
+ * paid off the gross on their own markets, and the community's 28.8% comes
+ * off the NET that remains — not off the gross.
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -26,8 +30,14 @@ export async function GET(req: Request) {
   const model = {
     feeBps: PLATFORM.FEE_BPS,
     feePct: PLATFORM.FEE_BPS / 100,
+    // Both percentages are meaningless without their base. The creator's is a
+    // share of the GROSS fee; the community's is a share of the NET that
+    // remains after the creator is paid. Reporting the bare numbers is how the
+    // old flat-three-way reading survived as long as it did.
     creatorSharePct: PLATFORM.CREATOR_SHARE_BPS / 100,
+    creatorShareBase: "gross",
     communitySharePct: PLATFORM.COMMUNITY_SHARE_BPS / 100,
+    communityShareBase: "platformNet",
     streams: REVENUE_STREAMS,
   };
 

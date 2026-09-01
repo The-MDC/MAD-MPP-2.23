@@ -42,11 +42,24 @@ export default function PositionsDashboard() {
   // AI Whale Surveillance State
   const [isScanningWhales, setIsScanningWhales] = useState(false);
   const [whaleTrades, setWhaleTrades] = useState<any[]>([]);
+  const [whaleNote, setWhaleNote] = useState<string | null>(null);
 
   async function scanWhaleMempool() {
     setIsScanningWhales(true);
     try {
+
+      // Operator-only route (CRON_SECRET): a browser cannot hold that secret, so
+      // this has been 401ing silently. The refusal is now shown, not swallowed.
+      setWhaleNote(null);
       const res = await fetch('/api/v1/agents/trader', { method: 'POST' });
+      if (!res.ok) {
+        setWhaleNote(
+          res.status === 401
+            ? 'Whale scan is operator-only — the scheduled agent runs it.'
+            : 'Whale scan unavailable right now.',
+        );
+        return;
+      }
       const json = await res.json();
       if (json.success && json.data?.targetTrade) {
         setWhaleTrades(prev => [json.data, ...prev].slice(0, 3));
@@ -118,6 +131,9 @@ export default function PositionsDashboard() {
               Scan Mempool
             </button>
           </div>
+          {whaleNote && (
+            <p role="status" className="font-mono text-[9px] text-neutral-500 mb-2">{whaleNote}</p>
+          )}
 
           <div className="space-y-2">
             {whaleTrades.length === 0 && !isScanningWhales ? (

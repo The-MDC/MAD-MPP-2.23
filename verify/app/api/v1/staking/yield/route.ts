@@ -12,6 +12,8 @@ interface Body {
  * surfaces calculateStakingYield: APY_user = APY_base · (1 + clout/200)).
  * Pure, no DB.
  */
+// PUBLIC-ROUTE: Yield projection — pure maths, no DB.
+// Rate-limited, because open still needs a cost ceiling.
 export async function POST(req: Request) {
   const limited = enforceRateLimit(req, "staking-yield", 60, 60_000);
   if (limited) return limited;

@@ -429,21 +429,64 @@ export function getAuctionPrice(
  *    Source: MATH_AND_FORMULAS_REFERENCE §3
  * ==================================================================== */
 export interface FeeSplit {
+  /** volume × 1.88%. The flat platform rake. */
   grossFee: number;
+  /** Creator's share — ONLY on markets they made. Zero everywhere else. */
   creatorCut: number;
+  /** grossFee − creatorCut. The platform's NET, and the base the community
+   *  share is taken from. 100% of the fee on a platform-made market. */
+  platformNet: number;
+  /** 28.8% of platformNet — community AND DAO treasury, earmarked for
+   *  rewards, marketing and grants. */
   communityCut: number;
+  /** What the protocol actually keeps after the community allocation. */
   protocolCut: number;
 }
-/** Split the 1.88% fee. `creatorShareBps` is the creator's CREATOR_LADDER rung
+/**
+ * Split the 1.88% platform rake.
+ *
+ * ── CORRECTED 2026-08-27, founder sign-off ────────────────────────
+ * The founder's statement of record: *"There is a flat platform rake of 1.88%,
+ * the Community profit share is 28.8% of NET profits, the creator profit share
+ * is only from activity and fees from those creator made markets."*
+ *
+ * This function previously took the community cut off the GROSS fee. That was
+ * logged as a bug in docs/boardy/CANONICAL_NUMBERS_2026-08-19.md — on a
+ * creator market it over-allocated the community by 11.52 percentage points of
+ * the gross fee, and it modelled a flat three-way split where canon is a
+ * two-stage waterfall.
+ *
+ *   grossFee     = volume × 1.88%
+ *   creatorCut   = creator-made markets only, their ladder rung × grossFee
+ *   platformNet  = grossFee − creatorCut          ← the "net profits"
+ *   communityCut = platformNet × 28.8%            ← community + DAO treasury
+ *   protocolCut  = platformNet − communityCut
+ *
+ * Worked example, 10,000 volume, creator market at the 40% rung:
+ *   gross 188 · creator 75.20 · net 112.80 · community 32.4864 · protocol 80.3136
+ * The community's 32.4864 is 17.28% of gross — exactly the figure canon
+ * specifies, versus the 54.144 (28.8% of gross) the old code paid out.
+ *
+ * NOTE, unresolved: CREATOR_LADDER's first rung is 2880 bps (28.8%), which sits
+ * BELOW the founder's stated 40–60% creator range and reuses the community
+ * number. That looks like the same conflation CANONICAL_NUMBERS §10 flagged
+ * between creator share and the Shield 28.8/40/60 recovery tiers. Not changed
+ * here — it needs its own answer.
+ *
+ * `creatorShareBps` is the creator's CREATOR_LADDER rung
  *  (2880 User / 4000 MinorCreator / 6000 CR8TR) and applies ONLY on that
  *  creator's own market — pass 0 for platform-made markets. */
 export function splitFee(volume: number, creatorShareBps: number = 0): FeeSplit {
   const grossFee = volume * bpsToPct(PLATFORM.FEE_BPS);
   const safeBps = Math.min(6000, Math.max(0, creatorShareBps));
   const creatorCut = grossFee * bpsToPct(safeBps);
-  const communityCut = grossFee * bpsToPct(PLATFORM.COMMUNITY_SHARE_BPS);
-  const protocolCut = grossFee - creatorCut - communityCut;
-  return { grossFee, creatorCut, communityCut, protocolCut };
+  // TWO-STAGE WATERFALL, not a flat three-way split. The creator is paid off
+  // the gross first; what remains is the platform's NET, and the community
+  // allocation is a share OF THAT — not of the gross.
+  const platformNet = grossFee - creatorCut;
+  const communityCut = platformNet * bpsToPct(PLATFORM.COMMUNITY_SHARE_BPS);
+  const protocolCut = platformNet - communityCut;
+  return { grossFee, creatorCut, platformNet, communityCut, protocolCut };
 }
 
 /* ====================================================================
@@ -842,6 +885,28 @@ export interface ZLiarReading {
   volatility: number;
   lunarTilt: number;
 }
+/** The five bands and the score at which each opens — one table, so a surface
+ *  that renders a band cannot drift from the one the engine returned.
+ *  `perp-dials.tsx` carried its own copy with the thresholds at 38 and 84,
+ *  which printed MOSTLY CANDID over a score this engine called SLIPPERY, and
+ *  SERIAL EMBELLISHER over one it called TOTAL FABRICATION. Read this instead. */
+export const ZLIAR_BANDS: ReadonlyArray<{ min: number; verdict: ZLiarVerdict }> = [
+  { min: 80, verdict: 'TOTAL FABRICATION' },
+  { min: 60, verdict: 'SERIAL EMBELLISHER' },
+  { min: 40, verdict: 'SLIPPERY' },
+  { min: 20, verdict: 'MOSTLY CANDID' },
+  { min: 0, verdict: 'STRAIGHT SHOOTER' },
+];
+
+/** The band a score falls in. Indexed loop, not for-of: this file compiles at
+ *  target es5 without downlevelIteration. */
+export function zLiarVerdictFor(score: number): ZLiarVerdict {
+  for (let i = 0; i < ZLIAR_BANDS.length; i++) {
+    if (score >= ZLIAR_BANDS[i].min) return ZLIAR_BANDS[i].verdict;
+  }
+  return 'STRAIGHT SHOOTER';
+}
+
 export function zLiarMeter(params: {
   narrativeVariance: number;
   sourceCredibility: number;
@@ -858,12 +923,7 @@ export function zLiarMeter(params: {
   const volPenalty = Math.min(20, Math.sqrt(variance) * 100); // volatility inflates doubt
   const lunarTilt = (getLunarPhaseMultiplier(params.nowMs) - 1.0) * 100; // 0..15 lunacy bump
   const score = Math.min(100, Math.max(0, bs + volPenalty + lunarTilt * 0.5));
-  let verdict: ZLiarVerdict = 'STRAIGHT SHOOTER';
-  if (score >= 80) verdict = 'TOTAL FABRICATION';
-  else if (score >= 60) verdict = 'SERIAL EMBELLISHER';
-  else if (score >= 40) verdict = 'SLIPPERY';
-  else if (score >= 20) verdict = 'MOSTLY CANDID';
-  return { score, verdict, bs, volatility: variance, lunarTilt };
+  return { score, verdict: zLiarVerdictFor(score), bs, volatility: variance, lunarTilt };
 }
 
 /* ====================================================================

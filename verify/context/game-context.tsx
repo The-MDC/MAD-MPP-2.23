@@ -123,6 +123,17 @@ export interface GameContextType {
   eigenTrustScore: number;           // live EigenTrust (0..100), from virality-eigen
   setEigenTrustScore: (score: number) => void; // written by EigenTrustWidget on each render
   
+  /**
+   * Where `madCredits` came from. "live" = the $MADx ledger via
+   * /api/v1/madx/account. "demo" = the local free-play balance below.
+   * Surfaces that show a balance MUST badge this — a number that silently
+   * switches between a real ledger and 8888 free credits is the exact defect
+   * this context was the root of.
+   */
+  creditsSource: "live" | "demo";
+  /** Re-read the ledger. Call after any mutation that spends or earns $MADx. */
+  refreshMadx: () => void;
+
   // Auth (Two-Tier)
   socialAuth: { isAuthenticated: boolean; provider: string | null; email: string | null };
   setSocialAuth: React.Dispatch<React.SetStateAction<{ isAuthenticated: boolean; provider: string | null; email: string | null }>>;
@@ -195,7 +206,18 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [xp, setXp]             = useState(0); // player XP — earns on wins, costs on burn-ladder evolution
   const [vrsFlash, setVrsFlash] = useState(false);
   const [chaosMeter, setChaosMeter] = useState(62);
-  const [madCredits, setMadCredits] = useState(8888);
+  /**
+   * FREE-PLAY balance. Not $MADx. It is what the app shows when nobody is
+   * signed in, so the game surfaces still work for a visitor.
+   *
+   * It used to be the ONLY balance: this context had zero fetches, and every
+   * surface that printed "{madCredits} $MADx" — the swap panel, the casino,
+   * pack shop, staking tiers, positions — was reading useState(8888) out of
+   * localStorage while a real double-entry ledger sat unused in Postgres.
+   */
+  const [demoCredits, setDemoCredits] = useState(8888);
+  /** The real ledger balance, or null when signed out / unreachable. */
+  const [ledgerBalance, setLedgerBalance] = useState<number | null>(null);
   const [tournamentPool]        = useState(50000);
   const [ladder, setLadder]     = useState<TournamentEntry[]>(SEED_LADDER);
   const [userMmr, setUserMmr]   = useState(2180);
@@ -214,7 +236,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         const s = JSON.parse(raw);
         if (Array.isArray(s.cards)) setCards(s.cards);
         if (typeof s.streak === "number") setStreak(s.streak);
-        if (typeof s.madCredits === "number") setMadCredits(s.madCredits);
+        if (typeof s.madCredits === "number") setDemoCredits(s.madCredits);
         if (typeof s.userMmr === "number") setUserMmr(s.userMmr);
         if (Array.isArray(s.ladder)) setLadder(s.ladder);
         if (Array.isArray(s.positions)) setPositions(s.positions);
@@ -228,12 +250,76 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     localStorage.setItem("mad_game_state_v3", JSON.stringify({
-      cards, streak, madCredits, userMmr, ladder, positions, socialAccounts, socialAmplification
+      cards, streak, madCredits: demoCredits, userMmr, ladder, positions, socialAccounts, socialAmplification
     }));
-  }, [cards, streak, madCredits, userMmr, ladder, positions, socialAccounts, socialAmplification]);
+  }, [cards, streak, demoCredits, userMmr, ladder, positions, socialAccounts, socialAmplification]);
 
   const addCard       = useCallback((c: NftCard) => setCards(p => [c, ...p]), []);
-  const adjustCredits = useCallback((delta: number) => setMadCredits(p => Math.max(0, p + delta)), []);
+  /**
+   * Read the real $MADx ledger. Silent on failure by design — a signed-out
+   * visitor gets a 401 here on every page load, which is normal, not an error.
+   */
+  const refreshMadx = useCallback(() => {
+    fetch("/api/v1/madx/account", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        setLedgerBalance(d?.account ? Number(d.account.balance) : null);
+      })
+      .catch(() => setLedgerBalance(null));
+  }, []);
+
+  useEffect(() => { refreshMadx(); }, [refreshMadx]);
+
+  /**
+   * AUTH IS SERVER STATE, NOT REACT STATE.
+   *
+   * Both flags below used to be set by UI that faked them: auth-modal wrote
+   * `isAuthenticated: true` with a fabricated email after a setTimeout, and
+   * wallet-gateway wrote the literal string "0xMAD...8888". Every gated surface
+   * in the app trusted those booleans.
+   *
+   * They are now a mirror of the signed httpOnly session cookie, read once on
+   * mount from /api/v1/auth/session. `socialAuth` reports provider "wallet"
+   * because SIWE is the only real sign-in — the social providers have no
+   * backend (see components/auth-modal.tsx). Keeping the flag meaningful is
+   * what stops every surface that gates on it from locking out a genuinely
+   * signed-in user.
+   */
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/v1/auth/session", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled) return;
+        const authed = Boolean(d?.authenticated);
+        const address = typeof d?.address === "string" ? d.address : null;
+        setWalletAuth({ isConnected: authed, address });
+        setSocialAuth({ isAuthenticated: authed, provider: authed ? "wallet" : null, email: null });
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  /** Server truth when we have it; free-play otherwise. */
+  const creditsSource: "live" | "demo" = ledgerBalance === null ? "demo" : "live";
+  const madCredits = ledgerBalance === null ? demoCredits : ledgerBalance;
+
+  /**
+   * Adjust the FREE-PLAY balance.
+   *
+   * When a real ledger is loaded this must not fake a local movement: the
+   * server is authoritative, and a route that actually spent $MADx will have
+   * written madx_ledger. So in live mode this re-reads instead of guessing —
+   * the balance still updates, it just updates to the truth.
+   *
+   * Game surfaces that have not been wired to a route yet (casino, dopamine
+   * engine, pack shop) keep working against free-play credits when signed out,
+   * which is what `creditsSource: "demo"` tells the UI to disclose.
+   */
+  const adjustCredits = useCallback((delta: number) => {
+    if (ledgerBalance !== null) { refreshMadx(); return; }
+    setDemoCredits(p => Math.max(0, p + delta));
+  }, [ledgerBalance, refreshMadx]);
 
   const addXp = useCallback((amount: number) => setXp(x => x + amount), []);
 
@@ -426,6 +512,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<GameContextType>(() => ({
     cards, addCard, evolveCard,
     streak, recordPick, vrsFlash, chaosMeter, setChaosMeter, madCredits, adjustCredits,
+    creditsSource, refreshMadx,
     tournamentPool, ladder, userMmr, runPvpMatch,
     zLiarHistory, runZLiar,
     positions, openPosition, resolvePosition, shieldTogglePosition, setCards,
@@ -436,6 +523,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     socialAuth, setSocialAuth, walletAuth, setWalletAuth,
     platform: PLATFORM,
   }), [cards, addCard, evolveCard, streak, recordPick, vrsFlash, chaosMeter, madCredits,
+       creditsSource, refreshMadx,
        adjustCredits, tournamentPool, ladder, userMmr, runPvpMatch, zLiarHistory, runZLiar,
        positions, openPosition, resolvePosition, shieldTogglePosition,
        socialAccounts, linkSocialAccount, socialAmplification,

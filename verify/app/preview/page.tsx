@@ -33,7 +33,19 @@ import MadhatrConcierge from "@/components/madhatr-concierge";
 import { OV_DECKS, type OVDeck } from "@/lib/gambit-game-math";
 import { useContainerWide } from "@/hooks/use-container-wide";
 // Dual feature section: Conviction/Prediction beside the deck + Dutch auction.
-import { PredictionCircus } from "@/components/kaito-and-circus";
+// KaitoPriceTicker joins PredictionCircus here: the KAITO live feed was on
+// /mpp2.23 but never ported, so /preview had no token strip at all.
+import { KaitoPriceTicker, PredictionCircus } from "@/components/kaito-and-circus";
+// The two carousels that were collateral damage when SeikoDopamineHub was
+// removed from this page (it was a duplicate Seiko clock — see the note at its
+// old mount point). Both live INSIDE that hub, so pulling the hub silently
+// took the platform pillars and the unpacked-cards row with it. Mounted
+// directly here instead, which restores them without resurrecting the
+// second clock the founder rejected.
+import PlatformCarousel from "@/components/platform-carousel";
+import UnpackedCardsCarousel from "@/components/unpacked-cards-carousel";
+import HoldHint from "@/components/hold-hint";
+import type { HoldHintSpec } from "@/lib/hold-hint-context";
 import GambitCardsAuctionSection from "@/components/gambit-cards-auction-section";
 import InstrumentDeckSection from "@/components/instrument-deck-section";
 import OctavianCreature from "@/components/octavian-creature";
@@ -65,25 +77,68 @@ import { GambitNodeProvider, useGambitNode } from "@/components/gambit-node";
  * The four desks in the header rail. Each carries the surface it opens, so the
  * row reads as destinations rather than four bare nouns.
  *
- * Prediction and Conviction both land on the markets block — they are two
- * instrument types within one market list, not two separate pages.
+ * These now NAVIGATE rather than scroll. Previously all four smooth-scrolled
+ * to a block on this same page, so "All markets" showed the visitor a strip of
+ * this page instead of the market list. Prediction / Conviction / Affliction
+ * deep-link into /markets at their own class anchor (see market-deck.tsx's
+ * `anchorId`), and Octavian opens its dedicated /octavian instrument.
+ *
+ * AFFLICTION — corrected. This previously pointed at /markets#perps on the
+ * reasoning that Affliction's markets were the perpetual families. That was an
+ * inference, and the codebase already disagreed with it in four places:
+ *
+ *   perp-dials.tsx:439   Affliction → "MADHATs game", href /preview#affliction
+ *   pack-opening.tsx     "the Affliction Step 1: Rip Scandal Pack"
+ *   dopamine-engine.tsx  "Variable Reward · Affliction Layer"
+ *   roast-share.tsx      "Step 6 of The Affliction"
+ *   (and PredictionCircusScreen.kt: "AFFLICTION (The Hook)")
+ *
+ * Affliction is the dopamine loop — the card game, the pack rip, the hook —
+ * not the perps deck. Perps are their own class and already have their own
+ * button-free anchor at /markets#perps. So Affliction now lands on the game
+ * block on this page, at the #affliction anchor, which is the href perp-dials
+ * has been pointing at all along — an anchor that did not exist until now, so
+ * that link silently dumped visitors at the top of /preview.
+ *
+ * "All markets" is likewise wrong for it: the card game has no market list.
+ * Its "everything of this kind" is the deck — all 992 cards.
  */
-const DESKS: { label: string; sub: string; target: string }[] = [
-  { label: "Prediction", sub: "All & Open markets", target: "mg-markets" },
-  { label: "Conviction", sub: "All markets", target: "mg-markets" },
-  { label: "Affliction", sub: "MADHATs game", target: "mg-game" },
-  { label: "Octavian", sub: "Octavian Live Mesh", target: "mg-octavian" },
+const DESKS: { label: string; sub: string; href: string }[] = [
+  { label: "Prediction", sub: "All markets", href: "/markets#prediction" },
+  { label: "Conviction", sub: "All markets", href: "/markets#conviction" },
+  { label: "Affliction", sub: "All cards", href: "#affliction" },
+  { label: "Octavian", sub: "Node mesh", href: "/octavian" },
 ];
+
+/** What each desk button explains on hover / press-and-hold. */
+const DESK_HINTS: Record<string, HoldHintSpec> = {
+  Prediction: {
+    title: "Prediction",
+    body: "Dated markets that resolve against a stated criterion, priced de-vigged. You take a side, it settles on a date. Opens the full prediction deck.",
+  },
+  Conviction: {
+    title: "Conviction",
+    body: "Graded belief with no settle leg — you stake how strongly you hold a view, and creators ladder off it. Opens the full conviction deck.",
+  },
+  Affliction: {
+    title: "Affliction",
+    body: "The hook: scandal packs, the rip, and the MADHATs Gambit deck. Rarity comes from openCardPack() in the maths engine, so what drops is the real distribution. Jumps to the game block below.",
+  },
+  Octavian: {
+    title: "Octavian",
+    body: "The node mesh — every platform subsystem as a light on one sphere, brightening with what the platform is actually doing. Drag to orbit, tap a node to read it.",
+  },
+};
 
 /** Dopamine tap — a small celebration burst at the click point. */
 function tap(e: React.MouseEvent, intensity = 0.5) {
   celebrate({ x: e.clientX, y: e.clientY, intensity });
 }
-/** Smooth-scroll to an in-page section by id. */
-function scrollToId(id: string) {
-  if (typeof document === "undefined") return;
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-}
+// scrollToId() removed: every remaining caller (the four desk buttons and the
+// bottom-nav "All Markets") now navigates to a real route instead of scrolling
+// to a strip of this page. The in-page section ids it targeted are retained —
+// /markets#prediction and friends still rely on anchor scrolling, just the
+// browser's own rather than a hand-rolled helper.
 
 function Chip({ label, filled, onClick }: { label: string; filled?: boolean; onClick?: (e: React.MouseEvent) => void }) {
   const { skin } = useSkin();
@@ -110,11 +165,16 @@ function BottomNav({ onProfile }: { onProfile: () => void }) {
   const { openNode } = useGambitNode();
   const [active, setActive] = useState(0);
   // 5 buttons per spec, resolved per the D14 §5 matrix: Home scroll-top ·
-  // All Markets scrolls to the live section · Wallet / Market++ summon their
+  // All Markets opens the market list · Wallet / Market++ summon their
   // Gambit Nodes · Profile opens the console when signed in, else its node.
+  //
+  // "All Markets" now navigates to /markets rather than scrolling to a strip
+  // of this page — same defect as the four desk buttons above, and the same
+  // fix. A control named "All Markets" that shows a slice of the current page
+  // is misnamed, not merely inconvenient.
   const items: [LucideIcon, string, () => void][] = [
     [Home, "Home", () => window.scrollTo({ top: 0, behavior: "smooth" })],
-    [TrendingUp, "All Markets", () => scrollToId("mg-markets")],
+    [TrendingUp, "All Markets", () => { window.location.href = "/markets"; }],
     [Wallet, "Wallet", () => openNode("wallet")],
     [PlusSquare, "Market++", () => openNode("market-plus")],
     [User, "Profile", onProfile],
@@ -252,18 +312,28 @@ function PreviewInner() {
         {/* The four desks, as a scrollable rail under the header. Each names
             the surface it opens rather than being a bare label, so the row
             reads as a destination list instead of four nouns. */}
+        {/* CENTRED, EQUAL-WIDTH. Previously `flex: 0 0 auto` inside an
+            overflow-x rail, so each button sized to its own label — four
+            different widths, left-packed against the edge. Now the row is
+            centred and each desk takes `flex: 1 1 0` off a shared basis, so
+            all four are identical in width regardless of label length and the
+            group sits centred under the header. maxWidth keeps them from
+            stretching absurdly wide on desktop. */}
         <nav
           aria-label="Platform desks"
-          style={{ display: "flex", gap: 8, overflowX: "auto", padding: "0 14px 10px", maxWidth: 1040, margin: "0 auto", scrollbarWidth: "none" }}
+          style={{
+            display: "flex", gap: 8, padding: "0 14px 10px",
+            maxWidth: 720, margin: "0 auto", justifyContent: "center",
+          }}
         >
           {DESKS.map((d) => (
-            <button
-              key={d.label}
-              type="button"
-              onClick={(e) => { tap(e, 0.5); scrollToId(d.target); }}
+            <HoldHint key={d.label} hint={DESK_HINTS[d.label]}>
+            <a
+              href={d.href}
+              onClick={(e) => tap(e, 0.5)}
               style={{
-                flex: "0 0 auto", textAlign: "left", cursor: "pointer",
-                padding: "7px 11px", borderRadius: 10,
+                flex: "1 1 0", minWidth: 0, textAlign: "center", cursor: "pointer",
+                padding: "7px 11px", borderRadius: 10, textDecoration: "none",
                 background: skin.card, border: `1px solid ${skin.border}`,
                 fontFamily: INSTRUMENT_FONT,
               }}
@@ -271,10 +341,11 @@ function PreviewInner() {
               <span style={{ display: "block", fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: skin.gold }}>
                 {d.label}
               </span>
-              <span style={{ display: "block", marginTop: 2, fontSize: 8, color: skin.muted, whiteSpace: "nowrap" }}>
+              <span style={{ display: "block", marginTop: 2, fontSize: 8, color: skin.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {d.sub} ›
               </span>
-            </button>
+            </a>
+            </HoldHint>
           ))}
         </nav>
 
@@ -288,6 +359,17 @@ function PreviewInner() {
                "MARKETS · NYSE" panel was removed — the top CryptoTickerDual
                carries the perpetual market ticker. The column now leads with the
                News Flow. */}
+            {/* KAITO live feed — the token strip from /mpp2.23. It leads
+                because it is the fastest-moving thing on the page and reads as
+                the room's pulse; below the News Flow it would be buried. */}
+            <KaitoPriceTicker />
+
+            {/* The four platform pillars — CONVICTIONS · PREDICTIONS · Z-LIAR
+                · CARD GAME. Restored from SeikoDopamineHub (see the import
+                note). They sit above the wire because they are the standing
+                state of the platform, whereas the wire is what just happened. */}
+            <PlatformCarousel />
+
             <div id="mg-news">
               <NewsTwoRow />
             </div>
@@ -383,8 +465,13 @@ function PreviewInner() {
                 you form a conviction, you buy the cards that back it, the
                 auction sets the price. Apart, they read as three unrelated
                 features. */}
+            {/* id="affliction", not the orphaned "mg-game" it replaced: nothing
+                linked to mg-game, while perp-dials.tsx has always linked to
+                /preview#affliction — an anchor that did not exist, so that tile
+                dropped visitors at the top of the page. Same block, the name the
+                rest of the app was already using. */}
             <div
-              id="mg-game"
+              id="affliction"
               style={{
                 display: "grid",
                 gridTemplateColumns: wide ? "1fr 1fr" : "1fr",
@@ -395,6 +482,20 @@ function PreviewInner() {
             >
               <PredictionCircus activeDeck={activeDeck} />
               <GambitCardsAuctionSection />
+            </div>
+
+            {/* RECENTLY UNPACKED — the MADHATs Gambit deck as actually rolled.
+                Restored from SeikoDopamineHub alongside the pillars above.
+
+                It sits directly under the game block on purpose: the block
+                above is what you can buy and what it costs, this is what came
+                out. Cards are generated by openCardPack() from
+                lib/gambit-game-math — the SAME deterministic weighted-rarity
+                function the real pack-open route runs, not a decorative
+                sample — so the rarity mix on display is the true drop
+                distribution rather than a designer's guess at one. */}
+            <div id="mg-unpacked" style={{ scrollMarginTop: 72 }}>
+              <UnpackedCardsCarousel />
             </div>
 
             <div id="mg-featured">

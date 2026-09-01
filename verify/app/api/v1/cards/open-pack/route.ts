@@ -10,6 +10,9 @@ import { requireMadxRouteAuth, isAuthResponse } from "@/lib/madx-route-auth";
 import { derivePackNonce } from "@/lib/pack-nonce";
 import { hasDatabaseUrl } from "@/lib/database-url";
 import { getDbPool } from "@/lib/db";
+import { spendWithin } from "@/lib/madx-web2";
+import { insertCard, type CardRow } from "@/lib/cards";
+import type { PoolClient } from "pg";
 
 export const dynamic = "force-dynamic";
 
@@ -31,12 +34,61 @@ export const dynamic = "force-dynamic";
 //    guarantee it didn't provide; a real check needs a server-side MADx
 //    balance source (on-chain read or ledger table) this route has no
 //    visibility into, owned by whoever builds the actual spend flow.
+//
+//    THAT SPEND FLOW NOW EXISTS. lib/madx-web2.ts holds a real double-entry
+//    ledger, and `spendWithin` performs the debit on a caller-owned
+//    transaction. So the pack is charged for: PLATFORM.CARD_PACK_COST is
+//    debited from madx_accounts, the five cards are written to `cards`, and
+//    the counter advances -- all in ONE transaction. A crash between them
+//    would otherwise either charge for nothing or mint for free, and neither
+//    is recoverable from the ledger because there would be nothing in it to
+//    reverse.
+//
+//    The route previously only GENERATED cards. Nothing persisted them and
+//    nothing paid for them, so "Buy & Rip" in pack-shop cost nothing and
+//    minted nothing.
 export async function POST(req: NextRequest) {
   const auth = requireMadxRouteAuth(req, "cards-open-pack", 20, 60_000);
   if (isAuthResponse(auth)) return auth;
 
+  // Without a database there is no counter, no ledger and nowhere to mint. The
+  // route still opens a pack so the UI works offline, but it is explicitly
+  // unpaid and unpersisted, and says so — a free pack must never be presented
+  // as an owned one.
+  if (!hasDatabaseUrl()) {
+    const packOpenCount = randomInt(1, 1_000_000);
+    const result = openCardPack(derivePackNonce(auth.owner, packOpenCount), packOpenCount);
+    const slot0Rarity = result.cards[0].rarity;
+    return NextResponse.json({
+      cards: result.cards,
+      cost: result.cost,
+      charged: false,
+      persisted: false,
+      source: "demo",
+      slot0Guarantee: `${slot0Rarity} (≥Uncommon) ✓`,
+      packNumber: packOpenCount,
+      totalCards: result.cards.length,
+    });
+  }
+
+  const pool = getDbPool();
+  const client: PoolClient = await pool.connect();
   try {
-    const packOpenCount = await nextPackOpenCount(auth.owner, auth.session.chainId);
+    await client.query("BEGIN");
+
+    // The counter advances inside the transaction, so a failed charge rolls it
+    // back too — otherwise a user with no balance could burn counter values.
+    const { rows } = await client.query<{ pack_open_count: string }>(
+      `INSERT INTO customer_accounts (wallet_address, chain_id, first_seen, pack_open_count)
+       VALUES ($1, $2, now(), 1)
+       ON CONFLICT (wallet_address) DO UPDATE
+         SET pack_open_count = customer_accounts.pack_open_count + 1,
+             updated_at = now()
+       RETURNING pack_open_count`,
+      [auth.owner, auth.session.chainId],
+    );
+    const packOpenCount = Number(rows[0].pack_open_count);
+
     const userNonce = derivePackNonce(auth.owner, packOpenCount);
     const result = openCardPack(userNonce, packOpenCount);
 
@@ -44,42 +96,54 @@ export async function POST(req: NextRequest) {
     const slot0Rarity = result.cards[0].rarity;
     const slot0Valid = RARITY_TABLE[slot0Rarity].powerScore >= RARITY_TABLE["Uncommon"].powerScore;
     if (!slot0Valid) {
+      await client.query("ROLLBACK");
       return NextResponse.json(
         { error: "Pack generation integrity failure — slot 0 guarantee violated" },
         { status: 500 }
       );
     }
 
+    const paid = await spendWithin(client, auth.owner, result.cost, `pack #${packOpenCount}`);
+    if (!paid) {
+      await client.query("ROLLBACK");
+      return NextResponse.json(
+        { error: `insufficient $MADx — a pack costs ${result.cost}` },
+        { status: 402 },
+      );
+    }
+
+    const owned: CardRow[] = [];
+    for (const c of result.cards) {
+      owned.push(
+        await insertCard(client, {
+          walletAddress: auth.owner,
+          cardUid: c.id,
+          name: c.name,
+          rarity: c.rarity,
+          faction: c.faction,
+          serial: c.serial,
+        }),
+      );
+    }
+
+    await client.query("COMMIT");
+
     return NextResponse.json({
       cards: result.cards,
+      owned,
       cost: result.cost,
+      charged: true,
+      persisted: true,
+      source: "live",
       slot0Guarantee: `${slot0Rarity} (≥Uncommon) ✓`,
       packNumber: packOpenCount,
       totalCards: result.cards.length,
     });
   } catch (e) {
+    await client.query("ROLLBACK").catch(() => {});
+    console.error("cards/open-pack error:", e);
     return NextResponse.json({ error: "Pack opening failed" }, { status: 500 });
+  } finally {
+    client.release();
   }
-}
-
-/**
- * The persisted, monotonic per-wallet pack counter. Falls back to a
- * CSPRNG-derived one-off count when there's no database (demo/local) rather
- * than hard-failing the route — there's no persisted state to grind against
- * either way in that mode.
- */
-async function nextPackOpenCount(owner: string, chainId: number): Promise<number> {
-  if (!hasDatabaseUrl()) return randomInt(1, 1_000_000);
-
-  const pool = getDbPool();
-  const { rows } = await pool.query<{ pack_open_count: string }>(
-    `INSERT INTO customer_accounts (wallet_address, chain_id, first_seen, pack_open_count)
-     VALUES ($1, $2, now(), 1)
-     ON CONFLICT (wallet_address) DO UPDATE
-       SET pack_open_count = customer_accounts.pack_open_count + 1,
-           updated_at = now()
-     RETURNING pack_open_count`,
-    [owner, chainId],
-  );
-  return Number(rows[0].pack_open_count);
 }

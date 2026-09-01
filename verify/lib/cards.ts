@@ -6,7 +6,7 @@
  * persists and reads owned cards. Untyped `pool.query()` + typed mappers to
  * avoid the `QueryResultRow` index-signature constraint on pg generics.
  */
-import type { Pool } from "pg";
+import type { Pool, PoolClient } from "pg";
 import type { Rarity } from "./gambit-game-math";
 
 export interface CardRow {
@@ -77,8 +77,15 @@ export interface InsertCardInput {
   earnsCount?: number;
 }
 
-/** Persist a collected card to a wallet's ledger. Returns the stored row. */
-export async function insertCard(pool: Pool, input: InsertCardInput): Promise<CardRow> {
+/**
+ * Persist a collected card to a wallet's ledger. Returns the stored row.
+ *
+ * Accepts a PoolClient as well as a Pool so a caller can mint INSIDE its own
+ * transaction. That matters for pack opening: the debit and the five inserts
+ * are one event, and a crash between them either charges for nothing or mints
+ * for free.
+ */
+export async function insertCard(pool: Pool | PoolClient, input: InsertCardInput): Promise<CardRow> {
   const res = await pool.query(
     `INSERT INTO cards
        (wallet_address, card_uid, name, rarity, faction, serial,

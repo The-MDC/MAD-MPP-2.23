@@ -18,6 +18,8 @@ interface Body {
  * Dutch-auction price (Part X — surfaces scandalPackPrice + getAuctionPrice +
  * SCANDAL_PACK_TIERS). Pure, no DB.
  */
+// PUBLIC-ROUTE: Pack price quote — pure maths, no DB, no charge.
+// Rate-limited, because open still needs a cost ceiling.
 export async function POST(req: Request) {
   const limited = enforceRateLimit(req, "packs-price", 60, 60_000);
   if (limited) return limited;

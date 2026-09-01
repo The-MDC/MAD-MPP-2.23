@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { hasDatabaseUrl } from "@/lib/database-url";
 import { enforceRateLimit } from "@/lib/rate-limit";
-import { isAuthResponse, requireMadxRouteAuth } from "@/lib/madx-route-auth";
+import { requireHeaderSecret } from "@/lib/bearer-secret";
 import {
   DELISTING_SLA_HOURS,
   TRUSTED_FLAGGER_SLA_HOURS,
@@ -18,7 +18,7 @@ type Kind = (typeof KINDS)[number];
  * §9.1 delisting, appeals, and the DSA notice-and-action mechanism.
  *
  * POST /api/v1/registrar/complaint          → file one (open to anyone)
- * POST /api/v1/registrar/complaint?resolve=1 → substantiate (authed reviewer)
+ * POST /api/v1/registrar/complaint?resolve=1 → substantiate (THE REGISTRAR only)
  *
  * FILING IS UNAUTHENTICATED on purpose. A subject who wants a market about
  * their character reviewed should not first have to create an account on the
@@ -27,14 +27,35 @@ type Kind = (typeof KINDS)[number];
  *
  * Trusted flaggers get the priority lane — the DSA requirement, and also the
  * thing that keeps the median case honest.
+ *
+ * RESOLUTION IS A REGISTRAR ACTION, NOT A USER ACTION. This branch used to be
+ * gated on `requireMadxRouteAuth` — ANY signed-in wallet. The comment called it
+ * an "authed reviewer", but there was no reviewer role: every visitor with a
+ * session was one. The branch takes a caller-supplied `settlePrice` and
+ * `settleLeg` and then halts the market, so the effect was that any user could
+ * settle any market at a price of their choosing and stop trading on it.
+ *
+ * It now requires `x-registrar`, matching the shape `registrar/pause` uses for
+ * PAUSE_GUARDIAN — a separate credential, timing-safe, that FAILS CLOSED when
+ * unconfigured rather than degrading to session auth. The Codex Registrar is
+ * described in the FIVE FACES product sheet as "the fourth control, and the one
+ * that is a PERSON rather than a feature"; a role that a rate limit and a
+ * cookie can satisfy is not that.
+ *
+ * A DISTINCT KEY FROM THE GUARDIAN'S. Halting the platform and settling a
+ * market at a chosen price are different powers with different blast radii —
+ * the guardian can only stop, this can move money. Sharing one secret would
+ * hand whoever holds the stop button the ability to price a settlement.
  */
 export async function POST(req: Request) {
   const url = new URL(req.url);
   const resolving = url.searchParams.get("resolve") === "1";
 
   if (resolving) {
-    const auth = requireMadxRouteAuth(req, "registrar-resolve", 30, 60_000);
-    if (isAuthResponse(auth)) return auth;
+    const limitedResolve = enforceRateLimit(req, "registrar-resolve", 30, 60_000);
+    if (limitedResolve) return limitedResolve;
+    const denied = requireHeaderSecret(req, "x-registrar", "REGISTRAR_TOKEN");
+    if (denied) return denied;
     if (!hasDatabaseUrl()) {
       return NextResponse.json({ success: false, error: "resolution needs DATABASE_URL" }, { status: 503 });
     }
