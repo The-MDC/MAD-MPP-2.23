@@ -56,12 +56,24 @@ name, never the platform name.
   "SEC Compliant" / "SEC-exempt token issuance" also breach the no-claim-without-evidence rule.
   `verify/public/pitch/ov-pitch-deck.html` in this repo is already corrected; the deployed bundle
   is built from a different source. **Find that source and rebuild before the deck is shown again.**
-- **Vercel is not deploying `MAD-MPP-2.23`.** Last production build 2026-08-19 14:00 UTC; four
-  pushes since produced zero deployments. Merging to `main` does not reach the live site. Deploy
-  with `cd verify && npx vercel --prod` until the Git integration is reconnected to the MDC org.
-- **GitHub Actions is queue-blocked.** Repo-owned runs from 2026-08-18 and 2026-08-19 are still
-  `queued`; Dependabot's GitHub-hosted runs complete in seconds. Signature of an exhausted Actions
-  minutes / spending limit at the org level. No PR in this repo can show a green check until it clears.
+- **The Vercel account is blocked** — corrected 2026-09-10. The `Vercel – mad-mpp-2-23` commit
+  status on PR #148 returns `failure` with the description **"Account is blocked"**, pointing at
+  `vercel.com/knowledge/why-is-my-account-deployment-blocked`. This supersedes the earlier reading
+  that a broken Git integration was the cause: reconnecting Git will not deploy anything while the
+  account is blocked, and the `cd verify && npx vercel --prod` workaround fails for the same reason.
+  Resolve the account block first (billing / payment method / support ticket), then re-test.
+  The live data room is stale until then — last production build 2026-08-19 14:00 UTC.
+- ~~**GitHub Actions is queue-blocked.**~~ — **resolved, verified 2026-09-10.** Runs now complete
+  in seconds: run `34450431901` queued 07:32:05 UTC and finished 07:32:35 UTC. The earlier
+  reading (exhausted Actions minutes at org level) no longer holds. Checks do report on PRs.
+- **No gh-aw workflow is compiled.** The repo carries `.github/workflows/agentic-quality-review.md`
+  and `agentic-security-review.md` but **zero `.lock.yml` files**, so `compile-check` fails on any
+  PR that triggers it — the failure is base-branch content, not the PR's. Neither agentic workflow
+  actually runs until someone commits compiled lock files:
+  `gh extension install github/gh-aw && gh aw compile && git add .github/workflows/*.lock.yml`.
+  Must be run somewhere with network access to GitHub releases; a Claude Code web session cannot
+  (egress policy blocks `api.github.com`, `github.com`, `raw.githubusercontent.com`,
+  `proxy.golang.org` and the Azure Blob host that serves Actions artifacts).
 
 ### Never claim without evidence
 "15,000 users" (it is a **waitlist**) · measured retention · "industry's first" · "regulatory-safe" ·

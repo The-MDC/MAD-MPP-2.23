@@ -70,8 +70,13 @@ interactively. Detail in `.claude/skills/ecc/gh-aw-agentic-workflows.md`.
 
 These are advisory PR comments, not blocking gates.
 
-> ⚠️ **Actions is queue-blocked at the org level** (runs from 2026-08-18/19 still `queued`).
-> No PR here shows a green check until the Actions minutes / spending limit clears.
+> ⚠️ **No `.lock.yml` exists in this repo yet** — `agentic-quality-review.md` and
+> `agentic-security-review.md` are uncompiled, so `compile-check` fails on every PR that triggers
+> it and neither agentic workflow actually runs. Step 2 above is what fixes it, and it must run
+> somewhere with network access to GitHub releases — a Claude Code web session cannot reach them.
+>
+> Actions itself is healthy again as of 2026-09-10 (runs complete in ~30s); the earlier
+> queue-blocked reading no longer applies.
 
 ## Starter prompt
 
