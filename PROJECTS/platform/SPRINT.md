@@ -187,9 +187,17 @@ contradicts it in three more places. Each one is a number or claim that could re
   Resolve billing / payment method / support ticket, then re-test the data room.
   - Corroborating evidence (2026-09-11): team `MAD-MPP` is on the **pro** plan yet the API returns
     **zero projects** for it — the signature of a suspended account, not a missing integration.
-  - ✅ **Check:** `list_projects` for `team_ThJlmLcaIliE23YywpmA7uQf` returns `mad-mpp-2-23`, a
-    deployment reaches `Ready`, and
-    `https://mad-mpp-2-23-madgambit.vercel.app/pitch/index.html` serves without SSO.
+  - ⚠️ **Do not trust the Vercel PR comment.** On every push it renders
+    `Building` with a working-looking preview URL, then flips to `Canceled from the Vercel
+    Dashboard`, then to `Account is blocked`. Observed three times: PR #148, and PR #149 on both
+    `98b86b5` and `9aae8dd`. During the `Building` window the preview link is already dead —
+    `get_deployment` on that hostname returns **404 not_found**. A green-looking badge here means
+    nothing while the account is blocked.
+  - ✅ **Check — all four, not any one:**
+    1. `list_projects` for `team_ThJlmLcaIliE23YywpmA7uQf` returns `mad-mpp-2-23` (today: `[]`)
+    2. the `Vercel – mad-mpp-2-23` commit status is **not** `failure`
+    3. `get_deployment` on the preview hostname resolves instead of 404
+    4. `https://mad-mpp-2-23-madgambit.vercel.app/pitch/index.html` serves without SSO
 
 - [ ] **3.2 — Compile the gh-aw lock files.** The repo carries
   `.github/workflows/agentic-quality-review.md` and `agentic-security-review.md` with
