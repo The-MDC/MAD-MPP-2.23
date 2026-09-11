@@ -151,10 +151,26 @@ contradicts it in three more places. Each one is a number or claim that could re
   **Neon + Drizzle + Vercel**. Delete the entry.
   - Also check: `CLAUDE.md` skills reference `backend-patterns` which is Supabase-oriented.
 
-- [ ] **2.7 — Two different Vercel projects are in play.** Legacy memory records project
-  `prj_4IdDBNaVoeUWutoEGbCc2zyzYpc7` / team `team_TgoOJAiilwZ3I3LPyD2FcNZm`. The Vercel bot on
-  PR #148 reported project `prj_aiAAMWo4XvseAHHMMzIrH1ET1KCK` / team `team_ThJlmLcaIliE23YywpmA7uQf`,
-  root directory `verify`. Determine which is live, retire the other, record it in `CLAUDE.md`.
+- [ ] **2.7 — Three Vercel scopes touch this repo. Two are unaccounted for.**
+  Queried live against the Vercel API on 2026-09-11, plus the commit statuses on PR #149:
+
+  | Scope | Evidence | Status |
+  |---|---|---|
+  | Team `MAD-MPP` (`team_ThJlmLcaIliE23YywpmA7uQf`, plan **pro**) | only team the connected token can see | **lists ZERO projects** via API |
+  | Project `mad-mpp-2-23` (`prj_aiAAMWo4XvseAHHMMzIrH1ET1KCK`, root dir `verify`) | Vercel bot on PR #148 | commit status: **`Account is blocked`** |
+  | Team slug **`too-expensive`** | posts `Vercel Deployments – Too Expensive` statuses on this repo | **invisible to this account** — not in `list_teams` |
+  | Team `team_TgoOJAiilwZ3I3LPyD2FcNZm` / project `prj_4IdDBNaVoeUWutoEGbCc2zyzYpc7` | legacy memory | **not in this account at all** |
+
+  Two things to resolve, in this order:
+  1. **A Vercel team you cannot see is deploying this repo.** `too-expensive` posts deployment
+     statuses on every push but does not appear in `list_teams` for the connected token. Find out
+     whose account owns it and whether it is deploying MAD Gambit code. Until that is answered,
+     assume an unaudited deployment surface exists.
+  2. **Zero projects under a pro team is not normal.** It is consistent with the account block in
+     3.1 — blocked accounts have projects suspended from API listing — but confirm rather than
+     assume. Resolve 3.1 first, re-query, and see whether `mad-mpp-2-23` reappears.
+
+  Record the surviving scope in `CLAUDE.md` and retire the rest.
 
 - [ ] **2.8 — Open product decision, still open.** Where does **unspent creator share on
   platform-originated markets** fall — treasury or community? Creator share is 40% of the 1.88%
@@ -169,7 +185,10 @@ contradicts it in three more places. Each one is a number or claim that could re
   This supersedes the older diagnosis that a broken Git integration was the cause — reconnecting
   Git cannot deploy while the account is blocked, and `npx vercel --prod` fails identically.
   Resolve billing / payment method / support ticket, then re-test the data room.
-  - ✅ **Check:** a deployment reaches `Ready`, and
+  - Corroborating evidence (2026-09-11): team `MAD-MPP` is on the **pro** plan yet the API returns
+    **zero projects** for it — the signature of a suspended account, not a missing integration.
+  - ✅ **Check:** `list_projects` for `team_ThJlmLcaIliE23YywpmA7uQf` returns `mad-mpp-2-23`, a
+    deployment reaches `Ready`, and
     `https://mad-mpp-2-23-madgambit.vercel.app/pitch/index.html` serves without SSO.
 
 - [ ] **3.2 — Compile the gh-aw lock files.** The repo carries
