@@ -1,8 +1,9 @@
 version: 2
 
-# Dependabot config is read from the DEFAULT branch (main) — enhancements here
-# take effect once merged. Version updates below surface out-of-range bumps
-# (e.g. postcss ≥ 8.5.10 flows through the /verify npm updater on the next run).
+# Dependabot config is read from the DEFAULT branch, which is `The-MDC` — NOT `main`
+# (this repo has no `main`). Enhancements here take effect once merged there. Version
+# updates below surface out-of-range bumps (e.g. postcss ≥ 8.5.10 flows through the
+# /verify npm updater on the next run).
 #
 # For the HIGH/critical advisories specifically, also enable — in repo Settings →
 # Advanced Security → Dependabot — "Dependabot alerts" + "Dependabot security
@@ -31,6 +32,36 @@ updates:
         update-types:
           - "minor"
           - "patch"
+
+  # ── Vendored Foundry libraries: SILENCE, do not update ──────────────
+  # contracts/lib/{openzeppelin-contracts,forge-std} are deliberately VENDORED
+  # (1,069 files committed, no .gitmodules). foundry.yml depends on that — it runs
+  # `actions/checkout` with no submodule step and no `forge install`, so these files
+  # must stay committed. Do NOT un-vendor without first adding dependency install to CI.
+  #
+  # The side effect: Dependabot security updates scan every manifest in the repo,
+  # including OpenZeppelin's own package.json. That produced run 34557792525, which
+  # tried to bump ~40 packages — ajv, js-yaml ×6, minimatch ×9, undici ×12,
+  # serialize-javascript, tmp, uuid — that are OpenZeppelin's internal dev toolchain.
+  # None of them ship in MAD Gambit. None of them are compiled. Pure noise.
+  #
+  # `ignore` (unlike open-pull-requests-limit) applies to SECURITY updates too, so a
+  # wildcard here suppresses both update types for these paths.
+  - package-ecosystem: "npm"
+    directory: "/contracts/lib/openzeppelin-contracts"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+    ignore:
+      - dependency-name: "*"
+
+  - package-ecosystem: "npm"
+    directory: "/contracts/lib/forge-std"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+    ignore:
+      - dependency-name: "*"
 
   # ── GitHub Actions workflow pins ────────────────────────────────────
   - package-ecosystem: "github-actions"
