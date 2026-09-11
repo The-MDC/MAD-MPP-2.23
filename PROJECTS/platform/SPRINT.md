@@ -154,23 +154,25 @@ contradicts it in three more places. Each one is a number or claim that could re
 - [ ] **2.7 — Three Vercel scopes touch this repo. Two are unaccounted for.**
   Queried live against the Vercel API on 2026-09-11, plus the commit statuses on PR #149:
 
-  | Scope | Evidence | Status |
+  **Canonical, confirmed by Nick 2026-09-11 — this is settled, do not re-open it:**
+
+  > **Project `mad-mpp-2-23` (`prj_aiAAMWo4XvseAHHMMzIrH1ET1KCK`) under team `MAD-MPP`
+  > (`team_ThJlmLcaIliE23YywpmA7uQf`, plan pro), root directory `verify`.**
+
+  Any other Vercel scope that posts a status on this repo is **not** MAD Gambit's and is not to be
+  treated as a deployment surface for this project. Ignore it.
+
+  | Legacy identifier | Source | Action |
   |---|---|---|
-  | Team `MAD-MPP` (`team_ThJlmLcaIliE23YywpmA7uQf`, plan **pro**) | only team the connected token can see | **lists ZERO projects** via API |
-  | Project `mad-mpp-2-23` (`prj_aiAAMWo4XvseAHHMMzIrH1ET1KCK`, root dir `verify`) | Vercel bot on PR #148 | commit status: **`Account is blocked`** |
-  | Team slug **`too-expensive`** | posts `Vercel Deployments – Too Expensive` statuses on this repo | **invisible to this account** — not in `list_teams` |
-  | Team `team_TgoOJAiilwZ3I3LPyD2FcNZm` / project `prj_4IdDBNaVoeUWutoEGbCc2zyzYpc7` | legacy memory | **not in this account at all** |
+  | `team_TgoOJAiilwZ3I3LPyD2FcNZm` | legacy memory export | **retire** — not in this account |
+  | `prj_4IdDBNaVoeUWutoEGbCc2zyzYpc7` | legacy memory export | **retire** — not in this account |
 
-  Two things to resolve, in this order:
-  1. **A Vercel team you cannot see is deploying this repo.** `too-expensive` posts deployment
-     statuses on every push but does not appear in `list_teams` for the connected token. Find out
-     whose account owns it and whether it is deploying MAD Gambit code. Until that is answered,
-     assume an unaudited deployment surface exists.
-  2. **Zero projects under a pro team is not normal.** It is consistent with the account block in
-     3.1 — blocked accounts have projects suspended from API listing — but confirm rather than
-     assume. Resolve 3.1 first, re-query, and see whether `mad-mpp-2-23` reappears.
-
-  Record the surviving scope in `CLAUDE.md` and retire the rest.
+  Remaining work on this step:
+  - Write the canonical project/team ID into `CLAUDE.md` so this never gets re-litigated.
+  - Delete the two legacy identifiers wherever they still appear in notes or memory exports.
+  - `list_projects` for `team_ThJlmLcaIliE23YywpmA7uQf` currently returns **zero projects** —
+    expected while the account block in 3.1 stands, since blocked accounts have projects suspended
+    from API listing. Re-query after 3.1 and confirm `mad-mpp-2-23` reappears.
 
 - [ ] **2.8 — Open product decision, still open.** Where does **unspent creator share on
   platform-originated markets** fall — treasury or community? Creator share is 40% of the 1.88%
