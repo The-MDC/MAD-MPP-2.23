@@ -61,7 +61,7 @@ import CryptoTickerDual from "@/components/crypto-ticker-dual";
 import DopamineCarouselStrip from "@/components/dopamine-carousel-strip";
 import { AutoShowcaseBadge } from "@/components/carousel";
 import PerpDials from "@/components/perp-dials";
-import MadhatrConcierge from "@/components/madhatr-concierge";
+import MadGambitConcierge from "@/components/mad-gambit-concierge";
 import { EigenTrustWidget } from "@/components/virality-eigen";
 import AuthModal from "@/components/auth-modal";
 
@@ -443,7 +443,7 @@ function GambitInner() {
 
       {/* MADHAT'r floating concierge — page-level, persists across every tab.
           Fixed bottom-right, real top-hat logo, GEMINI.md persona. */}
-      <MadhatrConcierge />
+      <MadGambitConcierge />
       
       {/* ── GLOBAL MODALS ── */}
       {showAuthModal && (

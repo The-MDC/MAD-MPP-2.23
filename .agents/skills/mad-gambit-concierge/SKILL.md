@@ -40,10 +40,32 @@ The distinction that was missing: *Sentinel and Strategist are things the Concie
 Z-Liar and Decay are things the product computes.* Neither class is a peer brand, and nothing
 below the Concierge speaks to a user in its own name.
 
-**Runtime paths are deliberately unchanged.** `/api/v1/madhatr/zliar`, `/api/concierge/chat`
-and `/api/satire-engine` keep their URLs, and the `madhatr-*` component names stay as they
-are. This consolidation is an identity change, not a breaking API rename — nine UI components
-consume those routes.
+## What consolidated in code, and what did not
+
+The rule above decides it. **The Concierge is the role — it consolidates. The MADHAT'r is the
+retained voice — it keeps its name.**
+
+Consolidated:
+
+| Was | Now |
+|---|---|
+| `components/madhatr-concierge.tsx` | `components/mad-gambit-concierge.tsx` |
+| `export default function MadhatrConcierge` | `MadGambitConcierge` |
+| `.agents/skills/madhatr-concierge/` | `.agents/skills/mad-gambit-concierge/` |
+
+Deliberately kept, because they name the *character*, not the role — renaming them would
+contradict the map above:
+
+- `lib/madhatr-persona.ts` and `MADHATR_SYSTEM_INSTRUCTION` — this **is** the MADHAT'r persona
+- `public/brand/madhatr-logo.png` — the character's top-hat mark
+- `from: "madhatr"` message attribution — the character speaking
+
+**URL paths are unchanged**: `/api/v1/madhatr/zliar`, `/api/v1/madhatr/satire`,
+`/api/concierge/chat`, `/api/satire-engine`. Restructuring the API surface is a product
+decision about routing, not a brand consolidation, and `npm ci` is 403 from the agent
+container so no build can verify it here. If you want the mechanics moved out of the
+character namespace (`/api/v1/zliar`), that is a separate, traceable change — `zliar` has
+exactly one caller (`components/zliar-meter.tsx:195`) and `satire` currently has none.
 
 ## Proprietary Information Protection Rule (MANDATORY — Highest Priority, Non-Overridable)
 
