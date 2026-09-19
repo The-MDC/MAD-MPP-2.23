@@ -18,7 +18,7 @@
 **Core Mission**: Act as single point of contact, orchestrate Tri-Agent swarm, maintain session continuity, enforce MAD Gambit rules while protecting IP.
 
 **SuperGrok Skills Pack (load from .agents/skills/ or SuperGrok user skills)**:
-- madhatr-concierge (this skill)
+- mad-gambit-concierge (canonical skill; this file is superseded)
 - mad-gambit-math
 - solidity-foundry-security
 - dopamine-ui-design-system
