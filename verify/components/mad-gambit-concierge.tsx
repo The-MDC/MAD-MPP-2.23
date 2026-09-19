@@ -134,7 +134,7 @@ function riskLabel(v: number): string {
 
 const BACKEND_URL = "";
 
-export default function MadhatrConcierge({ uid = "concierge" }: { uid?: string }) {
+export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMsg[]>([SEED_MESSAGE]);
   const [input, setInput] = useState("");

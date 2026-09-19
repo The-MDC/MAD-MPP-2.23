@@ -8,7 +8,7 @@ See [../SUPERGROK_GUARDRAILS_AND_SKILLS.md](../SUPERGROK_GUARDRAILS_AND_SKILLS.m
 ## Skills (all SKILL.md fully expanded)
 
 ### P0 (Critical)
-- [madhatr-concierge](madhatr-concierge/SKILL.md) — Primary orchestrator + IP protector
+- [mad-gambit-concierge](mad-gambit-concierge/SKILL.md) — Primary orchestrator + IP protector
 - [mad-gambit-math](mad-gambit-math/SKILL.md) — Math verification + public numbers only
 - [solidity-foundry-security](solidity-foundry-security/SKILL.md) — Contract audits, Foundry, fuzz
 
@@ -30,7 +30,7 @@ See [../SUPERGROK_GUARDRAILS_AND_SKILLS.md](../SUPERGROK_GUARDRAILS_AND_SKILLS.m
 1. Read SUPERGROK_GUARDRAILS_AND_SKILLS.md first.
 2. Match description → load .agents/skills/<name>/SKILL.md (or the equivalent user skill).
 3. Always enforce proprietary gate + language gate + brand gate.
-4. Front-door every user query through madhatr-concierge.
+4. Front-door every user query through mad-gambit-concierge.
 
 ## Source
 Live SuperGrok user skills live in the agent's /home/workdir/.grok/skills/ (persisted). This repo copy makes them available to the entire swarm and any Antigravity / SuperManus / Claude session that opens the project.

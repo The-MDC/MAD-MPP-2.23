@@ -29,7 +29,7 @@ import DopamineCarouselStrip from "@/components/dopamine-carousel-strip";
 import PerpDials from "@/components/perp-dials";
 // Ported from the /mpp2.23 device theme.
 import OVDeckSelector from "@/components/ov-deck-selector";
-import MadhatrConcierge from "@/components/madhatr-concierge";
+import MadGambitConcierge from "@/components/mad-gambit-concierge";
 import { OV_DECKS, type OVDeck } from "@/lib/gambit-game-math";
 import { useContainerWide } from "@/hooks/use-container-wide";
 // Dual feature section: Conviction/Prediction beside the deck + Dutch auction.
@@ -568,7 +568,7 @@ function PreviewInner() {
       {/* MADHAT'r floating concierge — ported from /mpp2.23, where it is
           page-level and persists across every tab. Fixed bottom-right, so it
           costs the hub no layout. */}
-      <MadhatrConcierge />
+      <MadGambitConcierge />
       <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
     </div>
   );

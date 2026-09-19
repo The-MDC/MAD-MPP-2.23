@@ -41,7 +41,7 @@ These skills live under `.agents/skills/<name>/SKILL.md` and are auto-discovered
 
 | Priority | Skill | Trigger Keywords | Purpose |
 |----------|-------|------------------|--------|
-| P0 | madhatr-concierge | concierge, MADHATr, swarm handoff, session continuity, protect proprietary | Primary orchestrator + IP protector + brand voice |
+| P0 | mad-gambit-concierge | concierge, MADHATr, swarm handoff, session continuity, protect proprietary | Primary orchestrator + IP protector + brand voice |
 | P0 | mad-gambit-math | verify math, GARCH, Bayesian tree, DL-LMSR, futarchy, tokenomics stress-test, canonical numbers | High-level math verification + public numbers only |
 | P0 | solidity-foundry-security | audit contract, Foundry test, fuzz, Slither, MADShieldVault, Arbitrum, UUPS, reentrancy | Contract security, tests, fuzz, audits |
 | P1 | dopamine-ui-design-system | UI polish, design tokens, SKIN_TOKENS, DeviceFrame, dopamine carousel, no raw hex, original logo | Locked design system enforcement |
@@ -62,7 +62,7 @@ Existing skills still active: github-collaboration, vercel-collaboration, python
 1. Read this file first on any MAD Gambit session.
 2. For any matching trigger, load the corresponding `.agents/skills/<name>/SKILL.md`.
 3. Always re-assert the Proprietary Rule at the top of sensitive responses.
-4. Use madhatr-concierge as the front-door for all user-facing orchestration.
+4. Use mad-gambit-concierge as the front-door for all user-facing orchestration.
 5. Update progress.md / handoff.md after every major action (see multi-agent-swarm).
 
 ---

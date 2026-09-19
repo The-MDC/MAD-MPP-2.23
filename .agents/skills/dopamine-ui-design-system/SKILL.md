@@ -54,7 +54,7 @@ Enforces the locked MAD Gambit visual language: three skins (HolographicGoldLase
    - Coordinate with brand-enforcer for logo/asset swaps.
    - Use nft-card-pipeline for card presentation consistency.
    - Production checks via production-readiness-gate (screenshot-diff, etc.).
-   - Route through madhatr-concierge for any user-facing visual change.
+   - Route through mad-gambit-concierge for any user-facing visual change.
 
 7. **Output**
    - Always show before/after token mapping.

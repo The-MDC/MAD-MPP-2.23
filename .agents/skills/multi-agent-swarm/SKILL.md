@@ -11,7 +11,7 @@ Provides the complete playbook for operating the MAD Gambit multi-agent swarm un
 
 ## Proprietary Gate
 
-Full agent briefings and internal progress details are gated unless the request is clearly internal and authorized. Use madhatr-concierge as the front door.
+Full agent briefings and internal progress details are gated unless the request is clearly internal and authorized. Use mad-gambit-concierge as the front door.
 
 ## When to Activate
 
@@ -19,8 +19,8 @@ Full agent briefings and internal progress details are gated unless the request 
 
 ## Core Instructions
 
-1. Always start from madhatr-concierge for user-facing requests.
-2. Use the exact handoff format defined in madhatr-concierge references.
+1. Always start from mad-gambit-concierge for user-facing requests.
+2. Use the exact handoff format defined in mad-gambit-concierge references.
 3. Read existing BRIEFING.md / handoff.md / progress.md before creating new ones.
 4. Update progress.md after every significant action.
 5. Route according to the agent-routing table (auth for SIWE, vault for Shield, etc.).
@@ -28,5 +28,5 @@ Full agent briefings and internal progress details are gated unless the request 
 
 ## Resources
 
-- references/ (see madhatr-concierge for the authoritative templates and routing map)
+- references/ (see mad-gambit-concierge for the authoritative templates and routing map)
 - Always prefer loading the live .agents/ files via GitHub tools.
