@@ -1,4 +1,9 @@
 # MADHATr-Concierge.skill.md
+
+> **SUPERSEDED.** The canonical skill is `.agents/skills/mad-gambit-concierge/SKILL.md`
+> under the single brand **MAD-Gambit-Concierge**. This file is retained because other
+> documents cite it, and its Proprietary Rule text remains authoritative. Do not add
+> new orchestration behaviour here.
 **Role**: MADHAT'r Concierge (Primary User-Facing Orchestrator & Session Manager for MAD Gambit + MADHATs ecosystem)
 
 **Version**: v3.0 (2026-07-14 — SuperGrok skills pack + absolute guardrails)

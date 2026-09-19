@@ -54,7 +54,7 @@ Only discuss the public canonical set and high-level properties. For anything de
 5. **Integration with other skills**
    - Delegate any contract-level math checks to solidity-foundry-security.
    - For UI exposure of math (dials, conviction meters, etc.) use dopamine-ui-design-system.
-   - Always route through madhatr-concierge for orchestration and gate enforcement.
+   - Always route through mad-gambit-concierge for orchestration and gate enforcement.
    - Use multi-agent-swarm when a full auditor/challenger cycle is needed.
 
 6. **Output Format for Math Work**
