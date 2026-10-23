@@ -1,7 +1,12 @@
 # THE PASEOME — *Certain-UnCertainty*
 
-**Perp families 7 & 8 · Foresight and Hindsight · counterfactual branching perpetuals**
-**Full Product Sheet + Technical Development Scope · v1.1 · 2026-10-23**
+**The Paseome: Certain-UnCertainty · perp families 7 & 8 · an open conviction market of branching perpetuals**
+**Full Product Sheet + Technical Development Scope · v1.2 · 2026-10-23**
+
+> **Official name: The Paseome: Certain-UnCertainty** (founder, 2026-10-23; the capital U is deliberate).
+> The two sides are the **forward** side (family 7) and the **counterfactual** side (family 8).
+> `foresight` / `hindsight` survive only as internal labels in code (`PaseomeSide`) — they are not product names.
+> Companion page: `docs/product-sheets/PASEOME_ARTIFACT.html` (the published Paseome artifact, v1.2).
 
 > Every other perp prices ONE NUMBER — a velocity, a credibility, a persistence.
 > The Paseome prices **A PATH**.
@@ -26,12 +31,12 @@ is genuinely worth trading.
 | Capital on an untaken branch | **Refunded in full** — never written off | `settleFrontier` |
 | When a branch resolves | Every **59.061 d**, on a global lunar grid | `lib/lunar-legs.ts` |
 | What the platform takes | **1.88%**, flat, every trade | `PLATFORM.FEE_BPS` |
-| Who may extend the tree | VIP **or** MinorCreator+ | `canAuthorBranch` |
+| Who may extend the tree | **Open market:** VIP **or** MinorCreator+. The platform also offers its own trees, to a lesser extent, for different uses | `canAuthorBranch` |
 
 | What stays UNCERTAIN | Why that is the point |
 |---|---|
 | Which branch the world takes | That is the information the market exists to aggregate |
-| How strongly a counterfactual sticks | The only honest thing a Hindsight market can price |
+| How strongly a counterfactual sticks | The only honest thing a counterfactual market can price |
 
 The uncertainty that remains is **epistemic** — reducible by knowing more, reading the source,
 being funnier. None of it is **aleatory**: there is no dice term anywhere in price. That seam is
@@ -49,7 +54,7 @@ hanging off the live node.
 
 **Core loop:** SIGNAL → ROOT → AUTHOR BRANCH → MINT ARTEFACT → PRICE FRONTIER → CONVICT → ROLL → EXTEND
 
-| | FORESIGHT · family 7 | HINDSIGHT · family 8 |
+| | FORWARD · family 7 (`foresight`) | COUNTERFACTUAL · family 8 (`hindsight`) |
 |---|---|---|
 | Asks | "What if this happens?" | "What if this **had** happened?" |
 | Class | PREDICTION | CONVICTION |
@@ -61,7 +66,7 @@ hanging off the live node.
 **Why two instruments.** The split falls exactly where the maths forces it — at what can and
 cannot be settled. A counterfactual has **no outcome to settle against**: conditional prices
 reveal probabilistic relationships, not causal ones, and *P(Y | X = x)* is not *what Y would have
-been had X been set to x*. Hindsight therefore prices the persistence of the belief instead of
+been had X been set to x*. The counterfactual side therefore prices the persistence of the belief instead of
 pretending to resolve the unresolvable.
 
 ---
@@ -80,15 +85,15 @@ pretending to resolve the unresolvable.
 | Community + DAO | 28.8% **of platform net** | `PLATFORM.COMMUNITY_SHARE_BPS` 2880 |
 | MCI optimum | exactly **1** violated expectation | `MCI_OPTIMUM` |
 | Meme multiplier | 0.85 – 1.35 | `MEME_MULT_MIN/MAX` |
-| Authorship | VIP (888,888 $MADx) **or** MinorCreator+ | `canAuthorBranch` |
+| Authorship | Open market: VIP (888,888 $MADx) **or** MinorCreator+ · platform-offered trees carry no creator cut | `canAuthorBranch` |
 
 ---
 
 ## 3 · How a market is made
 
 1. **Root.** The scraper (`proposalsForToday`) surfaces a real headline. It becomes the root
-   node — Foresight's tree opens *at the news*, never empty.
-2. **Author.** An eligible account proposes a branch: one what-if, one sentence. For Hindsight
+   node — the forward tree opens *at the news*, never empty.
+2. **Author.** An eligible account proposes a branch: one what-if, one sentence. For the counterfactual side
    the title must carry the counterfactual mood or the write is rejected.
 3. **Mint the artefact.** The branch is paired with a short, storyboard or UGC piece minted
    against a caricature archetype from the deck. The artefact is what travels; its reach feeds
@@ -98,7 +103,7 @@ pretending to resolve the unresolvable.
    with `q = 0`, so the opening frontier is uniform: 1/3, 1/4 or 1/5 each.
 6. **Trade.** Buying shares in a branch raises `q` for that branch; DL-LMSR re-prices every
    sibling at once, still summing to 1. No operator sets a line.
-7. **Roll.** At the leg boundary (Foresight), the oracle names the taken branch. Its holders are
+7. **Roll.** At the leg boundary (forward side), the oracle names the taken branch. Its holders are
    paid; every sibling is refunded. The taken branch becomes the new live node and its own
    children become the next frontier.
 8. **Extend.** Authors open the next set of what-ifs off the new node. The tree grows; the
@@ -124,7 +129,7 @@ Identical mathematically, because the constant cancels in the ratio, and it cann
 because the largest exponent is exactly 0. The naive form returns `NaN` past *q/b* ≈ 709 —
 about 851,000 shares at *b* = 1,200. Reproduced, fixed, and regression-tested at 900k and 5M.
 
-**Worked example** — the live demo Foresight frontier, `q = [4200, 3100, 2400, 900]`:
+**Worked example** — the live demo forward frontier, `q = [4200, 3100, 2400, 900]`:
 
 | Branch | Shares | Price | \|p − 0.5\| |
 |---|---|---|---|
@@ -175,7 +180,7 @@ while past five the top branch's price thins until it stops meaning anything.
 Paseome frontiers are conserved by construction; the check exists for trees assembled any other
 way — including the one route that accepts a tree from a request body.
 
-### 4.6 Hindsight's divergence
+### 4.6 The counterfactual divergence
 
 ```
 { variance, permanent } = cgarchUpdate(prevVar, prevPermanent, ε²)
@@ -227,41 +232,49 @@ On a 40% creator market the community receives 17.28% of gross — canon's figur
 The pre-correction code paid 28.8% of gross, over-allocating **11.52 pp**.
 
 **Creator profit share — founder, 2026-10-23:** creators slide **28.8% → 40%**; **60% is a VIP
-profit share limited to 4,888 seats**. The parallel with the Shield 28.8 / 40 / 60 ladder is
-deliberate. ⚠️ The code still reaches 60% through the `CR8TR` traction rung with no seat cap —
+profit share limited to 4,888 seats**. The Shield has a scale too, but it stops at 40%: 60% is a
+creator-side number only (founder: *"MAD Shield Stop Loss (28.8 to 40%), as well as, the Creator profit
+share (28.8 - 40%, vip 60%)"*). ⚠️ The code still reaches 60% through the `CR8TR` traction rung with no seat cap —
 canon and code diverge until a seat registry ships (MASTER §5).
 
 ### 5.2 Every earning path
 
 | Participant | Earns | Function |
 |---|---|---|
-| **Trader (Foresight)** | Payout on the taken branch; **full refund** on every untaken one | `settleFrontier` |
-| **Trader (Hindsight)** | Marks against divergence; ranked on calibration, not outcome | `cgarchUpdate`, `brierScore` |
+| **Trader (forward)** | Payout on the taken branch; **full refund** on every untaken one | `settleFrontier` |
+| **Trader (counterfactual)** | Marks against divergence; ranked on calibration, not outcome | `cgarchUpdate`, `brierScore` |
 | **Branch author** | 28.8% → 40% of fees on branches they authored, by ladder rung | `splitFee`, `creatorStatus` |
 | **VIP seat holder** | 60% of fees on their own markets — one of 4,888 seats | canon; seat registry not yet built |
 | **Artefact maker** | Reach → `m_meme` → conviction → price on their branch | `memeMultiplier` |
 | **Community + DAO** | 28.8% of platform net, every trade | `splitFee` |
 | **Protocol** | Remainder of platform net | `splitFee` |
 | **Long holders** | Conviction compounds with time held (t^1.35) | `calculateConviction` |
-| **Shield buyers** | 28.8 / 40 / 60% loss recovery by tier | `shieldRecovery` |
+| **Shield buyers** | A scale: a 2–4% premium moves recovery 28.8% → 40%, capped by staking tier (Bronze 28.8 · Silver 32.8 · Gold 36.8 · MAD Tier 40%); **40% is the ceiling** | `calculateShieldPayoutFull`, `STAKING_TIERS` |
 
 ### 5.3 The open market play — *the meme is the order*
 
 A branch's artefact is minted with its price embedded. Sharing it carries the price; acting on
 it moves `m_meme`, which moves conviction, which moves price — and the moved price rides the next
 share. **Marketing and price discovery are the same action**, paid by the creator ladder that
-already exists. Supply is permissionless within the authorship gate: anyone eligible can extend
-the tree off any live node, and DL-LMSR prices each new branch against its siblings without an
-operator.
+already exists. **Who authors (founder, 2026-10-23):** the Paseome is an open conviction market —
+supply is permissionless within the authorship gate, so any eligible creator (VIP, or MinorCreator
+and above) can extend the tree off any live node and earns their creator share on the trees they
+open. The platform also offers trees of its own, to a lesser extent and for different uses; those
+run `splitFee(volume, 0)` — no creator cut, community 28.8% of the full 1.88%. DL-LMSR prices each
+new branch against its siblings without an operator.
 
 ---
 
 ## 6 · MAD Shield
 
 Opt-in loss mitigation, never a guarantee. Premium = `Stake · P(win) · σ · 0.35`, clamped to
-**2–4% of stake**. Recovery: **28.8%** standard · **40%** shielded · **60%** Whale/VIP/Partner.
-Most valuable on Hindsight, where positions never settle and volatility is the whole reading.
-Foresight refunds already remove untaken-branch losses, so Shield there covers only the
+**2–4% of stake**. Recovery is a **scale, 28.8% → 40%**: the premium moves it continuously from 28.8%
+up to 40%, and the staking tier caps how far up a holder can go (Bronze 28.8 · Silver 32.8 · Gold 36.8 ·
+MAD Tier 40%). **40% is the ceiling.** ⚠️ The engine still carries a 60% Whale/VIP/Partner rung
+(`SHIELD_RECOVERY_WHALE_PCT`) that canon does not — removal is queued in MASTER §5 pending founder
+confirmation, because it moves payouts.
+Most valuable on the counterfactual side, where positions never settle and volatility is the whole reading.
+Forward-side refunds already remove untaken-branch losses, so Shield there covers only the
 taken-branch-against-you case.
 
 ---
@@ -290,13 +303,13 @@ paying for.
 
 ## 8 · Example markets
 
-**Foresight**
+**Forward**
 - "What if the merger vote is postponed and the paperwork resigns in protest?"
 - "What if the stadium deal passes and nobody notices for a month?"
 - "What if the quarterly call achieves sentience and adjourns itself?"
 - "What if the vote happens twice and both results stand?"
 
-**Hindsight** — irrealis mandatory
+**Counterfactual** — irrealis mandatory
 - "What if the committee had simply never been formed?"
 - "What if the memo had leaked one day earlier?"
 - "What if the sequel had been greenlit instead of the reboot?"
@@ -307,7 +320,7 @@ Each changes exactly one thing. Each lands on a situation, never a person's char
 
 ## 9 · Compliance — and the property that is genuinely dangerous
 
-**Benign by grammar.** Hindsight gets McGraw's benign condition from the verb tense; Gossip-Cop has
+**Benign by grammar.** The counterfactual side gets McGraw's benign condition from the verb tense; Gossip-Cop has
 to manufacture it by tone. Benignity also scales with depth (`benignityAtDepth`): branch 1 is
 edgy, branch 4 is absurd and therefore safe.
 
@@ -331,7 +344,7 @@ loss mitigation only. All criteria on-chain and in the UI.
 ### 10.1 Smart contracts
 - `MADPaseomeTree.sol` — node state, frontier registry, taken-branch transitions, refund settlement
 - `MADLmsrMarket.sol` — reused; the frontier is an *n*-outcome vector
-- `MADOptimisticOracle.sol` — Foresight only; $MADx bond + challenge window
+- `MADOptimisticOracle.sol` — forward side only; $MADx bond + challenge window
 - Reuse: `MADMarketFactory`, `MADStaking`, `MADShieldVault`, `RiskOracle`
 - Foundry invariants: **Σp = 1 at every node** · refund solvency · maker loss ≤ *b*·ln *n* · no path priced above its parent
 
@@ -348,15 +361,15 @@ loss mitigation only. All criteria on-chain and in the UI.
 ### 10.3 Frontend
 - Frontier instrument: branch weight = price, Σ readout, unpriced fan beyond the frontier
 - Knife Edge as the default sort, with the sort key visible
-- Hindsight cards read **"never resolves"** where others show a countdown
-- Foresight and Hindsight unmistakable: different class, accent and verb
+- Counterfactual cards read **"never resolves"** where others show a countdown
+- Forward and counterfactual sides unmistakable: different class, accent and verb
 
 ### 10.4 Phased build
 | Phase | Contents |
 |---|---|
-| 1 | Persistence + Foresight only, seeded from the scraper, parimutuel |
+| 1 | Persistence + forward side only, seeded from the scraper, parimutuel |
 | 2 | DL-LMSR continuous, refund settlement, leg roll, Shield |
-| 3 | Hindsight, CGARCH divergence, calibration scoring, oracle |
+| 3 | Counterfactual side, CGARCH divergence, calibration scoring, oracle |
 | 4 | Artefact minting, MCI live into `m_meme`, permissionless authorship within the gate |
 
 ---
@@ -370,7 +383,7 @@ loss mitigation only. All criteria on-chain and in the UI.
 | Positions at \|p − 0.5\| < 0.1 | rising | the Knife Edge is used |
 | Authored branches with MCI = 1 | ≥ 60% | the craft rule lands |
 | Carry-through at roll | ≥ 50% | holders extend rather than exit |
-| Hindsight Brier score | improving | the only honest score where nothing resolves |
+| Counterfactual Brier score | improving | the only honest score where nothing resolves |
 | Near-miss surfaces shipped | **0** | non-negotiable |
 
 Traction, revenue and user targets are deliberately absent ‹verify› — no verified baseline exists,
@@ -382,4 +395,4 @@ and `CANONICAL_NUMBERS §7` lists the demo figures as placeholders.
 
 1. **How is a VIP seat obtained?** 60% is capped at 4,888 seats (settled 2026-10-23). Whether seats are bought, earned, or granted — and whether `CR8TR` traction still qualifies — decides the registry design. MASTER §3.
 2. **Artefact gate timing.** Live from Phase 1 (keeps `m_meme` meaningful) or Phase 4 (grows the tree faster)?
-3. **What roots a Hindsight tree** — an anniversary, a Foresight branch that failed, or free authorship?
+3. **What roots a counterfactual tree** — an anniversary, a forward branch that failed, or free authorship?
