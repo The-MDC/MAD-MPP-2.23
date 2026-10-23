@@ -18,7 +18,8 @@ The full product write-up — maths, market-making, earning functions, inspirati
 > first (`verify/public/pitch/*.html`; slide 3 is titled "MAD Upshot: The Card Economy"). Edit
 > each in context — some are lineage phrasings a sed would mangle.
 > Then: **Paseome to a tradeable book** — persistence, refund ledger, artefact-gated authorship.
-> Founder decision pending: the creator ladder's `User` rung (28.8%) vs the stated 40–60% range.
+> Settled today: creators 28.8% → 40%; **60% is a VIP share limited to 4,888 seats**. Code still
+> grants 60% by traction (`CR8TR`) with no cap — open question is how a seat is obtained.
 > Do NOT redo: the fee waterfall, the frontier log-sum-exp fix, the brandSafe split, the
 > mutation audit, the local-model roast tier — all merged.
 
@@ -89,7 +90,9 @@ both directions — community 17.28% of gross, old over-allocation exactly 11.52
 **⑨ The overflow.** `frontierPrices` returned `NaN` above ~851k shares on one branch. Reproduced,
 fixed with log-sum-exp, regression-tested at 5M.
 
-**⑩ Today.** Founder confirms "MAD Upshot" is the old name, and names the Paseome's thesis
+**⑩ Today.** Founder settles creator profit share — **28.8% → 40% for creators, 60% for a VIP
+seat, 4,888 seats only** — overturning my flag on the 28.8% floor. Confirms "MAD Upshot" is the
+old name, and names the Paseome's thesis
 **Certain-UnCertainty** — make the maker loss, conservation, refund, cadence and fee certain, so the
 only uncertainty left is the epistemic kind worth paying for.
 
@@ -107,14 +110,18 @@ only uncertainty left is the epistemic kind worth paying for.
 | Hindsight print | `permanent − transitory` from `cgarchUpdate` | positive = the belief is sticking |
 | Meme multiplier | `0.85 + 0.50 · fitness`, peak at 1 violation | 1.35 at MCI = 1 |
 | Fee waterfall | gross 1.88% → creator off gross → community 28.8% of net | 10k on a 40% market: 75.20 / 32.49 / 80.31 |
+| Creator / VIP share | creators 28.8% → 40%; VIP 60%, 4,888 seats | VIP seat on 10k: 112.80 / 21.66 / 53.54 |
 
 ---
 
 ## 5 · Outstanding — by who can act
 
 ### Founder only
-- **Creator ladder `User` rung.** MASTER records 28.8/40/60 (31 Jul); on 27 Aug the creator range
-  was stated as 40–60%. Code unchanged — a rung change moves real payouts. MASTER §3.
+- **How is a VIP seat obtained?** Settled today: creators 28.8% → 40%, and **60% is a VIP profit
+  share limited to 4,888 seats**. The code still grants 60% as `CR8TR` by traction with no cap, so
+  canon and code diverge. Bought, earned or granted — and does CR8TR traction still qualify? That
+  answer gates the seat registry (MASTER §5). The 28.8% base rung I flagged as a conflation is
+  **correct**; the flag was wrong.
 - Paseome open questions: artefact-gate timing; what roots a Hindsight tree.
 
 ### Engineering — ready now

@@ -219,15 +219,17 @@ protocolCut  = platformNet − communityCut
 | Who made the market | Gross | Creator | Platform net | Community + DAO | Protocol |
 |---|---|---|---|---|---|
 | Platform | 188.00 | 0.00 | 188.00 | 54.14 | 133.86 |
-| User rung (28.8%) ‹verify› | 188.00 | 54.14 | 133.86 | 38.55 | 95.31 |
-| MinorCreator (40%) | 188.00 | **75.20** | 112.80 | **32.49** | 80.31 |
-| CR8TR (60%) | 188.00 | 112.80 | 75.20 | 21.66 | 53.54 |
+| Creator — User (28.8%) | 188.00 | 54.14 | 133.86 | 38.55 | 95.31 |
+| Creator — MinorCreator (40%) | 188.00 | **75.20** | 112.80 | **32.49** | 80.31 |
+| **VIP seat (60%)** — 4,888 seats | 188.00 | 112.80 | 75.20 | 21.66 | 53.54 |
 
 On a 40% creator market the community receives 17.28% of gross — canon's figure to the decimal.
 The pre-correction code paid 28.8% of gross, over-allocating **11.52 pp**.
 
-‹verify› The `User` rung at 28.8% sits below the founder's stated 40–60% creator range. Unresolved
-— see MASTER §3.
+**Creator profit share — founder, 2026-10-23:** creators slide **28.8% → 40%**; **60% is a VIP
+profit share limited to 4,888 seats**. The parallel with the Shield 28.8 / 40 / 60 ladder is
+deliberate. ⚠️ The code still reaches 60% through the `CR8TR` traction rung with no seat cap —
+canon and code diverge until a seat registry ships (MASTER §5).
 
 ### 5.2 Every earning path
 
@@ -235,7 +237,8 @@ The pre-correction code paid 28.8% of gross, over-allocating **11.52 pp**.
 |---|---|---|
 | **Trader (Foresight)** | Payout on the taken branch; **full refund** on every untaken one | `settleFrontier` |
 | **Trader (Hindsight)** | Marks against divergence; ranked on calibration, not outcome | `cgarchUpdate`, `brierScore` |
-| **Branch author** | Creator share of fees on branches they authored, by ladder rung | `splitFee`, `creatorStatus` |
+| **Branch author** | 28.8% → 40% of fees on branches they authored, by ladder rung | `splitFee`, `creatorStatus` |
+| **VIP seat holder** | 60% of fees on their own markets — one of 4,888 seats | canon; seat registry not yet built |
 | **Artefact maker** | Reach → `m_meme` → conviction → price on their branch | `memeMultiplier` |
 | **Community + DAO** | 28.8% of platform net, every trade | `splitFee` |
 | **Protocol** | Remainder of platform net | `splitFee` |
@@ -377,6 +380,6 @@ and `CANONICAL_NUMBERS §7` lists the demo figures as placeholders.
 
 ## 12 · Open questions
 
-1. **Creator ladder base rung.** 28.8% for `User` vs the founder's 40–60% creator range. MASTER §3.
+1. **How is a VIP seat obtained?** 60% is capped at 4,888 seats (settled 2026-10-23). Whether seats are bought, earned, or granted — and whether `CR8TR` traction still qualifies — decides the registry design. MASTER §3.
 2. **Artefact gate timing.** Live from Phase 1 (keeps `m_meme` meaningful) or Phase 4 (grows the tree faster)?
 3. **What roots a Hindsight tree** — an anniversary, a Foresight branch that failed, or free authorship?

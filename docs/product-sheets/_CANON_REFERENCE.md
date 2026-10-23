@@ -75,10 +75,18 @@ Traction = total conviction ≥ 1,200 $MADx (= LMSR *b*) **and** ≥ 1 settled p
 Applies **only to the creator's own markets**. VIP (`VIP_STATUS_MIN_MADX` 888,888) is the
 **capital-side** status and per the engine is *"never a creator tier"* — do not merge the two.
 
-⛔ **Unresolved:** the founder states the creator range is **40–60%**, but the ladder's first rung
-is 28.8%, below that range and reusing the community number. `CANONICAL_NUMBERS §10` flags this as
-a probable conflation with the Shield 28.8/40/60 tiers. **Mark any sheet that depends on it
-‹verify›.** Do not silently pick one.
+✅ **Settled 2026-10-23, founder:** *"There is a flat rake of 1.88% platform fee, creators take a sliding 28.8 to 40% and then a limited 4888 seats offering the rare and exclusive 60% VIP profit share exist."*
+
+| Tier | Share | Gate |
+|---|---|---|
+| Creator — User | 28.8% | creator-made markets only |
+| Creator — MinorCreator | 40% | 12 tractioned markets |
+| **VIP profit share** | **60%** | **limited to 4,888 seats** — rare, exclusive |
+
+The 28.8% floor is correct, not a conflation. The parallel with the Shield 28.8 / 40 / 60 ladder is
+deliberate. ⚠️ **Code diverges:** `CREATOR_LADDER` still grants 60% as `CR8TR` by traction (34
+markets + 888 followers) with no seat cap. Quote the canon above; mark any figure that depends on
+the code's CR8TR route ‹verify›.
 
 ## GARCH(1,1) — the volatility spine
 
