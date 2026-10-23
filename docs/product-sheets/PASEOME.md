@@ -1,48 +1,68 @@
-# THE PASEOME — Foresight & Hindsight
+# THE PASEOME — *Certain-UnCertainty*
 
-**Perp families 7 and 8 · counterfactual branching markets · v1.0 · 2026-08-27**
+**Perp families 7 & 8 · Foresight and Hindsight · counterfactual branching perpetuals**
+**Full Product Sheet + Technical Development Scope · v1.1 · 2026-10-23**
 
 > Every other perp prices ONE NUMBER — a velocity, a credibility, a persistence.
-> These price A PATH.
+> The Paseome prices **A PATH**.
+
+Every figure in this sheet is computed, not transcribed. The frontier example uses the same
+share vector `GET /api/v1/paseome/frontier?side=foresight` serves, so any number here can be
+checked against the live route. Constants cite their code home; if one disagrees with
+`verify/lib/`, the code wins and this sheet is the bug.
+
+---
+
+## 0 · The thesis — *Certain-UnCertainty*
+
+A what-if is the most uncertain thing a market can price. The Paseome's design move is to make
+**everything around that uncertainty certain**, so the only thing left to trade is the part that
+is genuinely worth trading.
+
+| What is CERTAIN | How it is guaranteed | Code |
+|---|---|---|
+| The market maker's worst loss | Bounded at **b · ln(n)** — 1,318 / 1,664 / 1,931 $MADx for 3 / 4 / 5 branches | DL-LMSR, *b* = 1,200 |
+| Value cannot leak at a fork | Branch prices sum to **exactly 1** by construction | `frontierPrices`, log-sum-exp |
+| Capital on an untaken branch | **Refunded in full** — never written off | `settleFrontier` |
+| When a branch resolves | Every **59.061 d**, on a global lunar grid | `lib/lunar-legs.ts` |
+| What the platform takes | **1.88%**, flat, every trade | `PLATFORM.FEE_BPS` |
+| Who may extend the tree | VIP **or** MinorCreator+ | `canAuthorBranch` |
+
+| What stays UNCERTAIN | Why that is the point |
+|---|---|
+| Which branch the world takes | That is the information the market exists to aggregate |
+| How strongly a counterfactual sticks | The only honest thing a Hindsight market can price |
+
+The uncertainty that remains is **epistemic** — reducible by knowing more, reading the source,
+being funnier. None of it is **aleatory**: there is no dice term anywhere in price. That seam is
+the difference between a market that is compelling and one that is compulsive (§9).
 
 ---
 
 ## 1 · Product overview
 
-A what-if is a **tree**. A position rides one branch of it. The tree never terminates, and that
-is what makes this a perpetual rather than a very long binary.
-
 The **paseome** is the complete set of paths — the whole tree, on the model of *genome* or
-*biome*. It names something the platform previously had no word for. You never trade the whole
-paseome; you trade the **frontier**, the sibling set hanging off the live node.
+*biome*. You never trade the whole paseome; you trade the **frontier**, the 3–5 sibling branches
+hanging off the live node.
 
 **Tagline:** *Bet the branch. The story keeps forking.*
 
 **Core loop:** SIGNAL → ROOT → AUTHOR BRANCH → MINT ARTEFACT → PRICE FRONTIER → CONVICT → ROLL → EXTEND
 
-### The two instruments
-
-The split is not editorial. It falls exactly where the maths forces it — at **what can and
-cannot be settled**.
-
-| | FORESIGHT | HINDSIGHT |
+| | FORESIGHT · family 7 | HINDSIGHT · family 8 |
 |---|---|---|
 | Asks | "What if this happens?" | "What if this **had** happened?" |
-| Family | 7 | 8 |
 | Class | PREDICTION | CONVICTION |
 | Settles | Optimistic oracle at the leg boundary | **Never** |
 | Prices | Probability the branch is taken | Persistence of the belief about it |
-| Untaken siblings | **Refunded** | Nothing is ever unrealised |
-| Resolution surface | The branch happened or it did not | Consensus drift, graded on calibration |
+| Untaken siblings | **Refunded** | Nothing is ever unrealised — all carry |
+| Ranked by | Calibration against outcomes | Calibration against its own forecast series |
 
-**Foresight is ordinary.** The branch happens or it doesn't; the oracle says which; the leg rolls.
-
-**Hindsight is not, and the design admits it.** A counterfactual has **no outcome to settle
-against**. Conditional market prices reveal probabilistic relationships, not causal ones —
-*P(Y | X = x)* is not *what Y would have been had X been set to x*, and no amount of liquidity
-closes that gap. So Hindsight does not price the counterfactual. It prices the **persistence of
-the belief** about it, which is a real, continuously-measurable quantity — exactly what
-Perpetual Epiphanies already does when it prices Murphy's Law with no terminal date.
+**Why two instruments.** The split falls exactly where the maths forces it — at what can and
+cannot be settled. A counterfactual has **no outcome to settle against**: conditional prices
+reveal probabilistic relationships, not causal ones, and *P(Y | X = x)* is not *what Y would have
+been had X been set to x*. Hindsight therefore prices the persistence of the belief instead of
+pretending to resolve the unresolvable.
 
 ---
 
@@ -50,312 +70,313 @@ Perpetual Epiphanies already does when it prices Murphy's Law with no terminal d
 
 | Constant | Value | Code home |
 |---|---|---|
-| Frontier width | **3 to 5** branches | `FRONTIER_MIN` / `FRONTIER_MAX`, `lib/paseome.ts` |
+| Frontier width | **3 to 5** branches, enforced by a throw | `FRONTIER_MIN` / `FRONTIER_MAX` |
 | Frontier liquidity *b* | 1,200 | `FRONTIER_B` = `PLATFORM.LMSR_DEFAULT_B` |
-| Leg | 59.061177706 d (2 synodic months) | `LEG_DAYS`, `lib/lunar-legs.ts` |
+| Max maker loss | *b*·ln *n* = 1,318.3 / 1,663.6 / 1,931.3 | DL-LMSR property |
+| Volume scaling α(V) | 1 + 0.05·log₁₀(1+V) | `calculateVolumeScalingAlpha` |
+| Leg | 59.061177706 d (2 synodic months) | `LEG_DAYS` |
 | Turning | 6 legs = 354.367 d | `LEGS_PER_TURNING` |
-| Platform rake | 1.88% flat | `PLATFORM.FEE_BPS` |
-| Community + DAO | 28.8% **of net** | `PLATFORM.COMMUNITY_SHARE_BPS` |
-| MCI optimum | exactly **1** violation | `MCI_OPTIMUM` |
-| Meme multiplier bounds | 0.85 – 1.35 | `MEME_MULT_MIN/MAX` |
-| Authorship gate | VIP **or** MinorCreator+ | `canAuthorBranch` |
-
-All frontier bounds are enforced by a **throw**, not a comment, and pinned to literals in
-`lib/paseome.test.ts` so the founder's decision cannot drift.
+| Platform rake | 1.88% flat | `PLATFORM.FEE_BPS` 188 |
+| Community + DAO | 28.8% **of platform net** | `PLATFORM.COMMUNITY_SHARE_BPS` 2880 |
+| MCI optimum | exactly **1** violated expectation | `MCI_OPTIMUM` |
+| Meme multiplier | 0.85 – 1.35 | `MEME_MULT_MIN/MAX` |
+| Authorship | VIP (888,888 $MADx) **or** MinorCreator+ | `canAuthorBranch` |
 
 ---
 
-## 3 · Taxonomy & trigger
+## 3 · How a market is made
 
-**Root creation.** A Foresight tree roots on a real signal — the same scraper the six existing
-families run on (`proposalsForToday`). The day's headlines become roots; the first branch set is
-the what-ifs hanging off one. **The market never opens empty; it opens at the news.**
-
-**Branch creation.** Permissionless on the supply side but **gated on authorship**: a branch can
-only be authored by an account that is VIP (capital axis) **or** at MinorCreator and above
-(creator axis). See §7.
-
-**The irrealis constraint.** A Hindsight market's title MUST grammatically contain the
-counterfactual mood — *had*, *would have*, *could have*, *if*, *were*, *imagine*, *suppose*. A
-title that asserts is **rejected at write time**. This is a schema constraint, not a style guide,
-and §8 explains why it is load-bearing.
-
----
-
-## 4 · Pricing — the frontier simplex
-
-### Why the tree cannot leak value at a fork
-
-The failure mode of any branching market is immediate: if the prices on the branches leaving a
-node do not sum to the price of the node, the market **mints or destroys value every time it
-forks**. Traders find that within a day.
-
-The engine already contained the fix in two halves that had never been joined.
-`calculateDLLMSRPrice` returns an *n*-outcome vector that sums to 1 **by construction**:
-
-```
-P(branch i) = e^(q_i / b) / Σ_j e^(q_j / b)
-```
-
-Feed that vector in as the `conditionalProb` edges of a `TreeNode` and conservation stops being
-a rule anyone has to remember. `treeConservationError` asserts it for trees assembled any other
-way.
-
-### Path price
-
-```
-price(path) = Π  P(branch_k)
-             k∈path
-```
-
-A position's value is the **product** of the branch prices along its path. Deepening a path
-multiplies the discount, so long-shot what-ifs get cheap **on their own** — there is no separate
-long-shot parameter to tune, and none to get wrong.
-
-### Only the frontier is priced
-
-Maintaining correct LMSR prices across a whole combinatorial outcome space is intractable. This
-market never attempts it: it prices the sibling set at the live node and nothing else — *O(n)*
-per node instead of exponential. **Depth is a property of the recorded path, not of the pricing
-problem.**
-
-### Known limitation
-
-`Math.exp(q/b)` overflows to `Infinity` for `q/b > ~709`. With *b* = 1,200 that is roughly
-850,000 shares on one branch — reachable in a deep book. The fix is the log-sum-exp
-(max-subtraction) form, which is mathematically identical and numerically stable. ‹verify› —
-**not yet implemented**; tracked as outstanding.
+1. **Root.** The scraper (`proposalsForToday`) surfaces a real headline. It becomes the root
+   node — Foresight's tree opens *at the news*, never empty.
+2. **Author.** An eligible account proposes a branch: one what-if, one sentence. For Hindsight
+   the title must carry the counterfactual mood or the write is rejected.
+3. **Mint the artefact.** The branch is paired with a short, storyboard or UGC piece minted
+   against a caricature archetype from the deck. The artefact is what travels; its reach feeds
+   `m_meme`.
+4. **Score it.** `mciScore` counts violated expectations. One is the target.
+5. **Open the frontier.** Once 3–5 siblings exist, the node becomes tradeable. Every branch starts
+   with `q = 0`, so the opening frontier is uniform: 1/3, 1/4 or 1/5 each.
+6. **Trade.** Buying shares in a branch raises `q` for that branch; DL-LMSR re-prices every
+   sibling at once, still summing to 1. No operator sets a line.
+7. **Roll.** At the leg boundary (Foresight), the oracle names the taken branch. Its holders are
+   paid; every sibling is refunded. The taken branch becomes the new live node and its own
+   children become the next frontier.
+8. **Extend.** Authors open the next set of what-ifs off the new node. The tree grows; the
+   instrument never closes.
 
 ---
 
-## 5 · Settlement
+## 4 · The maths, broken out
+
+### 4.1 Frontier pricing
 
 ```
-FORESIGHT   one branch taken; every sibling REFUNDED
-HINDSIGHT   nothing settles; every branch CARRIED, permanently
+P(branch i) = e^(q_i/b) / Σ_j e^(q_j/b)
 ```
 
-**Refund, not write-off** — founder decision, 2026-08-27. Two independent reasons, both holding:
-
-1. **Capital efficiency.** The known failure of conditional markets is that nobody funds a bet
-   that pays out only if a *separate* event also occurs. Refunding is what makes locking capital
-   rational.
-2. **Harm reduction.** A refunded branch is not a loss, so it **cannot be a near-miss**. Near
-   misses are losses that recruit win-related striatal circuitry, raise arousal, raise motivation
-   and measurably raise betting *speed*. A branching market generates them structurally at every
-   roll. Refund is the structural answer. See §8.
-
-At a roll, Zeitgeist's succession matrix transmigrates conviction from the parent into the
-surviving child, under a write path that already **refuses a matrix that leaks holder value**.
-Same operation, already written.
-
-### Hindsight's headline print
+Computed in log-sum-exp form — subtract `m = max(q/b)` before exponentiating:
 
 ```
-{ variance, permanent } = cgarchUpdate(...)
-transitory  = variance − permanent
-DIVERGENCE  = permanent − transitory
+P(branch i) = e^(q_i/b − m) / Σ_j e^(q_j/b − m)
 ```
 
-Five Faces' component decomposition, pointed at a belief series instead of a mask. The
-**permanent** component is the part of the what-if that has entered the culture and stayed; the
-**transitory** component is churn that will be gone within a leg. Positive divergence means the
-belief is sticking.
+Identical mathematically, because the constant cancels in the ratio, and it cannot overflow
+because the largest exponent is exactly 0. The naive form returns `NaN` past *q/b* ≈ 709 —
+about 851,000 shares at *b* = 1,200. Reproduced, fixed, and regression-tested at 900k and 5M.
 
-Grading is `brierScore` / `logScore` — a Hindsight position is scored against the forecast series
-it moved, not against an outcome. **Calibration is the only fair thing to rank people on in a
-market that cannot resolve.**
+**Worked example** — the live demo Foresight frontier, `q = [4200, 3100, 2400, 900]`:
 
----
+| Branch | Shares | Price | \|p − 0.5\| |
+|---|---|---|---|
+| f1 | 4,200 | **0.5928** | 0.0928 |
+| f2 | 3,100 | 0.2370 | 0.2630 |
+| f3 | 2,400 | 0.1323 | 0.3677 |
+| f4 | 900 | 0.0379 | 0.4621 |
+| | | **Σ = 1.000000000000** | |
 
-## 6 · Memetic fitness — change exactly one thing
-
-Concepts that violate **exactly one** ontological expectation are recalled and retransmitted
-best. Zero violations is just news; two or more is incomprehensible. The optimum is a minority of
-counterintuitive elements against a majority of ordinary ones, and the effect replicates
-cross-culturally.
-
-So memetic fitness is not a vibe. It is a **countable quantity with an optimum at one**, and
-MADConv already had a term waiting for it:
+### 4.2 Cost of a trade
 
 ```
-M = t^1.35 · c^0.75 · d^1.45 · ψ^1.15 · (1+π^0.9) · m_meme · satire · liar · garch_amp
-                                                     ↑
-                                        mciScore().fitness → memeMultiplier()
+C(q)  = α(V) · b · ln Σ_j e^(q_j/b)
+cost  = C(q_after) − C(q_before)
 ```
+
+Buying 500 shares of f4 from the frontier above costs **23.28 $MADx** (at V = 0) and moves f4 from
+0.0379 to **0.0564**. The average fill, 0.0466, sits between the two — the trader pays the path,
+not the endpoint. α(V) rises slowly with cumulative volume (1.30 at 10⁶, 1.40 at 10⁸), deepening
+the book as it matures.
+
+### 4.3 Path price
+
+```
+price(path) = Π_k P(branch_k)
+```
+
+Following f1 twice: 0.5928² = **0.3514**; three times: **0.2083**. Depth discounts
+multiplicatively, so long-shot what-ifs get cheap on their own — there is no separate long-shot
+parameter to tune or get wrong.
+
+### 4.4 Bounded maker loss — the first certainty
+
+The LMSR market maker's worst-case loss on an *n*-outcome node is *b*·ln *n*:
+
+| Frontier width | Worst-case loss |
+|---|---|
+| 3 | 1,318.3 $MADx |
+| 4 | 1,663.6 $MADx |
+| 5 | 1,931.3 $MADx |
+
+This is *why* the founder bound tops out at 5: each extra branch raises the maker's exposure,
+while past five the top branch's price thins until it stops meaning anything.
+
+### 4.5 Conservation
+
+`treeConservationError` walks a tree and reports the first node whose edges do not sum to 1.
+Paseome frontiers are conserved by construction; the check exists for trees assembled any other
+way — including the one route that accepts a tree from a request body.
+
+### 4.6 Hindsight's divergence
+
+```
+{ variance, permanent } = cgarchUpdate(prevVar, prevPermanent, ε²)
+transitory = variance − permanent
+DIVERGENCE = permanent − transitory
+```
+
+Five Faces' component decomposition pointed at a belief series. **Permanent** is the part of the
+what-if the culture has absorbed; **transitory** is churn gone within a leg. Positive divergence
+means the belief is sticking. Graded with `brierScore` / `logScore` — calibration is the only fair
+ranking in a market that never resolves.
+
+### 4.7 Memetic fitness
 
 | Violations | Fitness | Reading |
 |---|---|---|
 | 0 | 0.35 | coherent but forgettable — it is just news |
 | **1** | **1.00** | the optimum |
 | 2 | 0.50 | noise |
-| 3+ | decaying | incomprehensible |
+| 3+ | decaying to 0.10 | incomprehensible |
 
-Bounded to 0.85–1.35 so memetics can **never dominate time-held or capital**. The exponent
-ordering in MADConv is the ideology; a meme term that could overwhelm it would quietly invert
-that.
-
-**The craft rule, in three words: change one thing.** "What if Kenny stayed dead" is one
-violation. "What if Kenny stayed dead and was a lizard and it was 1840" is noise, and the score
-says so.
+`memeMultiplier = 0.85 + 0.50 · fitness` — bounded so memetics can **never outweigh time held or
+capital** in MADConv, where time (t^1.35) already outranks capital (c^0.75).
 
 ---
 
-## 7 · Authorship
+## 5 · Earning functions — who earns what
 
-Eligible if **either** axis clears — a deliberate disjunction, never a merge:
+### 5.1 The fee waterfall (corrected 2026-08-27, founder sign-off)
 
-| Axis | Gate | Constant |
+```
+grossFee     = volume × 1.88%
+creatorCut   = grossFee × rung        ← creator-made markets ONLY
+platformNet  = grossFee − creatorCut
+communityCut = platformNet × 28.8%    ← community + DAO treasury
+protocolCut  = platformNet − communityCut
+```
+
+**Per 10,000 $MADx traded:**
+
+| Who made the market | Gross | Creator | Platform net | Community + DAO | Protocol |
+|---|---|---|---|---|---|
+| Platform | 188.00 | 0.00 | 188.00 | 54.14 | 133.86 |
+| User rung (28.8%) ‹verify› | 188.00 | 54.14 | 133.86 | 38.55 | 95.31 |
+| MinorCreator (40%) | 188.00 | **75.20** | 112.80 | **32.49** | 80.31 |
+| CR8TR (60%) | 188.00 | 112.80 | 75.20 | 21.66 | 53.54 |
+
+On a 40% creator market the community receives 17.28% of gross — canon's figure to the decimal.
+The pre-correction code paid 28.8% of gross, over-allocating **11.52 pp**.
+
+‹verify› The `User` rung at 28.8% sits below the founder's stated 40–60% creator range. Unresolved
+— see MASTER §3.
+
+### 5.2 Every earning path
+
+| Participant | Earns | Function |
 |---|---|---|
-| Capital | VIP | `VIP_STATUS_MIN_MADX` = 888,888 |
-| Creator | MinorCreator or above | `CREATOR_LADDER`, 12 tractioned markets |
+| **Trader (Foresight)** | Payout on the taken branch; **full refund** on every untaken one | `settleFrontier` |
+| **Trader (Hindsight)** | Marks against divergence; ranked on calibration, not outcome | `cgarchUpdate`, `brierScore` |
+| **Branch author** | Creator share of fees on branches they authored, by ladder rung | `splitFee`, `creatorStatus` |
+| **Artefact maker** | Reach → `m_meme` → conviction → price on their branch | `memeMultiplier` |
+| **Community + DAO** | 28.8% of platform net, every trade | `splitFee` |
+| **Protocol** | Remainder of platform net | `splitFee` |
+| **Long holders** | Conviction compounds with time held (t^1.35) | `calculateConviction` |
+| **Shield buyers** | 28.8 / 40 / 60% loss recovery by tier | `shieldRecovery` |
 
-The engine states plainly that VIP is *"never a creator tier"*. Collapsing the two into one
-eligibility score would destroy that distinction, so both are evaluated and both are reported
-(`viaCapital`, `viaCreator`).
+### 5.3 The open market play — *the meme is the order*
 
-**Why gated rather than open.** Open authorship grows the tree faster; gated authorship keeps
-artefact quality high enough that `m_meme` is measuring something real. Founder decision,
-2026-08-27, revisitable once the MCI score has a track record.
+A branch's artefact is minted with its price embedded. Sharing it carries the price; acting on
+it moves `m_meme`, which moves conviction, which moves price — and the moved price rides the next
+share. **Marketing and price discovery are the same action**, paid by the creator ladder that
+already exists. Supply is permissionless within the authorship gate: anyone eligible can extend
+the tree off any live node, and DL-LMSR prices each new branch against its siblings without an
+operator.
 
 ---
 
-## 8 · Compliance — and the one property that is genuinely dangerous
+## 6 · MAD Shield
 
-### The benign-violation guarantee
+Opt-in loss mitigation, never a guarantee. Premium = `Stake · P(win) · σ · 0.35`, clamped to
+**2–4% of stake**. Recovery: **28.8%** standard · **40%** shielded · **60%** Whale/VIP/Partner.
+Most valuable on Hindsight, where positions never settle and volatility is the whole reading.
+Foresight refunds already remove untaken-branch losses, so Shield there covers only the
+taken-branch-against-you case.
 
-Humour requires a violation that is **simultaneously benign**, and psychological distance is one
-of the three routes to benign. Which gives this family a property Gossip-Cop does not have:
+---
 
-> **A counterfactual is benign *because it did not happen*.**
+## 7 · The inspiration
 
-Hindsight gets its benign appraisal **free, from the verb tense**. Gossip-Cop prices claims about
-things that *did* happen — benign-ness must be manufactured by tone, by hand, every time. The
-irrealis mood does that work structurally, which is precisely why it is enforced at write time
-rather than recommended in a style guide.
+Four research findings shaped the design, each mapped to a mechanism:
 
-**Benignity scales with depth.** Distance rises with remove from the real, so branch 1 is edgy
-and branch 4 is absurd and therefore safe. The satire safety gradient **is** the tree structure —
-nothing extra to build (`benignityAtDepth`).
+| Finding | Source | Became |
+|---|---|---|
+| Dopamine's sustained signal codes **uncertainty**, peaking at *p* = 0.5 | Fiorillo, Tobler & Schultz, *Science* 2003 | **The Knife Edge** — the deck sorts by \|p − 0.5\|, not volume |
+| Dopamine neurons value **advance information**, even when it cannot be used | Bromberg-Martin & Hikosaka, *Neuron* 2009 | The **sealed read** — one-liner visible, reasoning one tap away |
+| Humour = a violation that is simultaneously **benign**; distance makes it benign | McGraw & Warren, *Psych Science* 2010 | The **irrealis constraint** — a counterfactual is benign *because it did not happen* |
+| Concepts violating **exactly one** expectation transmit best | Boyer; Norenzayan & Atran | The **MCI score** — "change one thing" |
+| Gossip is ~two-thirds of conversation | Dunbar | The unit of distribution is a **sentence**, not a chart |
 
-### Three independent gates, none of them tonal
+And one finding that constrains it:
 
-1. `subject_ref` is opaque and validated at the boundary — **never a person's name**. Schema law.
-2. Caricatures are of **archetypes** (the Five Faces cast: Saint, White Rice, Megalomaniac,
-   Narcissist, Sellout), never likenesses.
-3. The irrealis check on Hindsight titles.
+| Near-misses are losses that recruit win circuitry and raise betting speed | Clark et al., *Neuron* 2009 | **Refund**, never render "how close", no fast lane, keep the 59-day cadence |
 
-Generated one-liners additionally pass `assertionRisk`, which **fails closed**. That is a lexical
-tripwire and a review trigger — **not** a defamation classifier. It cannot tell absurd
-exaggeration from a false statement of fact. Human review remains the control.
+**Certain-UnCertainty** is the synthesis: make the maker loss, the conservation, the refund, the
+cadence and the fee certain, so the only uncertainty left is the epistemic kind — the kind worth
+paying for.
 
-### The near-miss problem
+---
 
-**A branching market is a near-miss generator by construction.** Every leg roll produces, for
-most holders, a loss that looks like it *almost* won. This is intrinsic to any instrument where
-visible alternatives resolve against you — it is not a UI risk to be designed around later.
+## 8 · Example markets
 
-Four structural mitigations, all required:
+**Foresight**
+- "What if the merger vote is postponed and the paperwork resigns in protest?"
+- "What if the stadium deal passes and nobody notices for a month?"
+- "What if the quarterly call achieves sentience and adjourns itself?"
+- "What if the vote happens twice and both results stand?"
 
-1. **Refund, don't near-miss.** Untaken Foresight siblings refund. A refund is not a loss.
-2. **Never render "how close."** No "your branch missed by 3 points." That one string *is* the
-   near-miss, manufactured deliberately. It will be tempting because it tests well.
-3. **No fast lane.** The measured near-miss effect is increased betting *speed*. MADConv already
-   weights time held (t^1.35) above capital (c^0.75). Do not ship an affordance that fights it.
-4. **Keep the Turning.** Six legs is one lunar year. A cadence in months rather than seconds is
-   the strongest anti-compulsion property the platform has, and it is already canon.
+**Hindsight** — irrealis mandatory
+- "What if the committee had simply never been formed?"
+- "What if the memo had leaked one day earlier?"
+- "What if the sequel had been greenlit instead of the reboot?"
 
-### Epistemic versus aleatory
+Each changes exactly one thing. Each lands on a situation, never a person's character.
 
-| Compelling | Compulsive |
-|---|---|
-| **Epistemic** uncertainty — reducible by knowing more: reading the source, knowing the subject, being funnier. Rewards attention with understanding. | **Aleatory** uncertainty and near-misses — irreducible by any amount of thinking. Rewards attention with arousal and nothing else. |
+---
 
-The two are separable and the neuroscience says exactly where the seam runs. **Design rule: never
-put an aleatory term in price.** Card packs may roll dice; the market may not.
+## 9 · Compliance — and the property that is genuinely dangerous
+
+**Benign by grammar.** Hindsight gets McGraw's benign condition from the verb tense; Gossip-Cop has
+to manufacture it by tone. Benignity also scales with depth (`benignityAtDepth`): branch 1 is
+edgy, branch 4 is absurd and therefore safe.
+
+**Three gates, none tonal:** opaque `subject_ref` (never a name) · caricatures of archetypes,
+never likenesses · the irrealis check. Generated one-liners also pass `assertionRisk`, which
+**fails closed** — a review trigger, not a defamation classifier.
+
+**The near-miss problem.** A branching market is a near-miss generator by construction: every
+roll hands most holders a loss that looks like it *almost* won. Four mitigations, all required:
+refund untaken branches · never render "how close" · no speed affordances · keep the Turning.
+
+**Never put an aleatory term in price.** Card packs may roll dice. The market may not.
 
 Entertainment conviction on hypotheticals. No real-world illegal-outcome prediction. Shield is
 loss mitigation only. All criteria on-chain and in the UI.
 
 ---
 
-## 9 · Why the frontier is ranked the way it is
-
-Dopamine carries two separable signals: a phasic burst coding reward prediction **error**,
-monotonic in *p*; and a slower **sustained ramp** coding **uncertainty**, which is maximal at
-*p* = 0.5 and falls away toward both ends.
-
-A prediction market wants traders in exactly that place — highest information value, widest
-spread available to earn. So the deck's default sort is **`|p − 0.5|` ascending**, not volume.
-
-**The Knife Edge.** Every other venue sorts by volume, which points *away* from the information
-frontier. `knifeEdgeDistance` / `rankByKnifeEdge`.
-
-The arousal does not have to be manufactured. It only has to be **found and surfaced** — which is
-the whole ethical difference between this ranking and a slot machine, given §8's epistemic /
-aleatory seam.
-
----
-
 ## 10 · Technical development scope
 
 ### 10.1 Smart contracts
-- `MADPaseomeTree.sol` — node state, frontier registry, branch-taken transitions, refund settlement
-- `MADLmsrMarket.sol` (LS-LMSR) — reused; frontier is an *n*-outcome vector
-- `MADOptimisticOracle.sol` — shared with Gossip-Cop; $MADx bond + challenge window (Foresight only)
+- `MADPaseomeTree.sol` — node state, frontier registry, taken-branch transitions, refund settlement
+- `MADLmsrMarket.sol` — reused; the frontier is an *n*-outcome vector
+- `MADOptimisticOracle.sol` — Foresight only; $MADx bond + challenge window
 - Reuse: `MADMarketFactory`, `MADStaking`, `MADShieldVault`, `RiskOracle`
-- Foundry invariants: **Σp = 1 at every node**, monotonic cost, refund solvency, no path priced above its parent
+- Foundry invariants: **Σp = 1 at every node** · refund solvency · maker loss ≤ *b*·ln *n* · no path priced above its parent
 
 ### 10.2 Backend
-- `lib/paseome.ts` — **shipped**: frontier pricing, path price, knife edge, MCI, irrealis, settlement, authorship
-- `lib/bayesian-conviction.ts` — `treeConservationError` **shipped**
-- New: frontier state machine, artefact-gated branch opening, branch refund ledger
-- New: `POST /api/v1/paseome/{root,branch,frontier,settle}`
-- Reuse: `proposalsForToday` for seeding, `satirizeHeadline` + the local model tier for one-liners
+| Piece | Status |
+|---|---|
+| `lib/paseome.ts` — pricing, path, knife edge, MCI, irrealis, settlement, authorship | ✅ shipped, 26 tests |
+| `treeConservationError` | ✅ shipped, enforced at the request boundary |
+| `GET /api/v1/paseome/frontier` — demo data, real maths | ✅ shipped |
+| Local-model one-liners (`POST /api/v1/satire/roast`) | ✅ shipped |
+| Tree persistence `sql/00xx_paseome.sql` | ⬜ |
+| Branch-refund ledger, artefact-gated authorship, oracle path | ⬜ |
 
 ### 10.3 Frontend
-- Frontier instrument: live tree with branch weight = price, Σ readout, unpriced fan beyond
-- Knife Edge as the default deck sort, with the sort key visible
-- Hindsight cards must say **"never resolves"** where the others show a countdown
-- Foresight and Hindsight **visually and structurally unmistakable** — different class, accent, verb
-- Artefact viewer: short / storyboard / UGC inline on the branch
+- Frontier instrument: branch weight = price, Σ readout, unpriced fan beyond the frontier
+- Knife Edge as the default sort, with the sort key visible
+- Hindsight cards read **"never resolves"** where others show a countdown
+- Foresight and Hindsight unmistakable: different class, accent and verb
 
 ### 10.4 Phased build
 | Phase | Contents |
 |---|---|
-| 1 | Frontier pricing + tree persistence + Foresight only, parimutuel, seeded from the scraper |
+| 1 | Persistence + Foresight only, seeded from the scraper, parimutuel |
 | 2 | DL-LMSR continuous, refund settlement, leg roll, Shield |
-| 3 | Hindsight, CGARCH divergence, calibration scoring, optimistic oracle |
-| 4 | Artefact minting, MCI scoring live into `m_meme`, permissionless branch authorship |
+| 3 | Hindsight, CGARCH divergence, calibration scoring, oracle |
+| 4 | Artefact minting, MCI live into `m_meme`, permissionless authorship within the gate |
 
 ---
 
 ## 11 · Success metrics
 
-| Metric | Target | Why this one |
+| Metric | Target | Why |
 |---|---|---|
-| Median frontier width | 3–4 | inside the founder bound, prices legible |
-| Σp deviation from 1 | < 1e-9 | the conservation invariant, measured not assumed |
-| Share of positions on branches at \|p−0.5\| < 0.1 | rising | the Knife Edge is being used |
-| MCI = 1 share of authored branches | ≥ 60% | the craft rule is landing |
+| Σp deviation from 1 | < 10⁻⁹ | the conservation invariant, measured |
+| Median frontier width | 3–4 | inside the bound, prices legible |
+| Positions at \|p − 0.5\| < 0.1 | rising | the Knife Edge is used |
+| Authored branches with MCI = 1 | ≥ 60% | the craft rule lands |
 | Carry-through at roll | ≥ 50% | holders extend rather than exit |
-| Hindsight calibration (Brier) | improving | the only honest score for a market that never resolves |
+| Hindsight Brier score | improving | the only honest score where nothing resolves |
 | Near-miss surfaces shipped | **0** | non-negotiable |
 
-Traction, revenue and user-count targets are deliberately absent. ‹verify› — no verified baseline
-exists; `CANONICAL_NUMBERS §7` lists the demo figures as placeholders that must not be used as
-proof.
+Traction, revenue and user targets are deliberately absent ‹verify› — no verified baseline exists,
+and `CANONICAL_NUMBERS §7` lists the demo figures as placeholders.
 
 ---
 
 ## 12 · Open questions
 
-1. **Log-sum-exp.** `frontierPrices` overflows above ~850k shares on one branch. Needs the
-   max-subtraction form. Correctness bug, not theoretical.
-2. **Artefact requirement.** Should a branch be openable *without* a rendered artefact in Phase 1,
-   or is the artefact gate live from the start? Gating early keeps `m_meme` meaningful; gating
-   late grows the tree faster.
-3. **Hindsight roots.** Foresight roots on today's news. What roots a Hindsight tree — an
-   anniversary, a Foresight branch that failed, or free authorship?
-4. **Creator ladder base rung.** ⛔ The ladder starts at 28.8%, below the founder's stated 40–60%
-   creator range. Unresolved platform-wide; see `_CANON_REFERENCE.md`.
+1. **Creator ladder base rung.** 28.8% for `User` vs the founder's 40–60% creator range. MASTER §3.
+2. **Artefact gate timing.** Live from Phase 1 (keeps `m_meme` meaningful) or Phase 4 (grows the tree faster)?
+3. **What roots a Hindsight tree** — an anniversary, a Foresight branch that failed, or free authorship?

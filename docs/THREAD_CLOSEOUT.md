@@ -1,212 +1,172 @@
-# Thread close-out — 2026-08-24
+# Thread close-out — 2026-10-23
 
-**Source of truth is `docs/MAD_GAMBIT_MASTER.md`.** This file is transient: what happened in
-this session, what is broken, and what to do next. It is **overwritten at every close-out** —
-do not date it, version it, or keep the old one.
+**Source of truth is `docs/MAD_GAMBIT_MASTER.md`.** This file is transient: what happened this
+session, what is broken, and what to do next. It is overwritten every close-out.
 
-| | |
-|---|---|
-| Repo | **`The-MDC/MAD-MPP-2.23`** — transferred from `MADdegen/` since the session began. The `MADdegen/` remote still works by redirect, and this session's tool scope is still `maddegen/mad-mpp-2.23`. |
-| Branch | `claude/custom-perpetual-concepts-g1aa4s`, reset onto `main` after its PR merged |
-| `main` | `1252e19` |
-| Last PR | **[#105](https://github.com/The-MDC/MAD-MPP-2.23/pull/105) — MERGED** 2026-08-22 as `2d53a7d` (3 commits, +290 −13, 2 files) |
+Branch `claude/mad-gambit-enhancement-timeline-zdnx47` · base `main` @ `72a370e` (#152) · PR: see §2
+
+The full product write-up — maths, market-making, earning functions, inspiration — is
+**`docs/product-sheets/PASEOME.md`**. This file narrates how the thread got there.
 
 ---
 
 ## 1 · Start the next chat with this
 
-> Working in `The-MDC/MAD-MPP-2.23`. Read `docs/MAD_GAMBIT_MASTER.md` **PART 0** first — it is
-> the only planning document and holds all outstanding work. Then read `CLAUDE.md` for the
-> standing constraints, and `docs/THREAD_CLOSEOUT.md` for where the last session stopped.
->
-> **CI came back on 2026-08-24 ~16:18 UTC after an eight-day outage.** The first job to
-> matter is **auditing what merged while it was down**: PRs **#105, #108 and #131** were all
-> merged with *no* gate running. #108 restructured CI and moved `actions/checkout` v6→v4;
-> #131 re-enabled production deploys from `main`. Re-run the gates on `main` and read those
-> two diffs properly before building anything new.
->
-> Ignore any workflow run still sitting in `queued` — those are orphans from the outage and
-> will never complete. Judge CI health only by runs created after 2026-08-24 16:18 UTC.
->
-> Do not re-audit hosting (settled: staying on Vercel + Neon, MASTER Part VIII), do not
-> re-fix the `$MADx` transfer vulnerability (already fixed), and do not create a second
-> planning document.
+> Repo `The-MDC/MAD-MPP-2.23`, app in `verify/`. Read `docs/MAD_GAMBIT_MASTER.md` PART 0 first,
+> then `docs/THREAD_CLOSEOUT.md`.
+> Most urgent: **rename "MAD Upshot" → MAD Gambit** — 17 occurrences in 7 files, investor decks
+> first (`verify/public/pitch/*.html`; slide 3 is titled "MAD Upshot: The Card Economy"). Edit
+> each in context — some are lineage phrasings a sed would mangle.
+> Then: **Paseome to a tradeable book** — persistence, refund ledger, artefact-gated authorship.
+> Founder decision pending: the creator ladder's `User` rung (28.8%) vs the stated 40–60% range.
+> Do NOT redo: the fee waterfall, the frontier log-sum-exp fix, the brandSafe split, the
+> mutation audit, the local-model roast tier — all merged.
 
 ---
 
-## 2 · Shipped this session — all merged in #105
+## 2 · Shipped
 
-| Commit | What it actually changed |
+### This close-out (this branch)
+- MASTER: fee-waterfall correction folded in **where the wrong formula still lived** (it had
+  `communityCut = grossFee·28.8%` — the bug — 55 days after the code was fixed); open question
+  §13-7 marked resolved; ladder conflict added to §3; rename and Paseome-persistence added to §5;
+  four traps added to §7; dated lines in PART I.
+- `docs/product-sheets/PASEOME.md` v1.1 — *Certain-UnCertainty*.
+- This file.
+
+### Merged earlier in the thread
+| PR | What it changed |
 |---|---|
-| `c1fa2c1` | Folded the restore/convergence handoff **into** MASTER rather than beside it; added **Part VIII**, the hosting audit |
-| `3eb1ca1` | Fixed a Placeholder Guard pathspec bug; corrected MASTER's claim that CI was green |
-| `4f13c80` | Recorded the decision to stay on Vercel + Neon; turned Part VIII into a contingency with named reopen triggers |
-
-**Three stale facts in MASTER corrected**, each of which was a live trap:
-
-1. **Migration count 14 → 15.** MASTER told the founder to author the Neon three-database merge
-   as `0015_*`; `0015_pack_open_counter.sql` already exists. Following the doc would have
-   collided with a committed migration mid-merge. Now `0016` in both places it appeared.
-2. **The Kotlin client is dormant, not "abandoned."** `verify/lib/gambit-game-math.ts` names
-   itself in its own header as a port of `master-maths/`'s `GambitMath.kt`; the palettes are
-   byte-identical; the Compose screens map 1:1 onto shipped web features. It is a second
-   client of one product → **Workstream C**.
-3. **Nothing in CI gates `master-maths/`.** No path filter matches it.
-
-**One broken gate found and fixed.** Placeholder Guard had been **scanning zero contracts since
-it was written** — a git pathspec is not a shell glob, so `contracts/src/**/*.sol` matched
-nothing (`*` already crosses `/`; `**` matches a literal path component). The pragma check
-never saw a contract and the code-token check skipped `proxy.ts`, the SIWE gate. It passed by
-scanning nothing, which reads as evidence. Verified by hand: 19 contracts, 321 TS/TSX files,
-all pass.
-
-**Also added this session (in this commit, not #105):** the `close-thread` skill and `CLAUDE.md`
-— see §5.
+| #142 | Perp deck interactive — six instruments and six tickers clickable, hover states, scraper-fed family books with a satirical one-liner per market |
+| #143 | (not this session) MADHAT'r Sentinel audit reads the claim |
+| #144 | `brandSafe` split; local-model (Ollama) roast tier; Paseome maths core; `propagateTree` conservation check; mutation audit closing eleven unguarded constants |
+| #145 | **Fee waterfall corrected** on founder sign-off; frontier overflow fixed; `GET /api/v1/paseome/frontier`; fee correction propagated to five UI/API surfaces; canon reference + Paseome and Prediction Markets sheets |
 
 ---
 
-## 3 · Outstanding, ordered by who can act
+## 3 · How the thread progressed — the iteration, in order
 
-### 🔴 Blocked on the founder — no agent can do these
+Each step was driven by something the previous one exposed.
 
-| # | Item | Why it is stuck |
+**① The deck becomes a market surface.** Six perp instruments had no `onClick`, `href` or hover
+anywhere. Made clickable on the Z-Liar pattern; each opens its family book, fed by the scraper,
+with a one-liner per market. Three of six families are **signal-only** (`market-view.ts`) — the
+book says so instead of inventing rows.
+
+**② Cross-checking card copy against the engine found three readings that weren't readings.**
+- `perp-dials.tsx` carried its own Z-Liar ladder at **38/84**; the engine's is **40/80**. Hoisted
+  to one table, `ZLIAR_BANDS`.
+- Scandal's band, CTA and fill bar were four hardcoded strings. Derived from σ² now.
+- The plate labelled "GARCH σ² × 10⁴" printed `max(perpProbability)×100` — a percentage under a
+  variance label. Now a real `garchUpdate` tick, shock = dispersion of the book's probabilities.
+
+**③ The founder asked for a new perp.** Researched, then designed as **the Paseome** — a what-if
+priced as a *tree*, split into **Foresight** (resolves) and **Hindsight** (never resolves, prices
+belief persistence) at exactly the line the maths forces: what can be settled.
+
+**④ Research deepened it.** Dopamine's uncertainty ramp peaking at *p* = 0.5 became the **Knife
+Edge** sort. Benign-violation theory became the **irrealis constraint**. Minimal
+counterintuitiveness became the **MCI score**. And the near-miss literature became the reason
+untaken branches are **refunded**, never written off.
+
+**⑤ Building it exposed a lying gate.** `satireMetrics().brandSafe` required Z-Liar ≥ 60 — i.e.
+SERIAL EMBELLISHER or TOTAL FABRICATION — to pass. A juiciness bar named as a safety bar, and the
+only gate on generated output. Split into `entertainmentGrade` and `assertionRisk` (fails closed).
+
+**⑥ And a live input-validation bug.** `propagateTree` never checked that a node's edges sum to
+1, and its one caller takes the tree from a request body. `treeConservationError` now guards it.
+
+**⑦ The founder asked whether the tests meant anything.** A local harness was built (no
+`node_modules`, so `lib/` is transpiled and run under a vitest shim), then the source was
+*mutated* to see what the suite would catch. Eleven mutations changed no test — including all
+four Z-Liar edges, the exact bug class fixed in ②. All eleven closed.
+
+**⑧ The fee model.** `CANONICAL_NUMBERS §10` held a ⛔: `splitFee` took the community cut off
+**gross**. Founder ruling: *"flat 1.88% rake; community is 28.8% of NET; creator only from their
+own markets."* Implemented as a two-stage waterfall and verified against canon's own figures in
+both directions — community 17.28% of gross, old over-allocation exactly 11.52 pp.
+
+**⑨ The overflow.** `frontierPrices` returned `NaN` above ~851k shares on one branch. Reproduced,
+fixed with log-sum-exp, regression-tested at 5M.
+
+**⑩ Today.** Founder confirms "MAD Upshot" is the old name, and names the Paseome's thesis
+**Certain-UnCertainty** — make the maker loss, conservation, refund, cadence and fee certain, so the
+only uncertainty left is the epistemic kind worth paying for.
+
+---
+
+## 4 · The maths, in brief — full derivations in `PASEOME.md` §4–5
+
+| What | Formula | One worked number |
 |---|---|---|
-| ~~**1**~~ | ~~**GitHub Actions will not run jobs**~~ | ✅ **RESOLVED 2026-08-24 ~16:18 UTC** — secret scan ran a real 21s job and passed. Outage ran 2026-08-16 08:07 → 2026-08-24 16:18. Root cause never visible from inside the container; if it recurs, *Settings → Billing → Actions* first. |
-| **1a** | **Audit the three PRs that merged ungated** | 🟠 **The live consequence.** #105, #108 and #131 merged during the outage with nothing checking them. **#108 restructured CI itself** (collapsed to one job, path-filtered the guard, `actions/checkout` v6→v4) and **#131 re-enabled production deploys from `main`**. Re-run the gates on `main`, then read those two diffs properly. |
-| ~~**1b**~~ | ~~**Validate the Placeholder Guard fix**~~ | ✅ **DONE 2026-08-24 16:21** — `Placeholder guard passed ✓` in CI (run [32750369469](https://github.com/The-MDC/MAD-MPP-2.23/actions/runs/32750369469), 7s, success). Adding `workflow_dispatch` touched the workflow file, which is itself in the path filter, so the guard triggered and validated its own fix. **First time the pragma check has ever executed.** It is also now dispatchable on demand: *Actions → Placeholder Guard → Run workflow*. |
-| **2** | **Neon: three databases, one app** | `mad-mpp-2-23-postgres` (target) vs `Neon-DB-MADMPP` vs `neon-sky-park`. Until merged there is **no single source database**. Read-only inspection SQL is in MASTER Part II.5; the merge migration is **`0016_neon_merge.sql`**. Agents cannot reach `*.neon.tech` or TCP 5432. |
-| **3** | **Neon free-tier ceiling** | Hit its quota on 2026-08-10; compute suspended, data intact. Independent of hosting and still unresolved. |
-| **4** | **Generate the two `.lock.yml` files** | `gh aw compile`, then commit. Until then **both AI review gates are configured but have never run**. The Actions `GITHUB_TOKEN` is correctly forbidden from writing `.github/workflows/`. |
-| **5** | **Confirm migrations 0012–0015 are applied** | The build no longer migrates; it is a manual `npm run migrate:deploy`. Nobody has confirmed prod is current. |
-| **6** | **`CRON_SECRET` gates two routes** | `/api/v1/perps/roll` and `/api/v1/registrar/lapse` 401 without it. `lapse` is the sharper edge: under THE LAPSE, keys that stop being renewed **destroy on schedule** — the one place "not configured yet" quietly becomes "data erased". |
-| **7** | Founder-gated ops | Rotate/confirm `NEON_API_KEY` · attach `madgambit.io` · GHAS toggles · push `v2.24-constellation` · Phase-4 named-subject gate (KMS choice, `MADPortraitKeyRegistry` deploy, 6 signed `registry_readiness` rows) |
-| **8** | Open decisions in MASTER Part 0 §3 | `$MADx` supply (canon 888,888,888 vs deployed cap 224,573,096) · chain topology · token distribution split · near-miss patterns on real-money surfaces · two O-V deck canon conflicts |
+| Frontier price | `e^(q_i/b − m) / Σ e^(q_j/b − m)`, m = max(q/b) | q=[4200,3100,2400,900] → 0.5928 / 0.2370 / 0.1323 / 0.0379, Σ = 1 |
+| Trade cost | `C(q) = α(V)·b·ln Σ e^(q/b)`; cost = ΔC | 500 shares of the 0.0379 branch: 23.28 $MADx |
+| Path price | `Π P(branch_k)` | 0.5928² = 0.3514 |
+| Max maker loss | `b · ln n` | 1,318 / 1,664 / 1,931 for 3 / 4 / 5 branches |
+| Knife Edge | sort by `\|p − 0.5\|` | f1 first at 0.0928 |
+| Hindsight print | `permanent − transitory` from `cgarchUpdate` | positive = the belief is sticking |
+| Meme multiplier | `0.85 + 0.50 · fitness`, peak at 1 violation | 1.35 at MCI = 1 |
+| Fee waterfall | gross 1.88% → creator off gross → community 28.8% of net | 10k on a 40% market: 75.20 / 32.49 / 80.31 |
 
-### 🟡 Blocked on access this environment does not have
+---
 
-| Item | Blocker | Fix |
+## 5 · Outstanding — by who can act
+
+### Founder only
+- **Creator ladder `User` rung.** MASTER records 28.8/40/60 (31 Jul); on 27 Aug the creator range
+  was stated as 40–60%. Code unchanged — a rung change moves real payouts. MASTER §3.
+- Paseome open questions: artefact-gate timing; what roots a Hindsight tree.
+
+### Engineering — ready now
+- **Rename "MAD Upshot" → MAD Gambit** — MASTER §5. Was started on a scratch branch and parked when
+  this handoff was requested; no rename edits are in this commit.
+- **Paseome persistence + refund ledger + oracle** — MASTER §5.
+- **Six product sheets never written** — `SCANDAL_VELOCITY`, `Z_LIAR_METER`, `CONVICTION_MARKETS`,
+  `OPEN_MARKETS`, `MAD_SHIELD`, `CREATOR_PROFIT_SHARE`. The founder later said to set sheets aside
+  in favour of code; listed so they are not mistaken for done.
+- **Prompt-injection hardening on `POST /api/v1/satire/roast`** — `headline`/`article` go straight
+  into the model prompt, and `article` has no length cap. Flagged, not built.
+
+### Blocked on environment
+- A live Ollama round-trip has never run — no Ollama in the container, and Vercel cannot reach a
+  desktop by design.
+
+---
+
+## 6 · Failed, timed out, or unverifiable
+
+| What | Effect | Workaround |
 |---|---|---|
-| **Windsor.ai connector** | Unauthorized; this session cannot run OAuth | Authorize in **claude.ai → connector settings**, or disconnect it if it is not wanted. |
-| **`The-MDC/mad-gambit-ui`** | Session scope is `maddegen/*`; cross-tier `add_repo` refused | **This may now be easier** — the main repo has moved to `The-MDC`. Worth retrying, because that repo may simply *be* the phone-frame UI, which would make Workstream C4 mostly redundant. |
-| **`v2.24-constellation` tag** | Git proxy fails tag pushes (`send-pack: unexpected disconnect`); MCP is read-only for tags | One local `git tag -a … && git push origin …` |
-| **npm registry** | 403 from the container | No local type-check/build/test is possible. **Never hand-edit `package-lock.json`.** |
-| **`*.neon.tech`, TCP 5432** | 403 / unreachable | See §3 item 2 |
-| **`sevalla.com`, `docs.sevalla.com`** | Egress-blocked | Four figures in Part VIII §7 remain ‹verify› |
-| **`vrf.chain.link`, `docs.chain.link`** | `EGRESS_BLOCKED` | VRF constants marked ‹verify› must be read off live docs |
-
-### 🟢 Open engineering work — no blocker but CI
-
-Full detail in MASTER PART 0 §5.
-
-- **Workstream C (new)** — C5 a Gradle CI job for `master-maths/` **first** (cheapest, and it
-  makes C1–C4 verifiable) → C1 one design-token source → C2 `MadGambitApiService.kt` → C3
-  reconcile the two maths (⚠️ a Part VI §13-class decision, do not resolve silently) → C4
-  phone-frame theme + KAITO/NYSE/O-V/skin backend
-- **B1-rest** — Octavian perps-deck container sizing (CSS deck-shell chrome only)
-- **Phase 1** — `next/font`, `next/dynamic` code splitting (93 components / 19,455 lines ship
-  eagerly), image optimization. **Measure LCP/CLS before and after or it is worthless** —
-  nothing in CI measures this
-- **Phase 2** — `useOptimistic`, haptics, persisted audio mute (default off), focus rings
-  (3 `focus-visible` vs 92 `aria-`)
-- **Phase 3–4** — Chainlink VRF on Sepolia, then mainnet + random juror selection.
-  **Sequencing constraint: Phases 1–2 are prerequisites, not parallel work** — VRF makes
-  pack-opening async, and on today's synchronous UI that is an unexplained freeze
-- **CSP promotion** — `script-src`/`style-src` ship Report-Only by design. Two-line change once
-  reports are quiet. **Review `connect-src` first.** Do not do this during any other risky change
-- **Promote Lint / Slither / Dependency Review** from report-only once their backlogs are worked
-  (Slither has ~135 untriaged findings — green means "ran")
-- Carried: THE WIRE demo-row · raw-hex design-token scrub (~82 values, 5 panels) · 4 dead
-  components · slot-auction clearing is manual
+| `npm ci` 403 from the container | No real type-check/test/build locally | `tsc` with an audit tsconfig + a TS2802 probe; the local harness for tests; CI as the gate |
+| **Three subagents killed by a session rate limit** (Aug 28) | Six product sheets never written; one (`PREDICTION_MARKETS`) finished first and was reviewed line-by-line before merge | Write them directly next time |
+| Local harness under-reported two passing tests | A false "interlock regressed" claim | `.rejects`/`.resolves` added to the shim; local now matches CI |
+| Mutation harness: an escaped `&&` silently broke a build | False "survived" results | Confirm a mutation applied before trusting it |
+| Mutation harness compared to zero, not baseline | False "caught" results | Compare to the unfiltered baseline's own failures |
+| Test-count prediction 379 vs CI 389 | — | CI tests the merge with `main`; reconciled exactly (§7 trap) |
+| Session idle ~55 days (Aug 28 → Oct 23) | Container state predates #146–#152 | Fresh branch from current `main` |
+| `Github_MCP` server failed to connect today | — | The `github` MCP server works; use it |
 
 ---
 
-## 4 · Failed, timed out, or could not be verified
+## 7 · Suggested — not asked for
 
-**Read this section before repeating any of it.**
-
-| What | Result | Consequence / workaround |
-|---|---|---|
-| `npm ci` / `npm install` | **403** on registry tarballs | No local type-check, build or test **for the entire session**. For most of it CI was down too, so nothing could verify anything. **CI is back — use it.** |
-| **GitHub Actions** | Down 2026-08-16 → 2026-08-24; **recovered** | Dominated the session. Left three ungated merges and a set of orphan `queued` runs. See §3 items 1a/1b. |
-| **The guard fix is still unvalidated** | Merged into `main`, **never executed** | Passes when run by hand here; has never run in CI. `workflow_dispatch` was added this session so it can finally be triggered — see §3 item 1b. Treat as untested until that run completes. |
-| `get_job_logs` | **HTTP 404** for every job | Could not read any CI logs; diagnosis had to be inferred from run metadata |
-| `get_check_run` output | Empty `title`/`summary`/`text` | No error text available from the API either |
-| `actions_list` | Response too large (411k and 72k chars) twice | Had to be sliced from a saved file via `python3` |
-| MCP servers | Disconnected and reconnected mid-session (github, Vercel, Neon, others) | Tool schemas had to be re-loaded via `ToolSearch` |
-| Windsor.ai connector | Unauthorized | Session is non-interactive; cannot run OAuth |
-| `sevalla.com`, `docs.sevalla.com` | Egress-blocked | **4 facts in Part VIII §7 are ‹verify›.** Check the pod price first — the reported S1→S2 jump is 4× price for 2× resources, odd enough to be a transcription artefact, and it is the difference between a $20 and a $40 baseline |
-| `The-MDC/mad-gambit-ui` | `add_repo` refused, cross-tier | Retry now that the main repo has moved to `The-MDC` |
-| `git push` of tags | Proxy `send-pack: unexpected disconnect` | Tag pushes must be done locally |
-
-**Changed on `main` by others while this session ran** (worth knowing, not investigated here):
-PR #108 collapsed CI to one job, added path filters to `placeholder-guard.yml`, and downgraded
-`actions/checkout` **v6 → v4** — MASTER Part II.4 still says v6. PR #131 re-enabled production
-deploys from `main`, which contradicts MASTER Part II.3's *"`main` does not auto-deploy"*.
-**Both should be reconciled into MASTER next session.**
+- **Reconcile the projections before an investor sees them.** Stated Y3 volume of $3.6–4.2B × 1.88%
+  = **$73.3M** of market fees against **$154.5M** stated gross — the other ~53% depends on streams
+  `revenue-engine.ts` marks `planned`. A model has to show that split.
+- **Pin the three weak determinism tests** (`expect(f(x)).toBe(f(x))`), especially
+  `derivePackNonce` — security-relevant, and a clock-dependent implementation could pass it.
+- **Clear the stale pack economics in the design decks** — mockups say 888 $MADx / 8 cards; the
+  engine says 4.88 / 5.
 
 ---
 
-## 5 · The close-out mechanism — dual fail-safe
+## 8 · Do not redo
 
-Two independent triggers, so a miss in one does not lose the handoff:
-
-| Layer | File | How it fires |
-|---|---|---|
-| **Primary** | `.claude/skills/close-thread/SKILL.md` | Skill matching on "close this thread", "close out", "wrap this up", "session handoff", "hand off", "I'm done for today", "what's outstanding" |
-| **Fail-safe** | `CLAUDE.md` → *"Closing a thread"* | **Always loaded** as project memory. Carries the full instruction inline, so it works even when skill discovery misses entirely |
-
-These are genuinely independent: skill matching is probabilistic, `CLAUDE.md` is deterministic.
-
-**The discipline both enforce:** durable items are folded into **MASTER first**, and only then is
-`docs/THREAD_CLOSEOUT.md` written — one fixed path, overwritten every time. That is what keeps
-this from becoming the ~150-scattered-docs problem again, one dated handoff at a time. If a
-close-out lists items that were never actioned, they are **carried forward** into the new file
-rather than preserved by keeping the old one.
-
-`CLAUDE.md` also carries the standing constraints a fresh session otherwise rediscovers the hard
-way: npm 403, Neon unreachable, cross-org scope, ADR-008 settled, and *a green gate is not
-evidence until you confirm it is looking at something* — which has now caught **three** silently
-empty gates in this repo.
-
----
-
-## 6 · Suggested — not asked for, worth doing
-
-1. **Reconsider #108's `actions/checkout` v6 → v4 downgrade.** The guard run on 2026-08-24 emitted:
-   *"Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run
-   on Node.js 24: `actions/checkout@v4`."* The v6 the repo was on does not produce that warning.
-   The downgrade landed during the outage with no gate on it, and it moved the repo *onto* a
-   deprecation path rather than off one. Worth asking whoever made it whether it was deliberate.
-2. **Retry `The-MDC/mad-gambit-ui` before building C4.** If it is the phone-frame UI, most of
-   C4 is already written. The org transfer may have unblocked it.
-3. **Add a `master-maths/` Gradle job (C5) the moment CI is alive.** It is the cheapest item in
-   the whole queue and it closes the third instance of the empty-gate pattern.
-4. **Audit the other path filters for the same bug.** Three gates have now been found scanning
-   nothing. Check the *file count* each filter yields — `foundry.yml` and the new `ci.yml`
-   filters have not been checked this way.
-5. **Turn on branch protection once CI is green.** Right now nothing blocks a merge, which is
-   how #108 and #131 landed unchecked.
-6. **Decide the Neon tier before the merge, not after.** The free-tier ceiling (2026-08-10) will
-   be hit again by a consolidated database holding three databases' data.
-
----
-
-## 7 · Do not redo
-
-- **Hosting is settled** — staying on Vercel + Neon (2026-08-18). Part VIII is a **contingency
-  with named reopen triggers**, not a pending proposal. The audit found *optionality*, not a
-  reason to move.
-- **ADR-008 is settled** — `pg` Pool + Route Handlers. `@neondatabase/serverless` and Server
-  Actions were explicitly evaluated and **rejected**. Do not reopen without a superseding ADR.
-- **The `$MADx` transfer vulnerability is FIXED.** A stale-tree review reported it open. All
-  seven `madx` routes use `lib/madx-route-auth.ts`.
-- **`octavian-mesh.tsx` does not exist** — merged into `octavian-creature.tsx`. Zoom, orbit,
-  click-select, pop-out, mood, shared state and the firefly swarm all already ship.
-- **`--exclude-detectors=lob` is a detector collision, not a suppressed finding.** Foundry's
-  `test_` + 38 alphanumerics matches Lob's key regex. Do not "fix" it by renaming test functions.
-- **`master-maths/` must stay nested.** Both trees define `app/`; hoisting collides on
-  `app/page.tsx` — the collision that made commit `8c7a195` read as a replacement.
-- **Do not create a second planning document.** Not a handoff file, not a plan file. MASTER, or
-  this file.
-- **Placeholder stubs — do not restore:** `lib/auth/siwe.ts`, `app/api/session-keys/*`,
-  `SessionKeyManager.tsx`, root `middleware.ts`, `ai-backend/.../auth.py`.
+- Fee waterfall (`splitFee`, `platformNet`) — merged #145, founder-signed, regression-tested.
+- `frontierPrices` log-sum-exp — do not "simplify" back to `calculateDLLMSRPrice`.
+- `brandSafe` → `entertainmentGrade` / `assertionRisk` — the alias keeps its old value on purpose.
+- Z-Liar `ZLIAR_BANDS` single table; Scandal bands in `lib/scandal-bands.ts`.
+- The mutation audit and the eleven canon pins.
+- Local-model tier uses plain `fetch`, deliberately — no new dependency.
+- Paseome founder decisions: refund untaken branches · frontier 3–5 · authorship VIP **or** ladder.
+- The 1.888% contamination is already gone — zero occurrences.
