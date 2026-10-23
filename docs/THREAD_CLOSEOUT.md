@@ -3,9 +3,10 @@
 **Source of truth is `docs/MAD_GAMBIT_MASTER.md`.** This file is transient: what happened this
 session, what is broken, and what to do next. It is overwritten every close-out.
 
-Branch `claude/maths-engine-room-ship-ai67e6` · restarted from `origin/main` **`72a370e`**
-· previous PR **[#143](https://github.com/The-MDC/MAD-MPP-2.23/pull/143) — MERGED** 2026-08-27
-by MADdegen at head `18216a0`
+Branch `claude/maths-engine-room-ship-ai67e6` · HEAD `3067c6b` · restarted from `origin/main`
+**`72a370e`** · this session's PR **[#154](https://github.com/The-MDC/MAD-MPP-2.23/pull/154) —
+DRAFT** · previous PR **[#143](https://github.com/The-MDC/MAD-MPP-2.23/pull/143) — MERGED**
+2026-08-27 by MADdegen at head `18216a0`
 
 > **Why the branch was restarted.** Every commit the branch carried (`47119f2`, `5842063`,
 > `18216a0`) is an ancestor of `origin/main` — verified with `git merge-base --is-ancestor`.
@@ -128,12 +129,22 @@ already-merged work. Three documentation commits:
   **ORKx**, 18 decimals, total supply 60.073728, 2 holders, unverified source, creator
   `0x49755F66C877040f8EF7F307263F74C352830149`. `0x6972370e…151f` was **never reached**.
   Anyone who acts on the first half alone will swap in a second unverified address.
-- **`next build` on `18216a0` was never confirmed green.** CI `pull_request` triggers stopped
-  firing on PR #143, so every commit needed a manual `workflow_dispatch`. The dispatched run
-  showed route-guard, type-check (16s) and lint green with `next build` **still in progress**,
-  and the PR was merged before that step was observed. `mergeable_state` was `"unstable"`, not
-  conflicted, and triggers had worked on the same branch the day before — **no diagnosis was
-  established, and none should be assumed.** The build may well have passed; it was not seen.
+- **`next build` on `18216a0` — resolved, and the earlier worry was unfounded.** During the
+  session the dispatched run showed route-guard, type-check (16s) and lint green with
+  `next build` still in progress, and #143 was merged before that step was observed. The
+  queued GitHub notifications, read at the end of this session, close it: the **Vercel preview
+  deployment for commit `18216a0` reached `Ready`** (2026-08-27 02:30 UTC,
+  `mad-mpp-2-23-git-claude-maths-engine-room-ship-ai67e6-madgambit.vercel.app`), and Vercel
+  builds from root directory `verify` by running `next build` — so the build did pass. A
+  `check_suite.completed` for the same `head_sha` reported no third-party suite still running
+  or failed. **Nothing is outstanding on #143.**
+- **CI `pull_request` triggers were not firing on #143** — every commit needed a manual
+  `workflow_dispatch`. `mergeable_state` was `"unstable"`, not conflicted, and triggers had
+  worked on the same branch the day before, so **no diagnosis was ever established.** It
+  appears to have been transient: triggers fired normally on **#154** within seconds of
+  opening it (Secret scan started 2026-10-23T14:16:08Z, unprompted). Do not carry forward a
+  belief that this repo's triggers are broken — but do check, rather than assume, on a long
+  branch.
 - **MCP servers disconnected and reconnected repeatedly mid-session** (github, Blockscout,
   Vercel, Figma, Linear, HuggingFace and others, in both directions). Calls failed with
   `InputValidationError` or a hard disconnect and had to be re-loaded through `ToolSearch`.
