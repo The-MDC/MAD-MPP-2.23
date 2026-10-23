@@ -3,7 +3,7 @@
 **Source of truth is `docs/MAD_GAMBIT_MASTER.md`.** This file is transient: what happened this
 session, what is broken, and what to do next. It is overwritten every close-out.
 
-Branch `claude/mad-gambit-enhancement-timeline-zdnx47` · base `main` @ `72a370e` (#152) · PR: see §2
+Branch `claude/mad-gambit-enhancement-timeline-zdnx47` · base `main` @ `72a370e` (#152) · PR [#153](https://github.com/The-MDC/MAD-MPP-2.23/pull/153) (draft)
 
 The full product write-up — maths, market-making, earning functions, inspiration — is
 **`docs/product-sheets/PASEOME.md`**. This file narrates how the thread got there.
