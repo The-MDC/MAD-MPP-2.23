@@ -56,7 +56,18 @@ interface RawAccountRow {
 }
 
 const norm = (owner: string) => owner.trim().toLowerCase();
-const round6 = (n: number) => Math.round(n * 1e6) / 1e6;
+
+/**
+ * The ledger's rounding granularity — 6 decimal places, applied to every $MADx
+ * amount that touches `madx_accounts` or `madx_ledger`.
+ *
+ * Exported because callers that compute an amount before handing it to
+ * `spendWithin` have to round it the SAME way. A caller rounding to 2 places
+ * while the ledger rounds to 6 puts a residue on every row, and the residue is
+ * the kind of thing that only shows up as a reconciliation mismatch months
+ * later. One rounding rule, one place.
+ */
+export const round6 = (n: number) => Math.round(n * 1e6) / 1e6;
 const iso = (v: Date | string | null): string | null =>
   v == null ? null : v instanceof Date ? v.toISOString() : String(v);
 
