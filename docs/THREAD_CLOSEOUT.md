@@ -30,14 +30,15 @@ DRAFT** · previous PR **[#143](https://github.com/The-MDC/MAD-MPP-2.23/pull/143
 > touching it. Copy the shape of `market-book.ts#fill()` — one transaction,
 > `SELECT … FOR UPDATE`, `spendWithin(client, …)`. **Delete nothing and relabel nothing.**
 >
-> Do NOT redo: hosting (Vercel + Neon, settled), ADR-008 (`pg` Pool + Route Handlers,
+> Do NOT redo: hosting (settled — Vercel), ADR-008 (`pg` Pool + Route Handlers,
 > settled), the `$MADx` transfer fix (done), the Z-Liar LLM quip (done and live), the
 > `PAUSE_GUARDIAN` check on the swap path (done), the registrar complaint-auth fix (done).
 > Do NOT create a second planning document. Do NOT change the `$MADx` token address in any
 > file — see §4.
 >
-> Constraints: `npm ci` 403s from the container (CI is the only verification), `*.neon.tech`
-> and TCP 5432 are blocked, `app.crystex.app` is egress-blocked.
+> Constraints: `npm ci` 403s from the container (CI is the only verification), the Postgres
+> host and TCP 5432 are blocked so no agent can touch the database, `app.crystex.app` is
+> egress-blocked.
 
 ---
 
@@ -85,11 +86,11 @@ already-merged work. Three documentation commits:
 4. **Set `REGISTRAR_TOKEN`** in Vercel, or complaint resolution keeps returning 503 by design.
 5. Carried forward, unchanged: the token distribution split · chain topology (Nova vs One) ·
    the two O-V deck canon conflicts (Wyoming vs New Mexico; "MAD Upshot") · near-miss
-   patterns on real-money surfaces · `@neondatabase/serverless` vs ADR-008.
+   patterns on real-money surfaces · the serverless-driver question vs ADR-008.
 
 ### Blocked on environment/access
 
-- **Neon three-database merge** — still no single source database.
+- **Database consolidation** — still no single source database, so "sync the DBs" has no well-defined target. Agents cannot reach the Postgres host (403) or TCP 5432.
 - **The two `.lock.yml` files** (`gh aw compile`) — both AI review gates are configured and
   have never run.
 - **eslint / eslint-config-next / @types/node realignment** — needs a lockfile regen the
@@ -151,8 +152,8 @@ already-merged work. Three documentation commits:
   Budget for this: a tool that worked ten minutes ago may need its schema re-fetched.
 - **Standing, and they will hit again:** `npm ci` / `npm install` **403** from the agent
   container, so there is no local `tsc`, `eslint`, `vitest` or `next build` — CI is the only
-  verification, and `package-lock.json` must never be hand-edited. `*.neon.tech` and TCP 5432
-  are blocked, so **no agent can apply or verify migration `0016`**.
+  verification, and `package-lock.json` must never be hand-edited. The Postgres host and TCP
+  5432 are blocked, so **no agent can apply or verify migration `0016`**.
 - **`MADHATs-Gambit-Presentation` is empty.** The checkout contains only `.git` and `master`
   has no commits — `git log` exits 128. Nothing to hand off there yet.
 - **`The-MDC/Vercel-Ai` was never cloned**, so its memory files are absent from
@@ -185,9 +186,9 @@ already-merged work. Three documentation commits:
 
 **Settled decisions — reopening these has already cost sessions:**
 
-- **Hosting: Vercel + Neon** (2026-08-18). Part VIII is a contingency with named reopen
-  triggers, *not* a pending proposal.
-- **ADR-008: `pg` Pool + Route Handlers.** `@neondatabase/serverless` and Server Actions were
+- **Hosting: Vercel** (2026-08-18). Part VIII is a contingency with named reopen triggers,
+  *not* a pending proposal.
+- **ADR-008: `pg` Pool + Route Handlers.** A serverless driver and Server Actions were
   explicitly evaluated and rejected. Marked "do not reopen without a superseding ADR".
 - **One planning document.** ~150 docs were consolidated into MASTER; 114 files and ~36.5k
   lines deleted in the same commit. No `HANDOFF_*.md`, no `PLAN_*.md`.
