@@ -1,5 +1,7 @@
 /**
- * MAD Gambit — THE PASEOME. Perp families 7 (Foresight) and 8 (Hindsight).
+ * MAD Gambit — The Paseome: Certain-UnCertainty. Perp families 7 and 8.
+ * ("Foresight" and "Hindsight" below are internal labels for the forward and
+ * counterfactual sides — `PaseomeSide` — not product names. Founder, 23 Oct 2026.)
  * ══════════════════════════════════════════════════════════════════
  * Every other perp prices ONE NUMBER — a velocity, a credibility, a
  * persistence. These price A PATH. A what-if is a tree; a position rides one
@@ -45,11 +47,19 @@
  *   Eligibility is a DISJUNCTION across two axes the engine deliberately keeps
  *   separate — VIP is the capital-side status and, per gambit-game-math.ts,
  *   "never a creator tier". Conflating them into one score would erase that.
+ *
+ *   OPEN MARKET, PLATFORM LESS (23 Oct 2026). The Paseome is an open
+ *   conviction market: eligible creators author it and earn their rung on the
+ *   trees they open. The platform also offers trees of its own, "to a lesser
+ *   extent ... for different uses" — and those carry no creator cut. See
+ *   `paseomeFeeSplit`.
  */
 import {
   CREATOR_LADDER,
   VIP_STATUS_MIN_MADX,
   creatorStatus,
+  splitFee,
+  type FeeSplit,
 } from "@/lib/gambit-game-math";
 import { cgarchUpdate } from "@/lib/bayesian-conviction";
 
@@ -341,7 +351,7 @@ export interface AuthorEligibility {
  * May this account author a new branch?
  *
  * A DISJUNCTION over two axes the engine keeps deliberately separate: VIP is
- * capital-side (Shield 60%) and gambit-game-math.ts states plainly it is
+ * capital-side and gambit-game-math.ts states plainly it is
  * "never a creator tier". Collapsing them into a single eligibility score
  * would destroy that distinction, so both are evaluated and both reported.
  */
@@ -362,4 +372,28 @@ export function canAuthorBranch(input: {
   const viaCreator = haveIdx >= minIdx && minIdx >= 0;
 
   return { eligible: viaCapital || viaCreator, viaCapital, viaCreator, status: status.status };
+}
+
+/* ── 7 · WHO EARNS ─────────────────────────────────────────────── */
+
+/**
+ * Who opened the tree. Founder, 23 Oct 2026: "this will be an open Conviction
+ * market for open markets, but this will also be offered to a lesser extent by
+ * the platform for different uses."
+ */
+export type PaseomeOrigin = "open" | "platform";
+
+/**
+ * The fee waterfall for one Paseome tree. Only a tree a creator opened on the
+ * open market pays a creator cut; a platform-offered tree never does, whatever
+ * share is passed. An unknown origin or a non-finite share pays no creator
+ * cut — the failure that overpays nobody.
+ */
+export function paseomeFeeSplit(
+  volume: number,
+  origin: PaseomeOrigin,
+  creatorShareBps: number = 0,
+): FeeSplit {
+  const bps = origin === "open" && Number.isFinite(creatorShareBps) ? creatorShareBps : 0;
+  return splitFee(volume, bps);
 }

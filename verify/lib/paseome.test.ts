@@ -6,10 +6,11 @@ import {
   mciScore, memeMultiplier, MEME_MULT_MIN, MEME_MULT_MAX, MCI_OPTIMUM,
   hasIrrealisMood, benignityAtDepth,
   settleFrontier, canAuthorBranch,
-  type Branch,
+  paseomeFeeSplit,
+  type Branch, type PaseomeOrigin,
 } from "./paseome";
 import { treeConservationError, type TreeNode } from "./bayesian-conviction";
-import { VIP_STATUS_MIN_MADX } from "./gambit-game-math";
+import { VIP_STATUS_MIN_MADX, splitFee } from "./gambit-game-math";
 
 const mk = (n: number): Branch[] =>
   Array.from({ length: n }, (_, i) => ({ id: `b${i}`, claim: `what if ${i}`, shares: 100 + i * 40 }));
@@ -239,5 +240,40 @@ describe("tree conservation", () => {
       ],
     };
     expect(treeConservationError(good)).toBeNull();
+  });
+});
+
+describe("who earns — open market vs platform tree", () => {
+  // Founder, 23 Oct 2026: creators author on the open market; the platform
+  // offers trees of its own "to a lesser extent" — with no creator cut.
+  it("a platform tree pays no creator cut, whatever share is passed", () => {
+    const f = paseomeFeeSplit(10_000, "platform", 4000);
+    expect(f.creatorCut).toBe(0);
+    expect(f.grossFee).toBeCloseTo(188, 9);
+    expect(f.communityCut).toBeCloseTo(54.144, 9);
+    expect(f.protocolCut).toBeCloseTo(133.856, 9);
+  });
+
+  it("an open-market tree pays the creator's rung, off the gross", () => {
+    const f = paseomeFeeSplit(10_000, "open", 4000);
+    expect(f.creatorCut).toBeCloseTo(75.2, 9);
+    expect(f.communityCut).toBeCloseTo(32.4864, 9);
+    expect(f).toEqual(splitFee(10_000, 4000));
+  });
+
+  it("fails closed: a bad share or an unknown origin pays no creator cut", () => {
+    expect(paseomeFeeSplit(10_000, "open", Number.NaN).creatorCut).toBe(0);
+    expect(paseomeFeeSplit(10_000, "bogus" as PaseomeOrigin, 4000).creatorCut).toBe(0);
+  });
+
+  it("every split reconciles to the gross", () => {
+    const origins: PaseomeOrigin[] = ["open", "platform"];
+    const rungs = [0, 2880, 4000, 6000];
+    for (let i = 0; i < origins.length; i++) {
+      for (let j = 0; j < rungs.length; j++) {
+        const f = paseomeFeeSplit(10_000, origins[i], rungs[j]);
+        expect(f.creatorCut + f.communityCut + f.protocolCut).toBeCloseTo(f.grossFee, 9);
+      }
+    }
   });
 });

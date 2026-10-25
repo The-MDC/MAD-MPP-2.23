@@ -1,0 +1,1285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Repo copy of the published Paseome artifact (v1.2, 2026-10-23): https://claude.ai/artifact/7G1At1uYSEQTB9AaDjDwqz
+     To republish, send the page content between <body> and </body> (the Artifact tool adds its own wrapper).
+     The decisions it shows live in docs/MAD_GAMBIT_MASTER.md. -->
+</head>
+<body style="margin:0">
+<title>The Paseome: Certain-UnCertainty</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+<style>
+/* ─────────────────────────────────────────────────────────────
+   Palette is MAD Gambit's own design law — lib/gambit-design-tokens.ts
+   INK. This page commits to that one dark instrument-panel world
+   deliberately: it is a spec for a dark product and will be read
+   beside it. Every colour is painted explicitly, so the page holds
+   on either host ground.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  color-scheme: dark;
+  --bg:        #080a12;
+  --panel:     #0d1018;
+  --card:      #111520;
+  --card-hov:  #161c28;
+  --gold:      #ffd700;
+  --gold-dim:  #b8860b;
+  --cyan:      #00e5ff;
+  --pink:      #ff007f;
+  --green:     #00ff88;
+  --tx:        #f0f0f8;
+  --mu:        #79818f;
+  --mu-deep:   #565d6b;
+  --line:      rgba(240,240,248,.08);
+  --line-gold: rgba(255,215,0,.26);
+
+  --f-disp: "Chakra Petch", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --w: 74ch;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--tx);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: var(--w);
+  margin: 0 auto;
+  padding: 0 22px;
+}
+
+/* ── type scale ─────────────────────────────────────────────── */
+h1, h2, h3 { font-family: var(--f-disp); text-wrap: balance; margin: 0; }
+h1 {
+  font-size: clamp(38px, 7.5vw, 68px);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: .96;
+  text-transform: uppercase;
+}
+h2 {
+  font-size: clamp(21px, 3.4vw, 29px);
+  font-weight: 600;
+  letter-spacing: .004em;
+  line-height: 1.15;
+  margin-bottom: 6px;
+}
+h3 {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--tx);
+  margin-bottom: 6px;
+}
+p  { margin: 0 0 14px; color: #c3c8d2; }
+p:last-child { margin-bottom: 0; }
+strong { color: var(--tx); font-weight: 600; }
+em { color: var(--tx); font-style: italic; }
+a { color: var(--cyan); text-underline-offset: 3px; }
+a:focus-visible, .fx:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 3px; }
+
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+}
+
+/* ── hero ───────────────────────────────────────────────────── */
+.hero { padding: 64px 0 0; }
+.hero .lede {
+  font-size: clamp(17px, 2.3vw, 20px);
+  line-height: 1.55;
+  color: var(--mu);
+  margin: 18px 0 0;
+  max-width: 56ch;
+}
+.hero .lede b { color: var(--tx); font-weight: 600; }
+.namebar {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-top: 22px;
+}
+.chip {
+  font-family: var(--f-mono);
+  font-size: 10.5px; font-weight: 500;
+  letter-spacing: .12em; text-transform: uppercase;
+  padding: 5px 10px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--mu);
+  background: var(--card);
+}
+.chip.f { color: var(--cyan); border-color: rgba(0,229,255,.32); background: rgba(0,229,255,.07); }
+.chip.h { color: var(--pink); border-color: rgba(255,0,127,.32); background: rgba(255,0,127,.07); }
+.chip.g { color: var(--gold); border-color: var(--line-gold); background: rgba(255,215,0,.06); }
+
+/* ── the frontier instrument ────────────────────────────────── */
+.instrument {
+  margin: 34px 0 0;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--panel), var(--bg));
+  box-shadow: 0 0 0 1px rgba(255,215,0,.09), 0 0 42px rgba(0,229,255,.05);
+  overflow: hidden;
+}
+.instrument .head {
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  padding: 12px 16px; border-bottom: 1px solid var(--line);
+}
+.instrument .head .t {
+  font-family: var(--f-disp); font-size: 12px; font-weight: 600;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--gold);
+}
+.instrument .head .s {
+  font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--mu-deep); margin-left: auto;
+}
+canvas { display: block; width: 100%; height: auto; }
+.instrument .foot {
+  padding: 9px 16px; border-top: 1px solid var(--line);
+  font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .06em;
+  color: var(--mu-deep);
+}
+.instrument .foot b { color: var(--green); font-weight: 500; }
+
+/* ── sections ───────────────────────────────────────────────── */
+section { padding: 54px 0 0; }
+.layer-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--f-mono); font-size: 10px; font-weight: 600;
+  letter-spacing: .2em; text-transform: uppercase;
+  color: var(--bg); background: var(--gold);
+  padding: 3px 9px; border-radius: 4px; margin-bottom: 12px;
+}
+.layer-tag.c2 { background: var(--cyan); }
+.layer-tag.c3 { background: var(--pink); color: #fff; }
+.sub {
+  font-family: var(--f-mono); font-size: 11px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--mu-deep); margin-bottom: 18px;
+}
+
+/* ── maths block ────────────────────────────────────────────── */
+.maths {
+  margin: 18px 0; padding: 15px 17px;
+  border: 1px solid var(--line-gold); border-radius: 11px;
+  background: rgba(255,215,0,.035);
+  overflow-x: auto;
+}
+.maths .expr {
+  font-family: var(--f-mono); font-size: 14px; font-weight: 500;
+  color: var(--gold); line-height: 1.5;
+  /* Wraps rather than hiding behind a scroll the reader has no cue to try.
+     The container still scrolls for anything genuinely unbreakable. */
+  white-space: normal; overflow-wrap: anywhere;
+}
+.maths .why {
+  font-size: 13.5px; line-height: 1.55; color: var(--mu);
+  margin: 9px 0 0; white-space: normal;
+}
+.maths .why b { color: var(--tx); font-weight: 600; }
+
+/* ── the engine ledger ──────────────────────────────────────── */
+.ledger-wrap { overflow-x: auto; margin: 20px 0 0; }
+table { border-collapse: collapse; width: 100%; min-width: 480px; }
+th, td {
+  text-align: left; padding: 9px 12px 9px 0;
+  border-bottom: 1px solid var(--line); vertical-align: top;
+}
+th {
+  font-family: var(--f-mono); font-size: 9.5px; font-weight: 600;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--mu-deep);
+}
+td { font-size: 13.5px; color: #c3c8d2; }
+td code {
+  font-family: var(--f-mono); font-size: 12.5px; color: var(--cyan);
+  background: rgba(0,229,255,.07); padding: 1px 5px; border-radius: 4px;
+  white-space: nowrap;
+}
+td.st { font-family: var(--f-mono); font-size: 11px; letter-spacing: .06em; white-space: nowrap; }
+.have { color: var(--green); }
+.gap  { color: var(--gold); }
+.new  { color: var(--pink); }
+
+/* ── the two instruments ────────────────────────────────────── */
+.pair { display: grid; gap: 14px; margin: 22px 0 0; }
+@media (min-width: 680px) { .pair { grid-template-columns: 1fr 1fr; } }
+.inst {
+  border: 1px solid var(--line); border-radius: 13px;
+  background: var(--card); padding: 17px 18px;
+}
+.inst.f { border-color: rgba(0,229,255,.3); box-shadow: 0 0 26px rgba(0,229,255,.06); }
+.inst.h { border-color: rgba(255,0,127,.3); box-shadow: 0 0 26px rgba(255,0,127,.06); }
+.inst .n {
+  font-family: var(--f-disp); font-size: 22px; font-weight: 700;
+  letter-spacing: .01em; text-transform: uppercase; line-height: 1;
+}
+.inst.f .n { color: var(--cyan); }
+.inst.h .n { color: var(--pink); }
+.inst .k {
+  font-family: var(--f-mono); font-size: 10px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--mu-deep); margin: 5px 0 12px;
+}
+.inst dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 5px 12px; }
+.inst dt {
+  font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--mu-deep); padding-top: 3px;
+}
+.inst dd { margin: 0; font-size: 13.5px; color: #c3c8d2; }
+
+/* ── callout ────────────────────────────────────────────────── */
+.warn {
+  margin: 20px 0 0; padding: 16px 18px;
+  border: 1px solid rgba(255,0,127,.3); border-left: 3px solid var(--pink);
+  border-radius: 0 11px 11px 0; background: rgba(255,0,127,.045);
+}
+.warn .t {
+  font-family: var(--f-disp); font-size: 13px; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--pink);
+  margin-bottom: 7px;
+}
+.warn p { font-size: 14px; }
+
+ul { margin: 0 0 14px; padding-left: 20px; color: #c3c8d2; }
+li { margin-bottom: 7px; }
+li::marker { color: var(--gold-dim); }
+
+hr { border: 0; border-top: 1px solid var(--line); margin: 54px 0 0; }
+
+footer {
+  padding: 34px 0 64px; margin-top: 40px;
+  border-top: 1px solid var(--line);
+  font-family: var(--f-mono); font-size: 11px; line-height: 1.8;
+  letter-spacing: .05em; color: var(--mu-deep);
+}
+footer a { color: var(--mu); }
+
+
+/* ── movement break ─────────────────────────────────────────── */
+.movement {
+  margin: 72px 0 0; padding: 30px 0 0;
+  border-top: 2px solid var(--line-gold);
+}
+.movement .no {
+  font-family: var(--f-mono); font-size: 10px; font-weight: 600;
+  letter-spacing: .24em; text-transform: uppercase; color: var(--gold);
+}
+.movement h2 { margin-top: 8px; font-size: clamp(26px, 4.6vw, 40px); }
+.movement .stand {
+  font-size: clamp(16px, 2.1vw, 18.5px); line-height: 1.6;
+  color: var(--mu); margin: 14px 0 0; max-width: 58ch;
+}
+.movement .stand b { color: var(--tx); font-weight: 600; }
+
+/* ── mechanism card ─────────────────────────────────────────── */
+.mech {
+  margin: 26px 0 0; border: 1px solid var(--line);
+  border-radius: 13px; background: var(--card); overflow: hidden;
+}
+.mech > .bar {
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  padding: 11px 17px; border-bottom: 1px solid var(--line);
+  background: rgba(255,255,255,.017);
+}
+.mech .id {
+  font-family: var(--f-mono); font-size: 10px; font-weight: 600;
+  letter-spacing: .18em; color: var(--gold);
+}
+.mech .ttl {
+  font-family: var(--f-disp); font-size: 15.5px; font-weight: 600;
+  letter-spacing: .02em; color: var(--tx);
+}
+.mech .cite {
+  font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .07em;
+  color: var(--mu-deep); margin-left: auto; white-space: nowrap;
+}
+.mech .body { padding: 15px 17px 17px; }
+.mech .rows { display: grid; gap: 0; margin-top: 13px; }
+.mech .row {
+  display: grid; grid-template-columns: 92px 1fr; gap: 13px;
+  padding: 10px 0; border-top: 1px solid var(--line);
+}
+.mech .row .lbl {
+  font-family: var(--f-mono); font-size: 9px; font-weight: 600;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--mu-deep);
+  padding-top: 3px;
+}
+.mech .row .val { font-size: 14px; line-height: 1.55; color: #c3c8d2; }
+.mech .row .val b { color: var(--tx); font-weight: 600; }
+.mech .row.hinge .lbl { color: var(--gold); }
+.mech .row.hinge .val { color: var(--tx); }
+code.fn {
+  font-family: var(--f-mono); font-size: 12.5px; color: var(--cyan);
+  background: rgba(0,229,255,.07); padding: 1px 5px; border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* ── flywheel ───────────────────────────────────────────────── */
+.wheel { margin: 22px 0 0; overflow-x: auto; }
+.wheel svg { display: block; width: 100%; min-width: 460px; height: auto; }
+
+/* ── the line ───────────────────────────────────────────────── */
+.line-panel {
+  margin: 24px 0 0; border: 1px solid rgba(255,0,127,.34);
+  border-radius: 13px; background: rgba(255,0,127,.04); overflow: hidden;
+}
+.line-panel .bar {
+  padding: 11px 17px; border-bottom: 1px solid rgba(255,0,127,.24);
+  font-family: var(--f-disp); font-size: 13.5px; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--pink);
+}
+.line-panel .body { padding: 15px 17px 17px; }
+.rules { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 9px; }
+.rules li {
+  display: grid; grid-template-columns: 20px 1fr; gap: 10px;
+  font-size: 14px; line-height: 1.55; color: #c3c8d2; margin: 0;
+}
+.rules li .m {
+  font-family: var(--f-mono); font-size: 13px; font-weight: 600;
+  color: var(--pink); line-height: 1.55;
+}
+.rules li b { color: var(--tx); font-weight: 600; }
+
+.split { display: grid; gap: 12px; margin: 20px 0 0; }
+@media (min-width: 640px) { .split { grid-template-columns: 1fr 1fr; } }
+.side {
+  border: 1px solid var(--line); border-radius: 11px;
+  background: var(--card); padding: 14px 16px;
+}
+.side.ok { border-color: rgba(0,255,136,.3); }
+.side.no { border-color: rgba(255,0,127,.3); }
+.side .h {
+  font-family: var(--f-mono); font-size: 9.5px; font-weight: 600;
+  letter-spacing: .16em; text-transform: uppercase; margin-bottom: 8px;
+}
+.side.ok .h { color: var(--green); }
+.side.no .h { color: var(--pink); }
+.side p { font-size: 13.5px; margin: 0; }
+
+.srcs { margin: 18px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.srcs li { font-family: var(--f-mono); font-size: 11px; line-height: 1.6; color: var(--mu-deep); margin: 0; }
+.srcs a { color: var(--mu); }
+
+/* ── v1.2 additions ─────────────────────────────────────────── */
+.thesis {
+  font-family: var(--f-disp); font-size: clamp(20px, 3.6vw, 30px); font-weight: 600;
+  letter-spacing: .04em; color: var(--gold); margin-top: 12px; line-height: 1.1;
+}
+.inst .k code { font-family: var(--f-mono); color: var(--mu); text-transform: none; letter-spacing: 0; }
+table.fees th:not(:first-child),
+table.fees td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+table.fees td:first-child { color: var(--tx); }
+h3.still { margin: 26px 0 10px; color: var(--gold); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+</style>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">Perp families 7 &amp; 8 · v1.2 · updated 23 Oct 2026</div>
+    <h1>The<br>Paseome</h1>
+    <div class="thesis">Certain-UnCertainty</div>
+    <p class="lede">
+      Every existing perp prices <b>one number</b> — a velocity, a credibility, a persistence.
+      This one prices <b>a path</b>. A what-if is a tree, positions ride a branch of it, and the
+      tree never terminates — which is what makes it a perpetual rather than a very long binary.
+    </p>
+    <div class="namebar">
+      <span class="chip g">Open conviction market</span>
+      <span class="chip f">Forward · what if this happens</span>
+      <span class="chip h">Counterfactual · what if this had happened</span>
+    </div>
+  </header>
+
+  <div class="instrument">
+    <div class="head">
+      <span class="t">The live frontier</span>
+      <span class="s">DL-LMSR · Σp = 1 · leg roll 59.061d</span>
+    </div>
+    <canvas id="tree" width="1120" height="480" aria-label="A branching path tree. Only the sibling set at the current node is tradeable; its prices always sum to one. On each leg roll one branch is taken and becomes the new node."></canvas>
+    <div class="foot">
+      You only ever trade the <b>frontier</b> — the sibling set at the live node. Everything behind it is settled history; everything ahead of it is unpriced.
+    </div>
+  </div>
+
+  <section>
+    <div class="eyebrow">On the name</div>
+    <h2>One name for the whole system</h2>
+    <p>
+      Read as <em>-ome</em> — genome, biome, proteome, the complete set of a kind of thing — it names
+      something on this platform that had no name before: <strong>the full tree of paths a market
+      can take</strong>, of which any position holds one branch. Nothing else in the codebase covers it.
+    </p>
+    <p>
+      The official name is <strong>The Paseome: Certain-UnCertainty</strong>, set by the founder on
+      23 Oct 2026. It is the name on the card as well as the name of the system. The two sides inside
+      it are described by what they do, forward and counterfactual. <em>Foresight</em> and
+      <em>hindsight</em> remain only as internal labels in the code.
+    </p>
+    <p>
+      <strong>Certain-UnCertainty</strong> is the design in two words. The arithmetic is certain: a
+      frontier's prices always sum to one, the market maker's worst-case loss is fixed in advance at
+      <em>b</em>·ln <em>n</em> (1,318 $MADx for three branches, 1,931 for five), an untaken forward branch
+      is refunded, and a leg rolls every 59.061 days. The outcome stays uncertain, and only in the kind
+      of uncertainty that knowing more can reduce.
+    </p>
+    <p>
+      The two sides split exactly where the maths forces it, at <strong>what can and cannot be settled</strong>.
+    </p>
+
+    <div class="pair">
+      <div class="inst f">
+        <div class="n">Forward</div>
+        <div class="k">Prospective · resolvable · family 7 · internal label <code>foresight</code></div>
+        <dl>
+          <dt>Asks</dt><dd>“What if this happens?” — a branch that has not occurred yet, and can.</dd>
+          <dt>Settles</dt><dd>Optimistic oracle at the leg boundary. The branch is taken or it is not.</dd>
+          <dt>Unrealised</dt><dd>Siblings on untaken branches are <em>refunded</em>, not written off.</dd>
+          <dt>Class</dt><dd>PREDICTION</dd>
+        </dl>
+      </div>
+      <div class="inst h">
+        <div class="n">Counterfactual</div>
+        <div class="k">Never resolves · family 8 · internal label <code>hindsight</code></div>
+        <dl>
+          <dt>Asks</dt><dd>“What if this <em>had</em> happened?” — a branch reality already closed.</dd>
+          <dt>Settles</dt><dd>It doesn't. It prices how much of the belief <em>sticks</em>.</dd>
+          <dt>Unrealised</dt><dd>Nothing is unrealised — every branch stays permanently live.</dd>
+          <dt>Class</dt><dd>CONVICTION</dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <span class="layer-tag">Layer 1 · Pricing</span>
+    <h2>The frontier simplex</h2>
+    <div class="sub">Why the tree can't leak value at a fork</div>
+    <p>
+      The failure mode of a branching market is obvious once stated: if the prices on the branches
+      leaving a node don't sum to the price of the node itself, the market either mints or destroys
+      value every time it forks. Traders find that within a day.
+    </p>
+    <p>
+      The engine already contains the fix, in two halves that have never been joined.
+      <code style="font-family:var(--f-mono);font-size:12.5px;color:var(--cyan)">calculateDLLMSRPrice</code>
+      prices an <em>n</em>-outcome vector whose probabilities sum to one <strong>by
+      construction</strong>. Feed that vector in as the <code style="font-family:var(--f-mono);font-size:12.5px;color:var(--cyan)">conditionalProb</code>
+      edges of a <code style="font-family:var(--f-mono);font-size:12.5px;color:var(--cyan)">TreeNode</code>,
+      and conservation stops being a rule anyone has to enforce.
+    </p>
+
+    <div class="maths">
+      <div class="expr">P(branch i) = e^(q_i/b) / Σ e^(q_j/b)&nbsp;&nbsp;·&nbsp;&nbsp;path = Π P(branch)</div>
+      <p class="why">
+        A position's value is the <b>product of the branch prices along its path</b>. Deepen the path
+        and the price falls multiplicatively — long-shot what-ifs get cheap on their own, with no
+        separate long-shot discount to tune. Hanson designed LMSR for exactly this: combinatorial
+        markets over a tree of conditional outcomes.
+      </p>
+    </div>
+
+    <p>
+      <strong>Only the frontier is priced.</strong> Maintaining correct LMSR prices across a whole
+      combinatorial outcome space is NP-hard, so the market never attempts it: it prices the sibling
+      set at the live node and nothing else — <em>O(n)</em> per node instead of exponential. Depth is
+      a property of the recorded path, not of the pricing problem.
+    </p>
+    <p>
+      When a leg rolls and a branch is taken, Zeitgeist's succession matrix already knows how to
+      transmigrate conviction from a parent slate into its successor, under a write path that
+      <em>refuses a matrix that leaks holder value</em>. That is the same operation, and it is
+      already written.
+    </p>
+  </section>
+
+  <section>
+    <span class="layer-tag c2">Layer 2 · Settlement</span>
+    <h2>One of these two markets can never be resolved</h2>
+    <div class="sub">And the design is better for admitting it</div>
+    <p>
+      The forward side is ordinary: the branch happens or it doesn't, the oracle says which, the leg rolls.
+      The counterfactual side is not, and the temptation is to paper over it. <strong>A counterfactual has no
+      outcome to settle against.</strong> Conditional market prices reveal probabilistic
+      relationships, not causal ones — <em>P(Y | X = x)</em> is not <em>what Y would have been had X
+      been set to x</em>, and no amount of liquidity closes that gap.
+    </p>
+    <p>
+      So the counterfactual side doesn't price the counterfactual itself. It prices <strong>the persistence of the belief
+      about it</strong> — which is a real, measurable, continuously-settling quantity, and which is
+      precisely what Perpetual Epiphanies already does when it prices Murphy's Law with no terminal
+      date. The instrument is honest by construction: it never claims to know what would have
+      happened, only how hard the culture is still holding the idea that something would have.
+    </p>
+
+    <div class="maths">
+      <div class="expr">cgarchUpdate → { permanent, transitory } &nbsp;·&nbsp; THE DIVERGENCE = τ_perm − τ_trans</div>
+      <p class="why">
+        Five Faces' component decomposition, pointed at a belief series instead of a mask. The
+        <b>permanent</b> component is the part of the what-if that has entered the culture and stayed;
+        the <b>transitory</b> component is meme churn that will be gone in a leg. The counterfactual side's headline
+        print is the gap between them — the same reading Five Faces already renders, on a different
+        input.
+      </p>
+    </div>
+
+    <p>
+      Grading comes free: <code style="font-family:var(--f-mono);font-size:12.5px;color:var(--cyan)">brierScore</code>
+      and <code style="font-family:var(--f-mono);font-size:12.5px;color:var(--cyan)">logScore</code>
+      are already in <code style="font-family:var(--f-mono);font-size:12.5px;color:var(--cyan)">bayesian-conviction.ts</code>.
+      A counterfactual position is scored against the forecast series it moved, not against an outcome —
+      so the leaderboard is calibration, which is the only fair thing to rank people on in a market
+      that cannot resolve.
+    </p>
+
+    <div class="warn">
+      <div class="t">The one thing that will kill this if you skip it</div>
+      <p>
+        The forward and counterfactual sides must be <strong>visually and structurally unmistakable</strong> from
+        each other on every surface. A trader who thinks a counterfactual print is a probability of
+        something happening has been misled by the product, not by the market. Different class,
+        different accent, different verb on the card — and the counterfactual card should say
+        <em>“never resolves”</em> where the others say a countdown.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <span class="layer-tag c3">Layer 3 · Supply</span>
+    <h2>The caricature is the oracle's raw material</h2>
+    <div class="sub">Where the shorts, storyboards and UGC actually plug in</div>
+    <p>
+      The content isn't marketing around the market. It is the market's input. <strong>A branch
+      cannot open without a rendered artefact</strong> — a short, a storyboard, or a UGC submission
+      minted against a caricature card from the 992-deep deck. No artefact, no branch: that single
+      rule turns creators into the mechanism that extends the tree.
+    </p>
+    <div class="maths">
+      <div class="expr">M = t^1.35 · c^0.75 · d^1.45 · ψ^1.15 · (1+π^0.9) · <span style="color:var(--pink)">m_meme</span> · satire · liar · garch_amp</div>
+      <p class="why">
+        The meme multiplier is <b>already in MADConv</b>. An artefact's reach is not a new term
+        anyone has to invent — it is the term that has been sitting in the conviction score since the
+        beginning, finally with something real feeding it.
+      </p>
+    </div>
+    <ul>
+      <li><strong>Creators earn on their own markets.</strong> A sliding 28.8% → 40% of the gross fee, by ladder rung. The rare 60% VIP profit share is limited to 4,888 seats. No new fee mechanism.</li>
+      <li><strong>Resolution reuses Gossip-Cop's spec.</strong> Optimistic oracle with a $MADx bond and a challenge window, plus the community punchline vote already scoped in its §7.3.</li>
+      <li><strong>Subjects stay opaque.</strong> <code style="font-family:var(--f-mono);font-size:12.5px;color:var(--cyan)">subject_ref</code> is never a person's name — that is already schema law in <code style="font-family:var(--f-mono);font-size:12.5px;color:var(--cyan)">0012_perp_markets.sql</code>.</li>
+      <li><strong>Caricatures are of archetypes, not people.</strong> The Five Faces set — Saint, White Rice, Megalomaniac, Narcissist, Sellout — is the cast. This is the guardrail that keeps a what-if engine from becoming a defamation engine, and it is how Five Faces already works.</li>
+    </ul>
+  </section>
+
+  <hr>
+
+  <section>
+    <div class="eyebrow">Build ledger</div>
+    <h2>Most of this is already written</h2>
+    <p>
+      Every mechanism above was checked against the repository before it was proposed. The Paseome's
+      own maths shipped on 27 Aug 2026 in <code style="font-family:var(--f-mono);font-size:12.5px;color:var(--cyan)">lib/paseome.ts</code>
+      and the live route <code style="font-family:var(--f-mono);font-size:12.5px;color:var(--cyan)">GET /api/v1/paseome/frontier</code>.
+      What is left is the part that holds money between legs.
+    </p>
+    <div class="ledger-wrap">
+      <table>
+        <thead>
+          <tr><th>Mechanism</th><th>Lives in</th><th>State</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><em>n</em>-outcome pricing, Σp = 1</td><td><code>calculateDLLMSRPrice</code></td><td class="st have">◆ have</td></tr>
+          <tr><td>Frontier pricing, overflow-safe</td><td><code>frontierPrices</code></td><td class="st have">◆ have</td></tr>
+          <tr><td>Backward induction over a tree</td><td><code>propagateTree</code> · <code>treeConservationError</code></td><td class="st have">◆ fixed</td></tr>
+          <tr><td>Permanent / transitory split</td><td><code>cgarchUpdate</code></td><td class="st have">◆ have</td></tr>
+          <tr><td>Bad-news asymmetry</td><td><code>egarchLogVar</code></td><td class="st have">◆ have</td></tr>
+          <tr><td>Belief updating along a path</td><td><code>sequentialLogOddsUpdate</code></td><td class="st have">◆ have</td></tr>
+          <tr><td>Calibration scoring</td><td><code>brierScore</code> · <code>logScore</code></td><td class="st have">◆ have</td></tr>
+          <tr><td>Leg roll, six legs to a Turning</td><td><code>lib/lunar-legs.ts</code></td><td class="st have">◆ have</td></tr>
+          <tr><td>Meme multiplier in conviction</td><td><code>calculateConviction</code></td><td class="st have">◆ have</td></tr>
+          <tr><td>Creator ladder, fee split</td><td><code>CREATOR_LADDER</code> · <code>splitFee</code></td><td class="st have">◆ have</td></tr>
+          <tr><td>Loss mitigation on long holds</td><td><code>calculateShieldPremium</code></td><td class="st have">◆ have</td></tr>
+          <tr><td>Shield ceiling at 40%</td><td><code>calculateShieldPayoutFull</code></td><td class="st gap">◆ engine still has a 60% rung</td></tr>
+          <tr><td>Branch refund on an untaken path</td><td><code>settleFrontier</code></td><td class="st have">◆ have</td></tr>
+          <tr><td>Who may author a branch</td><td><code>canAuthorBranch</code></td><td class="st have">◆ have</td></tr>
+          <tr><td>VIP seat limit, 4,888</td><td><code>VIP_PROFIT_SHARE_SEATS</code></td><td class="st gap">◆ not yet enforced</td></tr>
+          <tr><td>Artefact-gated branch opening</td><td>—</td><td class="st new">◆ new</td></tr>
+          <tr><td>Tree persistence and refund ledger</td><td>—</td><td class="st new">◆ new</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="warn" style="border-color:rgba(255,215,0,.32);border-left-color:var(--gold);background:rgba(255,215,0,.04)">
+      <div class="t" style="color:var(--gold)">Fixed 27 Aug 2026 · the tree no longer leaks</div>
+      <p>
+        <code style="font-family:var(--f-mono);font-size:12.5px;color:var(--cyan)">propagateTree</code>
+        used to sum <code style="font-family:var(--f-mono);font-size:12.5px;color:var(--cyan)">conditionalProb</code>
+        across a node's children without checking that they sum to <strong>1</strong>, so a node whose
+        branches totalled 0.8 or 1.3 silently mispriced every position beneath it.
+        <code style="font-family:var(--f-mono);font-size:12.5px;color:var(--cyan)">treeConservationError</code>
+        now checks every node to within 10<sup>−6</sup>, and the tree route refuses a tree that fails
+        with a 400. Sourcing the edges from DL-LMSR keeps it true by construction.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Decided</div>
+    <h2>Three calls, made</h2>
+    <ul>
+      <li>
+        <strong>Untaken branches are refunded, not written off.</strong> Decided 27 Aug 2026. People
+        lock capital in a conditional market only if a bet that misses for an unrelated reason comes
+        back to them, and a refunded branch is not a near-miss. The counterfactual side writes off
+        nothing, because nothing there is ever unrealised. Lives in <code class="fn">settleFrontier</code>.
+      </li>
+      <li>
+        <strong>A frontier holds 3 to 5 branches.</strong> Decided 27 Aug 2026. Three keeps prices
+        legible and liquidity deep; five matches the Five Faces simplex and the dial geometry. Past five
+        the prices get too thin to mean anything. <code class="fn">FRONTIER_MIN</code> and
+        <code class="fn">FRONTIER_MAX</code> throw on anything else.
+      </li>
+      <li>
+        <strong>Creators author on the open market. The platform authors less.</strong> Decided
+        23 Oct 2026. The Paseome is an open conviction market: creators at MinorCreator and above, or
+        VIPs, author its trees and earn their creator share on the trees they open. The platform also
+        offers trees of its own, to a lesser extent and for different uses, and those carry no creator
+        cut. Lives in <code class="fn">canAuthorBranch</code>.
+      </li>
+    </ul>
+    <h3 class="still">Still open</h3>
+    <ul>
+      <li>
+        <strong>How is a VIP seat obtained?</strong> Bought, earned or granted, and does the CR8TR
+        traction rung still qualify? The 4,888-seat limit is recorded in the engine but does not gate
+        payouts until this is answered.
+      </li>
+      <li>
+        <strong>When does the artefact gate go live?</strong> From Phase 1 it keeps <em>m_meme</em>
+        measuring something real. From Phase 4 the tree grows faster first.
+      </li>
+      <li>
+        <strong>What starts a counterfactual tree?</strong> An anniversary, a forward branch that
+        failed, or free authorship.
+      </li>
+    </ul>
+  </section>
+
+
+  <div class="movement">
+    <div class="no">Movement II</div>
+    <h2>Why anyone would touch it</h2>
+    <p class="stand">
+      The instrument above is tradeable. That is not the same as <b>wanted</b>. What follows is five
+      mechanisms — from reward neuroscience, humour theory and cultural transmission — that this
+      particular instrument happens to sit on top of, and the exact place each one plugs into the
+      maths. Then the market play they add up to, and the line none of it may cross.
+    </p>
+  </div>
+
+  <section>
+    <div class="instrument">
+      <div class="head">
+        <span class="t">The uncertainty ramp</span>
+        <span class="s">Fiorillo · Tobler · Schultz, Science 2003</span>
+      </div>
+      <canvas id="ramp" width="1120" height="420" aria-label="Two dopamine signals plotted against reward probability. The phasic burst rises monotonically with probability. The separate sustained ramp is an inverted U peaking at probability 0.5 — the knife edge."></canvas>
+      <div class="foot">
+        The burst codes prediction <b>error</b> and rises with p. The ramp codes <b>uncertainty</b> and peaks at p = 0.5 — where a prediction market most needs a trader.
+      </div>
+    </div>
+
+    <div class="mech">
+      <div class="bar">
+        <span class="id">M1</span>
+        <span class="ttl">The market's information frontier is also the dopamine peak</span>
+        <span class="cite">Science 299:1898</span>
+      </div>
+      <div class="body">
+        <p>
+          Dopamine neurons carry two separable signals. A phasic burst codes reward prediction error and
+          varies monotonically with probability. A second, slower response — unobserved before this
+          paper — <em>ramps</em> until the moment of outcome and covaries with <strong>uncertainty</strong>,
+          which is maximal at p = 0.5 and falls away toward both ends.
+        </p>
+        <p>
+          A prediction market wants traders in exactly the same place. At p ≈ 0.5 the information value
+          of one more informed position is highest and the spread available to earn is widest. The
+          arousal does not have to be manufactured — <strong>it only has to be found and surfaced.</strong>
+        </p>
+        <div class="rows">
+          <div class="row hinge">
+            <div class="lbl">Design</div>
+            <div class="val"><b>The Knife Edge.</b> The deck's default sort is <code class="fn">|p − 0.5|</code> ascending — not volume, not recency, not heat. Every other venue sorts by volume, which points away from the information frontier.</div>
+          </div>
+          <div class="row">
+            <div class="lbl">Plugs into</div>
+            <div class="val"><code class="fn">computeEdge</code> and <code class="fn">shouldAct</code> already exist. Knife Edge is the market-wide sort; <code class="fn">computeEdge</code> is the personal one. Two rankings, both real, neither invented.</div>
+          </div>
+          <div class="row">
+            <div class="lbl">The hinge</div>
+            <div class="val">Peak-uncertainty ramping is <em>also</em> what a slot machine exploits. The whole difference is whether the uncertainty is <b>epistemic</b> — reducible by knowing more — or <b>aleatory</b>. A satirical what-if is almost purely epistemic. So: <b>never put an aleatory term in price.</b> Card packs may roll dice. The market may not.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mech">
+      <div class="bar">
+        <span class="id">M2</span>
+        <span class="ttl">Information is a reward, even when it is useless</span>
+        <span class="cite">Bromberg-Martin &amp; Hikosaka, Neuron 2009 · Loewenstein 1994</span>
+      </div>
+      <div class="body">
+        <p>
+          The same midbrain dopamine neurons that signal an expected water reward also signal the
+          expectation of <em>advance information</em> about it — correlated with how strongly the animal
+          wants to know. This holds for <strong>non-instrumental</strong> information: an answer that
+          cannot be acted on and cannot increase the reward. Animals pay for it anyway.
+        </p>
+        <p>
+          Which retires the idea that a market report is a nice-to-have. Loewenstein's information gap
+          says curiosity is an aversive state opened by an <em>incomplete</em> answer; the dopamine work
+          says closing it is itself rewarding.
+        </p>
+        <div class="rows">
+          <div class="row hinge">
+            <div class="lbl">Design</div>
+            <div class="val"><b>The sealed read.</b> Every branch shows its satirical one-liner in full and its <em>reasoning</em> one tap away. The gap between the joke and the why is the information gap, deliberately sized.</div>
+          </div>
+          <div class="row">
+            <div class="lbl">Plugs into</div>
+            <div class="val">The per-family mini report shipped in the deck already. Paseome inherits its shape — book, flow, maths underneath, insight — per branch instead of per family.</div>
+          </div>
+          <div class="row">
+            <div class="lbl">Structural</div>
+            <div class="val">Zeigarnik: unfinished business is remembered better than finished. A perp <b>never finishes</b> — the frontier is always live. The instrument is structurally unresolved, which is a property, not a defect.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mech">
+      <div class="bar">
+        <span class="id">M3</span>
+        <span class="ttl">A counterfactual is a violation that is benign by grammar</span>
+        <span class="cite">McGraw &amp; Warren, Psych Science 2010</span>
+      </div>
+      <div class="body">
+        <p>
+          Humour occurs when and only when three things hold at once: a situation is a <strong>violation</strong>,
+          the situation is <strong>benign</strong>, and both appraisals happen simultaneously. A violation
+          is made benign by an alternative norm, by weak commitment to the violated norm, or by
+          <strong>psychological distance</strong>.
+        </p>
+        <p>
+          This is the most consequential finding for this product, because it explains precisely why the
+          what-if framing survives where straight tabloid satire curdles:
+        </p>
+        <div class="maths" style="border-color:rgba(255,0,127,.3);background:rgba(255,0,127,.04)">
+          <div class="expr" style="color:var(--pink);white-space:normal">A counterfactual is benign <em>because it did not happen</em>.</div>
+          <p class="why">
+            The counterfactual side gets McGraw's third condition <b>free, from the verb tense</b>. Gossip-Cop prices a
+            claim about something that did happen — a violation whose benign-ness must be manufactured by
+            tone, every time, by hand. The irrealis mood does that work structurally.
+          </p>
+        </div>
+        <div class="rows">
+          <div class="row hinge">
+            <div class="lbl">Design</div>
+            <div class="val"><b>The irrealis constraint.</b> A counterfactual market's title must grammatically contain the counterfactual — <em>had</em>, <em>would have</em>, <em>if</em>. A title that asserts is rejected at write time. Schema constraint, not style guide.</div>
+          </div>
+          <div class="row">
+            <div class="lbl">Falls out free</div>
+            <div class="val">Distance rises with abstraction and with remove from the real. So <b>benignity scales with path depth</b>: branch 1 is edgy, branch 4 is absurd and therefore safe. The satire safety gradient is the tree structure — nothing extra to build.</div>
+          </div>
+          <div class="row">
+            <div class="lbl">Enforced by</div>
+            <div class="val">Opaque <code class="fn">subject_ref</code>, already schema law · caricatures of the Five Faces archetypes, never likenesses · the irrealis check above. Three independent gates, none of them tonal.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mech">
+      <div class="bar">
+        <span class="id">M4</span>
+        <span class="ttl">Change exactly one thing</span>
+        <span class="cite">Boyer · Barrett &amp; Nyhof · Norenzayan &amp; Atran</span>
+      </div>
+      <div class="body">
+        <p>
+          Concepts that violate <strong>exactly one</strong> ontological expectation are recalled and
+          transmitted better than either fully intuitive or heavily counterintuitive ones. The optimum is
+          a <em>minority</em> of counterintuitive elements against a majority of ordinary ones. Such
+          violations are attention-arresting and inferentially rich without rupturing comprehension.
+          The effect replicates cross-culturally — France, Nepal, Gabon.
+        </p>
+        <p>
+          So memetic fitness is not a vibe. It is a <strong>countable quantity with an optimum at one</strong>,
+          and this platform already has a term waiting for it.
+        </p>
+        <div class="rows">
+          <div class="row hinge">
+            <div class="lbl">Design</div>
+            <div class="val"><b>The MCI score.</b> Count violated expectations in a branch proposal. Reward 1; penalise 0 (that is just news) and ≥2 (that is noise).</div>
+          </div>
+          <div class="row">
+            <div class="lbl">Plugs into</div>
+            <div class="val"><code class="fn">m_meme</code> in <code class="fn">calculateConviction</code> — currently a hand-waved multiplier. This gives it thirty years of cross-cultural evidence instead of a guess.</div>
+          </div>
+          <div class="row">
+            <div class="lbl">Craft rule</div>
+            <div class="val">The whole discipline of a good what-if, in three words: <b>change one thing.</b> “What if Kenny stayed dead” is one violation. “What if Kenny stayed dead and was a lizard and it was 1840” is noise, and the score will say so.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mech">
+      <div class="bar">
+        <span class="id">M5</span>
+        <span class="ttl">Gossip is the substrate, not the topic</span>
+        <span class="cite">Dunbar, Grooming, Gossip and the Evolution of Language</span>
+      </div>
+      <div class="body">
+        <p>
+          Roughly <strong>two-thirds</strong> of free conversation time goes to social topics; no other
+          single subject — politics, sport, religion — takes more than about a tenth. Language looks
+          adapted for storytelling, and gossip is social grooming scaled past the point where grooming
+          could work.
+        </p>
+        <div class="rows">
+          <div class="row hinge">
+            <div class="lbl">Design</div>
+            <div class="val">The unit of distribution is a <b>conversational unit</b> — a thing one person says to another — not a chart. The satirical one-liner is that unit, and <code class="fn">satirizeHeadline</code> already produces it.</div>
+          </div>
+          <div class="row">
+            <div class="lbl">Sizing</div>
+            <div class="val">The addressable attention is not “people who use prediction markets.” It is the two-thirds. That is the honest reason this family can be larger than the six that precede it.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <div class="eyebrow">The open market play</div>
+    <h2>The meme is the order</h2>
+    <p>
+      Every one of those five mechanisms is a distribution mechanism. Put them on the frontier simplex
+      and something unusual falls out: <strong>marketing and price discovery become the same
+      action.</strong> A branch's artefact is minted with that branch's price embedded. Share it and the
+      price travels with it. Someone acts on it and <code class="fn">m_meme</code> moves, which moves
+      conviction, which moves price — and the moved price is what the next share carries.
+    </p>
+
+    <div class="wheel">
+      <svg viewBox="0 0 720 302" role="img" aria-label="The flywheel: author a branch, mint the artefact, it travels on the gossip substrate, attention lands on a knife edge at probability one half, the information gap pulls the tap, a position opens and moves the price, which is re-embedded in the next share.">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#b8860b"/>
+          </marker>
+        </defs>
+        <g font-family="'IBM Plex Mono', monospace" font-size="10.5" fill="#c3c8d2">
+          <g stroke="#b8860b" stroke-width="1.3" fill="none" marker-end="url(#ar)" opacity=".75">
+            <path d="M 112 62 L 236 62"/>
+            <path d="M 330 62 L 452 62"/>
+            <path d="M 556 62 L 640 62 Q 664 62 664 90 L 664 128"/>
+            <path d="M 640 172 L 470 172"/>
+            <path d="M 372 172 L 210 172"/>
+            <path d="M 122 190 Q 92 202 92 224 L 92 246 Q 92 262 116 262 L 300 262"/>
+            <path d="M 454 262 L 686 262 Q 706 262 706 242 L 706 42 Q 706 22 686 22 L 302 22 Q 284 22 284 36 L 284 40"/>
+          </g>
+          <g>
+            <rect x="14" y="44" width="98" height="36" rx="8" fill="#111520" stroke="rgba(255,215,0,.34)"/>
+            <text x="63" y="66" text-anchor="middle" fill="#ffd700">AUTHOR</text>
+            <rect x="238" y="44" width="92" height="36" rx="8" fill="#111520" stroke="rgba(240,240,248,.14)"/>
+            <text x="284" y="66" text-anchor="middle">MINT</text>
+            <rect x="454" y="44" width="102" height="36" rx="8" fill="#111520" stroke="rgba(240,240,248,.14)"/>
+            <text x="505" y="66" text-anchor="middle">TRAVELS</text>
+            <rect x="560" y="130" width="108" height="42" rx="8" fill="#111520" stroke="rgba(0,229,255,.34)"/>
+            <text x="614" y="146" text-anchor="middle" fill="#00e5ff">KNIFE EDGE</text>
+            <text x="614" y="162" text-anchor="middle" fill="#565d6b" font-size="9">p ≈ 0.50</text>
+            <rect x="374" y="154" width="96" height="36" rx="8" fill="#111520" stroke="rgba(240,240,248,.14)"/>
+            <text x="422" y="176" text-anchor="middle">THE TAP</text>
+            <rect x="112" y="154" width="98" height="36" rx="8" fill="#111520" stroke="rgba(0,255,136,.34)"/>
+            <text x="161" y="176" text-anchor="middle" fill="#00ff88">POSITION</text>
+            <rect x="302" y="244" width="150" height="36" rx="8" fill="#111520" stroke="rgba(255,215,0,.34)"/>
+            <text x="377" y="266" text-anchor="middle" fill="#ffd700">PRICE RE-EMBEDS</text>
+          </g>
+          <g fill="#565d6b" font-size="9">
+            <text x="284" y="98" text-anchor="middle">price embedded</text>
+            <text x="505" y="98" text-anchor="middle">gossip substrate · MCI = 1</text>
+            <text x="422" y="206" text-anchor="middle">information gap</text>
+            <text x="161" y="206" text-anchor="middle">m_meme moves</text>
+            <text x="500" y="34" text-anchor="middle">the moved price rides the next share</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <p>
+      Most venues pay for distribution and for liquidity out of two different budgets. Here they are one
+      budget and one action, and the <strong>fee waterfall already pays it</strong>. Nothing new to
+      invent on the fee side.
+    </p>
+    <div class="maths">
+      <div class="expr">grossFee = volume × 1.88% · creatorCut = grossFee × rung · platformNet = grossFee − creatorCut · community = platformNet × 28.8% · protocol = platformNet − community</div>
+      <p class="why">
+        The rake is a flat <b>1.88%</b>. A creator's cut comes off the gross, and only on trees that
+        creator opened. The community's <b>28.8%</b> is of what the platform keeps after that, never of
+        the gross.
+      </p>
+    </div>
+    <div class="ledger-wrap">
+      <table class="fees">
+        <thead>
+          <tr><th>Per 10,000 $MADx traded</th><th>Creator</th><th>Platform net</th><th>Community + DAO</th><th>Protocol</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Platform-offered tree</td><td>0.00</td><td>188.00</td><td>54.14</td><td>133.86</td></tr>
+          <tr><td>Creator · User rung · 28.8%</td><td>54.14</td><td>133.86</td><td>38.55</td><td>95.31</td></tr>
+          <tr><td>Creator · MinorCreator · 40%</td><td>75.20</td><td>112.80</td><td>32.49</td><td>80.31</td></tr>
+          <tr><td>VIP seat · 60% · 4,888 seats</td><td>112.80</td><td>75.20</td><td>21.66</td><td>53.54</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:18px">
+      <strong>The Shield has a scale too.</strong> MAD Shield is opt-in loss mitigation, never insurance.
+      A 2–4% premium moves recovery from 28.8% up to 40%, and the staking tier sets how far up that range
+      a holder can go: Bronze 28.8%, Silver 32.8%, Gold 36.8%, MAD Tier 40%. Recovery tops out at 40%.
+      The 60% figure belongs to the creator side, as the VIP profit share, never to the Shield.
+    </p>
+    <p>
+      <strong>The “open” is supply-side.</strong> The tree is public, so any eligible creator may author
+      the next branch off any live node: a creator at MinorCreator or above, or a VIP. Market inventory
+      grows without the platform writing a line of it, though the platform still offers some trees of its
+      own for different uses. The frontier simplex prices each new branch against its siblings
+      automatically. No operator sets a line, because DL-LMSR sets all of them at once.
+    </p>
+    <p>
+      <strong>Cold start is already solved.</strong> A new family has no book, so the forward side's seed
+      frontier is generated from <code class="fn">proposalsForToday</code> — the scraper the six families
+      already run on. The day's real headlines become the root; the first branch set is the what-ifs
+      hanging off it. The market never opens empty. It opens at the news.
+    </p>
+  </section>
+
+  <section>
+    <div class="eyebrow">The line</div>
+    <h2>One property of this design is genuinely dangerous</h2>
+    <p>
+      Near-misses are <em>losses</em> that recruit win-related circuitry in the ventral striatum. They
+      increase physiological arousal, increase motivation to gamble, increase betting <strong>speed</strong>,
+      and foster an illusion of control — and pathological gamblers show amplified striatal response to
+      them specifically.
+    </p>
+    <div class="line-panel">
+      <div class="bar">A branching market is a near-miss generator by construction</div>
+      <div class="body">
+        <p>
+          Every leg roll produces, for most holders, a loss that looks like it <em>almost</em> won. That is
+          not an incidental UI risk that can be designed around later. It is intrinsic to any instrument
+          where visible alternatives resolve against you, and it is the reason to settle these four
+          questions before a line of it is built.
+        </p>
+        <ul class="rules">
+          <li><span class="m">01</span><span><b>Refund, don't near-miss.</b> Untaken forward-side siblings refund. I proposed this for capital efficiency; it turns out to be the harm answer too — a refunded branch is not a loss, so it cannot be a near-miss.</span></li>
+          <li><span class="m">02</span><span><b>Never render “how close.”</b> No “your branch missed by 3 points.” That one string <em>is</em> the near-miss, manufactured deliberately. It will be tempting because it tests well.</span></li>
+          <li><span class="m">03</span><span><b>No fast lane.</b> The measured near-miss effect is increased betting speed. <code class="fn">calculateConviction</code> already weights time held (t<sup>1.35</sup>) above capital (c<sup>0.75</sup>) — the ideology is anti-churn. Don't ship an affordance that fights it.</span></li>
+          <li><span class="m">04</span><span><b>Keep the Turning.</b> Six legs is one lunar year. A cadence in months rather than seconds is the strongest anti-compulsion property this platform has, and it is already canon.</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="side ok">
+        <div class="h">Compelling</div>
+        <p>Epistemic uncertainty. Resolvable by knowing more — reading the source, knowing the subject, being funnier. Rewards attention with understanding.</p>
+      </div>
+      <div class="side no">
+        <div class="h">Compulsive</div>
+        <p>Aleatory uncertainty and near-misses. Irreducible by any amount of thinking. Rewards attention with arousal and nothing else.</p>
+      </div>
+    </div>
+    <p style="margin-top:16px">
+      The two are separable, and the neuroscience says exactly where the seam runs. Everything above is
+      built on the first column. That is the whole reason it is worth building.
+    </p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Sources</div>
+    <ul class="srcs">
+      <li>Fiorillo, Tobler &amp; Schultz (2003). Discrete coding of reward probability and uncertainty by dopamine neurons. <a href="https://www.science.org/doi/10.1126/science.1077349">Science 299:1898</a></li>
+      <li>Bromberg-Martin &amp; Hikosaka (2009). Midbrain dopamine neurons signal preference for advance information about upcoming rewards. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC2723053/">Neuron</a></li>
+      <li>McGraw &amp; Warren (2010). Benign violations: making immoral behavior funny. <a href="https://journals.sagepub.com/doi/abs/10.1177/0956797610376073">Psychological Science</a> · <a href="https://leeds-faculty.colorado.edu/mcgrawp/pdf/mcgraw.warren.2014.pdf">Benign Violation Theory (2014)</a></li>
+      <li>Norenzayan &amp; Atran et al. Memory and mystery: the cultural selection of minimally counterintuitive narratives. <a href="https://www2.psych.ubc.ca/~ara/Manuscripts/Willard%20Henrich%20&%20Norenzayan%20Human%20Nature%20in%20press.pdf">Memory and belief in the transmission of counterintuitive content</a></li>
+      <li>Clark et al. (2009). Gambling near-misses enhance motivation to gamble and recruit win-related brain circuitry. <a href="https://www.sciencedirect.com/science/article/pii/S0896627309000373">Neuron</a> · <a href="https://www.nature.com/articles/npp201643">Amplified striatal responses in pathological gamblers</a></li>
+      <li>Dunbar. <a href="https://www.hup.harvard.edu/books/9780674363366">Grooming, Gossip and the Evolution of Language</a> · <a href="https://allegatifac.unipv.it/ziorufus/Dunbar%20gossip.pdf">Gossip in evolutionary perspective</a></li>
+    </ul>
+  </section>
+
+  <footer>
+    Cross-checked against lib/gambit-game-math.ts, lib/paseome.ts, lib/bayesian-conviction.ts,
+    lib/lunar-legs.ts and sql/0012_perp_markets.sql · reference sheets: Gossip-Cop v1.2,
+    Perpetual Epiphanies v1.1<br>
+    Decisions are recorded in MAD_GAMBIT_MASTER.md (Part 0 §3 and PART VI). Product sheet:
+    docs/product-sheets/PASEOME.md · updated 23 Oct 2026
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  var cv = document.getElementById("tree");
+  if (!cv || !cv.getContext) return;
+  var ctx = cv.getContext("2d");
+  var W = cv.width, H = cv.height;
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var GOLD = "#ffd700", CYAN = "#00e5ff", PINK = "#ff007f", MU = "#565d6b", TX = "#f0f0f8";
+
+  // A settled trunk on the left, the live frontier in the middle, unpriced
+  // possibility fanning out to the right. Prices on the frontier always sum to 1.
+  var trunk = [0.10, 0.30, 0.50];          // x fractions of settled nodes
+  var nodeY = H * 0.5;
+  var frontier = [
+    { p: 0.46, label: "TAKEN",     dy: -0.28 },
+    { p: 0.31, label: "LIVE",      dy:  0.00 },
+    { p: 0.23, label: "LIVE",      dy:  0.28 }
+  ];
+
+  function line(x1, y1, x2, y2, col, w, dash) {
+    ctx.save();
+    ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = "round";
+    if (dash) ctx.setLineDash(dash);
+    ctx.beginPath();
+    // gentle cubic so the tree reads as growth, not a circuit diagram
+    ctx.moveTo(x1, y1);
+    ctx.bezierCurveTo(x1 + (x2 - x1) * 0.5, y1, x1 + (x2 - x1) * 0.5, y2, x2, y2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function dot(x, y, r, col, glow) {
+    ctx.save();
+    if (glow) { ctx.shadowColor = col; ctx.shadowBlur = glow; }
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  function label(x, y, text, col, size, align) {
+    ctx.save();
+    ctx.fillStyle = col;
+    ctx.font = "600 " + size + "px 'IBM Plex Mono', monospace";
+    ctx.textAlign = align || "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, x, y);
+    ctx.restore();
+  }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+
+    // ── settled trunk ──────────────────────────────────────────
+    var px = W * 0.04, py = nodeY;
+    for (var i = 0; i < trunk.length; i++) {
+      var x = W * trunk[i];
+      var y = nodeY + Math.sin(i * 1.7) * H * 0.06;
+      line(px, py, x, y, "rgba(240,240,248,.20)", 2);
+      dot(x, y, 4.5, MU);
+      // the dead siblings each settled node left behind
+      for (var s = -1; s <= 1; s += 2) {
+        var sy = y + s * H * 0.13;
+        line(px, py, x, sy, "rgba(240,240,248,.06)", 1.5, [3, 5]);
+        dot(x, sy, 2.5, "rgba(240,240,248,.13)");
+      }
+      px = x; py = y;
+    }
+    label(W * 0.04, py - 26, "SETTLED PATH", MU, 11);
+
+    // ── the live node ──────────────────────────────────────────
+    var nx = W * 0.50, ny = py;
+    var pulse = reduced ? 1 : 1 + Math.sin(t / 620) * 0.22;
+    dot(nx, ny, 7.5 * pulse, GOLD, 22 * pulse);
+    label(nx, ny + 30, "LIVE NODE", GOLD, 11, "center");
+
+    // ── the frontier ───────────────────────────────────────────
+    var sum = 0;
+    for (var f = 0; f < frontier.length; f++) {
+      var br = frontier[f];
+      var bx = W * 0.78;
+      var by = ny + H * br.dy;
+      var col = f === 0 ? CYAN : "rgba(0,229,255,.55)";
+      // branch weight is its price — thicker branch, likelier path
+      line(nx, ny, bx, by, col, 1.6 + br.p * 7);
+      dot(bx, by, 5, f === 0 ? CYAN : "rgba(0,229,255,.7)", f === 0 ? 16 : 0);
+      label(bx + 14, by - 9, br.p.toFixed(2), f === 0 ? CYAN : TX, 15);
+      label(bx + 14, by + 10, "branch " + (f + 1), MU, 10);
+      sum += br.p;
+
+      // unpriced possibility beyond the frontier
+      if (!reduced || true) {
+        for (var g = -1; g <= 1; g++) {
+          var gy = by + g * H * 0.075;
+          var gx = W * 0.94;
+          line(bx, by, gx, gy, "rgba(255,0,127,.13)", 1, [2, 6]);
+        }
+      }
+    }
+
+    // ── the conservation readout ───────────────────────────────
+    ctx.save();
+    ctx.strokeStyle = "rgba(255,215,0,.22)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 6]);
+    ctx.beginPath();
+    ctx.moveTo(W * 0.78, ny + H * frontier[0].dy);
+    ctx.lineTo(W * 0.78, ny + H * frontier[frontier.length - 1].dy);
+    ctx.stroke();
+    ctx.restore();
+    label(W * 0.78, H * 0.075, "Σ = " + sum.toFixed(2), GOLD, 14, "center");
+    label(W * 0.78, H * 0.075 + 19, "FRONTIER", GOLD, 10, "center");
+    label(W * 0.94, H * 0.93, "UNPRICED", PINK, 10, "right");
+
+    if (!reduced) requestAnimationFrame(draw);
+  }
+
+  if (reduced) draw(0); else requestAnimationFrame(draw);
+})();
+</script>
+
+<script>
+(function () {
+  var cv = document.getElementById("ramp");
+  if (!cv || !cv.getContext) return;
+  var ctx = cv.getContext("2d");
+  var W = cv.width, H = cv.height;
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var L = 78, R = W - 150, T = 46, B = H - 62;      // plot box
+  var GOLD = "#ffd700", CYAN = "#00e5ff", MU = "#565d6b", GRID = "rgba(240,240,248,.07)";
+
+  function X(p) { return L + p * (R - L); }
+  function Y(v) { return B - v * (B - T); }         // v in 0..1
+
+  // Two signals over reward probability p.
+  //   phasic burst  — codes prediction error, monotonic in p
+  //   sustained ramp — codes uncertainty, maximal at p = 0.5
+  function burst(p) { return 0.14 + 0.78 * p; }
+  function ramp(p)  { return 0.10 + 0.82 * (4 * p * (1 - p)); }
+
+  function curve(f, col, width, glow) {
+    ctx.save();
+    if (glow) { ctx.shadowColor = col; ctx.shadowBlur = glow; }
+    ctx.strokeStyle = col; ctx.lineWidth = width; ctx.lineJoin = "round";
+    ctx.beginPath();
+    for (var i = 0; i <= 100; i++) {
+      var p = i / 100, x = X(p), y = Y(f(p));
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function txt(x, y, t, col, size, align, weight) {
+    ctx.save();
+    ctx.fillStyle = col;
+    ctx.font = (weight || 600) + " " + size + "px 'IBM Plex Mono', monospace";
+    ctx.textAlign = align || "left"; ctx.textBaseline = "middle";
+    ctx.fillText(t, x, y);
+    ctx.restore();
+  }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+
+    // grid + axis
+    ctx.save();
+    ctx.strokeStyle = GRID; ctx.lineWidth = 1;
+    for (var g = 0; g <= 4; g++) {
+      var gx = X(g / 4);
+      ctx.beginPath(); ctx.moveTo(gx, T); ctx.lineTo(gx, B); ctx.stroke();
+    }
+    ctx.strokeStyle = "rgba(240,240,248,.18)";
+    ctx.beginPath(); ctx.moveTo(L, B); ctx.lineTo(R, B); ctx.stroke();
+    ctx.restore();
+
+    for (var a = 0; a <= 4; a++) txt(X(a / 4), B + 20, (a / 4).toFixed(2), MU, 10, "center", 400);
+    txt((L + R) / 2, B + 42, "REWARD PROBABILITY  p", MU, 10, "center");
+
+    // the knife edge band at p = 0.5
+    ctx.save();
+    var kw = (R - L) * 0.055;
+    var grad = ctx.createLinearGradient(X(0.5) - kw, 0, X(0.5) + kw, 0);
+    grad.addColorStop(0, "rgba(0,229,255,0)");
+    grad.addColorStop(0.5, "rgba(0,229,255,.13)");
+    grad.addColorStop(1, "rgba(0,229,255,0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(X(0.5) - kw, T, kw * 2, B - T);
+    ctx.strokeStyle = "rgba(0,229,255,.45)"; ctx.lineWidth = 1; ctx.setLineDash([4, 5]);
+    ctx.beginPath(); ctx.moveTo(X(0.5), T - 10); ctx.lineTo(X(0.5), B); ctx.stroke();
+    ctx.restore();
+
+    curve(burst, "rgba(255,215,0,.85)", 2.2, 0);
+    curve(ramp, CYAN, 3, reduced ? 0 : 16);
+
+    // the travelling read-head, so the ramp is felt as a ramp
+    if (!reduced) {
+      var ph = (t % 4200) / 4200;
+      var px = X(ph), py = Y(ramp(ph));
+      ctx.save();
+      ctx.shadowColor = CYAN; ctx.shadowBlur = 18;
+      ctx.fillStyle = CYAN;
+      ctx.beginPath(); ctx.arc(px, py, 4.5, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+      ctx.save();
+      ctx.strokeStyle = "rgba(0,229,255,.22)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, B); ctx.stroke();
+      ctx.restore();
+    }
+
+    // labels, off the right edge so neither curve is crossed
+    txt(R + 14, Y(burst(1)), "PHASIC BURST", GOLD, 11, "left");
+    txt(R + 14, Y(burst(1)) + 15, "prediction error", MU, 9.5, "left", 400);
+    txt(R + 14, Y(ramp(0.5)) - 8, "SUSTAINED RAMP", CYAN, 11, "left");
+    txt(R + 14, Y(ramp(0.5)) + 7, "uncertainty", MU, 9.5, "left", 400);
+    ctx.save();
+    ctx.strokeStyle = "rgba(0,229,255,.3)"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(X(0.78), Y(ramp(0.78))); ctx.lineTo(R + 8, Y(ramp(0.5)));
+    ctx.stroke(); ctx.restore();
+
+    txt(X(0.5), T - 22, "THE KNIFE EDGE", CYAN, 11, "center");
+
+    if (!reduced) requestAnimationFrame(draw);
+  }
+
+  if (reduced) draw(0); else requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>

@@ -37,6 +37,9 @@ import {
   isVrsTrigger,
   zLiarVerdictFor,
   ZLIAR_BANDS,
+  VIP_PROFIT_SHARE_SEATS,
+  VIP_PROFIT_SHARE_BPS,
+  vipSeatAvailable,
 } from "./gambit-game-math";
 
 describe("canon lock — locked platform constants", () => {
@@ -389,6 +392,29 @@ describe("GARCH — canonical parameters, sigma-space clamp, amplification", () 
   it("amplification is 1 + 0.8·sigma, capped at 1.544", () => {
     expect(garchAmplification(0.3)).toBeCloseTo(1.24, 9);
     expect(garchAmplification(99)).toBeCloseTo(1 + 0.8 * 0.68, 9); // 1.544
+  });
+});
+
+describe("VIP profit share — 60%, limited to 4,888 seats", () => {
+  // Founder, 2026-10-23. Pinned to literals so the cap cannot drift.
+  it("is exactly 4,888 seats at 60%", () => {
+    expect(VIP_PROFIT_SHARE_SEATS).toBe(4888);
+    expect(VIP_PROFIT_SHARE_BPS).toBe(6000);
+  });
+  it("seat 4,888 is the last one; the 4,889th is refused", () => {
+    expect(vipSeatAvailable(0)).toBe(true);
+    expect(vipSeatAvailable(4887)).toBe(true);   // 4,888th seat still open
+    expect(vipSeatAvailable(4888)).toBe(false);  // all issued
+    expect(vipSeatAvailable(10_000)).toBe(false);
+  });
+  it("fails closed on a bad count", () => {
+    expect(vipSeatAvailable(Number.NaN)).toBe(false);
+    expect(vipSeatAvailable(-1)).toBe(false);
+  });
+  it("the VIP share sits above the creator ceiling", () => {
+    const creatorMax = Math.max(...CREATOR_LADDER.filter((r) => r.status !== "CR8TR").map((r) => r.shareBps));
+    expect(creatorMax).toBe(4000);
+    expect(VIP_PROFIT_SHARE_BPS).toBeGreaterThan(creatorMax);
   });
 });
 
