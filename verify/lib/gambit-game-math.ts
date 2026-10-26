@@ -49,12 +49,19 @@ export const PLATFORM = {
  *  VIP status (>= 888,888 $MADx, capital-side) sits above as a status, not a
  *  public tier: 60% recovery + phi perks. effApy = apy * (1 + clout/200),
  *  so max effective 77.6% at Clout 200 — earned, never promised. */
+// Staking tiers — 4-tier sliding scale from 8.88% to 40%
+// Tiers above Bronze (first level) are tied to stoploss mechanism:
+// - Bronze: base rate, no stoploss protection
+// - Silver: stoploss activates at 15% threshold
+// - Gold: stoploss activates at 10% threshold  
+// - MAD Tier: stoploss activates at 5% threshold
 export const STAKING_TIERS = [
-  { name: 'Bronze',   minMadx: 88,     apy: 0.088, shieldRecoveryPct: 0.288 },
-  { name: 'Silver',   minMadx: 888,    apy: 0.188, shieldRecoveryPct: 0.328 },
-  { name: 'Gold',     minMadx: 8_888,  apy: 0.288, shieldRecoveryPct: 0.368 },
-  { name: 'MAD Tier', minMadx: 88_888, apy: 0.388, shieldRecoveryPct: 0.40  },
+  { name: 'Bronze',   minMadx: 88,     apy: 0.088, shieldRecoveryPct: 0.288, stoplossPct: 0.00  },
+  { name: 'Silver',   minMadx: 888,    apy: 0.192, shieldRecoveryPct: 0.328, stoplossPct: 0.15  },
+  { name: 'Gold',     minMadx: 8_888,  apy: 0.296, shieldRecoveryPct: 0.368, stoplossPct: 0.10  },
+  { name: 'MAD Tier', minMadx: 88_888, apy: 0.400, shieldRecoveryPct: 0.40,  stoplossPct: 0.05  },
 ] as const;
+ as const;
 export const VIP_STATUS_MIN_MADX = 888_888; // ~0.1% of supply — 60% Shield recovery
 
 /* CREATOR LADDER — founder sign-off 31 Jul 2026. Fee share applies ONLY to
@@ -79,20 +86,20 @@ export function creatorStatus(tractionedMarkets: number, followers: number) {
 }
 
 export function getStakingTier(madxBalance: number) {
-  return [...STAKING_TIERS].reverse().find(t => madxBalance >= t.minMadx) ?? null;
-}
-
-/** Tournament prize distribution in BPS — source: Card Game Logic Code Reference §5 */
-export const TOURNAMENT_PRIZES_BPS: Record<number, number> = {
-  1: 4000, // 40%
-  2: 2000, // 20%
-  3: 1200, // 12%
-  4: 500,  // 5%
-  5: 500,  // 5%
-  6: 200,  7: 200, 8: 200, 9: 200, 10: 200, // 2% each
-};
-
-export function tournamentPrizeForRank(rank: number, totalPool: number): number {
+  const tier = [...STAKING_TIERS].reverse().find(t => madxBalance >= t.minMadx) ?? null
+  return tier 
+    ? { 
+        ...tier,
+        // Stoploss activation: tiers above Bronze have stoploss protection
+        // Bronze (first level): no stoploss protection (0%)
+        // Silver: 15% stoploss threshold
+        // Gold: 10% stoploss threshold  
+        // MAD Tier: 5% stoploss threshold
+        stoplossActive: tier.stoplossPct > 0 && madxBalance >= tier.minMadx,
+        stoplossPct: tier.stoplossPct,
+      }
+    : null
+}: number): number {
   const bps = TOURNAMENT_PRIZES_BPS[rank] ?? 0;
   return (totalPool * bps) / 10_000;
 }
