@@ -5850,7 +5850,7 @@ body {
             <div class="slide-col" style="margin-bottom:var(--gap-md);">
               <div class="slide-col-title">2. MAD SHIELD PREMIUM — RISK ALGORITHM</div>
               <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--neon-cyan);background:rgba(0,0,0,.3);padding:10px;border-radius:4px;margin:8px 0;">Φ = S × P<sub>win</sub> × √σ²<sub>t+1</sub> × λ<sub>SafetyMargin</sub></div>
-              <div style="font-size:.78rem;color:var(--text-secondary);">Worked Example: $100 stake on 50/50 market → $3.00 premium (3%). Pool collects $3. If LOSE → Pool pays $28.80. Monte Carlo: Year 1 Net Pool +$1.8M (94% positive scenarios).</div>
+              <div style="font-size:.78rem;color:var(--text-secondary);">Worked Example: $100 stake on a 50/50 market. The 2–4% premium sets recovery on a 28.8% → 40% scale, capped by staking tier: $2 (2%) → a loss pays $28.80 · $3 (3%) → $34.40 · $4 (4%) → $40.00, the ceiling (MAD Tier). Monte Carlo: Year 1 Net Pool +$1.8M (94% positive scenarios).</div>
             </div>
             <div class="slide-col" style="margin-bottom:var(--gap-md);">
               <div class="slide-col-title">3. GARCH(1,1) VOLATILITY ORACLE</div>
@@ -5862,10 +5862,15 @@ body {
               <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--neon-cyan);background:rgba(0,0,0,.3);padding:10px;border-radius:4px;margin:8px 0;">P<sub>i</sub> = e^(q<sub>i</sub>/b) / Σ e^(q<sub>j</sub>/b)</div>
               <div style="font-size:.78rem;color:var(--text-secondary);">You can always sell your position. Dynamic b parameter scales with volume — popular markets self-deepen. Eliminates external market makers entirely.</div>
             </div>
-            <div class="slide-col">
+            <div class="slide-col" style="margin-bottom:var(--gap-md);">
               <div class="slide-col-title">5. STAKING REWARD DISTRIBUTION</div>
-              <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--neon-cyan);background:rgba(0,0,0,.3);padding:10px;border-radius:4px;margin:8px 0;">R<sub>u</sub> = Y<sub>pool</sub> × (Stake<sub>u</sub> × M<sub>nft</sub>) / Σ(Stake<sub>j</sub> × M<sub>j</sub>)<br>M<sub>nft</sub> = 1.0 + (Clout / 200) · Max APY: 68%</div>
-              <div style="font-size:.78rem;color:var(--text-secondary);">Clout stat (0–200) determined by card rarity. Golden Hand Clout=200 gives M_nft=2.0× multiplier. APY capped at 68% to maintain pool solvency.</div>
+              <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--neon-cyan);background:rgba(0,0,0,.3);padding:10px;border-radius:4px;margin:8px 0;">R<sub>u</sub> = Y<sub>pool</sub> × (Stake<sub>u</sub> × M<sub>nft</sub>) / Σ(Stake<sub>j</sub> × M<sub>j</sub>)<br>M<sub>nft</sub> = 1.0 + (Clout / 200) · Base APY 8.8% → 38.8%</div>
+              <div style="font-size:.78rem;color:var(--text-secondary);">Clout stat (0–200) determined by card rarity. Base APY follows the eights ladder — Bronze 88 / 8.8% · Silver 888 / 18.8% · Gold 8,888 / 28.8% · MAD Tier 88,888 / 38.8%. Golden Hand Clout=200 gives M_nft=2.0×, so 77.6% effective at MAD Tier — earned, never promised.</div>
+            </div>
+            <div class="slide-col">
+              <div class="slide-col-title">6. FEE WATERFALL — CREATOR SCALE &amp; VIP SEATS</div>
+              <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--neon-cyan);background:rgba(0,0,0,.3);padding:10px;border-radius:4px;margin:8px 0;">Fee = Vol × 1.88% · Creator = Fee × rung · Community = (Fee − Creator) × 28.8%</div>
+              <div style="font-size:.78rem;color:var(--text-secondary);">Creators earn a sliding 28.8% → 40% on their own markets; 60% is the VIP profit share, limited to 4,888 seats — qualifying from the Golden Ticket event takes three markets that each reach 188K in volume. Community takes 28.8% of the platform’s net, after the creator. Per $10,000 of volume (creator / community / protocol): platform market $0 / $54.14 / $133.86 · 40% creator $75.20 / $32.49 / $80.31 · VIP seat $112.80 / $21.66 / $53.54.</div>
             </div>
           </div>
         </div>
