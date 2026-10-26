@@ -61,7 +61,6 @@ export const STAKING_TIERS = [
   { name: 'Gold',     minMadx: 8_888,  apy: 0.296, shieldRecoveryPct: 0.368, stoplossPct: 0.10  },
   { name: 'MAD Tier', minMadx: 88_888, apy: 0.400, shieldRecoveryPct: 0.40,  stoplossPct: 0.05  },
 ] as const;
- as const;
 export const VIP_STATUS_MIN_MADX = 888_888; // ~0.1% of supply — 60% Shield recovery
 
 /* CREATOR LADDER — founder sign-off 31 Jul 2026. Fee share applies ONLY to
@@ -99,7 +98,19 @@ export function getStakingTier(madxBalance: number) {
         stoplossPct: tier.stoplossPct,
       }
     : null
-}: number): number {
+}
+
+/** Tournament prize distribution in BPS — source: Card Game Logic Code Reference §5 */
+export const TOURNAMENT_PRIZES_BPS: Record<number, number> = {
+  1: 4000, // 40%
+  2: 2000, // 20%
+  3: 1200, // 12%
+  4: 500,  // 5%
+  5: 500,  // 5%
+  6: 200,  7: 200, 8: 200, 9: 200, 10: 200, // 2% each
+};
+
+export function tournamentPrizeForRank(rank: number, totalPool: number): number {
   const bps = TOURNAMENT_PRIZES_BPS[rank] ?? 0;
   return (totalPool * bps) / 10_000;
 }
