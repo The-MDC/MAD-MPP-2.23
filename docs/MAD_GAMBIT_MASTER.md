@@ -147,9 +147,12 @@ halo's opacity breathe (`haloPulse`): low-amplitude and non-spatial.
 | **O-V deck — 2 canon conflicts** | `MADdegen/OV-Deck-2026` says **"Wyoming L.C."** (slides 0, 7) against a **New Mexico** formation record filed 2026-03-25 — a legal-entity fact on an investor slide. And slide 3 reintroduces **"MAD Upshot"**, which canon bans; the deck is *newer* than the ban. *(A third conflict — the Creator Ladder — turned out to be the master doc's error, not the deck's; already corrected.)* |
 | **React18 / Hono / HonoX** | Never clarified. `verify/` is already Next.js 16 + React **19.2.1** + Tailwind v4, live. Hono/HonoX appears once in the whole archive as a speculative Phase-4 API-gateway idea — not a frontend, not tied to React 18. |
 | **Containerizing the platform** | Deferred by the 2026-08-18 decision to stay on Vercel — but **correct the reasoning, because the old one was wrong.** It was declined as "an architectural reversal for a Vercel-native Next.js app"; the coupling audit (Part VIII §1) shows the app is **not** Vercel-native. `next.config.ts` already builds `output: "standalone"` and its own comment names Cloud Run; total Vercel surface is one 44-line Blob adapter behind a pre-existing interface, one analytics import, three cron entries, and **zero** `process.env.VERCEL*` references. So containerizing is a config change, not a reversal — it is deferred for want of a reason to do it, **not** because it is hard. |
+| ~~**Creator profit share — 28.8 / 40 / 60**~~ | **DECIDED 2026-10-23, founder:** *"There is a flat rake of 1.88% platform fee, creators take a sliding 28.8 to 40% and then a limited 4888 seats offering the rare and exclusive 60% VIP profit share exist."* So the **28.8% `User` rung is correct** — the creator floor, not a conflation; creators slide **28.8% → 40%**; and **60% is a VIP profit share capped at 4,888 seats**, not a creator rung. The 27 Aug "40–60%" statement is superseded. *Corrected 2026-10-23:* this row first said the creator ladder deliberately paralleled a "Shield 28.8 / 40 / 60 ladder" — the Shield stops at 40% (row below), so 60% exists only as the VIP seat. **Code diverges** — `CREATOR_LADDER` grants 60% as `CR8TR` by traction (34 markets + 888 followers) with no seat cap. One question before code moves: **how is a VIP seat obtained**, and does CR8TR traction still qualify for one? See §5. |
+| ~~**MAD Shield — the scale**~~ | **DECIDED 2026-10-23, founder:** *"MAD Shield Stop Loss (28.8 to 40%), as well as, the Creator profit share (28.8 - 40%, vip 60%)"* and *"The MAD Shield also offers a scale."* The Shield is a **scale from 28.8% to 40%**: the 2–4% premium moves recovery continuously from 28.8% up to 40% (`calculateShieldPayoutFull`), and the staking tier caps how far up a holder can go — Bronze 28.8 · Silver 32.8 · Gold 36.8 · MAD Tier 40% (`STAKING_TIERS[].shieldRecoveryPct`). **40% is the ceiling; 60% is creator-side only.** Consistent with Part II.7 ("Never use again: Shield 40% / 60%") and the 7 Sep 2026 ruling recorded in the Build Ledger artifact. ⚠️ **Code diverges:** `SHIELD_RECOVERY_WHALE_PCT = 0.60` and `WHALE_SHIELD_ELIGIBILITY` still pay 60% to whale-eligible holders — removal is in §5 and needs your confirmation first, because it moves payouts. |
 | ~~**Paseome — untaken branches**~~ | **DECIDED 2026-08-27: refund, do not write off.** Foresight refunds every untaken sibling at the leg roll; Hindsight writes off nothing because nothing there is ever unrealised. Two reasons and both hold: conditional markets fail when nobody will fund a bet that pays only if a *separate* event also occurs, and a refunded branch cannot be a near-miss. Encoded in `verify/lib/paseome.ts#settleFrontier`, tested in `paseome.test.ts`. |
 | ~~**Paseome — frontier width**~~ | **DECIDED 2026-08-27: 3 to 5 branches.** Three keeps prices legible and liquidity deep; five matches the Five Faces simplex and the existing dial geometry; past five the top branch stops meaning anything. `FRONTIER_MIN`/`FRONTIER_MAX` in `verify/lib/paseome.ts`, enforced by a throw, not a comment. |
-| ~~**Paseome — who authors a branch**~~ | **DECIDED 2026-08-27: gated, VIP *or* creator-ladder.** Eligible at `VIP_STATUS_MIN_MADX` (capital axis) **or** MinorCreator and above (creator axis). Deliberately a disjunction over two axes this engine keeps separate — Part II §7 and `gambit-game-math.ts` both state VIP is "never a creator tier", so they are evaluated and reported independently rather than merged into one score. `canAuthorBranch` in `verify/lib/paseome.ts`. |
+| ~~**Paseome — who authors a branch**~~ | **DECIDED 2026-08-27: gated, VIP *or* creator-ladder.** Eligible at `VIP_STATUS_MIN_MADX` (capital axis) **or** MinorCreator and above (creator axis). Deliberately a disjunction over two axes this engine keeps separate — Part II §7 and `gambit-game-math.ts` both state VIP is "never a creator tier", so they are evaluated and reported independently rather than merged into one score. `canAuthorBranch` in `verify/lib/paseome.ts`. **Extended 2026-10-23, founder:** *"this will be an open Conviction market for open markets, but this will also be offered to a lesser extent by the platform for different uses."* So creators author on the open market (gate unchanged) and earn their rung on the trees they open; platform-offered trees run `splitFee(volume, 0)` — no creator cut. Read as the product line Paseome sits in; settlement is unchanged (forward side still oracle-settled with refunds). |
+| ~~**Paseome — official name**~~ | **DECIDED 2026-10-23: "The Paseome: Certain-UnCertainty"** — the capital U is deliberate (founder confirmed). *Foresight* / *Hindsight* are **not** product names; the sides are the forward side (family 7) and the counterfactual side (family 8), and `foresight`/`hindsight` survive only as internal labels (`PaseomeSide` in `verify/lib/paseome.ts`). Applied to `docs/product-sheets/PASEOME.md` v1.2 and the published artifact v1.2 (repo copy `docs/product-sheets/PASEOME_ARTIFACT.html`). |
 | ~~**Leaving Vercel**~~ | **DECIDED 2026-08-18: stay on Vercel + Neon.** Founder's call, and the audit supports it. Part VIII is retained as a **contingency plan, not a pending recommendation** — see the note at its head for what would reopen it. |
 
 ---
@@ -188,6 +191,11 @@ Full detail — file paths, exit criteria — in ****Parts III–V + Workstream 
 | **B2** | O-V deck → exterior interactive experience, bound to `node-registry` state. Source is the **`MADdegen/OV-Deck-2026` repo** (`src/slidesData.ts`, structured, plus 8 ready-built interactive components) — *not* the older HTML export. Blocked on Part 0 §3's deck conflicts. | 4–6d |
 | **—** | Security gaps. **CSP shipped, half-enforced by design:** `frame-ancestors` / `base-uri` / `object-src` / `form-action` are enforced (they restrict capabilities this app never uses, so they cannot break a page), while `script-src` / `style-src` — the two that actually stop XSS and the two that white-screen an app when wrong — ship **Report-Only**, because Next injects inline bootstrap, Tailwind injects inline styles, wallet extensions inject providers, and no browser exists in the agent sandbox to verify against. **Promotion to enforced is a two-line change once reports are quiet, and is the intended follow-up.** Review `connect-src` first: if `RELAYER_RPC_URL` is repointed at a dedicated provider, that host must be added or client-side wallet reads break. **ERC-4337 session keys remain open.** | — |
 | **—** | Promote Lint / Slither / Dependency Review from report-only to blocking, once their backlogs are worked. | — |
+| **—** | **Rename "MAD Upshot" → MAD Gambit** (founder, 2026-10-23). 17 occurrences across 7 files at `72a370e`: MASTER ×7, `verify/public/pitch/index.html` ×3, `madhats-gambit.html` ×3, `ov-pitch-deck.html` ×1, `AGENTS.md` ×1, and two Kotlin prompts in `master-maths/`. Investor surfaces first — slide 3's title is literally *"MAD Upshot: The Card Economy"*. Edit in context, not by sed (§7). | 0.25d |
+| **—** | **Gate 60% on a VIP seat, capped at 4,888.** `CREATOR_LADDER` grants 6000 bps as `CR8TR` by traction with no cap; canon (2026-10-23) makes 60% a VIP profit share limited to 4,888 seats. Needs a seat registry, an issued-seat count enforced on-chain and in `splitFee` callers, and the founder's answer on how a seat is obtained. **Moves real payouts — do not ship before that answer.** | 1–2d |
+| **—** | **Refresh two imported sheets' fee line.** `docs/GOSSIP_COP_Product_Sheet_Technical_Spec.docx` (v1.2) and `docs/PERPETUAL_EPIPHANIES_Product_Sheet_Technical_Spec.docx` (v1.1), added 2026-10-23 from the founder's Drive, predate the creator ruling: they show the creator share as a flat 40% and the community 28.8% without "of platform net". Uploaded verbatim; correct on their next revision (`scripts/build-perp-sheets.py` is the house-format generator). | 0.5h |
+| **—** | **Retire the 60% Shield rung — needs founder confirmation first.** Canon (§3, 2026-10-23) caps the Shield at 40%; the engine still pays 60% via `SHIELD_RECOVERY_WHALE_PCT`, `calculateShieldPayoutFull`'s whale branch, `shieldRecovery(loss, vip=true)` and `WHALE_SHIELD_ELIGIBILITY` (`verify/lib/gambit-game-math.ts`). Removal lowers payouts for whale-eligible holders, so confirm before changing code; the canon-lock test pinning `SHIELD_RECOVERY_WHALE_PCT` 0.60 changes with it. | 1–2h |
+| **—** | **Paseome to a tradeable book.** `lib/paseome.ts` + `GET /api/v1/paseome/frontier` ship real maths on demo data. Missing: tree persistence (`sql/00xx_paseome.sql`), the branch-refund ledger, artefact-gated branch authorship, and the Foresight oracle path. Sheet: `docs/product-sheets/PASEOME.md`. | 3–5d |
 | **—** | Carried from the repo: THE WIRE demo-row · raw-hex design-token scrub (~82 values, 5 panels) · 4 dead components · slot-auction clearing is manual. | — |
 
 ### Workstream C — converge the two clients (added 2026-08-18)
@@ -263,6 +271,15 @@ one sentence and the second half was never tested.
 ---
 
 ## 7 · Things a future session will get wrong without this
+
+- **Never quote a 60% MAD Shield figure.** The Shield is a 28.8% → 40% scale (founder, 2026-10-23); 60% is the creator-side VIP seat only. The engine's `SHIELD_RECOVERY_WHALE_PCT = 0.60` is engine-only until removed — reading the constant and calling it canon is how this branch got it wrong once already.
+- **CI tests the MERGE RESULT of a PR with `main`, not the PR head.** A test count in CI can include files that are not in your branch. On PR #145 the prediction was 379 and CI reported 389: `main` had gained `registrar-auth.test.ts` (6 tests) since the branch was cut. Reconcile a count against `main`, not against your tree, before calling it wrong.
+
+- **`frontierPrices` uses log-sum-exp on purpose — do not "simplify" it back to `calculateDLLMSRPrice`.** The naive softmax overflows to `Infinity` past `q/b ≈ 709` (~851k shares at b=1200) and every price comes back `NaN`. Reproduced before the fix; regression-tested at 900k and 5M shares. The shared `calculateDLLMSRPrice` is deliberately left naive because it is canon-locked and serves the binary book, where `q` stays far lower.
+
+- **"MAD Upshot" is the project's old name; it is now MAD Gambit (founder, 2026-10-23).** Do not blind-replace it: several occurrences are lineage phrasings (*"MAD Upshot to MADHAT's Gambit CardGame"*) where a mechanical swap produces nonsense, and MASTER itself quotes it in places as the banned term. Edit each in context. See §5.
+
+- **A local test harness exists and has bitten its own author.** `lib/` transpiles to CJS and runs under a minimal vitest shim (~340 of ~390 tests run without `node_modules`). It once under-reported two passing tests because the shim lacked `.rejects`/`.resolves`, and a mutation check compared against zero instead of the baseline's own failures. When using it: compare against a baseline, and confirm a mutation actually applied before trusting "survived".
 
 - **"The engine" is three engines, and only one of them is the leaky one — added 2026-10-23.**
   A session told to "unify everything into one engine" will reach for
@@ -449,7 +466,10 @@ Lightly detailed. Dates are from document headers or git history, not inferred.
 - **2026-08-22** — PR #105 merged (`2d53a7d`). Repo transferred to **`The-MDC/MAD-MPP-2.23`**. PRs #108 (CI collapsed to one job, guard path-filtered, `checkout` v6→v4) and #131 (production deploys re-enabled from `main`) also land — **all three merged with CI not running**.
 - **2026-08-24** — Close-out mechanism added: the `close-thread` skill plus `CLAUDE.md` as an independent fail-safe, writing to `docs/THREAD_CLOSEOUT.md`. **Actions recovered the same afternoon (~16:18 UTC)** after eight days down, leaving three ungated merges and a set of permanently-`queued` orphan runs behind it. `workflow_dispatch` added to `placeholder-guard.yml`, because #108's path filters meant the pathspec fix from #105 could not be exercised by any docs-only change — it was merged to `main` and had still never run. **That edit touched the workflow file, which is itself in the path filter, so the guard triggered and validated its own fix: `Placeholder guard passed ✓`, run 32750369469. The pragma check executed for the first time in the repo's history.**
 - **2026-08-26/27** — The engine gets a real book. **PR #139 merged**: `verify/sql/0016_market_book.sql` (`market_book`, `market_prices`, `ALTER TABLE bets` + shares/cost/fee/price_after), `verify/lib/lmsr-book.ts` (pure and isomorphic — the same `quote()` runs in the client preview and the server fill), `verify/lib/market-book.ts` (the `pg` layer; `fill()` is one transaction: `SELECT … FOR UPDATE` → re-price against the locked row → `spendWithin` → book → `bets` → `market_prices` → write back `markets.yes_odds/no_odds`), `spendWithin` added to `madx-web2.ts` so a debit can join a caller's transaction, real SIWE sign-in (`lib/siwe-client.ts`, `auth/session`, `auth/logout`), and `game-context.tsx` switched from `useState(8888)` to the real ledger behind a `creditsSource: "live"|"demo"` flag. **PR #143 merged** (`18216a0`): the Z-Liar Sentinel becomes a real Gemini call with the persona extracted to `lib/madhatr-persona.ts`, the money path starts honouring `PAUSE_GUARDIAN`, `TRADEABLE_FAMILIES` becomes one exported source of truth, and complaint resolution moves off "any signed-in wallet" onto a fail-closed registrar credential. **PR #152 merged**: every agent persona consolidated under MAD-Gambit-Concierge.
+- **2026-08-26 → 08-28** — PRs #142–#145. Perp deck made interactive; Z-Liar band ladder and Scandal readout de-drifted onto the engine; `brandSafe` found to be a juiciness gate wearing a safety gate's name and split into `entertainmentGrade` / `assertionRisk`; a local-model (Ollama) roast tier added with zero new dependencies; **the Paseome** (perp families 7 Foresight & 8 Hindsight) designed, researched and shipped as maths + a live frontier route; a mutation audit found eleven unguarded canon constants and closed them; and the **fee waterfall corrected on founder sign-off** — community 28.8% is of NET, not gross.
+- **2026-10-23** — Founder confirms "MAD Upshot" is the project's old name (now MAD Gambit) and names the Paseome's thesis **"Certain-UnCertainty"**. Rename scoped (§5), not yet applied. Same day, the creator profit share is settled: **creators 28.8% → 40%; 60% is a VIP share limited to 4,888 seats.** The 28.8% base rung is confirmed correct; the code's uncapped traction route to 60% now diverges from canon (§3, §5).
 - **2026-10-23** — `0xb61ae772…fd18` read on-chain and **eliminated as `$MADx`** — it is "Serpentine Orkain"/ORKx (§3, PART II §9). The Crystex campaign page, the founder's stated source for the real total supply, is **egress-blocked** from the agent container. The "one engine" requirement gets a measurement rather than an opinion: maths is single (`gambit-game-math.ts`, ~75 consumers), the satire one-liner engine is single and already reaches the perp family route, and **the $MADx ledger is not** — `perps/convict`, `faces/stake`, `zeitgeist/auction` and `shield/opt-in` all move or promise value without touching it. Now PART 0 §5 item **T1**.
+- **2026-10-23 (later)** — Paseome authorship and name settled: an **open conviction market** that creators author, with the platform offering a smaller share of trees and no creator cut (`paseomeFeeSplit`); official name **"The Paseome: Certain-UnCertainty"**, Foresight/Hindsight demoted to internal labels. **MAD Shield confirmed as a 28.8% → 40% scale** — this branch's earlier "deliberate 28.8/40/60 parallel" note was wrong and is corrected; the engine's 60% Shield rung is queued for removal pending confirmation. Gossip-Cop v1.2 and Perpetual Epiphanies v1.1 sheets added to `docs/` from Drive; the Paseome artifact (v1.2) republished and copied to `docs/product-sheets/PASEOME_ARTIFACT.html`. PART VI caught up with the code: the six-tier staking table (stale since 31 Jul) replaced by the eights ladder; creator ladder, VIP seat cap, community-of-net and a §2b for the Paseome's maths added. Engine: `VIP_PROFIT_SHARE_SEATS` (4,888) / `VIP_PROFIT_SHARE_BPS` / `vipSeatAvailable` pinned, not yet enforced.
 
 ---
 
@@ -641,16 +661,16 @@ Locked, from `CANONICAL_NUMBERS.md` (2026-04-05) and implemented + unit-tested i
 | Parameter | Value |
 |---|---|
 | Platform fee | **1.88%** global |
-| Community profit share | **28.8%** (displays as 28%) |
-| Creator revenue share | **Creator Ladder 28.8% → 40% → 60%** by status (User / MinorCreator / CR8TR), creator-made markets **only**. Supersedes the flat 40% — founder sign-off 31 Jul 2026, recorded in `verify/lib/node-registry.ts` and implemented as `CREATOR_LADDER` in `gambit-game-math.ts`. |
-| MAD Shield loss recovery | **28.8%**, premium-funded (not a subsidy) |
+| Community profit share | **28.8% of platform NET** — after the creator cut, not of gross (corrected 2026-08-27) (displays as 28%) |
+| Creator revenue share | **Creators slide 28.8% → 40%** (User / MinorCreator), creator-made markets **only**. **60% is a VIP profit share limited to 4,888 seats** — rare and exclusive, not a traction rung (founder, 2026-10-23). The 31 Jul ladder is otherwise intact. ⚠️ Code still grants 60% as `CR8TR` by traction with no seat cap — see §3 and §5. |
+| MAD Shield loss recovery | **A scale, 28.8% → 40%** — premium-funded (not a subsidy), capped by staking tier; **40% is the ceiling** (founder, 2026-10-23). ⚠️ The engine still carries a 60% whale rung — engine only, Part 0 §5 |
 | Token supply | **888,888,888** fixed |
 | Seed ask | $1M–$2M @ $12M pre · min viable raise $688K |
-| Staking APY | 8.8% (1mo) · 18.8% (12mo) · 28.8% (24mo) · **68%** MAD tier (250K $MADx / 365d) |
+| Staking tiers | **Four-tier eights ladder by stake** (founder sign-off 31 Jul 2026): Bronze 88 / 8.8% · Silver 888 / 18.8% · Gold 8,888 / 28.8% · MAD Tier 88,888 / 38.8% APY, × (1 + clout/200). *Corrected 2026-10-23 — this row showed a superseded lock-duration ladder ending at 68%; `STAKING_TIERS` and `MADStaking.sol` both carry the eights ladder (PART VI §1).* |
 | MADDAO quadratic cap | 24x |
 | Founder's Golden Ticket | 2,488 ERC-1155 |
 
-**Fee distribution.** Platform markets: $100 bet → $1.88 fee → 35% Ops / 25% Shield / 10% Burn / 30% Community. Creator markets: 40% to creator (lifetime, on-chain) / 60% to platform, allocated as above.
+**Fee distribution.** Platform markets: $100 bet → $1.88 fee → 35% Ops / 25% Shield / 10% Burn / 30% Community. Creator markets: the creator's rung — 28.8% → 40%, or 60% on one of the 4,888 VIP seats — to the creator (lifetime, on-chain), the rest to the platform; the community's 28.8% is of the platform's net (`splitFee`, PART VI §6).
 
 **Never use again:** fee 1.66% / 2.88% / 4.88% · Shield 40% / 60% · "TeaBag" (old Shield name — banned in investor/public comms) · "MAD Upshot" · seed $2.4M–$3M · Y3 $42M · Base-L2-as-primary · $MAD 1B supply · 888-as-founders-NFT · creator fee 42% · phantom co-founders Isabella H. / Parphul B.
 
@@ -914,29 +934,31 @@ Numeric source of truth is Part II.7; unresolved contradictions are §13 below.*
 | Constant | Value | Code home |
 |---|---|---|
 | Platform fee | **1.88%** (`FEE_BPS 188`) — never changes | `PLATFORM.FEE_BPS` |
-| Creator share of fee | **40%** (`CREATOR_SHARE_BPS 4000`) — creator-made markets only | `PLATFORM.CREATOR_SHARE_BPS` |
-| Community share of fee | **28.8%** (`COMMUNITY_SHARE_BPS 2880`) | `PLATFORM.COMMUNITY_SHARE_BPS` |
+| Creator share of fee | **Sliding 28.8% → 40%** by ladder rung (User 2880 · MinorCreator 4000 bps), off the gross, creator-made markets only | `CREATOR_LADDER` · `PLATFORM.CREATOR_SHARE_BPS` (= the 40% rung) |
+| VIP profit share | **60%**, limited to **4,888 seats** — rare and exclusive, not a traction rung (founder, 2026-10-23). ⚠️ Pinned, **not yet enforced**: `CR8TR` still reaches 6000 bps by traction with no seat count (Part 0 §5) | `VIP_PROFIT_SHARE_SEATS` · `VIP_PROFIT_SHARE_BPS` · `vipSeatAvailable` |
+| Community share of fee | **28.8% of platform NET** — after the creator cut, never of gross (`COMMUNITY_SHARE_BPS 2880`) | `PLATFORM.COMMUNITY_SHARE_BPS` · `#splitFee` |
 | Shield recovery — standard | **28.8%** | `PLATFORM.SHIELD_RECOVERY_PCT` |
+| Shield recovery — the scale | **28.8% → 40%**, continuous in the 2–4% premium, capped by staking tier; **40% is the ceiling** (founder, 2026-10-23) | `#calculateShieldPayoutFull` · `STAKING_TIERS[].shieldRecoveryPct` |
 | Shield recovery — shielded ceiling | **40%** | `PLATFORM.SHIELD_RECOVERY_PREMIUM_PCT` |
-| Shield recovery — Whale/VIP | **60%** | `PLATFORM.SHIELD_RECOVERY_WHALE_PCT` |
+| ~~Shield recovery — Whale/VIP~~ | ~~60%~~ — **engine only, not canon.** Still pays when whale-eligible; removal awaits founder confirmation (Part 0 §5). Never quote it | `PLATFORM.SHIELD_RECOVERY_WHALE_PCT` |
 | Shield premium band | **2%–4%** of bet | `PLATFORM.SHIELD_PREMIUM_MIN/MAX` |
 | $MADx fixed supply | **888,888,888** | `PLATFORM.MADX_FIXED_SUPPLY` |
 | Furnace burn cap | **≤4.9%** / 30d | `PLATFORM.FURNACE_BURN_CAP` |
 | Card pack cost / size | **4.88 $MADx** / **5** cards | `PLATFORM.CARD_PACK_COST/SIZE` |
 | Canonical deck size / seed | **992** / **8888** | `PLATFORM.TOTAL_DECK_SIZE/CARD_GENERATION_SEED` |
 
-**Staking tiers** (stake-amount thresholds — `STAKING_TIERS`, authoritative; mirrored on-chain by `contracts/src/MADStaking.sol`):
+**Staking tiers** — the four-tier **eights ladder** by stake amount (founder sign-off 31 Jul 2026). Authoritative: `STAKING_TIERS`, pinned by the `staking — 4-tier eights ladder` tests and mirrored on-chain by `contracts/src/MADStaking.sol` (reconciled 2026-09-01). Each tier is also the **Shield gate** — it caps how far up the 28.8% → 40% scale a holder can go:
 
-| Tier | Min $MADx | APY |
-|---|---|---|
-| Bronze | 100 | 12% |
-| Silver | 500 | 18% |
-| Gold | 2,500 | 28% |
-| Platinum | 10,000 | 42% |
-| Diamond | 50,000 | 58% |
-| MAD Tier | 100,000 | 68% |
+| Tier | Min $MADx | APY | Shield recovery cap |
+|---|---|---|---|
+| Bronze | 88 | 8.8% | 28.8% |
+| Silver | 888 | 18.8% | 32.8% |
+| Gold | 8,888 | 28.8% | 36.8% |
+| MAD Tier | 88,888 | 38.8% | 40.0% |
 
-> ⚠️ Two *other* staking models appear in the tokenomics docs (lock-duration APY 8.8/18.8/28.8/68; rarity-multiplier 8/10/13/20/28/68). The **code + contract use the stake-amount tiers above.** See §13.
+VIP (≥ 888,888 $MADx, `VIP_STATUS_MIN_MADX`) is a capital-side **status**, not a tier. Effective APY = tier APY × (1 + clout/200), so 77.6% at clout 200 on MAD Tier — earned, never promised.
+
+> *Corrected 2026-10-23:* this table showed a superseded six-tier ladder (Bronze 100 / 12% … MAD Tier 100,000 / 68%) that neither the engine nor the contract has carried since the 31 Jul ruling. Other ladders in older tokenomics docs (lock-duration 8.8/18.8/28.8/68; rarity-multiplier 8→68) are also not the code. See §13.
 
 ---
 
@@ -948,6 +970,19 @@ Numeric source of truth is Part II.7; unresolved contradictions are §13 below.*
 - **Kelly sizing:** `f* = (p·(b+1) − 1) / b`, half-Kelly default (`scale=0.5`). Home: `#kellyFraction`.
 - **δ-limit (position cap):** `#calculateDeltaLimit(multiplier, convictionStake)`.
 - **Market classification** (Progression / Saga / Z-Liar / Perp taxonomy): `market-classifier.ts` composing `zLiarMeter` + perp-trigger + sentiment.
+
+### §2b — The Paseome: Certain-UnCertainty (`paseome.ts`)
+
+Perp families 7 and 8 — the forward side (internal label `foresight`, oracle-settled) and the counterfactual side (`hindsight`, never settles). The certainty is the arithmetic; the uncertainty is kept **epistemic**, never aleatory.
+
+- **Frontier pricing — DL-LMSR, log-sum-exp:** `pᵢ = e^((qᵢ−m)/b) / Σ e^((qⱼ−m)/b)`, `m = max q`. Σp = 1 by construction; `b = FRONTIER_B = 1,200`; **3–5 branches** (`FRONTIER_MIN/MAX`, enforced by a throw). Home: `#frontierPrices`, `#frontierSum`. The max-subtraction is load-bearing — the naive form overflows to NaN past q/b ≈ 709 (≈ 851k shares at b = 1,200); Part 0 §7.
+- **The certain part — the maker's worst-case loss:** `b · ln n` = **1,318 / 1,664 / 1,931 $MADx** for n = 3 / 4 / 5. Fixed before a single trade.
+- **Path price:** product of the branch prices along the path (`#pathPrice`); deep what-ifs get cheap on their own. **Knife Edge** sort: `|p − 0.5|` ascending (`#knifeEdgeDistance`, `#rankByKnifeEdge`) — the uncertainty ramp peaks at p = 0.5 (Fiorillo, Tobler & Schultz 2003).
+- **MCI score → `m_meme`:** count the expectation categories a branch violates; optimum is exactly one (`MCI_OPTIMUM`). Fitness 0 → 0.35 · 1 → 1.0 · 2 → 0.5 · 3+ → max(0.1, 1/(1+(v−1))). `memeMultiplier = 0.85 + 0.50 · fitness`, bounded **0.85–1.35** so memetics never outweighs time held or capital (`#mciScore`, `#memeMultiplier`).
+- **Irrealis constraint:** a counterfactual title must carry the counterfactual mood (`#hasIrrealisMood`); benignity rises with path depth (`#benignityAtDepth`).
+- **Settlement (`#settleFrontier`):** forward side — the taken branch pays, every untaken sibling is **refunded in full**; counterfactual side — nothing settles, every branch carries. Counterfactual print = permanent − transitory from `cgarchUpdate` (`#hindsightDivergence`); ranked on calibration (`brierScore`, `logScore`).
+- **Who authors, who earns (founder, 2026-10-23):** an open conviction market — VIP (`VIP_STATUS_MIN_MADX`) **or** MinorCreator+ authors (`#canAuthorBranch`) and earns their rung on the trees they open. The platform offers trees of its own to a lesser extent, with **no creator cut**: `#paseomeFeeSplit(volume, "platform")` ≡ `splitFee(volume, 0)`; an unknown origin or non-finite share also pays no creator cut.
+- **Leg:** 59.061 d on the global lunar grid (`lib/lunar-legs.ts`). Fee: the flat 1.88%.
 
 ### §3 — Liar meter & scandal signal
 
@@ -964,20 +999,20 @@ Numeric source of truth is Part II.7; unresolved contradictions are §13 below.*
 ### §5 — MAD Shield engine (`gambit-game-math.ts`)
 
 - **Premium:** `Stake × P(win) × √Volatility × SafetyMargin`, clamped to the 2–4% band. Home: `#calculateShieldPremium` / `#shieldPremium`.
-- **Recovery:** 28.8% standard · 40% shielded ceiling · 60% Whale. Homes: `#shieldRecovery`, `#calculateShieldPayoutFull`/`Tiered`.
+- **Recovery — a scale, 28.8% → 40%:** 28.8% standard; the premium tier (0..1) moves it continuously up to the 40% ceiling; the staking tier caps the top (§1). Homes: `#calculateShieldPayoutFull` (the resolver product code should call), `#calculateShieldPayoutTiered`, `#shieldRecovery`. ⚠️ The resolver's whale branch and `shieldRecovery(loss, vip=true)` still pay **60%** — engine only, not canon (founder, 2026-10-23); removal awaits confirmation, Part 0 §5.
 - **φ-shield ratio:** golden-ratio-weighted (`PHI = 1.618…`). Home: `#shieldPhiRatio`.
 - **Lifecycle:** `#createShieldOptIn` · `#requestShieldUnstake` · `#calculateShieldReturnWindow` · `#isShieldUnstakeComplete` · `#shieldReturnCountdown`. Whale gate: `#WHALE_SHIELD_ELIGIBILITY`.
 - **Compliance:** MAD Shield is **loss mitigation, never insurance/subsidy** — keep framing server-side and in canon.
 
 ### §6 — Fee & revenue split
 
-`splitFee(volume, isCreatorMarket)`: `grossFee = volume·1.88%`; `creatorCut = isCreator ? grossFee·40% : 0`; `communityCut = grossFee·28.8%`. Home: `#splitFee`. **Furnace burn** ≤4.9%/30d: `#calculateFurnaceBurnPercent` (live via `revenue-engine.ts`).
+`splitFee(volume, creatorShareBps)` — **two-stage waterfall, corrected 2026-08-27 (founder sign-off, PR #145):** `grossFee = volume·1.88%`; `creatorCut = grossFee·rung` on creator-made markets only; `platformNet = grossFee − creatorCut`; `communityCut = platformNet·28.8%`; `protocolCut = platformNet − communityCut`. ~~`communityCut = grossFee·28.8%`~~ was the bug: on a 40% creator market it over-allocated **11.52 pp of gross** (community now 17.28% of gross, matching canon to the decimal). Regression-tested. Home: `#splitFee`. Per 10,000 $MADx: gross 188.00 → platform tree 0 / 54.14 / 133.86 (creator / community / protocol) · User rung 28.8% 54.14 / 38.55 / 95.31 · MinorCreator 40% 75.20 / 32.49 / 80.31 · VIP seat 60% 112.80 / 21.66 / 53.54. The 60% row needs a VIP seat (≤ 4,888, `vipSeatAvailable`) — not yet enforced. **Furnace burn** ≤4.9%/30d: `#calculateFurnaceBurnPercent` (live via `revenue-engine.ts`).
 
-> ⚠️ The 40% creator and 28.8% community are **non-additive by design** (creator = per-market gross; community = platform-net). Never wire governance to `FEE_BPS`/`CREATOR_SHARE_BPS`. §13.
+> ⚠️ The creator rung (28.8–40%; 60% on a VIP seat) and the 28.8% community are **non-additive by design** (creator = per-market gross; community = platform-net). Never wire governance to `FEE_BPS`/`CREATOR_SHARE_BPS`. §13.
 
 ### §7 — Staking yield
 
-`calculateStakingYield` — base tier APY (§1) × NFT-clout boost `1 + clout/200`. Home: `gambit-game-math.ts`. Surfaced `POST /api/v1/staking/yield`. On-chain: `MADStaking.sol` (rewards from a separately-funded reserve — a stake never funds another's rewards).
+`calculateStakingYield` — base tier APY (§1, the eights ladder) × NFT-clout boost `1 + clout/200` (max 77.6% effective at clout 200 on MAD Tier). Home: `gambit-game-math.ts`. Surfaced `POST /api/v1/staking/yield`. On-chain: `MADStaking.sol` (rewards from a separately-funded reserve — a stake never funds another's rewards).
 
 ### §8 — Card economy
 
@@ -1035,7 +1070,9 @@ These conflicts exist **across the old docs**; the maths/formulas are reconciled
    Two notes on how this resolved. First, `contracts/foundry.toml` was already the ground truth and already said exactly this (`arbitrum_nova` "launch/gameplay chain (42170)", `arbitrum_one` "MAD Shield vaults / liquidity (42161)"), so the ruling ratifies the code rather than overriding it. Second, one leg of the stated three-way conflict was **phantom**: there is no `CLAUDE.md` anywhere in this repository, so the "Base L2" position it was credited with had no source here. Where "Base L2" does still appear it is either explicitly flagged as wrong (`MAD_GAMBIT_MASTER_ACTION_PLAN.md`), explicitly flagged as aspirational (`MAD_GAMBIT_MASTER_PLAN.md`), or in superseded 2024 material. `CANONICAL_NUMBERS.md`'s "Arbitrum One is primary" was not wrong so much as **incomplete** — One is primary for vaults and $MADx; Nova is primary for gameplay. Both rows are corrected in this change.
 5. **Seed range** — `$1M–$2M` (CANONICAL_NUMBERS) vs `$1.24M–$2.48M @ $12M pre` (skill + master plan). **Pick one public range.**
 6. **Y3 revenue** — $154.5M / $121.4M / $86–154M across decks. **Pick one.** (Carried from master action plan Part A.)
-7. **Community 28.8% semantics** — code comment says "of the fee"; master plan Part A says "of net platform profit, platform-wide, non-additive with the 40% creator." Confirm which the contracts should implement.
+7. ~~**Community 28.8% semantics**~~ — **RESOLVED 2026-08-27, founder:** *"flat platform rake of 1.88%, the Community profit share is 28.8% of NET profits, the creator profit share is only from activity and fees from those creator made markets."* Implemented in `splitFee` (PR #145). Contracts must implement the same waterfall.
+8. **The 60% Shield rung — engine vs canon.** Founder 2026-10-23: *"MAD Shield Stop Loss (28.8 to 40%)"* — the Shield is a 28.8% → 40% scale. The engine still pays 60% to whale-eligible holders (`SHIELD_RECOVERY_WHALE_PCT`, `WHALE_SHIELD_ELIGIBILITY`). Docs now say 40%; the code waits on your confirmation because removing it lowers payouts (Part 0 §5).
+9. **How a VIP seat is obtained.** 60% is limited to 4,888 seats; bought, earned or granted — and whether `CR8TR` traction still qualifies — decides the seat registry. Until answered, `VIP_PROFIT_SHARE_SEATS` is pinned but does not gate payouts.
 
 ---
 

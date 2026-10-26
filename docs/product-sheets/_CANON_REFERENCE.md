@@ -54,11 +54,18 @@ and `node-registry.ts` interpolates the constants so the app is correct. The dec
 
 ## MAD Shield
 
+The Shield is a **scale, 28.8% → 40%** (founder, 2026-10-23: *"MAD Shield Stop Loss (28.8 to 40%), as well as, the Creator profit share (28.8 - 40%, vip 60%)"*; "The MAD Shield also offers a scale").
+
 | Tier | Recovery | Code |
 |---|---|---|
 | Standard | 28.8% | `SHIELD_RECOVERY_PCT` |
-| Shielded ceiling | 40% | `SHIELD_RECOVERY_PREMIUM_PCT` |
-| Whale / VIP / Partner | 60% | `SHIELD_RECOVERY_WHALE_PCT` |
+| Premium dial | 28.8% → 40%, continuous in the 2–4% premium | `calculateShieldPayoutFull` |
+| Staking-tier cap | Bronze 28.8 · Silver 32.8 · Gold 36.8 · MAD Tier 40% | `STAKING_TIERS[].shieldRecoveryPct` |
+| **Ceiling** | **40%** | `SHIELD_RECOVERY_PREMIUM_PCT` |
+
+⚠️ **Code diverges:** the engine also carries a 60% Whale/VIP/Partner rung (`SHIELD_RECOVERY_WHALE_PCT`,
+`WHALE_SHIELD_ELIGIBILITY`). Canon has no 60% Shield rung — 60% is creator-side only. Never quote a 60% Shield
+figure; removal is queued in MASTER §5 pending founder confirmation.
 
 Premium = `Stake · P(win) · σ · 0.35`, clamped to **2%–4% of stake**
 (`SHIELD_PREMIUM_MIN/MAX`, `SHIELD_SAFETY_MARGIN`). Loss mitigation only — never a guarantee.
@@ -75,10 +82,19 @@ Traction = total conviction ≥ 1,200 $MADx (= LMSR *b*) **and** ≥ 1 settled p
 Applies **only to the creator's own markets**. VIP (`VIP_STATUS_MIN_MADX` 888,888) is the
 **capital-side** status and per the engine is *"never a creator tier"* — do not merge the two.
 
-⛔ **Unresolved:** the founder states the creator range is **40–60%**, but the ladder's first rung
-is 28.8%, below that range and reusing the community number. `CANONICAL_NUMBERS §10` flags this as
-a probable conflation with the Shield 28.8/40/60 tiers. **Mark any sheet that depends on it
-‹verify›.** Do not silently pick one.
+✅ **Settled 2026-10-23, founder:** *"There is a flat rake of 1.88% platform fee, creators take a sliding 28.8 to 40% and then a limited 4888 seats offering the rare and exclusive 60% VIP profit share exist."*
+
+| Tier | Share | Gate |
+|---|---|---|
+| Creator — User | 28.8% | creator-made markets only |
+| Creator — MinorCreator | 40% | 12 tractioned markets |
+| **VIP profit share** | **60%** | **limited to 4,888 seats** — rare, exclusive |
+
+The 28.8% floor is correct, not a conflation. *Corrected 2026-10-23:* this file previously called the
+creator ladder a deliberate parallel of a "Shield 28.8 / 40 / 60 ladder" — the Shield stops at 40%, so the
+only 60% is the VIP seat. ⚠️ **Code diverges:** `CREATOR_LADDER` still grants 60% as `CR8TR` by traction (34
+markets + 888 followers) with no seat cap. Quote the canon above; mark any figure that depends on
+the code's CR8TR route ‹verify›.
 
 ## GARCH(1,1) — the volatility spine
 

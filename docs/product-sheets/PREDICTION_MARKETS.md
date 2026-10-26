@@ -219,6 +219,10 @@ this order:
 | Shielded | 28.8% → 40%, continuous in `premiumTier` | `premiumTier > 0` |
 | Standard | 28.8% flat | default |
 
+> ⚠️ **Canon caps the Shield at 40%** (founder, 2026-10-23: *"MAD Shield Stop Loss (28.8 to 40%)"*). The 60% row
+> above describes the engine as it stands, not canon — it is queued for removal in MASTER §5 pending founder
+> confirmation. Never quote a 60% Shield figure; 60% exists only as the creator-side VIP seat.
+
 The whale gate is **conjunctive** — lifetime volume ≥ 250,000 $MADx, account age ≥ 90 days,
 EigenTrust ≥ 85, and ≥ 1 Golden Hand card staked. Meeting three of four is not sufficient, by design:
 the highest recovery rate must not be purchasable with one large bet.

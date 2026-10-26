@@ -3,219 +3,177 @@
 **Source of truth is `docs/MAD_GAMBIT_MASTER.md`.** This file is transient: what happened this
 session, what is broken, and what to do next. It is overwritten every close-out.
 
-Branch `claude/maths-engine-room-ship-ai67e6` · HEAD `3067c6b` · restarted from `origin/main`
-**`72a370e`** · this session's PR **[#154](https://github.com/The-MDC/MAD-MPP-2.23/pull/154) —
-DRAFT** · previous PR **[#143](https://github.com/The-MDC/MAD-MPP-2.23/pull/143) — MERGED**
-2026-08-27 by MADdegen at head `18216a0`
+Branch `claude/mad-gambit-enhancement-timeline-zdnx47` · base `main` @ `72a370e` (#152) · PR [#153](https://github.com/The-MDC/MAD-MPP-2.23/pull/153) (draft)
 
-> **Why the branch was restarted.** Every commit the branch carried (`47119f2`, `5842063`,
-> `18216a0`) is an ancestor of `origin/main` — verified with `git merge-base --is-ancestor`.
-> #143 is merged and closed, so it cannot track new work. `main` has since moved on through
-> **#152** (every agent persona consolidated under MAD-Gambit-Concierge). New work goes on a
-> fresh base, in a **new** PR.
+The full product write-up — maths, market-making, earning functions, inspiration — is
+**`docs/product-sheets/PASEOME.md`**. This file narrates how the thread got there.
 
 ---
 
 ## 1 · Start the next chat with this
 
-> Repo `The-MDC/MAD-MPP-2.23`, branch `claude/maths-engine-room-ship-ai67e6`, based on
-> `origin/main`. Read `docs/MAD_GAMBIT_MASTER.md` **PART 0** first — it is the only planning
-> document, and the outstanding work is at the top.
->
-> **The one job: PART 0 §5 item T1 — one tokenomics engine.** The maths engine is already
-> single (`verify/lib/gambit-game-math.ts`, ~75 consumers) and so is the satire one-liner
-> engine (`verify/lib/satire-headline.ts`, already called from the perp family route). The
-> **$MADx ledger is not**: `verify/lib/madx-web2.ts` has 9 importers, and `perps/convict`,
-> `faces/stake`, `zeitgeist/auction` and `shield/opt-in` all move or promise value without
-> touching it. Copy the shape of `market-book.ts#fill()` — one transaction,
-> `SELECT … FOR UPDATE`, `spendWithin(client, …)`. **Delete nothing and relabel nothing.**
->
-> Do NOT redo: hosting (settled — Vercel), ADR-008 (`pg` Pool + Route Handlers,
-> settled), the `$MADx` transfer fix (done), the Z-Liar LLM quip (done and live), the
-> `PAUSE_GUARDIAN` check on the swap path (done), the registrar complaint-auth fix (done).
-> Do NOT create a second planning document. Do NOT change the `$MADx` token address in any
-> file — see §4.
->
-> Constraints: `npm ci` 403s from the container (CI is the only verification), the Postgres
-> host and TCP 5432 are blocked so no agent can touch the database, `app.crystex.app` is
-> egress-blocked.
+> Repo `The-MDC/MAD-MPP-2.23`, app in `verify/`. Read `docs/MAD_GAMBIT_MASTER.md` PART 0 first,
+> then `docs/THREAD_CLOSEOUT.md`.
+> Most urgent: **rename "MAD Upshot" → MAD Gambit** — 17 occurrences in 7 files, investor decks
+> first (`verify/public/pitch/*.html`; slide 3 is titled "MAD Upshot: The Card Economy"). Edit
+> each in context — some are lineage phrasings a sed would mangle.
+> Then: **Paseome to a tradeable book** — persistence, refund ledger, artefact-gated authorship.
+> Settled today: creators 28.8% → 40%; **60% is a VIP share limited to 4,888 seats**. Code still
+> grants 60% by traction (`CR8TR`) with no cap — open question is how a seat is obtained.
+> Do NOT redo: the fee waterfall, the frontier log-sum-exp fix, the brandSafe split, the
+> mutation audit, the local-model roast tier — all merged.
 
 ---
 
-## 2 · Shipped this session
+## 2 · Shipped
 
-Nothing shipped to the app this session — it was an audit-and-record session on top of
-already-merged work. Three documentation commits:
+### This close-out (this branch)
+- MASTER: fee-waterfall correction folded in **where the wrong formula still lived** (it had
+  `communityCut = grossFee·28.8%` — the bug — 55 days after the code was fixed); open question
+  §13-7 marked resolved; ladder conflict added to §3; rename and Paseome-persistence added to §5;
+  four traps added to §7; dated lines in PART I.
+- `docs/product-sheets/PASEOME.md` v1.1 — *Certain-UnCertainty*.
+- This file.
 
-| Change | What it actually does |
+### Merged earlier in the thread
+| PR | What it changed |
 |---|---|
-| `docs/MAD_GAMBIT_MASTER.md` — PART 0 §3 | Records the on-chain read that **eliminates `0xb61ae772…fd18` as `$MADx`** and names the three files that cite it as canonical. |
-| `docs/MAD_GAMBIT_MASTER.md` — PART 0 §4 | Three new founder-only rows: the Crystex supply number (egress-blocked), **run migration `0016`** (shipped in #139, never applied), set **`REGISTRAR_TOKEN`** (complaint resolution fails closed without it). |
-| `docs/MAD_GAMBIT_MASTER.md` — PART 0 §5 | New item **T1**, the tokenomics-engine bypass, with every verified call site. |
-| `docs/MAD_GAMBIT_MASTER.md` — PART 0 §7 | Three new traps: "the engine" is three engines; do not "fix" the token address; `app.crystex.app` is blocked. |
-| `docs/MAD_GAMBIT_MASTER.md` — PART I + PART II §9 | Dated lines for 2026-08-26/27 (#139, #143, #152) and 2026-10-23; contradictions 1 and 2 corrected rather than restated. |
-| `docs/AGENT_MEMORY_FILES.md` | **New.** Verbatim mirror of all 9 agent memory files across the checked-out repos, with a table of what loads each one, and an explicit note on the two repos that have none. |
-
-### Already merged before this session (do not rebuild)
-
-- **#139** — the engine got a real book: `sql/0016_market_book.sql`, `lib/lmsr-book.ts`
-  (pure/isomorphic — same `quote()` client and server), `lib/market-book.ts` (`fill()` as one
-  transaction), `spendWithin` on `madx-web2.ts`, real SIWE sign-in, `game-context.tsx` on the
-  real ledger with a `creditsSource: "live"|"demo"` flag.
-- **#143** — Z-Liar Sentinel is a real Gemini call with the persona extracted to
-  `lib/madhatr-persona.ts`; the money path honours `PAUSE_GUARDIAN`; `TRADEABLE_FAMILIES` is
-  one exported source of truth; complaint resolution moved onto a fail-closed registrar
-  credential.
-- **#152** — agent personas consolidated under MAD-Gambit-Concierge.
+| #142 | Perp deck interactive — six instruments and six tickers clickable, hover states, scraper-fed family books with a satirical one-liner per market |
+| #143 | (not this session) MADHAT'r Sentinel audit reads the claim |
+| #144 | `brandSafe` split; local-model (Ollama) roast tier; Paseome maths core; `propagateTree` conservation check; mutation audit closing eleven unguarded constants |
+| #145 | **Fee waterfall corrected** on founder sign-off; frontier overflow fixed; `GET /api/v1/paseome/frontier`; fee correction propagated to five UI/API surfaces; canon reference + Paseome and Prediction Markets sheets |
 
 ---
 
-## 3 · Outstanding — ordered by who can act
+## 3 · How the thread progressed — the iteration, in order
 
-### Blocked on the founder (no agent can do these)
+Each step was driven by something the previous one exposed.
 
-1. **The `$MADx` total supply.** Your stated source is the Crystex fair-launch campaign; that
-   domain is egress-blocked, so the number has to come from you. It settles PART 0 §3 and
-   PART II §9 contradiction 1 at once. Do not let anyone infer it from the `224,573,096` in
-   the code — that is an **owner-modifiable cap**, not a total supply.
-2. **Which `$MADx` address is real.** `0xb61ae772…fd18` is eliminated (it is ORKx, see §4);
-   `0x6972370e…151f` is **unverified**. Three files cite the eliminated one as canonical.
-3. **Run migration `0016`** — `npm run migrate:deploy`, then `npm run schema:verify` expecting
-   **41/41**. Until then the market book, the price tape and the paid pack-mint all fall back
-   to demo paths.
-4. **Set `REGISTRAR_TOKEN`** in Vercel, or complaint resolution keeps returning 503 by design.
-5. Carried forward, unchanged: the token distribution split · chain topology (Nova vs One) ·
-   the two O-V deck canon conflicts (Wyoming vs New Mexico; "MAD Upshot") · near-miss
-   patterns on real-money surfaces · the serverless-driver question vs ADR-008.
+**① The deck becomes a market surface.** Six perp instruments had no `onClick`, `href` or hover
+anywhere. Made clickable on the Z-Liar pattern; each opens its family book, fed by the scraper,
+with a one-liner per market. Three of six families are **signal-only** (`market-view.ts`) — the
+book says so instead of inventing rows.
 
-### Blocked on environment/access
+**② Cross-checking card copy against the engine found three readings that weren't readings.**
+- `perp-dials.tsx` carried its own Z-Liar ladder at **38/84**; the engine's is **40/80**. Hoisted
+  to one table, `ZLIAR_BANDS`.
+- Scandal's band, CTA and fill bar were four hardcoded strings. Derived from σ² now.
+- The plate labelled "GARCH σ² × 10⁴" printed `max(perpProbability)×100` — a percentage under a
+  variance label. Now a real `garchUpdate` tick, shock = dispersion of the book's probabilities.
 
-- **Database consolidation** — still no single source database, so "sync the DBs" has no well-defined target. Agents cannot reach the Postgres host (403) or TCP 5432.
-- **The two `.lock.yml` files** (`gh aw compile`) — both AI review gates are configured and
-  have never run.
-- **eslint / eslint-config-next / @types/node realignment** — needs a lockfile regen the
-  sandbox cannot do.
+**③ The founder asked for a new perp.** Researched, then designed as **the Paseome** — a what-if
+priced as a *tree*, split into **Foresight** (resolves) and **Hindsight** (never resolves, prices
+belief persistence) at exactly the line the maths forces: what can be settled.
 
-### Open engineering work
+**④ Research deepened it.** Dopamine's uncertainty ramp peaking at *p* = 0.5 became the **Knife
+Edge** sort. Benign-violation theory became the **irrealis constraint**. Minimal
+counterintuitiveness became the **MCI score**. And the near-miss literature became the reason
+untaken branches are **refunded**, never written off.
 
-| # | Item | Note |
+**⑤ Building it exposed a lying gate.** `satireMetrics().brandSafe` required Z-Liar ≥ 60 — i.e.
+SERIAL EMBELLISHER or TOTAL FABRICATION — to pass. A juiciness bar named as a safety bar, and the
+only gate on generated output. Split into `entertainmentGrade` and `assertionRisk` (fails closed).
+
+**⑥ And a live input-validation bug.** `propagateTree` never checked that a node's edges sum to
+1, and its one caller takes the tree from a request body. `treeConservationError` now guards it.
+
+**⑦ The founder asked whether the tests meant anything.** A local harness was built (no
+`node_modules`, so `lib/` is transpiled and run under a vitest shim), then the source was
+*mutated* to see what the suite would catch. Eleven mutations changed no test — including all
+four Z-Liar edges, the exact bug class fixed in ②. All eleven closed.
+
+**⑧ The fee model.** `CANONICAL_NUMBERS §10` held a ⛔: `splitFee` took the community cut off
+**gross**. Founder ruling: *"flat 1.88% rake; community is 28.8% of NET; creator only from their
+own markets."* Implemented as a two-stage waterfall and verified against canon's own figures in
+both directions — community 17.28% of gross, old over-allocation exactly 11.52 pp.
+
+**⑨ The overflow.** `frontierPrices` returned `NaN` above ~851k shares on one branch. Reproduced,
+fixed with log-sum-exp, regression-tested at 5M.
+
+**⑩ Today.** Founder settles creator profit share — **28.8% → 40% for creators, 60% for a VIP
+seat, 4,888 seats only** — overturning my flag on the 28.8% floor. Confirms "MAD Upshot" is the
+old name, and names the Paseome's thesis
+**Certain-UnCertainty** — make the maker loss, conservation, refund, cadence and fee certain, so the
+only uncertainty left is the epistemic kind worth paying for.
+
+---
+
+## 4 · The maths, in brief — full derivations in `PASEOME.md` §4–5
+
+| What | Formula | One worked number |
 |---|---|---|
-| **T1** | One tokenomics engine — close the perp/stake bypass | PART 0 §5. The headline item. |
-| #40 | Distribute the swap fee | You chose **"conserve now, distribute later"**: credit the gross fee to one treasury account, record the computed creator/community/protocol split as metadata, decide no waterfall. **Not started.** Needs a migration extending the `madx_ledger` `kind` CHECK constraint (`'welcome','buy','transfer_in','transfer_out','stake','unstake','claim','spend','refund'`) plus a treasury owner id. |
-| #42 | Canon drift — two supply caps disagree | You chose **"just document"**: comment both sites naming the other, and add a test asserting `MADX_BETA.cap = 224_573_096` so the enforced number stops being unguarded. **Not started.** Also in scope: `lib/mpp-math.ts` shadows `calculateConviction`. |
-| #41 | Settle-escalation siblings | The complaint route is fixed and merged. Remaining self-attested/body-supplied authority: `zeitgeist/succession:99`, `zeitgeist/auction`, `shield/opt-in:57-62` (whale eligibility), `tournament/match:39-44`, `markets/route.ts:76-79` (body-supplied `creatorWallet`). |
-| #38 | Card collection display | Map `CardRow` → `NftCard` so owned cards render. |
-| #39 | `logic-lab` and `sentiment-equalizer` wiring | Z-Liar is done; these two still render local tables. |
-| #30 | Reconcile MASTER against shipped reality | Partly advanced this session; not finished. |
-| #31 | `master-maths` Gradle gate (C5) | `master-maths/` is still matched by **no workflow at all**. |
-| #26 | **HELD (billing)** — batch POST to the satire engine | Your hold, not a blocker. |
+| Frontier price | `e^(q_i/b − m) / Σ e^(q_j/b − m)`, m = max(q/b) | q=[4200,3100,2400,900] → 0.5928 / 0.2370 / 0.1323 / 0.0379, Σ = 1 |
+| Trade cost | `C(q) = α(V)·b·ln Σ e^(q/b)`; cost = ΔC | 500 shares of the 0.0379 branch: 23.28 $MADx |
+| Path price | `Π P(branch_k)` | 0.5928² = 0.3514 |
+| Max maker loss | `b · ln n` | 1,318 / 1,664 / 1,931 for 3 / 4 / 5 branches |
+| Knife Edge | sort by `\|p − 0.5\|` | f1 first at 0.0928 |
+| Hindsight print | `permanent − transitory` from `cgarchUpdate` | positive = the belief is sticking |
+| Meme multiplier | `0.85 + 0.50 · fitness`, peak at 1 violation | 1.35 at MCI = 1 |
+| Fee waterfall | gross 1.88% → creator off gross → community 28.8% of net | 10k on a 40% market: 75.20 / 32.49 / 80.31 |
+| Creator / VIP share | creators 28.8% → 40%; VIP 60%, 4,888 seats | VIP seat on 10k: 112.80 / 21.66 / 53.54 |
 
 ---
 
-## 4 · Failed, timed out, or unverifiable this session
+## 5 · Outstanding — by who can act
 
-**This is the section that saves the next session the most time.**
+### Founder only
+- **How is a VIP seat obtained?** Settled today: creators 28.8% → 40%, and **60% is a VIP profit
+  share limited to 4,888 seats**. The code still grants 60% as `CR8TR` by traction with no cap, so
+  canon and code diverge. Bought, earned or granted — and does CR8TR traction still qualify? That
+  answer gates the seat registry (MASTER §5). The 28.8% base rung I flagged as a conflation is
+  **correct**; the flag was wrong.
+- Paseome open questions: artefact-gate timing; what roots a Hindsight tree.
 
-- **`app.crystex.app` is egress-blocked.** `WebFetch` returns
-  `{"error_type":"EGRESS_BLOCKED","domain":"app.crystex.app"}` — the proxy refuses the host
-  outright. This is not a 404 and not rate-limiting: retrying, rewording the URL, or trying
-  the campaign API path will all fail the same way. **It blocked the one thing you asked for**
-  — the fair-launch total supply. No workaround exists from inside the container.
-- **Blockscout cut the audit off half-finished.** The MCP server allows ~**10 tool calls per
-  free session**, and the session was declared dead after two: the unlock call and one address
-  lookup. The second call returned *"This session's `session_id` can no longer be used… obtain
-  a Blockscout PRO API key at https://mcp.blockscout.com"*, and the server's own notice says
-  that from **2026-10-08 all requests require a PRO key**. **Consequence: the finding is
-  asymmetric.** `0xb61ae772…fd18` was read and eliminated — ERC-20 "Serpentine Orkain" /
-  **ORKx**, 18 decimals, total supply 60.073728, 2 holders, unverified source, creator
-  `0x49755F66C877040f8EF7F307263F74C352830149`. `0x6972370e…151f` was **never reached**.
-  Anyone who acts on the first half alone will swap in a second unverified address.
-- **`next build` on `18216a0` — resolved, and the earlier worry was unfounded.** During the
-  session the dispatched run showed route-guard, type-check (16s) and lint green with
-  `next build` still in progress, and #143 was merged before that step was observed. The
-  queued GitHub notifications, read at the end of this session, close it: the **Vercel preview
-  deployment for commit `18216a0` reached `Ready`** (2026-08-27 02:30 UTC,
-  `mad-mpp-2-23-git-claude-maths-engine-room-ship-ai67e6-madgambit.vercel.app`), and Vercel
-  builds from root directory `verify` by running `next build` — so the build did pass. A
-  `check_suite.completed` for the same `head_sha` reported no third-party suite still running
-  or failed. **Nothing is outstanding on #143.**
-- **CI `pull_request` triggers were not firing on #143** — every commit needed a manual
-  `workflow_dispatch`. `mergeable_state` was `"unstable"`, not conflicted, and triggers had
-  worked on the same branch the day before, so **no diagnosis was ever established.** It
-  appears to have been transient: triggers fired normally on **#154** within seconds of
-  opening it (Secret scan started 2026-10-23T14:16:08Z, unprompted). Do not carry forward a
-  belief that this repo's triggers are broken — but do check, rather than assume, on a long
-  branch.
-- **MCP servers disconnected and reconnected repeatedly mid-session** (github, Blockscout,
-  Vercel, Figma, Linear, HuggingFace and others, in both directions). Calls failed with
-  `InputValidationError` or a hard disconnect and had to be re-loaded through `ToolSearch`.
-  Budget for this: a tool that worked ten minutes ago may need its schema re-fetched.
-- **Standing, and they will hit again:** `npm ci` / `npm install` **403** from the agent
-  container, so there is no local `tsc`, `eslint`, `vitest` or `next build` — CI is the only
-  verification, and `package-lock.json` must never be hand-edited. The Postgres host and TCP
-  5432 are blocked, so **no agent can apply or verify migration `0016`**.
-- **`MADHATs-Gambit-Presentation` is empty.** The checkout contains only `.git` and `master`
-  has no commits — `git log` exits 128. Nothing to hand off there yet.
-- **`The-MDC/Vercel-Ai` was never cloned**, so its memory files are absent from
-  `docs/AGENT_MEMORY_FILES.md`. Its AI-SDK skills surfaced through the harness, so it does
-  carry agent context; the document says so rather than implying completeness.
+### Engineering — ready now
+- **Rename "MAD Upshot" → MAD Gambit** — MASTER §5. Was started on a scratch branch and parked when
+  this handoff was requested; no rename edits are in this commit.
+- **Paseome persistence + refund ledger + oracle** — MASTER §5.
+- **Six product sheets never written** — `SCANDAL_VELOCITY`, `Z_LIAR_METER`, `CONVICTION_MARKETS`,
+  `OPEN_MARKETS`, `MAD_SHIELD`, `CREATOR_PROFIT_SHARE`. The founder later said to set sheets aside
+  in favour of code; listed so they are not mistaken for done.
+- **Prompt-injection hardening on `POST /api/v1/satire/roast`** — `headline`/`article` go straight
+  into the model prompt, and `article` has no length cap. Flagged, not built.
+
+### Blocked on environment
+- A live Ollama round-trip has never run — no Ollama in the container, and Vercel cannot reach a
+  desktop by design.
 
 ---
 
-## 5 · Suggested — not asked for, worth doing
+## 6 · Failed, timed out, or unverifiable
 
-- **The `config-drift-checker` request may already be satisfied — in the other repo.** You
-  asked to implement `https://github.com/jameskomo/config-drift-checker` and it was never
-  actioned. Before building anything, note that `MADHATs-Claude-Enhancement` already ships
-  `scripts/check-config-drift.py` (exit 0 clean / 1 drift / 2 unreadable) **and**
-  `scripts/test_config_drift.py`, wired into `hermes-verify.ps1`. So the real question is
-  which of three things you meant: adopt the upstream tool there, port the existing checker
-  into `MAD-MPP-2.23` to watch `vercel.json` / workflow / env drift, or something else.
-  One sentence from you avoids building the wrong one.
-- **Guard the `$MADx` address the way the canon numbers are guarded.** `gambit-game-math.test.ts`
-  locks every constant by value; the token address is enforced in three files and asserted
-  nowhere. One test would have caught the ORKx mismatch years earlier.
-- **A `verify/lib/` test for the ledger boundary.** T1's real risk is a *new* value route
-  being added outside the ledger. A test that enumerates routes touching stake/conviction/bid
-  and asserts each reaches `spendWithin` would make the boundary enforceable instead of
-  aspirational — the same trick `check-route-guards.mjs` already plays for auth.
+| What | Effect | Workaround |
+|---|---|---|
+| `npm ci` 403 from the container | No real type-check/test/build locally | `tsc` with an audit tsconfig + a TS2802 probe; the local harness for tests; CI as the gate |
+| **Three subagents killed by a session rate limit** (Aug 28) | Six product sheets never written; one (`PREDICTION_MARKETS`) finished first and was reviewed line-by-line before merge | Write them directly next time |
+| Local harness under-reported two passing tests | A false "interlock regressed" claim | `.rejects`/`.resolves` added to the shim; local now matches CI |
+| Mutation harness: an escaped `&&` silently broke a build | False "survived" results | Confirm a mutation applied before trusting it |
+| Mutation harness compared to zero, not baseline | False "caught" results | Compare to the unfiltered baseline's own failures |
+| Test-count prediction 379 vs CI 389 | — | CI tests the merge with `main`; reconciled exactly (§7 trap) |
+| Session idle ~55 days (Aug 28 → Oct 23) | Container state predates #146–#152 | Fresh branch from current `main` |
+| `Github_MCP` server failed to connect today | — | The `github` MCP server works; use it |
 
 ---
 
-## 6 · Do not redo
+## 7 · Suggested — not asked for
 
-**Settled decisions — reopening these has already cost sessions:**
+- **Reconcile the projections before an investor sees them.** Stated Y3 volume of $3.6–4.2B × 1.88%
+  = **$73.3M** of market fees against **$154.5M** stated gross — the other ~53% depends on streams
+  `revenue-engine.ts` marks `planned`. A model has to show that split.
+- **Pin the three weak determinism tests** (`expect(f(x)).toBe(f(x))`), especially
+  `derivePackNonce` — security-relevant, and a clock-dependent implementation could pass it.
+- **Clear the stale pack economics in the design decks** — mockups say 888 $MADx / 8 cards; the
+  engine says 4.88 / 5.
 
-- **Hosting: Vercel** (2026-08-18). Part VIII is a contingency with named reopen triggers,
-  *not* a pending proposal.
-- **ADR-008: `pg` Pool + Route Handlers.** A serverless driver and Server Actions were
-  explicitly evaluated and rejected. Marked "do not reopen without a superseding ADR".
-- **One planning document.** ~150 docs were consolidated into MASTER; 114 files and ~36.5k
-  lines deleted in the same commit. No `HANDOFF_*.md`, no `PLAN_*.md`.
-- **Nothing gets removed from a route without explicit founder go-ahead** — your words:
-  *"i never gave permissions of any kind for you to remove anything."*
-- **Canonical numbers do not change without sign-off**: 1.88% fee, 28.8% community,
-  40% Creator Ladder, $12M pre.
+---
 
-**Work already done — a fresh session would plausibly repeat these:**
+## 8 · Do not redo
 
-- The `$MADx` transfer vulnerability is **fixed**.
-- The Z-Liar LLM quip is **built and turned on**, with a labelled `quipSource: "canned"`
-  fallback. The route it "should have been wired to" was itself a placeholder — wiring the
-  component to it would have made the panel worse.
-- `PAUSE_GUARDIAN` is **enforced on the swap path**. Deliberately not behind the governance
-  timelock: a fire alarm must not be on a timer.
-- Complaint resolution is **off session auth** and onto `requireHeaderSecret`, fails closed,
-  with `requireHeaderSecret(` added to `AUTH_CALLS` in `check-route-guards.mjs` — verified by
-  confirming the guard **failed before and passed after**, not by trusting a green tick.
-- `TRADEABLE_FAMILIES` is **one exported `ReadonlySet<PerpFamily6>`** in `market-view.ts`,
-  re-exported by `perp-family-markets.ts`. There is no second hand-written copy.
-- The LMSR inverse was **verified numerically** before it entered the repo (round-trip error
-  ~1e-13 across four regimes), and the exponentials are shifted by `max(q)` because unshifted
-  `exp` genuinely overflows past `e^(q/b) ≈ 709`.
-
-**Two traps worth repeating from PART 0 §7:**
-
-- **A green gate is not evidence until you confirm it is looking at something.** Three gates
-  in this repo have silently scanned nothing. Check the **file count** a filter yields.
-- **A vitest file outside `lib/` silently does not run** — `include` is `["lib/**/*.test.ts"]`.
+- Fee waterfall (`splitFee`, `platformNet`) — merged #145, founder-signed, regression-tested.
+- `frontierPrices` log-sum-exp — do not "simplify" back to `calculateDLLMSRPrice`.
+- `brandSafe` → `entertainmentGrade` / `assertionRisk` — the alias keeps its old value on purpose.
+- Z-Liar `ZLIAR_BANDS` single table; Scandal bands in `lib/scandal-bands.ts`.
+- The mutation audit and the eleven canon pins.
+- Local-model tier uses plain `fetch`, deliberately — no new dependency.
+- Paseome founder decisions: refund untaken branches · frontier 3–5 · authorship VIP **or** ladder.
+- The 1.888% contamination is already gone — zero occurrences.

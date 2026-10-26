@@ -20,7 +20,8 @@ export const PLATFORM = {
   COMMUNITY_SHARE_BPS: 2880, // 28.8% of fee → community pool
   SHIELD_RECOVERY_PCT: 0.288, // 28.8% loss recovery, standard tier
   SHIELD_RECOVERY_PREMIUM_PCT: 0.40, // 40% loss recovery, shielded tier ceiling
-  SHIELD_RECOVERY_WHALE_PCT: 0.60, // 60% loss recovery — Whale/VIP/Partner only
+  SHIELD_RECOVERY_WHALE_PCT: 0.60, // 60% Whale/VIP/Partner — ENGINE ONLY. Canon caps the Shield at 40%
+                                  // (founder, 23 Oct 2026); removal awaits confirmation — MASTER Part 0 §5.
   SHIELD_PREMIUM_MIN: 0.02, // MAD-Shield opt-in fee 2%..4% of stake
   SHIELD_PREMIUM_MAX: 0.04,
   SHIELD_SAFETY_MARGIN: 0.35, // Premium = Stake·P(win)·σ·0.35 (17-corrections #4 — was 1.05)
@@ -74,6 +75,24 @@ export const CREATOR_LADDER = [
   { status: 'MinorCreator', shareBps: 4000, unlockMarkets: 12, unlockFollowers: 0 },
   { status: 'CR8TR',        shareBps: 6000, unlockMarkets: 34, unlockFollowers: 888 },
 ] as const;
+/** The 60% VIP profit share is limited to exactly this many seats — rare and
+ *  exclusive, not a traction rung. Founder, 2026-10-23: "creators take a sliding
+ *  28.8 to 40% and then a limited 4888 seats offering the rare and exclusive 60%
+ *  VIP profit share exist."
+ *
+ *  NOT YET ENFORCED. Pinned here so the number cannot drift. CREATOR_LADDER still
+ *  reaches 6000 bps through the CR8TR traction rung with no seat count, so code
+ *  and canon diverge until a seat registry exists (MASTER §5). Gating it moves
+ *  real payouts and waits on how a seat is obtained. */
+export const VIP_PROFIT_SHARE_SEATS = 4_888;
+export const VIP_PROFIT_SHARE_BPS = 6000;
+
+/** Is a VIP profit-share seat still open, given how many have been issued? */
+export function vipSeatAvailable(issued: number): boolean {
+  const n = Number.isFinite(issued) ? Math.floor(issued) : VIP_PROFIT_SHARE_SEATS;
+  return n >= 0 && n < VIP_PROFIT_SHARE_SEATS;
+}
+
 export const TRACTION_MIN_CONVICTION_MADX = 1_200; // = LMSR liquidity b
 
 export function creatorStatus(tractionedMarkets: number, followers: number) {
