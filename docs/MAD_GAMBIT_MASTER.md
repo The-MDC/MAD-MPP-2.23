@@ -271,7 +271,7 @@ Project **`mad-gambit-2.23`** (team `madgambit`, Pro), replacing the dead `mpp2.
 - Build: **`next build`** only. Migrations were removed from the build — they now run as a controlled, manual `npm run migrate:deploy` (with `npm run schema:verify` alongside). `SKIP_MIGRATIONS` is a legacy escape hatch; do **not** set it on Vercel, since normal builds no longer migrate.
 - **`main` does not auto-deploy** — `vercel.json` sets `git.deploymentEnabled.main = false`; production deploys are manual/promoted.
 - Neon connected via Vercel Marketplace ("connectable existing account"), branch-per-preview on
-- Crons: rollup hourly · `perps/roll` 00:00 UTC · `registrar/lapse` 00:30 UTC. `proxy.ts` bearer-passes these three around the guest gate; both handlers export `GET`.
+- Crons: `perps/roll` 00:00 UTC · `registrar/lapse` 00:30 UTC. The hourly `cron/rollup` schedule was removed from `verify/vercel.json` (2026-10-26); the route still exists and can be called manually with the CRON_SECRET bearer. `proxy.ts` still bearer-passes all three routes around the guest gate; handlers export `GET`.
 - **Deployment Protection must stay OFF** — `proxy.ts` is the real gate
 - Ignored Build Step allows `main`, `feat/*`, `claude/*` only
 - GitHub secrets `DATABASE_URL` / `NEON_API_KEY` / `NEON_PROJECT_ID` are now unused and deletable
