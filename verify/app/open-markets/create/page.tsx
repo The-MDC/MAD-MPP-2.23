@@ -116,7 +116,7 @@ export default function CreateMarketPage() {
     <OMShell title="Create a market" back={{ href: "/open-markets", label: "Back to markets" }}>
       <section className="mg-seam" data-explain="om-create">
         <Headline lead="Mint your" punch="Market" size={46}
-          sub="Prediction or Conviction. You earn 28.8% → 40% of platform net on your own markets." />
+          sub="Prediction or Conviction. You earn 28.8% → 40% of the 1.88% fee on every trade in your market." />
       </section>
 
       <div role="tablist" aria-label="Market class" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, padding: 5, borderRadius: 18, background: "#0f1016", border: `1px solid ${LINE}` }}>
@@ -230,6 +230,8 @@ export default function CreateMarketPage() {
         <div style={{ pointerEvents: "none" }}><MarketTile m={preview} /></div>
       </section>
 
+      <CreatorEarnings />
+
       {error ? <div role="alert" style={{ padding: "12px 14px", borderRadius: 14, background: "rgba(251,41,43,.12)", border: "1px solid rgba(251,41,43,.45)", color: "#ffd0cc", fontSize: 13 }}>{error}</div> : null}
 
       <button type="button" className="mg-btn-gold" onClick={submit} disabled={busy} style={{ width: "100%", minHeight: 54, fontSize: 16 }} data-explain="om-create">
@@ -266,5 +268,55 @@ function OddsReadout({ side, p, color }: { side: string; p: number; color: strin
       <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color }}>{side} · {pct(p)}</div>
       <div style={{ fontFamily: MONO, fontSize: 18, fontWeight: 800, marginTop: 2 }}>{decimalOdds(p).toFixed(2)}</div>
     </div>
+  );
+}
+
+/* ── What the market pays its creator ────────────────────────────────────── */
+
+const VOLUME_STEPS = [10_000, 25_000, 50_000, 100_000, 250_000, 500_000, 1_000_000];
+const RUNGS = [
+  { id: "user", label: "User", bps: 2880, note: "every account" },
+  { id: "minor", label: "MinorCreator", bps: 4000, note: "12 markets" },
+  { id: "vip", label: "VIP", bps: 6000, note: "4,888 seats" },
+] as const;
+
+function usd(n: number): string {
+  return "$" + Math.round(n).toLocaleString("en-US");
+}
+
+function CreatorEarnings() {
+  const [step, setStep] = useState(3);
+  const [rung, setRung] = useState<(typeof RUNGS)[number]["id"]>("minor");
+  const vol = VOLUME_STEPS[step];
+  const r = RUNGS.find((x) => x.id === rung) ?? RUNGS[1];
+  const fee = vol * 0.0188;
+  const yours = (fee * r.bps) / 10_000;
+  const community = (fee - yours) * 0.288;
+  return (
+    <section className="mg-tile" data-explain="om-earn" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+      <SectionTitle>What it pays you</SectionTitle>
+      <div style={{ display: "flex", gap: 6 }}>
+        {RUNGS.map((x) => {
+          const on = x.id === rung;
+          return (
+            <button key={x.id} type="button" onClick={() => setRung(x.id)} aria-pressed={on}
+              style={{ flex: 1, minWidth: 0, minHeight: 48, borderRadius: 12, cursor: "pointer", border: `1px solid ${on ? "transparent" : LINE}`, background: on ? "var(--mg-gold-fill)" : "rgba(255,255,255,.03)", color: on ? "#1a1205" : "#d7d2c4", padding: "4px 6px" }}>
+              <span style={{ display: "block", fontSize: 11.5, fontWeight: 900 }}>{x.label} · {(x.bps / 100).toFixed(1)}%</span>
+              <span style={{ display: "block", fontSize: 9.5, opacity: 0.75 }}>{x.note}</span>
+            </button>
+          );
+        })}
+      </div>
+      <label style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 11, color: MUTED }}>
+        <span style={{ display: "flex", justifyContent: "space-between" }}><span>Monthly volume on your market</span><b style={{ color: "#f6f1e3", fontFamily: "ui-monospace, monospace" }}>{usd(vol)}</b></span>
+        <input type="range" min={0} max={VOLUME_STEPS.length - 1} step={1} value={step} onChange={(e) => setStep(Number(e.target.value))} aria-label="Monthly volume" style={{ width: "100%", accentColor: "#ffd700" }} />
+      </label>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, textAlign: "center" }}>
+        <div><div style={{ fontSize: 9.5, color: MUTED, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase" }}>Fee · 1.88%</div><div style={{ fontFamily: "ui-monospace, monospace", fontSize: 15, fontWeight: 800 }}>{usd(fee)}</div></div>
+        <div><div style={{ fontSize: 9.5, color: MUTED, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase" }}>You / month</div><div className="mg-gold-text" style={{ fontFamily: "ui-monospace, monospace", fontSize: 20, fontWeight: 900 }}>{usd(yours)}</div></div>
+        <div><div style={{ fontSize: 9.5, color: MUTED, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase" }}>Community</div><div style={{ fontFamily: "ui-monospace, monospace", fontSize: 15, fontWeight: 800, color: "#7cffc7" }}>{usd(community)}</div></div>
+      </div>
+      <div style={{ fontSize: 10.5, color: MUTED, lineHeight: 1.45 }}>Lifetime, on every trade in markets you open. Community pool = 28.8% of what the platform keeps after your cut. Illustrative — demo floor, not a payout promise.</div>
+    </section>
   );
 }

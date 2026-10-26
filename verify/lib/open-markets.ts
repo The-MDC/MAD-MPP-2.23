@@ -143,6 +143,65 @@ export function quote(market: OMMarket, outcomeIdx: number, stake: number): Quot
 }
 
 /** Maximum the market maker can lose on an n-outcome book: b · ln n. */
+export interface SellQuote {
+  shares: number;
+  /** Book proceeds before the fee: C(q) − C(q − Δ·eᵢ). */
+  gross: number;
+  fee: number;
+  /** What lands back in the balance. */
+  net: number;
+  priceBefore: number;
+  priceAfter: number;
+}
+
+/**
+ * Cash out Δ shares of outcome i back into the book before it settles.
+ * LMSR proceeds are the cost-function drop, in closed form:
+ *   gross = b · ln( Z / (Z − Zᵢ + Zᵢ·e^(−Δ/b)) )
+ * evaluated in max-shifted space so large q never overflows. The same flat
+ * 1.88% comes off the proceeds — one rake, both directions.
+ */
+export function sellQuote(market: OMMarket, outcomeIdx: number, shares: number): SellQuote {
+  const b = market.b;
+  const z = market.outcomes.map((o) => o.q / b);
+  const m = Math.max.apply(null, z);
+  const e = z.map((v) => Math.exp(v - m));
+  const Z = e.reduce((a, v) => a + v, 0);
+  const Zi = e[outcomeIdx];
+  const Zafter = Z - Zi + Zi * Math.exp(-shares / b);
+  const gross = shares > 0 ? Math.max(0, b * Math.log(Z / Zafter)) : 0;
+  const fee = round2(gross * FEE_RATE);
+  const before = prices(market.outcomes, b)[outcomeIdx];
+  const after = prices(
+    market.outcomes.map((o, i) => (i === outcomeIdx ? { ...o, q: o.q - shares } : o)),
+    b,
+  )[outcomeIdx];
+  return { shares, gross: round2(gross), fee, net: round2(gross - fee), priceBefore: before, priceAfter: after };
+}
+
+/**
+ * Conviction accrues with time held: 1 − e^(−t/τ), τ = 30 days — 63% at a
+ * month, 95% at three. A display reading on the demo floor; it never moves a
+ * price (no clock term in the market maker).
+ */
+export const CONVICTION_TAU_DAYS = 30;
+export function convictionHeld(at: number, now: number = Date.now()): number {
+  const days = Math.max(0, (now - at) / 86_400_000);
+  return 1 - Math.exp(-days / CONVICTION_TAU_DAYS);
+}
+
+/**
+ * Content policy, enforced at write time before any book opens: no market on
+ * death, violence or harm to a person. Permissionless creation without this
+ * is how open venues ended up listing assassination markets.
+ */
+const POLICY_BLOCK = /\b(assassinat\w*|murder\w*|kill(?:s|ed|ing)?|suicid\w*|overdos\w*|shooting|terror(?:ist|ism)?\s+attack|bomb(?:s|ed|ing)?|kidnap\w*|hostage\w*|rap(?:e|ed|ist)|dies|died|dying|death\s+toll)\b/i;
+export function policyViolation(...texts: string[]): string | null {
+  return texts.some((t) => POLICY_BLOCK.test(t))
+    ? "MAD Gambit doesn't list markets on death, violence or harm to a person. Satire punches at the story, never the body."
+    : null;
+}
+
 export function maxMakerLoss(n: number, b: number = OM_B): number {
   return b * Math.log(n);
 }
@@ -179,6 +238,8 @@ export function validatePrediction(d: PredictionDraft): string | null {
   if (d.title.trim().length < 12) return "Write the question in full — at least 12 characters.";
   if (!/\?\s*$/.test(d.title.trim())) return "A prediction is a question — end it with a question mark.";
   if (!d.resolution.trim()) return "Name the source that settles it.";
+  const policy = policyViolation(d.title, d.resolution);
+  if (policy) return policy;
   if (!(d.closesAt > Date.now())) return "Pick a close date in the future.";
   if (!(d.openingProbability >= 0.02 && d.openingProbability <= 0.98)) return "Opening probability must sit between 2% and 98%.";
   return null;
@@ -190,6 +251,8 @@ export function validateConviction(d: ConvictionDraft): string | null {
   if (branches.length < FRONTIER_MIN || branches.length > FRONTIER_MAX) {
     return `A Paseome frontier holds ${FRONTIER_MIN} to ${FRONTIER_MAX} branches.`;
   }
+  const policy = policyViolation(d.root, ...branches);
+  if (policy) return policy;
   if (d.side === "counterfactual") {
     const bad = branches.filter((x) => !hasIrrealisMood(x));
     if (bad.length) return "Counterfactual branches need the irrealis mood — \"What if it had…\".";

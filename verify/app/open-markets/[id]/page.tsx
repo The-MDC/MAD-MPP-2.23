@@ -10,9 +10,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { OMShell, ClassBadge, CrowdBar, Sparkline, Stat, SectionTitle, GOLD, ROSSA, MUTED, LINE } from "@/components/om-ui";
 import { celebrate } from "@/components/joy-layer";
-import { getMarket, placeBet, useOpenMarkets } from "@/lib/open-markets-store";
+import { getMarket, placeBet, sellPosition, useOpenMarkets } from "@/lib/open-markets-store";
 import {
-  closesLabel, compact, decimalOdds, madx, maxMakerLoss, pct, prices, quote, type OMPosition,
+  closesLabel, compact, decimalOdds, madx, maxMakerLoss, pct, prices, quote, sellQuote, type OMPosition,
 } from "@/lib/open-markets";
 
 const MONO = "ui-monospace, 'JetBrains Mono', monospace";
@@ -195,9 +195,14 @@ export default function TradeDesk() {
             const i = m.outcomes.findIndex((o) => o.id === x.outcomeId);
             const mark = x.shares * p[i];
             return (
-              <div key={x.id} className="mg-tile" style={{ padding: "12px 14px", display: "flex", justifyContent: "space-between", gap: 10, fontSize: 12.5 }}>
-                <span style={{ fontWeight: 700 }}>{m.outcomes[i]?.label} · {x.shares.toFixed(2)} sh</span>
-                <span style={{ fontFamily: MONO, color: mark >= x.stake ? "#7cffc7" : "#ff8f7a" }}>{madx(mark)}</span>
+              <div key={x.id} className="mg-tile" style={{ padding: "10px 12px 10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, fontSize: 12.5 }}>
+                <span style={{ minWidth: 0 }}>
+                  <span style={{ display: "block", fontWeight: 700 }}>{m.outcomes[i]?.label} · {x.shares.toFixed(2)} sh</span>
+                  <span style={{ display: "block", fontFamily: MONO, fontSize: 11, color: mark >= x.stake ? "#7cffc7" : "#ff8f7a" }}>mark {madx(mark)} · stake {madx(x.stake)}</span>
+                </span>
+                <button type="button" className="mg-btn-gold" onClick={() => sellPosition(x.id)} style={{ flex: "none", minHeight: 36, padding: "0 12px", fontSize: 11.5 }}>
+                  Cash out {madx(sellQuote(m, i, x.shares).net)}
+                </button>
               </div>
             );
           })}

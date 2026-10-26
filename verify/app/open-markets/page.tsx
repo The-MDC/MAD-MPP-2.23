@@ -10,7 +10,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { OMShell, Headline, MarketTile, SectionTitle, Stat, GOLD, ROSSA, MUTED, LINE } from "@/components/om-ui";
 import OMCarousel from "@/components/om-carousel";
 import { useOpenMarkets } from "@/lib/open-markets-store";
-import { compact, isPerp, PERP_LABEL, PERPS, type OMMarket, type OMPerp } from "@/lib/open-markets";
+import { compact, isPerp, PERP_LABEL, PERPS, prices, type OMMarket, type OMPerp } from "@/lib/open-markets";
 
 type Tab = "all" | "prediction" | "conviction" | "certain" | "perps";
 const TABS: { id: Tab; label: string }[] = [
@@ -32,10 +32,35 @@ function filterFor(tab: Tab, perp: OMPerp | null) {
   };
 }
 
+type Sort = "knife" | "volume" | "closing" | "newest";
+const SORTS: { id: Sort; label: string }[] = [
+  { id: "knife", label: "⚖ Knife edge" },
+  { id: "volume", label: "Volume" },
+  { id: "closing", label: "Closing soon" },
+  { id: "newest", label: "Newest" },
+];
+/**
+ * Knife Edge (Paseome spec M1): the most contested book first. For a binary,
+ * |p − 0.5|; for n branches, how far the leader sits above uniform 1/n.
+ * Volume sorts point away from the information frontier; this points at it.
+ */
+function knife(m: OMMarket): number {
+  const p = prices(m.outcomes, m.b);
+  return Math.max.apply(null, p) - 1 / p.length;
+}
+function sortFor(sort: Sort): (a: OMMarket, b: OMMarket) => number {
+  if (sort === "volume") return (a, b) => b.volume - a.volume;
+  if (sort === "newest") return (a, b) => b.createdAt - a.createdAt;
+  if (sort === "closing") return (a, b) => (a.closesAt === b.closesAt ? 0 : a.closesAt === null ? 1 : b.closesAt === null ? -1 : a.closesAt - b.closesAt);
+  return (a, b) => knife(a) - knife(b);
+}
+
 export default function OpenMarketsLobby() {
   const s = useOpenMarkets();
   const [tab, setTab] = useState<Tab>("all");
   const [perp, setPerp] = useState<OMPerp | null>(null);
+  const [sort, setSort] = useState<Sort>("knife");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
@@ -53,7 +78,10 @@ export default function OpenMarketsLobby() {
     window.history.replaceState(null, "", `/open-markets${q.toString() ? `?${q}` : ""}`);
   };
 
-  const list = useMemo(() => s.markets.filter(filterFor(tab, perp)), [s.markets, tab, perp]);
+  const sorter = useMemo(() => sortFor(sort), [sort]);
+  const list = useMemo(() => s.markets.filter(filterFor(tab, perp)).sort(sorter), [s.markets, tab, perp, sorter]);
+  const q = query.trim().toLowerCase();
+  const hits = useMemo(() => (q ? s.markets.filter((m) => (m.title + " " + m.category + " " + m.outcomes.map((o) => o.label).join(" ")).toLowerCase().indexOf(q) !== -1).sort(sorter) : []), [s.markets, q, sorter]);
   const mine = s.markets.filter((m) => s.createdIds.indexOf(m.id) !== -1);
   const volume = s.markets.reduce((a, m) => a + m.volume, 0);
 
@@ -86,6 +114,37 @@ export default function OpenMarketsLobby() {
         })}
       </div>
 
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <label style={{ position: "relative", display: "block" }}>
+          <span className="sr-only" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>Search markets</span>
+          <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search markets, branches, categories…"
+            style={{ width: "100%", height: 42, borderRadius: 999, border: `1px solid ${LINE}`, background: "rgba(255,255,255,.04)", color: "#f6f1e3", padding: "0 16px 0 38px", fontSize: 13, outline: "none" }} />
+          <span aria-hidden="true" style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: MUTED, fontSize: 14 }}>⌕</span>
+        </label>
+        <div role="radiogroup" aria-label="Sort markets" data-explain="om-knife" style={{ display: "flex", gap: 6, overflowX: "auto", margin: "0 -16px", padding: "0 16px 2px", scrollbarWidth: "none" }}>
+          {SORTS.map((o) => {
+            const on = sort === o.id;
+            return (
+              <button key={o.id} type="button" role="radio" aria-checked={on} onClick={() => setSort(o.id)} className="mg-chip"
+                style={{ flex: "none", height: 30, cursor: "pointer", color: on ? "#00e5ff" : "#c9ccd6", background: on ? "rgba(0,229,255,.1)" : "transparent", borderColor: on ? "#00e5ff66" : LINE }}>
+                {o.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {q ? (
+        <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <SectionTitle right={<span style={{ fontSize: 11, color: MUTED }}>{hits.length} found</span>}>Results</SectionTitle>
+          {hits.length ? <div className="mg-om-grid">{hits.map((m) => <MarketTile key={m.id} m={m} />)}</div> : (
+            <div className="mg-tile" style={{ padding: 18, textAlign: "center", fontSize: 13, color: MUTED }}>
+              Nothing on that yet. <a href={`/open-markets/create?title=${encodeURIComponent(query.trim())}`} style={{ color: GOLD, fontWeight: 900 }}>Mint it ›</a>
+            </div>
+          )}
+        </section>
+      ) : null}
+
       {tab === "perps" ? (
         <div data-explain="om-perps" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button type="button" onClick={() => choose("perps", null)} className="mg-chip" style={{ cursor: "pointer", color: perp ? MUTED : "#00e5ff", borderColor: perp ? LINE : "#00e5ff66" }}>All six</button>
@@ -98,19 +157,19 @@ export default function OpenMarketsLobby() {
         </div>
       ) : null}
 
-      {tab === "all" && mine.length ? (
+      {!q && tab === "all" && mine.length ? (
         <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <SectionTitle explain="om-create" right={<span style={{ fontSize: 11, color: ROSSA, fontWeight: 900 }}>{mine.length} live</span>}>Your markets</SectionTitle>
           <div className="mg-om-grid">{mine.map((m) => <MarketTile key={m.id} m={m} />)}</div>
         </section>
       ) : null}
 
-      {tab === "all" ? (
+      {q ? null : tab === "all" ? (
         <>
-          <Band title="Prediction" note="Dated · settles on a named source" explain="om-prediction" items={s.markets.filter(filterFor("prediction", null)).filter((m) => mine.indexOf(m) === -1)} more={() => choose("prediction")} />
-          <Band title="Conviction · The Paseome" note="Bet the branch · 3–5 what-ifs" explain="om-conviction" items={s.markets.filter(filterFor("conviction", null)).filter((m) => mine.indexOf(m) === -1)} more={() => choose("conviction")} />
-          <CertainBand items={s.markets.filter(filterFor("certain", null))} />
-          <Band title="Perpetuals" note="Legs, not expiries" explain="om-perps" items={s.markets.filter(filterFor("perps", null))} more={() => choose("perps")} />
+          <Band title="Prediction" note="Dated · settles on a named source" explain="om-prediction" items={s.markets.filter(filterFor("prediction", null)).filter((m) => mine.indexOf(m) === -1).sort(sorter)} more={() => choose("prediction")} />
+          <Band title="Conviction · The Paseome" note="Bet the branch · 3–5 what-ifs" explain="om-conviction" items={s.markets.filter(filterFor("conviction", null)).filter((m) => mine.indexOf(m) === -1).sort(sorter)} more={() => choose("conviction")} />
+          <CertainBand items={s.markets.filter(filterFor("certain", null)).sort(sorter)} />
+          <Band title="Perpetuals" note="Legs, not expiries" explain="om-perps" items={s.markets.filter(filterFor("perps", null)).sort(sorter)} more={() => choose("perps")} />
         </>
       ) : (
         <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>

@@ -7,8 +7,8 @@
 import React from "react";
 import { OMShell, Headline, SectionTitle, Stat, GOLD, ROSSA, MUTED, LINE } from "@/components/om-ui";
 import MadxWalletPanel from "@/components/madx-wallet-panel";
-import { resetDemo, topUp, useOpenMarkets } from "@/lib/open-markets-store";
-import { madx, pct, prices } from "@/lib/open-markets";
+import { resetDemo, sellPosition, topUp, useOpenMarkets } from "@/lib/open-markets-store";
+import { convictionHeld, madx, pct, prices, sellQuote } from "@/lib/open-markets";
 
 const MONO = "ui-monospace, 'JetBrains Mono', monospace";
 
@@ -27,11 +27,13 @@ function ProfileInner() {
     const i = m ? m.outcomes.findIndex((o) => o.id === x.outcomeId) : -1;
     const p = m && i >= 0 ? prices(m.outcomes, m.b)[i] : 0;
     const mark = x.shares * p;
-    return { x, m, label: m && i >= 0 ? m.outcomes[i].label : "—", p, mark, pnl: mark - x.stake };
+    const cashOut = m && i >= 0 ? sellQuote(m, i, x.shares).net : 0;
+    return { x, m, label: m && i >= 0 ? m.outcomes[i].label : "—", p, mark, cashOut, pnl: mark - x.stake };
   });
   const staked = rows.reduce((a, r) => a + r.x.stake, 0);
   const mark = rows.reduce((a, r) => a + r.mark, 0);
-  const pnl = mark - staked;
+  const realised = s.closed.reduce((a, c) => a + (c.proceeds - c.stake), 0);
+  const pnl = mark - staked + realised;
   const mine = s.markets.filter((m) => s.createdIds.indexOf(m.id) !== -1);
 
   return (
@@ -66,9 +68,12 @@ function ProfileInner() {
 
       <section id="positions" style={{ display: "flex", flexDirection: "column", gap: 10, scrollMarginTop: 80 }}>
         <SectionTitle explain="om-profile" right={<a href="/open-markets" style={{ color: GOLD, fontSize: 12, fontWeight: 900, textDecoration: "none" }}>Find markets ›</a>}>My bets</SectionTitle>
-        {rows.length ? rows.map((r) => (
-          <a key={r.x.id} href={r.m ? `/open-markets/${encodeURIComponent(r.m.id)}` : "/open-markets"} className="mg-tile mg-tile-hover" style={{ padding: 14, textDecoration: "none", color: "inherit", display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ fontSize: 13.5, fontWeight: 800, lineHeight: 1.35 }}>{r.m?.title ?? "Market"}</div>
+        {rows.length ? rows.map((r) => {
+          const held = convictionHeld(r.x.at);
+          const href = r.m ? `/open-markets/${encodeURIComponent(r.m.id)}` : "/open-markets";
+          return (
+          <div key={r.x.id} className="mg-tile" style={{ padding: 14, display: "flex", flexDirection: "column", gap: 9 }}>
+            <a href={href} style={{ fontSize: 13.5, fontWeight: 800, lineHeight: 1.35, color: "#f6f1e3", textDecoration: "none" }}>{r.m?.title ?? "Market"} <span style={{ color: GOLD }}>›</span></a>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10, fontSize: 12 }}>
               <span style={{ color: GOLD, fontWeight: 800, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.label}</span>
               <span style={{ fontFamily: MONO, color: MUTED, flex: "none" }}>now {pct(r.p, 1)}</span>
@@ -78,13 +83,44 @@ function ProfileInner() {
               <span><span style={{ color: MUTED }}>Mark </span>{madx(r.mark)}</span>
               <span style={{ textAlign: "right", color: r.pnl >= 0 ? "#7cffc7" : "#ff8f7a" }}>{r.pnl >= 0 ? "+" : ""}{madx(r.pnl)}</span>
             </div>
-          </a>
-        )) : (
+            <div data-explain="om-profile" title="Conviction = 1 − e^(−t/30d): 63% at a month held, 95% at three" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 10, color: MUTED }}>
+              <span style={{ flex: "none", fontWeight: 900, letterSpacing: 1, textTransform: "uppercase" }}>Conviction</span>
+              <span style={{ flex: 1, height: 4, borderRadius: 999, background: "#1d1f27", overflow: "hidden" }}>
+                <span style={{ display: "block", height: "100%", width: `${Math.max(2, held * 100)}%`, background: "var(--mg-gold-fill)" }} />
+              </span>
+              <span style={{ flex: "none", fontFamily: MONO }}>{pct(held, 1)}</span>
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <a href={href} className="mg-btn-ghost" style={{ flex: 1, minHeight: 38, fontSize: 12, textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>Add to it</a>
+              <button type="button" className="mg-btn-gold" onClick={() => sellPosition(r.x.id)} style={{ flex: 1, minHeight: 38, fontSize: 12 }} aria-label={`Cash out ${r.label} for ${madx(r.cashOut)} $MADx`}>
+                Cash out {madx(r.cashOut)}
+              </button>
+            </div>
+          </div>
+          );
+        }) : (
           <div className="mg-tile" style={{ padding: 18, textAlign: "center", fontSize: 13, color: MUTED }}>
             No bets yet. <a href="/open-markets" style={{ color: GOLD, fontWeight: 900 }}>Take a side ›</a>
           </div>
         )}
       </section>
+
+      {s.closed.length ? (
+        <section style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <SectionTitle>Cashed out</SectionTitle>
+          {s.closed.slice(0, 8).map((c) => {
+            const m = s.markets.find((mk) => mk.id === c.marketId);
+            const label = m?.outcomes.find((o) => o.id === c.outcomeId)?.label ?? "—";
+            const r = c.proceeds - c.stake;
+            return (
+              <div key={c.id} className="mg-tile" style={{ padding: "10px 14px", display: "flex", justifyContent: "space-between", gap: 10, fontSize: 12 }}>
+                <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}><b style={{ color: GOLD }}>{label}</b> · {m?.title ?? "Market"}</span>
+                <span style={{ flex: "none", fontFamily: MONO, color: r >= 0 ? "#7cffc7" : "#ff8f7a" }}>{r >= 0 ? "+" : ""}{madx(r)}</span>
+              </div>
+            );
+          })}
+        </section>
+      ) : null}
 
       <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <SectionTitle explain="om-create" right={<a href="/open-markets/create" style={{ color: ROSSA, fontSize: 12, fontWeight: 900, textDecoration: "none" }}>+ Create ›</a>}>My markets</SectionTitle>

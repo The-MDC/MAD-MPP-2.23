@@ -11,7 +11,7 @@
  */
 import { useSyncExternalStore } from "react";
 import {
-  DEMO_START_CREDITS, OM_B, quote, prices, qForProbabilities, round2, seedMarkets,
+  DEMO_START_CREDITS, OM_B, quote, sellQuote, prices, qForProbabilities, round2, seedMarkets,
   validateConviction, validatePrediction,
   type ConvictionDraft, type OMMarket, type OMPosition, type PredictionDraft,
 } from "@/lib/open-markets";
@@ -31,9 +31,20 @@ export interface RippedCard {
 
 const KEY = "mg_open_markets_v2";
 
+/** A position cashed out before settlement, kept for realised P&L. */
+export interface ClosedPosition {
+  id: string;
+  marketId: string;
+  outcomeId: string;
+  stake: number;
+  proceeds: number;
+  at: number;
+}
+
 export interface OMState {
   markets: OMMarket[];
   positions: OMPosition[];
+  closed: ClosedPosition[];
   credits: number;
   createdIds: string[];
   cards: RippedCard[];
@@ -45,7 +56,7 @@ let state: OMState | null = null;
 const listeners = new Set<() => void>();
 
 function fresh(): OMState {
-  return { markets: seedMarkets(Date.now()), positions: [], credits: DEMO_START_CREDITS, createdIds: [], cards: [], packCount: 0, nonce: Math.floor(Math.random() * 1e6) };
+  return { markets: seedMarkets(Date.now()), positions: [], closed: [], credits: DEMO_START_CREDITS, createdIds: [], cards: [], packCount: 0, nonce: Math.floor(Math.random() * 1e6) };
 }
 
 function load(): OMState {
@@ -55,7 +66,7 @@ function load(): OMState {
     if (raw) {
       const parsed = JSON.parse(raw) as OMState;
       if (parsed && Array.isArray(parsed.markets) && parsed.markets.length) {
-        state = { ...parsed, cards: parsed.cards ?? [], packCount: parsed.packCount ?? 0, nonce: parsed.nonce ?? Math.floor(Math.random() * 1e6) };
+        state = { ...parsed, closed: parsed.closed ?? [], cards: parsed.cards ?? [], packCount: parsed.packCount ?? 0, nonce: parsed.nonce ?? Math.floor(Math.random() * 1e6) };
         return state;
       }
     }
@@ -81,7 +92,7 @@ function subscribe(l: () => void) {
   return () => listeners.delete(l);
 }
 
-const EMPTY: OMState = { markets: [], positions: [], credits: DEMO_START_CREDITS, createdIds: [], cards: [], packCount: 0, nonce: 0 };
+const EMPTY: OMState = { markets: [], positions: [], closed: [], credits: DEMO_START_CREDITS, createdIds: [], cards: [], packCount: 0, nonce: 0 };
 
 /** Client snapshot; the server snapshot is empty so nothing hydrates against storage. */
 export function useOpenMarkets(): OMState {
@@ -125,6 +136,34 @@ export function placeBet(marketId: string, outcomeId: string, stake: number): Re
     credits: round2(s.credits - stake),
   });
   return { ok: true, value: pos };
+}
+
+/** Cash a whole position back into the book before it settles. */
+export function sellPosition(positionId: string): Result<ClosedPosition> {
+  const s = load();
+  const pos = s.positions.find((x) => x.id === positionId);
+  if (!pos) return { ok: false, error: "Position not found." };
+  const market = getMarket(s, pos.marketId);
+  if (!market) return { ok: false, error: "Market not found." };
+  const idx = market.outcomes.findIndex((o) => o.id === pos.outcomeId);
+  if (idx < 0) return { ok: false, error: "Outcome not found." };
+  const sq = sellQuote(market, idx, pos.shares);
+  const outcomes = market.outcomes.map((o, i) => (i === idx ? { ...o, q: o.q - pos.shares } : o));
+  const updated: OMMarket = {
+    ...market,
+    outcomes,
+    volume: round2(market.volume + sq.gross),
+    history: market.history.concat([prices(outcomes, market.b)]).slice(-24),
+  };
+  const closed: ClosedPosition = { id: pos.id, marketId: pos.marketId, outcomeId: pos.outcomeId, stake: pos.stake, proceeds: sq.net, at: Date.now() };
+  commit({
+    ...s,
+    markets: s.markets.map((m) => (m.id === market.id ? updated : m)),
+    positions: s.positions.filter((x) => x.id !== positionId),
+    closed: [closed].concat(s.closed).slice(0, 100),
+    credits: round2(s.credits + sq.net),
+  });
+  return { ok: true, value: closed };
 }
 
 export function createPrediction(d: PredictionDraft): Result<OMMarket> {

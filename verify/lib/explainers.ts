@@ -68,6 +68,20 @@ export const EXPLAINERS: Record<string, Explainer> = {
     body: "The fee comes off first; the rest buys Δ shares, each paying 1 $MADx if your side is taken. Bigger stakes move the price more — the quote shows the price after your fill.",
     source: "lib/open-markets.ts · quote()",
   },
+  "om-knife": {
+    kicker: "Knife Edge sort",
+    title: "The most contested book first",
+    formula: ["binary: |p − 0.5|  ·  n branches: max pᵢ − 1/n", "ascending — closest to a coin flip on top"],
+    body: "Most venues sort by volume, which points away from where one more informed trade is worth the most. Knife Edge puts the books nearest p = 0.5 first — the information frontier, and where the spread is widest.",
+    source: "app/open-markets/page.tsx · knife() · Paseome spec M1",
+  },
+  "om-earn": {
+    kicker: "Creator earnings",
+    title: "Your cut of every trade on your market",
+    formula: ["gross fee = volume × 1.88%", "you = gross fee × rung (28.8% → 40%)"],
+    body: "Creators earn their ladder rung on the markets they open, lifetime. At the 40% rung, $100K of monthly volume pays $752 a month. The community pool takes 28.8% of what the platform keeps after that.",
+    source: "lib/gambit-game-math.ts · CREATOR_LADDER · splitFee()",
+  },
   "om-crowd": {
     kicker: "Crowd split",
     title: "Where the book leans",
