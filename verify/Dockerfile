@@ -1,8 +1,8 @@
 # MAD Gambit — container image for the Next.js standalone server.
 # Compatible with: Cloud Run (gen2), AI Studio (Node preview), local Docker.
-# Node 22 to match the Vercel/CI runtime (output: "standalone" in next.config.ts).
+# Node 24 to match the Vercel/CI runtime (output: "standalone" in next.config.ts).
 
-FROM node:22-alpine AS base
+FROM node:24-alpine AS base
 WORKDIR /app
 
 # Production-only dependencies (kept out of the final image's build layer).
@@ -19,7 +19,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # Production runner.
-FROM node:22-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production

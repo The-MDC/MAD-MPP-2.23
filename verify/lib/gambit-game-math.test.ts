@@ -13,6 +13,7 @@ import {
   CREATOR_LADDER,
   TRACTION_MIN_CONVICTION_MADX,
   creatorStatus,
+  getStakingTier,
   VRS_TRIGGERS,
   VRS_REWARDS,
   LOSS_AVERSION,
@@ -97,7 +98,7 @@ describe("staking — 4-tier eights ladder (founder sign-off 31 Jul 2026)", () =
   });
   it("getStakingTier returns stoploss activation status", () => {
     // Bronze (first level): no stoploss protection
-    const bronze = getStakingTier(50);
+    const bronze = getStakingTier(100); // Bronze starts at 88 $MADx; 50 is below every tier (returns null)
     expect(bronze?.stoplossActive).toBe(false);
     // Silver: 15% stoploss threshold
     const silver = getStakingTier(2000);
