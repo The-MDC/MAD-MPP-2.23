@@ -53,8 +53,8 @@ function Card({ m, kind }: { m: Mkt; kind: "conviction" | "prediction" }) {
         </div>
       )}
       <div className="flex items-center gap-1.5">
-        <span className="flex-1 text-center rounded-md py-1 font-mono text-[9px] font-bold" style={{ background: `${INK.green}18`, color: INK.green }}>YES {odds(m.a)}</span>
-        <span className="flex-1 text-center rounded-md py-1 font-mono text-[9px] font-bold" style={{ background: `${INK.pink}18`, color: INK.pink }}>NO {odds(m.b)}</span>
+        <a href="/open-markets?tab=prediction" className="flex-1 text-center rounded-md py-2 font-mono text-[9px] font-bold" style={{ background: `${INK.green}18`, color: INK.green, textDecoration: "none" }}>YES {odds(m.a)}</a>
+        <a href="/open-markets?tab=prediction" className="flex-1 text-center rounded-md py-2 font-mono text-[9px] font-bold" style={{ background: `${INK.pink}18`, color: INK.pink, textDecoration: "none" }}>NO {odds(m.b)}</a>
       </div>
     </div>
   );
@@ -91,7 +91,7 @@ function DutchCard({ d }: { d: (typeof DUTCH)[number] }) {
         <span className="font-mono text-[9px]" style={{ color: INK.muted }}>$MADx ↓</span>
       </div>
       <p className="font-mono text-[8px] uppercase mb-2" style={{ color: INK.muted }}>floor {d.floor} · −5 / 5s</p>
-      <button type="button" className="w-full py-1.5 rounded-lg font-mono text-[9px] font-bold uppercase tracking-wider active:scale-95 transition-transform" style={{ background: INK.gold, color: "#05070c" }}>Claim</button>
+      <a href="#affliction" className="block text-center w-full py-2 rounded-lg font-mono text-[9px] font-bold uppercase tracking-wider active:scale-95 transition-transform" style={{ background: INK.gold, color: "#05070c", textDecoration: "none" }}>Claim</a>
     </div>
   );
 }

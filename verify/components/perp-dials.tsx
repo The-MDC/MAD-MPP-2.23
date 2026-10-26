@@ -444,8 +444,8 @@ interface NavEntry {
 
 /** The four class entries in the deck header. */
 const NAV: NavEntry[] = [
-  { label: "Prediction", sub: "Open markets ›", title: "Open markets · create a market", href: "/preview#markets", sym: "/brand/sym-prediction.png", color: "#c6cbd6", border: "color-mix(in srgb, var(--tx,#f0f0f8) 14%, transparent)" },
-  { label: "Conviction", sub: "All markets ›", title: "All markets", href: "/preview#conviction", sym: "/brand/sym-conviction.png", color: GD, border: "color-mix(in srgb, var(--gd,#ffd700) 30%, transparent)" },
+  { label: "Prediction", sub: "Open markets ›", title: "Open markets · create a market", href: "/open-markets?tab=prediction", sym: "/brand/sym-prediction.png", color: "#c6cbd6", border: "color-mix(in srgb, var(--tx,#f0f0f8) 14%, transparent)" },
+  { label: "Conviction", sub: "All markets ›", title: "All markets", href: "/open-markets?tab=conviction", sym: "/brand/sym-conviction.png", color: GD, border: "color-mix(in srgb, var(--gd,#ffd700) 30%, transparent)" },
   { label: "Affliction", sub: "MADHATs game ›", title: "MADHATs Gambit card game", href: "/preview#affliction", sym: "/brand/sym-affliction.png", color: "#b79cff", border: "rgba(126,91,239,.4)" },
   { label: "Octavian", sub: "Node mesh ›", title: "Octavian · self-sustaining mesh", href: "/octavian", orb: true, color: AC, border: "color-mix(in srgb, var(--ac,#00e5ff) 38%, transparent)" },
 ];
@@ -847,8 +847,11 @@ export default function PerpDials({
   return (
     <div style={{ ...wrapVars, display: "flex", flexDirection: "column", gap: 12, fontFamily: INSTRUMENT_FONT }}>
       <style>{`
-        @keyframes mgTkL { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-        @keyframes mgTkR { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+        /* Every tape runs right → left. Exact halves (padding, not flex gap,
+           so -50% lands on the seam) and translate3d for a composited layer. */
+        @-webkit-keyframes mgTkL { from { -webkit-transform: translate3d(0,0,0); } to { -webkit-transform: translate3d(-50%,0,0); } }
+        @keyframes mgTkL { from { transform: translate3d(0,0,0); } to { transform: translate3d(-50%,0,0); } }
+        .mg-tape { -webkit-backface-visibility: hidden; backface-visibility: hidden; will-change: transform; }
         @keyframes mgPulse { 0%,100% { opacity:.35; transform: scale(1); } 50% { opacity:1; transform: scale(1.35); } }
         @keyframes mgBar { 0%,100% { transform: scaleY(.72); } 50% { transform: scaleY(1); } }
         @keyframes mgSeg { 0%,100% { opacity:.55; } 50% { opacity:1; } }
@@ -966,6 +969,12 @@ export default function PerpDials({
           // dialog opens. Enough to word the hint and the aria-label.
           const book = pendingBook(card.id);
           const openThis = () => setOpenBook(card.id);
+          // Upper half (the instrument) opens this perp's markets; the lower
+          // half (tape + chips) opens its report. Hovering either shows the
+          // maths in the margin explainer beside the phone.
+          const fam = DECK_ID_TO_FAMILY[card.id] ?? card.id;
+          const goMarkets = () => { window.location.href = `/open-markets?perp=${fam}`; };
+          const goReport = () => { window.location.href = `/reports?perp=${fam}`; };
           // Shared by the instrument and the ticker: both open the same book,
           // because to a reader they are two views of one family.
           const cardHint = book
@@ -975,12 +984,13 @@ export default function PerpDials({
                 body: book.tradeable
                   ? "Tap for every market in this family, straight from the latest scrape — each one classified by the same engine and carrying its satirical one-liner. Readings from GARCH(1,1); legs paced by the lunar phase multiplier."
                   : book.note,
-                action: { label: book.tradeable ? "Open all markets" : "What this means", onSelect: openThis },
+                action: { label: book.tradeable ? "Latest scrape for this family" : "What this means", onSelect: openThis },
               }
             : undefined;
           return (
             <section
               key={card.id}
+              data-explain={`perp-${fam}`}
               style={{
                 ["--c" as string]: `var(${card.accent})`,
                 display: "flex", flexDirection: "column", minHeight: 378,
@@ -1021,9 +1031,10 @@ export default function PerpDials({
                 className="mg-perp-well"
                 role="button"
                 tabIndex={0}
-                aria-label={book ? `${book.label} — open all markets` : undefined}
-                onClick={openThis}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openThis(); } }}
+                aria-label={`${card.title} — open its markets`}
+                title="Open this perp's markets"
+                onClick={goMarkets}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goMarkets(); } }}
                 style={{ minHeight: "calc(183px * var(--dial, 1))", display: "flex", flexDirection: "column", alignItems: card.id === "scandal" ? "stretch" : "center", justifyContent: "center", gap: card.id === "scandal" ? 9 : 0, cursor: "pointer" }}
               >
                 {card.id === "scandal" ? (
@@ -1106,9 +1117,10 @@ export default function PerpDials({
                 className="mg-perp-tape"
                 role="button"
                 tabIndex={0}
-                aria-label={book ? `${book.label} — open all markets` : undefined}
-                onClick={openThis}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openThis(); } }}
+                aria-label={`${card.title} — open its report`}
+                title="Open this perp's report"
+                onClick={goReport}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goReport(); } }}
                 style={{ display: "flex", alignItems: "stretch", width: "100%", marginTop: 9, borderTop: "1px solid color-mix(in srgb, var(--c) 24%, transparent)", borderBottom: "1px solid color-mix(in srgb, var(--c) 16%, transparent)", background: "color-mix(in srgb, var(--c) 5%, transparent)", overflow: "hidden", cursor: "pointer" }}
               >
                 {card.plate ? (
@@ -1194,10 +1206,10 @@ export default function PerpDials({
                     <span style={{ display: "block", overflow: "hidden" }}>
                       <span
                         className="mg-tape"
-                        style={{ display: "inline-flex", gap: 15, whiteSpace: "nowrap", padding: "4px 0", animation: `mgTk${card.dir ?? "L"} var(--tk,30s) linear infinite` }}
+                        style={{ display: "inline-flex", whiteSpace: "nowrap", padding: "4px 0", animation: "mgTkL var(--tk,30s) linear infinite" }}
                       >
-                        {[...(card.tape ?? []), ...(card.tape ?? [])].map(([text, tone], i) => (
-                          <span key={i} style={{ fontSize: 9, fontWeight: 800, color: TAPE_COLOR[tone] }}>{text}</span>
+                        {[...(card.tape ?? []), ...(card.tape ?? []), ...(card.tape ?? []), ...(card.tape ?? [])].map(([text, tone], i) => (
+                          <span key={i} style={{ fontSize: 9, fontWeight: 800, color: TAPE_COLOR[tone], paddingRight: 15 }}>{text}</span>
                         ))}
                       </span>
                       {/* Scandal is a DUAL-lane tape: metrics above, the
@@ -1205,10 +1217,10 @@ export default function PerpDials({
                       {card.id === "scandal" ? (
                         <span
                           className="mg-tape"
-                          style={{ display: "inline-flex", gap: 15, whiteSpace: "nowrap", padding: "0 0 4px", animation: "mgTkR var(--tk,30s) linear infinite" }}
+                          style={{ display: "inline-flex", whiteSpace: "nowrap", padding: "0 0 4px", animation: "mgTkL calc(var(--tk,30s) * 1.4) linear infinite" }}
                         >
-                          {[...SCANDAL_LANE2, ...SCANDAL_LANE2].map((text, i) => (
-                            <span key={i} style={{ fontSize: 7, fontWeight: 700, letterSpacing: 0.8, color: "var(--mu,#6b7280)", textTransform: "uppercase" }}>{text}</span>
+                          {[...SCANDAL_LANE2, ...SCANDAL_LANE2, ...SCANDAL_LANE2, ...SCANDAL_LANE2].map((text, i) => (
+                            <span key={i} style={{ fontSize: 7, fontWeight: 700, letterSpacing: 0.8, color: "var(--mu,#6b7280)", textTransform: "uppercase", paddingRight: 15 }}>{text}</span>
                           ))}
                         </span>
                       ) : null}
@@ -1226,9 +1238,12 @@ export default function PerpDials({
                     </span>
                   ))}
                 </span>
-                <span style={{ marginLeft: "auto", flex: "none", fontSize: 7, fontWeight: 800, letterSpacing: 1, color: "var(--mu,#6b7280)", textTransform: "uppercase" }}>
-                  Open desk ›
-                </span>
+                <a href={`/reports?perp=${fam}`} style={{ marginLeft: "auto", flex: "none", display: "inline-flex", alignItems: "center", minHeight: 28, fontSize: 8, fontWeight: 900, letterSpacing: 1, color: "var(--gd,#ffd700)", textTransform: "uppercase", textDecoration: "none" }}>
+                  Report ›
+                </a>
+                <a href={`/open-markets?perp=${fam}`} style={{ flex: "none", display: "inline-flex", alignItems: "center", minHeight: 28, padding: "0 9px", borderRadius: 999, fontSize: 8, fontWeight: 900, letterSpacing: 1, color: "#1a1205", background: "var(--mg-gold-fill)", textTransform: "uppercase", textDecoration: "none" }}>
+                  Markets ›
+                </a>
               </div>
             </section>
           );

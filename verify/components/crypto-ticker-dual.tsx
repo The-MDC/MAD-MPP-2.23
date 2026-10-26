@@ -108,6 +108,18 @@ const SCANDAL: Tick[] = [
   { symbol: "GC", value: "GossipCop perp: is the empire saga forever?" },
 ];
 
+/**
+ * Where a price tick leads: every token and commodity has a digital-asset
+ * twin on the Swap desk (tokenized gold/silver, or a synthetic where no 1:1
+ * token exists). Composite indices (CHAOS, VOLUME) keep the explainer.
+ */
+const PEER: Record<string, string> = {
+  BTC: "/swap?asset=BTC", ETH: "/swap?asset=ETH", SOL: "/swap?asset=SOL", XRP: "/swap?asset=XRP",
+  MADx: "/swap?asset=MADX", DEGEN: "/swap?asset=DEGEN",
+  GOLD: "/swap?asset=GOLD", SILVER: "/swap?asset=SILVER", WTI: "/swap?asset=WTI",
+  NATGAS: "/swap?asset=NATGAS", WHEAT: "/swap?asset=WHEAT", COPPER: "/swap?asset=COPPER",
+};
+
 // Each feed: its ticks, accent, jump target, marquee speed, and explainer copy.
 interface Feed {
   key: string;
@@ -216,7 +228,39 @@ export default function CryptoTickerDual() {
   // No sequential `cycle` any more — the picker offers all four directly, so
   // stepping one-at-a-time had no remaining caller.
   const selectFeed = (i: number) => { setInfo(false); setTrayOpen(false); setIdx(i); };
-  const run = items.concat(items); // duplicated → seamless -50% loop
+  // SEAMLESS AT ANY WIDTH, SAME SPEED ON EVERY FEED.
+  // The loop animates translateX(0 → -50%), so the track must be two identical
+  // halves and each half must be at least as wide as the viewport — otherwise
+  // a short feed on a wide screen scrolls into blank space before it wraps.
+  // `reps` repeats the feed inside each half until it covers the viewport, and
+  // the duration is derived from the measured half width at a fixed pixel
+  // speed, so all four tapes move at the same rate instead of each feed's
+  // hand-set seconds producing four different speeds.
+  const viewportRef = React.useRef<HTMLDivElement>(null);
+  const trackRef = React.useRef<HTMLDivElement>(null);
+  const [reps, setReps] = React.useState(1);
+  const [satire, setSatire] = React.useState<Tick | null>(null);
+  const take = satire ? madhatrTake(`${satire.symbol}|${satire.value ?? ""}`) : "";
+  const [dur, setDur] = React.useState<number | null>(null);
+  const half: Tick[] = [];
+  for (let r = 0; r < reps; r++) items.forEach((t) => half.push(t));
+  const run = half.concat(half); // two identical halves → seamless -50% loop
+  React.useEffect(() => {
+    const SPEED = 64; // px per second — one tape speed for every feed
+    const measure = () => {
+      const vp = viewportRef.current, tr = trackRef.current;
+      if (!vp || !tr || !tr.scrollWidth) return;
+      const oneCopy = tr.scrollWidth / (2 * reps);
+      const need = Math.max(1, Math.ceil(vp.clientWidth / Math.max(oneCopy, 1)));
+      if (need !== reps) { setReps(need); return; }
+      setDur(Math.max(12, (reps * oneCopy) / SPEED));
+    };
+    measure();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    if (ro && viewportRef.current) ro.observe(viewportRef.current);
+    window.addEventListener("resize", measure);
+    return () => { ro?.disconnect(); window.removeEventListener("resize", measure); };
+  }, [reps, items, feed.key]);
 
   // DOUBLE-TAP OPENS THE PICKER. The left-hand legend pill (feed name, the
   // four dots, the ▸ chevron) is gone, and with it the tap-vs-double-tap
@@ -359,8 +403,8 @@ export default function CryptoTickerDual() {
 
         {/* The one perpetual marquee. order:1 keeps it left of the picker
             handle, which is order:2 but earlier in the DOM — see above. */}
-        <div style={{ order: 1, flex: 1, minWidth: 0, overflow: "hidden", padding: "5px 0" }}>
-          <div key={feed.key} className="mg-ck-track" style={{ display: "inline-flex", whiteSpace: "nowrap", willChange: "transform", animationDuration: `${feed.dur}s` }}>
+        <div ref={viewportRef} className="mg-ck-viewport" style={{ order: 1, flex: 1, minWidth: 0, overflow: "hidden", padding: "5px 0" }}>
+          <div ref={trackRef} key={`${feed.key}-${reps}`} className="mg-ck-track" style={{ display: "inline-flex", whiteSpace: "nowrap", willChange: "transform", animationDuration: `${dur ?? feed.dur}s` }}>
             {run.map((t, i) => {
               // A tick with a source article is a real link — right-click,
               // middle-click and "open in new tab" all behave as a user
@@ -397,6 +441,22 @@ export default function CryptoTickerDual() {
                   <span style={{ color: `${accent}55`, marginLeft: 4 }}>|</span>
                 </>
               );
+              const peer = PEER[t.symbol];
+              if (feed.key === "headlines") {
+                return (
+                  <button key={i} type="button" onClick={() => setSatire(t)} onDoubleClick={(e) => e.stopPropagation()}
+                    title="Open the funny version" {...shared}>
+                    {inner}
+                  </button>
+                );
+              }
+              if (peer) {
+                return (
+                  <a key={i} href={peer} onDoubleClick={(e) => e.stopPropagation()} title={`${t.symbol} — open its digital-asset twin on Swap`} {...shared}>
+                    {inner}
+                  </a>
+                );
+              }
               return t.url ? (
                 <a
                   key={i}
@@ -434,6 +494,39 @@ export default function CryptoTickerDual() {
         </div>
       </div>
 
+      {satire ? (
+        <div role="dialog" aria-modal="true" aria-label="The funny version" onClick={() => setSatire(null)}
+          style={{ position: "fixed", inset: 0, zIndex: 220, background: "rgba(0,0,0,.72)", display: "grid", placeItems: "center", padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} data-explain="om-lobby" style={{ width: "100%", maxWidth: 420, borderRadius: 22, padding: 2, background: "var(--mg-gold-chisel)" }}>
+            <div style={{ borderRadius: 20, padding: 18, background: "radial-gradient(120% 90% at 100% 0%, rgba(249,86,57,.28), #0b0907 70%)", color: "#f6f1e3", fontFamily: "system-ui, -apple-system, sans-serif" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/brand/madhatr-logo.png" alt="" width={44} height={44} style={{ borderRadius: 12 }} />
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.4, textTransform: "uppercase", color: "#f95639" }}>The MADHAT&apos;r reads it</div>
+                  <div style={{ fontSize: 11, color: "#a99f8a" }}>{satire.symbol} · satirical rewrite</div>
+                </div>
+              </div>
+              <div style={{ marginTop: 14, fontSize: 10, fontWeight: 900, letterSpacing: 1.2, textTransform: "uppercase", color: "#8e8a80" }}>{satire.satirical ? "On the wire" : "The headline"}</div>
+              <div style={{ marginTop: 4, fontSize: 13, lineHeight: 1.4, color: "#cfc8b6" }}>{satire.value}</div>
+              <div style={{ marginTop: 12, padding: "14px 16px", borderRadius: 18, background: "linear-gradient(180deg, #1b1710, #0e0c09)", border: "1px solid rgba(255,215,0,.3)" }}>
+                <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.2, textTransform: "uppercase", color: "#ffd700" }}>The funny version</div>
+                <div style={{ marginTop: 6, fontSize: 18, fontWeight: 800, lineHeight: 1.35 }}>&ldquo;{take}&rdquo;</div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 14 }}>
+                <a href={`/open-markets/create?title=${encodeURIComponent(satire.value ?? "")}`} style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 46, borderRadius: 999, background: "var(--mg-gold-fill, #ffd700)", color: "#1a1205", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>Make it a market ›</a>
+                {satire.url ? (
+                  <a href={satire.url} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 46, borderRadius: 999, border: "1px solid rgba(255,215,0,.4)", color: "#f6f1e3", fontWeight: 800, fontSize: 13, textDecoration: "none" }}>Read the original ›</a>
+                ) : (
+                  <button type="button" onClick={() => setSatire(null)} style={{ minHeight: 46, borderRadius: 999, border: "1px solid rgba(255,215,0,.4)", background: "transparent", color: "#f6f1e3", fontWeight: 800, fontSize: 13, cursor: "pointer" }}>Close</button>
+                )}
+              </div>
+              <div style={{ marginTop: 10, fontSize: 10.5, color: "#8e8a80", textAlign: "center" }}>Satire by MAD Gambit — the publisher did not write this line.</div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <MetricPopover
         open={info}
         onClose={() => setInfo(false)}
@@ -444,12 +537,50 @@ export default function CryptoTickerDual() {
       />
 
       <style>{`
-        .mg-ck-track { animation-name: mgCkScroll; animation-timing-function: linear; animation-iteration-count: infinite; }
-        .mg-ck-row:hover .mg-ck-track { animation-play-state: paused; }
+        .mg-ck-track {
+          -webkit-animation-name: mgCkScroll; animation-name: mgCkScroll;
+          -webkit-animation-timing-function: linear; animation-timing-function: linear;
+          -webkit-animation-iteration-count: infinite; animation-iteration-count: infinite;
+          -webkit-backface-visibility: hidden; backface-visibility: hidden;
+          transform: translate3d(0, 0, 0);
+        }
+        /* Pause on hover only where hover exists — on touch screens :hover
+           sticks after a tap and would freeze the tape until the next tap. */
+        @media (hover: hover) and (pointer: fine) { .mg-ck-row:hover .mg-ck-track { animation-play-state: paused; } }
         .mg-ck-item:hover { filter: brightness(1.25); }
-        @keyframes mgCkScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        @media (prefers-reduced-motion: reduce) { .mg-ck-track { animation: none; } }
+        @-webkit-keyframes mgCkScroll { from { -webkit-transform: translate3d(0, 0, 0); } to { -webkit-transform: translate3d(-50%, 0, 0); } }
+        @keyframes mgCkScroll { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-50%, 0, 0); } }
+        /* Reduced motion: no marquee, but the tape stays reachable by swipe. */
+        @media (prefers-reduced-motion: reduce) {
+          .mg-ck-track { animation: none; }
+          .mg-ck-viewport { overflow-x: auto !important; scrollbar-width: none; }
+        }
       `}</style>
     </div>
   );
+}
+
+/**
+ * The MADHAT'r's take on a headline — a deterministic punchline picked by a
+ * hash of the tick, so the same headline always gets the same joke. Pure
+ * satire copy: it never asserts a fact about the story or names a person.
+ */
+const TAKES = [
+  "Analysts call it unprecedented for the fourth time this week.",
+  "A spokesperson declined to comment, then commented for forty minutes.",
+  "Sources close to the situation are, mostly, the situation.",
+  "Experts agree it will be a three-part docuseries by Thursday.",
+  "The market priced it in before the press release finished loading.",
+  "The group chat has already picked a side and muted the other one.",
+  "Officials urge calm, then post a single cryptic emoji.",
+  "Z-Liar Meter: the statement is doing a lot of heavy lifting.",
+  "Insiders confirm the apology notes app is open and trembling.",
+  "Somewhere, a PR team just cancelled its long weekend.",
+  "Historians will call this the week everyone said 'normal' and meant it ironically.",
+  "Early polling shows 62% of people pretending they saw this coming.",
+];
+function madhatrTake(seed: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return TAKES[(h >>> 0) % TAKES.length];
 }

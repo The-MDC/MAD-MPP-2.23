@@ -750,3 +750,184 @@ a:focus-visible,
     .mg-zliar-grid { grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 28px; }
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MAD GAMBIT — BRAND LAYER (2026-10-26)
+   One look for every route: gold metal + the MAD rossa (tangerine orange-red),
+   condensed display caps with an italic serif punch word, gold-chisel bezel.
+   Fonts are self-hosted OFL faces (no Google Fonts request at build or run).
+   ══════════════════════════════════════════════════════════════════════════ */
+@font-face {
+  font-family: "MG Display";
+  src: url("/fonts/bebas-neue-latin.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "MG Punch";
+  src: url("/fonts/playfair-display-italic-latin.woff2") format("woff2");
+  font-weight: 400 900; font-style: italic; font-display: swap;
+}
+:root {
+  --mg-gold: #ffd700;
+  --mg-gold-deep: #ab7b29;
+  --mg-gold-chisel: linear-gradient(135deg, #5c3c04 0%, #ab7b29 22%, #efc76d 48%, #fffcf0 56%, #efc76d 64%, #ab7b29 82%, #5c3c04 100%);
+  --mg-gold-fill: linear-gradient(180deg, #fff1a8 0%, #ffd700 38%, #d9a514 100%);
+  --mg-rossa: #f95639;
+  --mg-tangerine: #fa550d;
+  --mg-rossa-hot: #fb292b;
+  --mg-peach: #fbac73;
+  --mg-wine: #7a110f;
+  --mg-ink: #080808;
+  --mg-display: "MG Display", "Bebas Neue", "Oswald", Impact, "Arial Narrow", sans-serif;
+  --mg-punch: "MG Punch", "Playfair Display", "Didot", "Bodoni 72", Georgia, serif;
+  --mg-ease: cubic-bezier(.22, 1, .36, 1);
+}
+.mg-display { font-family: var(--mg-display); font-weight: 400; text-transform: uppercase; letter-spacing: .5px; line-height: .92; }
+.mg-punch { font-family: var(--mg-punch); font-style: italic; font-weight: 900; text-transform: none; letter-spacing: -.5px; }
+.mg-gold-text { background: var(--mg-gold-fill); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.mg-rossa-text { color: var(--mg-rossa); }
+.mg-btn-gold {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 44px; padding: 0 20px; border-radius: 999px; border: none; cursor: pointer;
+  background: var(--mg-gold-fill); color: #1a1205; font-weight: 900; letter-spacing: .6px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.55) inset, 0 -2px 0 rgba(0,0,0,.18) inset, 0 8px 22px -8px rgba(255,190,0,.65);
+  transition: transform .16s var(--mg-ease), box-shadow .16s var(--mg-ease), filter .16s var(--mg-ease);
+  text-decoration: none;
+}
+.mg-btn-gold:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.mg-btn-gold:active { transform: translateY(1px); }
+.mg-btn-gold:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+.mg-btn-ghost {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 40px; padding: 0 16px; border-radius: 999px; cursor: pointer; text-decoration: none;
+  background: rgba(255,255,255,.04); color: #f0f0f8; border: 1px solid rgba(255,215,0,.32); font-weight: 800; letter-spacing: .5px;
+  transition: background .16s var(--mg-ease), border-color .16s var(--mg-ease);
+}
+.mg-btn-ghost:hover { background: rgba(255,215,0,.08); border-color: rgba(255,215,0,.6); }
+.mg-tile {
+  position: relative; border-radius: 18px; background: linear-gradient(180deg, #14161f 0%, #0c0d13 100%);
+  border: 1px solid rgba(255,215,0,.16);
+  box-shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 14px 30px -18px rgba(0,0,0,.9);
+  transition: transform .16s var(--mg-ease), box-shadow .16s var(--mg-ease), border-color .16s var(--mg-ease);
+}
+.mg-tile-hover:hover, .mg-tile-hover:focus-visible {
+  transform: translateY(-4px); border-color: rgba(255,215,0,.55);
+  box-shadow: 0 0 0 1px rgba(255,215,0,.25), 0 18px 36px -14px rgba(255,190,0,.35), 0 0 28px -6px rgba(249,86,57,.35);
+}
+.mg-odds {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  min-height: 44px; border-radius: 12px; cursor: pointer; font-family: inherit;
+  background: #1a1c25; border: 1px solid rgba(255,255,255,.08); color: #f0f0f8;
+  transition: background .14s var(--mg-ease), border-color .14s var(--mg-ease), transform .14s var(--mg-ease);
+}
+.mg-odds:hover { border-color: rgba(255,215,0,.55); background: #20222c; }
+.mg-odds[aria-pressed="true"] { background: var(--mg-gold-fill); color: #1a1205; border-color: transparent; }
+.mg-chip {
+  display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px; border-radius: 999px;
+  font-size: 10px; font-weight: 900; letter-spacing: .8px; text-transform: uppercase;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); color: #c9ccd6;
+}
+.mg-seam { position: relative; overflow: hidden; }
+.mg-seam::before {
+  content: ""; position: absolute; inset: -40% -20% auto -20%; height: 120%;
+  background: radial-gradient(120% 90% at 50% 0%, rgba(255,215,0,.16) 0%, rgba(249,86,57,.08) 38%, transparent 70%);
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mg-btn-gold, .mg-btn-ghost, .mg-tile, .mg-odds { transition: none; }
+  .mg-tile-hover:hover { transform: none; }
+}
+
+/* The stage + gold-chisel bezel, for every route on desktop and tablet. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .mg-workbench { background: radial-gradient(1100px 760px at 50% 115%, #6b4a0e 0%, #2a1d07 38%, #0a0806 72%); }
+  .mg-device { box-shadow: 0 0 0 2px #ab7b29, 0 30px 60px -20px rgba(0,0,0,.85); }
+}
+@media (min-width: 1024px) {
+  .mg-workbench {
+    background:
+      radial-gradient(900px 620px at 50% 118%, rgba(255,215,0,.42) 0%, rgba(171,123,41,.24) 34%, transparent 66%),
+      radial-gradient(700px 520px at 85% -10%, rgba(249,86,57,.16) 0%, transparent 60%),
+      linear-gradient(180deg, #0b0a08 0%, #0d0b07 55%, #1c1406 100%);
+  }
+  .mg-device {
+    border: 12px solid transparent;
+    background: linear-gradient(#050506, #050506) padding-box, var(--mg-gold-chisel) border-box;
+    box-shadow:
+      0 0 0 1px rgba(255,236,170,.55),
+      0 0 0 3px #3a2804,
+      0 50px 90px -25px rgba(0,0,0,.95),
+      0 0 80px -20px rgba(255,200,40,.35),
+      inset 0 0 24px rgba(0,0,0,.6);
+  }
+}
+
+/* Margin explainer — beside the phone, desktop only. */
+.mg-margin-explainer {
+  position: fixed; z-index: 40; padding: 18px 18px 16px; border-radius: 20px;
+  background: linear-gradient(180deg, rgba(22,18,10,.92) 0%, rgba(10,9,7,.94) 100%);
+  border: 1px solid rgba(255,215,0,.28);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 24px 60px -24px rgba(0,0,0,.9), 0 0 40px -18px rgba(255,200,40,.45);
+  color: #efe9da; font-family: ui-monospace, "JetBrains Mono", monospace;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  animation: mg-mx-in .28s var(--mg-ease) both;
+}
+@keyframes mg-mx-in { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+.mg-mx-tag { display: inline-block; font-size: 9px; font-weight: 900; letter-spacing: 1.6px; text-transform: uppercase; color: #1a1205; background: var(--mg-gold-fill); border-radius: 999px; padding: 3px 9px; }
+.mg-mx-kicker { margin-top: 12px; font-size: 10px; font-weight: 900; letter-spacing: 1.6px; text-transform: uppercase; color: var(--mg-rossa); }
+.mg-mx-title { margin-top: 4px; font-size: 30px; color: #fff3c4; }
+.mg-mx-formula { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: #050505; border: 1px solid rgba(255,215,0,.16); color: var(--mg-gold); font-size: 11.5px; line-height: 1.7; }
+.mg-mx-body { margin: 12px 0 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 13px; line-height: 1.55; color: #d9d2c0; }
+.mg-mx-source { margin-top: 12px; font-size: 9.5px; letter-spacing: .4px; color: #8a7f66; }
+@media (max-width: 1023px) { .mg-margin-explainer { display: none; } }
+@media (prefers-reduced-motion: reduce) { .mg-margin-explainer { animation: none; } }
+.mg-om-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 600px) { .mg-om-grid { grid-template-columns: 1fr 1fr; } }
+
+/* Fluid market carousel */
+.mg-carousel-track {
+  display: flex; gap: var(--mg-gap, 12px); overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; scroll-padding-inline: 16px; padding: 4px 16px 10px; margin: 0 -16px;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch; cursor: grab; user-select: none;
+}
+.mg-carousel-track::-webkit-scrollbar { display: none; }
+.mg-carousel-item { flex: 0 0 var(--mg-card-w, 260px); width: var(--mg-card-w, 260px); min-width: 0; max-width: var(--mg-card-w, 260px); scroll-snap-align: start; display: flex; }
+.mg-carousel-item > * { flex: 1; min-width: 0; }
+.mg-carousel-item img, .mg-carousel-item a { -webkit-user-drag: none; }
+.mg-carousel-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; width: 30px; height: 30px; border-radius: 999px; opacity: .92;
+  display: grid; place-items: center; cursor: pointer; color: #1a1205; border: none;
+  background: var(--mg-gold-fill); box-shadow: 0 6px 16px -6px rgba(0,0,0,.8), 0 0 0 3px rgba(8,8,8,.85);
+}
+@media (hover: none) { .mg-carousel-arrow { display: none; } }
+@media (prefers-reduced-motion: reduce) { .mg-carousel-track { scroll-behavior: auto; } }
+
+/* Card flip reveal + holo foil */
+.mg-card-flip { perspective: 900px; animation: mg-flip-in .62s var(--mg-ease) both; scroll-snap-align: start; }
+@keyframes mg-flip-in { from { opacity: 0; transform: rotateY(-100deg) translateY(10px) scale(.92); } to { opacity: 1; transform: none; } }
+.mg-card-face {
+  height: 100%; display: flex; flex-direction: column; padding: 10px; border-radius: 14px; border: 2px solid;
+  background: linear-gradient(165deg, #1d1a14 0%, #0d0c0a 70%); color: #f6f1e3; position: relative; overflow: hidden;
+}
+.mg-holo::after {
+  content: ""; position: absolute; inset: -40%; pointer-events: none; mix-blend-mode: color-dodge; opacity: .45;
+  background: conic-gradient(from 0deg, #ff00f0, #00e5ff, #ffd700, #7cffc7, #f95639, #ff00f0);
+  animation: mg-holo 4s linear infinite;
+}
+@keyframes mg-holo { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .mg-card-flip { animation: none; } .mg-holo::after { animation: none; } }
+
+/* ── The MADHAT'r concierge — mascot cutout, no disc ─────────────────────── */
+.mg-mascot-fab-bob { display: block; animation: mg-mascot-bob 3.4s var(--mg-ease, ease-in-out) infinite; transform-origin: 50% 100%; }
+.mg-mascot-fab {
+  display: block; width: 62px; height: 66px; object-fit: contain; user-select: none; -webkit-user-drag: none;
+  filter: drop-shadow(0 8px 10px rgba(0,0,0,.7)) drop-shadow(0 0 12px rgba(249,86,57,.38));
+  transition: transform .22s var(--mg-ease, ease), filter .22s ease;
+}
+button:hover > .mg-mascot-fab-bob > .mg-mascot-fab,
+button:focus-visible > .mg-mascot-fab-bob > .mg-mascot-fab {
+  transform: scale(1.07) rotate(-4deg);
+  filter: drop-shadow(0 10px 12px rgba(0,0,0,.7)) drop-shadow(0 0 16px rgba(255,215,0,.5));
+}
+@keyframes mg-mascot-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .mg-mascot-fab-bob { animation: none; } }

@@ -25,6 +25,8 @@ import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import CryptoTickerDual from "@/components/crypto-ticker-dual";
 import NewsTwoRow from "@/components/news-two-row";
 import FeaturedMarketCards from "@/components/featured-market-cards";
+import OpenMarketsHub, { TopMarketsStrip } from "@/components/om-hub";
+import AfflictionLobby from "@/components/affliction-lobby";
 import DopamineCarouselStrip from "@/components/dopamine-carousel-strip";
 import PerpDials from "@/components/perp-dials";
 // Ported from the /mpp2.23 device theme.
@@ -104,8 +106,8 @@ import { GambitNodeProvider, useGambitNode } from "@/components/gambit-node";
  * Its "everything of this kind" is the deck — all 992 cards.
  */
 const DESKS: { label: string; sub: string; href: string }[] = [
-  { label: "Prediction", sub: "All markets", href: "/markets#prediction" },
-  { label: "Conviction", sub: "All markets", href: "/markets#conviction" },
+  { label: "Prediction", sub: "Open markets", href: "/open-markets?tab=prediction" },
+  { label: "Conviction", sub: "Open markets", href: "/open-markets?tab=conviction" },
   { label: "Affliction", sub: "All cards", href: "#affliction" },
   { label: "Octavian", sub: "Node mesh", href: "/octavian" },
 ];
@@ -174,10 +176,10 @@ function BottomNav({ onProfile }: { onProfile: () => void }) {
   // is misnamed, not merely inconvenient.
   const items: [LucideIcon, string, () => void][] = [
     [Home, "Home", () => window.scrollTo({ top: 0, behavior: "smooth" })],
-    [TrendingUp, "All Markets", () => { window.location.href = "/markets"; }],
+    [TrendingUp, "All Markets", () => { window.location.href = "/open-markets"; }],
     [Wallet, "Wallet", () => openNode("wallet")],
-    [PlusSquare, "Market++", () => openNode("market-plus")],
-    [User, "Profile", onProfile],
+    [PlusSquare, "Create", () => { window.location.href = "/open-markets/create"; }],
+    [User, "Profile", () => { window.location.href = "/profile"; }],
   ];
   return (
     <nav style={{ position: "fixed", left: 0, right: 0, bottom: 0, display: "flex", justifyContent: "space-around", alignItems: "center", padding: "10px 0", background: skin.panel, borderTop: `1px solid ${skin.border}`, backdropFilter: "blur(6px)", zIndex: 30 }}>
@@ -364,11 +366,14 @@ function PreviewInner() {
                 the room's pulse; below the News Flow it would be buried. */}
             <KaitoPriceTicker />
 
+            {/* Above the fold: the five busiest books with one-tap Yes/No —
+                what prediction-market visitors look for first. */}
+            <TopMarketsStrip />
+
             {/* The four platform pillars — CONVICTIONS · PREDICTIONS · Z-LIAR
                 · CARD GAME. Restored from SeikoDopamineHub (see the import
                 note). They sit above the wire because they are the standing
                 state of the platform, whereas the wire is what just happened. */}
-            <PlatformCarousel />
 
             <div id="mg-news">
               <NewsTwoRow />
@@ -379,6 +384,10 @@ function PreviewInner() {
                 Below six market cards they read as a footnote to those cards;
                 they are in fact a platform-state instrument, so they lead. */}
             <InstrumentDeckSection uid="preview-instrument" />
+
+            {/* The four pillars explain the platform; they follow the live
+                surfaces (markets, wire, dials) rather than leading them. */}
+            <PlatformCarousel />
 
             <div>
               <SectionHeading>
@@ -417,6 +426,10 @@ function PreviewInner() {
                 cards. */}
             <PerpDials showInstrument={false} />
 
+            {/* Open Markets hub — below the dials and the news feed, where the
+                floor starts: create a market, then take a side. */}
+            <OpenMarketsHub />
+
             {/* ── /gambit FLOOR, ported native (GameProvider-powered) ──
                 SeikoDopamineHub removed here: it was the SECOND of two stacked
                 Seiko clocks. The first — the split-flap chrono in
@@ -426,7 +439,9 @@ function PreviewInner() {
               <TopMarketsRail />
               <MarketRails />
             </div>
-            <ZLiarSection />
+            <div id="perp-zliar" data-explain="perp-zliar" style={{ scrollMarginTop: 72 }}>
+              <ZLiarSection />
+            </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: 12 }}>
               <PositionsDashboard />
               <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
@@ -439,17 +454,17 @@ function PreviewInner() {
             <MarketTypeCarousels />
 
             {/* The three custom perpetual families, each with its own instrument. */}
-            <div id="mg-faces" style={{ scrollMarginTop: 72 }}>
+            <div id="mg-faces" data-explain="perp-faces" style={{ scrollMarginTop: 72 }}>
               <FacesWaterline />
             </div>
             {/* The Phase-4 gate and the transparency report, in public (§9.1). */}
             <div id="mg-registrar" style={{ scrollMarginTop: 72 }}>
               <RegistrarStatusPanel />
             </div>
-            <div id="mg-zeitgeist" style={{ scrollMarginTop: 72 }}>
+            <div id="mg-zeitgeist" data-explain="perp-zeitgeist" style={{ scrollMarginTop: 72 }}>
               <ZeitgeistAlmanac />
             </div>
-            <div id="mg-epiphanies" style={{ scrollMarginTop: 72 }}>
+            <div id="mg-epiphanies" data-explain="perp-epiphany" style={{ scrollMarginTop: 72 }}>
               <EpiphanyCatalog />
             </div>
 
@@ -472,6 +487,7 @@ function PreviewInner() {
                 rest of the app was already using. */}
             <div
               id="affliction"
+              data-explain="affliction"
               style={{
                 display: "grid",
                 gridTemplateColumns: wide ? "1fr 1fr" : "1fr",
@@ -480,6 +496,9 @@ function PreviewInner() {
                 scrollMarginTop: 72,
               }}
             >
+              <div style={{ gridColumn: "1 / -1" }}>
+                <AfflictionLobby />
+              </div>
               <PredictionCircus activeDeck={activeDeck} />
               <GambitCardsAuctionSection />
             </div>

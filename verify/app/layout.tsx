@@ -9,6 +9,7 @@ import Script from "next/script";
 import LunarVars from "@/components/lunar-vars";
 import DeviceFrame from "@/components/device-frame";
 import HoldHintProvider from "@/components/hold-hint-provider";
+import MarginExplainer from "@/components/margin-explainer";
 
 // Display typography uses local/system fallbacks so builds do not depend on Google Fonts availability.
 export const metadata: Metadata = {
@@ -56,6 +57,8 @@ export default function RootLayout({
                   reasoning that moved DeviceFrame itself up to this level. */}
               <HoldHintProvider>
                 <DeviceFrame>{children}</DeviceFrame>
+                {/* Beside the phone, never inside it: .mg-device is transformed. */}
+                <MarginExplainer />
               </HoldHintProvider>
             </MppProvider>
           </WorkspaceProvider>
