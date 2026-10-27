@@ -4,6 +4,10 @@ import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { MADHATR_SYSTEM_INSTRUCTION } from "@/lib/madhatr-persona";
+import {
+    greetingReply, isGreeting, knowledgePrompt, loadKnowledge, normalizeHistory,
+    PAY_GRADE_MARKER, payGradeReply, retrieve, wantsOpinionOrAdvice,
+} from "@/lib/madhatr-knowledge";
 
 // The persona now lives in lib/madhatr-persona.ts so the Z-Liar Sentinel and
 // any future LLM surface speak in the same voice instead of each carrying a
@@ -46,11 +50,24 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
         const { message, history = [], tone = "Satirical", risk = 0.75, regen_count = 0 } = body;
+        const text = String(message ?? "").trim();
+        const turns = normalizeHistory(history);
+        const kb = loadKnowledge();
 
-        if (!process.env.GOOGLE_API_KEY) {
-            // No model key on this deployment: answer in voice from the canned
-            // set instead of a 500, so the concierge still works on /beta.
-            return NextResponse.json({ reply: cannedReply(String(message ?? "")), quipSource: "canned" });
+        // A plain hello is copied straight back; every 5th one gets a brush-off.
+        if (isGreeting(text, kb)) {
+            return NextResponse.json({ reply: greetingReply(text, turns, kb), quipSource: "greeting" });
+        }
+
+        if (!text || !process.env.GOOGLE_API_KEY) {
+            // No model key on this deployment: answer from the knowledge base,
+            // and walk the pay-grade ladder when it has nothing to say.
+            const hit = text && !wantsOpinionOrAdvice(text) ? retrieve(text, turns, kb) : null;
+            return NextResponse.json(
+                hit
+                    ? { reply: hit.reply, quipSource: "knowledge", topic: hit.topic }
+                    : { reply: payGradeReply(turns, kb), quipSource: "pay-grade" },
+            );
         }
 
         const llm = new ChatGoogleGenerativeAI({
@@ -61,7 +78,7 @@ export async function POST(req: NextRequest) {
 
         const toneLine = TONE_DIRECTIVES[tone] || TONE_DIRECTIVES["Satirical"];
         const riskLine = getRiskDirective(risk);
-        const directive = `${GEMINI_SYSTEM_INSTRUCTION}\n\n${toneLine}\n${riskLine}`;
+        const directive = `${GEMINI_SYSTEM_INSTRUCTION}\n\n${toneLine}\n${riskLine}\n\n${knowledgePrompt(kb)}`;
 
         const prompt = ChatPromptTemplate.fromMessages([
             new SystemMessage(directive),
@@ -69,51 +86,26 @@ export async function POST(req: NextRequest) {
             new HumanMessage("{input}"),
         ]);
 
-        const lcHistory = history.slice(-10).map((turn: any) => 
+        const lcHistory = turns.slice(-10).map((turn) =>
             turn.role === "user" ? new HumanMessage(turn.content) : new AIMessage(turn.content)
         );
 
-        let inputText = message;
+        let inputText = text;
         if (regen_count >= 1) {
-            inputText = `${message}\n\n[The user asked you to regenerate this response — ${regen_count} time(s). Escalate your intensity. Be sharper, funnier, more unhinged than your first take.]`;
+            inputText = `${text}\n\n[The user asked you to regenerate this response — ${regen_count} time(s). Escalate your intensity. Be sharper, funnier, more unhinged than your first take.]`;
         }
 
         const chain = prompt.pipe(llm);
         const result = await chain.invoke({ history: lcHistory, input: inputText });
+        const reply = typeof result.content === "string" ? result.content.trim() : "";
 
-        return NextResponse.json({ reply: result.content });
+        // The model signals "not in my file" with a marker; the ladder decides the words.
+        if (!reply || reply.includes(PAY_GRADE_MARKER)) {
+            return NextResponse.json({ reply: payGradeReply(turns, kb), quipSource: "pay-grade" });
+        }
+        return NextResponse.json({ reply });
     } catch (error: any) {
         console.error("Concierge Chat Error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
-}
-
-/**
- * In-voice answers for when GOOGLE_API_KEY is not set. Every figure here is a
- * canon constant (gambit-game-math.ts PLATFORM / CREATOR_LADDER).
- */
-function cannedReply(text: string): string {
-    const t = text.toLowerCase();
-    if (/beta|invite|wait ?list|sign ?up|access|join/.test(t)) {
-        return "Velvet rope, kid. Drop your email in Join the private beta. Invites go out in waves, creators first. Already holding a pass? Creator Sign-in, right below.";
-    }
-    if (/fee|rake|cost|charge/.test(t)) {
-        return "One flat 1.88% on every market. No spread games, no hidden vig. The odds you see carry exactly that and nothing else.";
-    }
-    if (/creator|earn|make money|revenue|share|payout/.test(t)) {
-        return "Open a market, take a cut of every trade on it, for life: 28.8% of the fee to start, 40% once you've opened 12. $100K a month through your market pays you about $752. The rare VIP seat pays 60%, and there are only 4,888 of them.";
-    }
-    if (/card|pack|nft|affliction|rip|collect/.test(t)) {
-        return "MADHAT's Gambit: 992 cards, packs at 4.88 $MADx for 5. Win and a card can evolve toward Golden Aura. Lose and it becomes an Affliction card, a trophy of the trade you can't take back. Luck lives in the packs, never in a market price.";
-    }
-    if (/shield|stop ?loss|protect|lose|loss/.test(t)) {
-        return "MAD Shield is an opt-in stop-loss. Pay 2% to 4% up front and a losing stake comes back 28.8% to 40%, depending on your staking tier. Loss mitigation, not insurance.";
-    }
-    if (/paseome|conviction|what ?if|counterfactual/.test(t)) {
-        return "The Paseome prices a path, not a number. A what-if splits into 3 to 5 branches whose prices always sum to one. Forward trees settle every 59.061 days and refund the branches that didn't happen. Counterfactual trees never settle, so you're trading how hard a belief sticks.";
-    }
-    if (/what|who|how|explain|about/.test(t)) {
-        return "MAD Gambit: prediction and conviction markets on culture. You don't just call yes or no; you price how hard and how long people believe it. Satire on the wire, a card game on the side, and creators who get paid on the markets they open.";
-    }
-    return "I'm the MADHAT'r. Ask me about the beta, the 1.88% fee, what creators earn, the card game or the Shield. I've heard worse questions. Barely.";
 }

@@ -12,6 +12,11 @@ const nextConfig = (phase: string): NextConfig => {
   return {
     reactStrictMode: true,
     output: "standalone",
+    // The MADHAT'r reads his knowledge base from disk at runtime; make sure the
+    // markdown ships with the concierge route's serverless bundle.
+    outputFileTracingIncludes: {
+      "/api/concierge/chat": ["./content/madhatr/**"],
+    },
     distDir: isDev ? ".next-dev" : ".next",
     typescript: { ignoreBuildErrors: false },
     // Legacy uppercase bookmark → canonical lowercase route. Handled here rather
