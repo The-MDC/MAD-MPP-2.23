@@ -10,6 +10,7 @@
  * headed, default /preview).
  */
 import React, { useEffect, useState } from "react";
+import MadGambitConcierge from "@/components/mad-gambit-concierge";
 
 const GOLD = "#ffd700";
 const ROSSA = "#f95639";
@@ -38,15 +39,11 @@ export default function BetaGate() {
   return (
     <main style={{ minHeight: "100dvh", background: "radial-gradient(120% 70% at 50% -10%, rgba(255,215,0,.16), transparent 60%), radial-gradient(90% 60% at 100% 100%, rgba(249,86,57,.18), transparent 60%), #080808", color: "#f6f1e3", fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif", padding: "28px 20px 40px", display: "flex", justifyContent: "center" }}>
       <div style={{ width: "100%", maxWidth: 420, display: "flex", flexDirection: "column", gap: 22 }}>
-        <header style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+        <header style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, textAlign: "center" }}>
+          {/* The official MAD Gambit neon lockup (public/brand/MAD_G_Official_Logo2, cropped). */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/madhatr-logo.png" alt="" width={36} height={36} style={{ borderRadius: 10 }} />
-          <span className="mg-display mg-gold-text" style={{ fontSize: 28, letterSpacing: 1 }}>MAD Gambit</span>
-        </header>
-
-        <section style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/madhatr-bust.png" alt="The MADHAT'r" width={96} height={103} style={{ filter: "drop-shadow(0 10px 14px rgba(0,0,0,.7)) drop-shadow(0 0 16px rgba(249,86,57,.35))" }} />
+          <img src="/brand/mad-gambit-neon-logo.jpg" alt="MAD Gambit — Prediction · Conviction · Affliction. The Economic Engine of Entertainment Prediction Markets" width={420} height={235}
+            style={{ width: "100%", height: "auto", borderRadius: 18, boxShadow: "0 18px 40px -18px rgba(0,0,0,.9), 0 0 0 1px rgba(255,215,0,.18)" }} />
           <span className="mg-chip" style={{ color: ROSSA, borderColor: "rgba(249,86,57,.45)", background: "rgba(249,86,57,.08)" }}>● Private beta · invite waves</span>
           <h1 style={{ margin: 0, lineHeight: 1 }}>
             <span className="mg-display" style={{ display: "block", fontSize: 46 }}>Predict the scandal.</span>
@@ -55,7 +52,7 @@ export default function BetaGate() {
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: MUTED, maxWidth: 360 }}>
             Prediction and conviction markets on culture, a satirical card game, and creators who earn 28.8% to 40% of the fee on every market they open.
           </p>
-        </section>
+        </header>
 
         <SignupCard />
 
@@ -75,6 +72,9 @@ export default function BetaGate() {
         </div>
 
         <SigninCard next={next} />
+
+        {/* The MADHAT'r Concierge: answers questions about the beta for visitors who are not in yet. */}
+        <MadGambitConcierge uid="beta" />
 
         <footer style={{ textAlign: "center", fontSize: 11, color: "#7d776b", lineHeight: 1.6 }}>
           Free-play $MADx on the beta floor · Play responsibly

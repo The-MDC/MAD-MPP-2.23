@@ -166,12 +166,15 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     const el = rootRef.current;
-    if (!el) return;
+    // Only the closed bubble drags. Capturing the pointer while the panel is
+    // open retargets every click to this wrapper, so the panel's own buttons
+    // (send, close, tone) would never receive them.
+    if (!el || open) return;
     const r = el.getBoundingClientRect();
     dragRef.current = { dx: e.clientX - r.left, dy: e.clientY - r.top, moved: false };
     el.setPointerCapture(e.pointerId);
     setDragging(true);
-  }, []);
+  }, [open]);
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
@@ -201,9 +204,18 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
     // A drag must not also open the panel. `click` fires AFTER `pointerup` and
     // is a separate event, so stopping propagation here would not reach it —
     // the button's handler checks this flag instead.
-    justDraggedRef.current = dragRef.current?.moved === true;
+    const d = dragRef.current;
     dragRef.current = null;
-  }, []);
+    if (!d) return;
+    // With pointer capture the browser delivers the follow-up click to this
+    // wrapper, not the button inside it — so a tap opens the panel here.
+    if (!d.moved && !open) {
+      justDraggedRef.current = false;
+      setOpen(true);
+      return;
+    }
+    justDraggedRef.current = d.moved;
+  }, [open]);
 
   // Keep the bubble inside its host when the window (or the frame's zoom)
   // changes, so a resize cannot strand it off-screen.

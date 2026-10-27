@@ -76,6 +76,10 @@ const PUBLIC_PATHS = new Set([
   "/beta",
   "/api/v1/beta/signin",
   "/api/v1/beta/signup",
+  // The MADHAT'r Concierge on /beta answers visitors who have no pass yet. The
+  // route is guest-facing by design (its own PUBLIC-ROUTE note) and rate-limited
+  // at 20/min per IP.
+  "/api/concierge/chat",
 ]);
 
 /** Public brand assets the /beta page renders (logo, mascot, self-hosted fonts). */

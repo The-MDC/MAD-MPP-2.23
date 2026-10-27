@@ -48,7 +48,9 @@ export async function POST(req: NextRequest) {
         const { message, history = [], tone = "Satirical", risk = 0.75, regen_count = 0 } = body;
 
         if (!process.env.GOOGLE_API_KEY) {
-            return NextResponse.json({ error: "Missing GOOGLE_API_KEY" }, { status: 500 });
+            // No model key on this deployment: answer in voice from the canned
+            // set instead of a 500, so the concierge still works on /beta.
+            return NextResponse.json({ reply: cannedReply(String(message ?? "")), quipSource: "canned" });
         }
 
         const llm = new ChatGoogleGenerativeAI({
@@ -84,4 +86,34 @@ export async function POST(req: NextRequest) {
         console.error("Concierge Chat Error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
+}
+
+/**
+ * In-voice answers for when GOOGLE_API_KEY is not set. Every figure here is a
+ * canon constant (gambit-game-math.ts PLATFORM / CREATOR_LADDER).
+ */
+function cannedReply(text: string): string {
+    const t = text.toLowerCase();
+    if (/beta|invite|wait ?list|sign ?up|access|join/.test(t)) {
+        return "Velvet rope, kid. Drop your email in Join the private beta. Invites go out in waves, creators first. Already holding a pass? Creator Sign-in, right below.";
+    }
+    if (/fee|rake|cost|charge/.test(t)) {
+        return "One flat 1.88% on every market. No spread games, no hidden vig. The odds you see carry exactly that and nothing else.";
+    }
+    if (/creator|earn|make money|revenue|share|payout/.test(t)) {
+        return "Open a market, take a cut of every trade on it, for life: 28.8% of the fee to start, 40% once you've opened 12. $100K a month through your market pays you about $752. The rare VIP seat pays 60%, and there are only 4,888 of them.";
+    }
+    if (/card|pack|nft|affliction|rip|collect/.test(t)) {
+        return "MADHAT's Gambit: 992 cards, packs at 4.88 $MADx for 5. Win and a card can evolve toward Golden Aura. Lose and it becomes an Affliction card, a trophy of the trade you can't take back. Luck lives in the packs, never in a market price.";
+    }
+    if (/shield|stop ?loss|protect|lose|loss/.test(t)) {
+        return "MAD Shield is an opt-in stop-loss. Pay 2% to 4% up front and a losing stake comes back 28.8% to 40%, depending on your staking tier. Loss mitigation, not insurance.";
+    }
+    if (/paseome|conviction|what ?if|counterfactual/.test(t)) {
+        return "The Paseome prices a path, not a number. A what-if splits into 3 to 5 branches whose prices always sum to one. Forward trees settle every 59.061 days and refund the branches that didn't happen. Counterfactual trees never settle, so you're trading how hard a belief sticks.";
+    }
+    if (/what|who|how|explain|about/.test(t)) {
+        return "MAD Gambit: prediction and conviction markets on culture. You don't just call yes or no; you price how hard and how long people believe it. Satire on the wire, a card game on the side, and creators who get paid on the markets they open.";
+    }
+    return "I'm the MADHAT'r. Ask me about the beta, the 1.88% fee, what creators earn, the card game or the Shield. I've heard worse questions. Barely.";
 }
