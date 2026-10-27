@@ -94,8 +94,27 @@ export async function passUser(value: string | undefined, guests: Record<string,
   return Object.prototype.hasOwnProperty.call(guests, user) ? user : null;
 }
 
-/** Only same-site relative paths survive as a post-sign-in destination. */
+/**
+ * Only same-origin relative paths survive as a post-sign-in destination.
+ *
+ * A prefix check alone is not enough: browsers treat `\` as `/` and strip tabs
+ * and newlines from URLs, so `/\evil.com` and `/<TAB>/evil.com` both become
+ * `//evil.com` — an open redirect. So control characters and backslashes are
+ * refused outright, and the result is resolved against a sentinel origin and
+ * must still be on it.
+ */
 export function safeNext(raw: string | null | undefined): string {
-  if (!raw || !raw.startsWith("/") || raw.startsWith("//") || raw.startsWith("/beta") || raw.startsWith("/api/")) return "/preview";
-  return raw;
+  const fallback = "/preview";
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return fallback;
+  if (/[\\\u0000-\u001f\u007f]/.test(raw)) return fallback;
+  let u: URL;
+  try {
+    u = new URL(raw, "https://gate.invalid");
+  } catch {
+    return fallback;
+  }
+  if (u.origin !== "https://gate.invalid") return fallback;
+  const out = u.pathname + u.search + u.hash;
+  if (out.startsWith("//") || out.startsWith("/beta") || out.startsWith("/api/")) return fallback;
+  return out;
 }

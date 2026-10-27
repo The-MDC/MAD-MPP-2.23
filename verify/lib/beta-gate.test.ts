@@ -24,4 +24,13 @@ describe("beta gate", () => {
     expect(safeNext("https://evil.example")).toBe("/preview");
     expect(safeNext("/beta")).toBe("/preview");
   });
+  it("refuses the backslash and control-character open redirects", () => {
+    for (const evil of ["/\\evil.example", "/\\/evil.example", "/\t/evil.example", "/\n/evil.example", "/\r\n/evil.example", "/%5Cevil.example/..", "/api/v1/x", "/beta?next=//x"]) {
+      const out = safeNext(evil);
+      expect(out.startsWith("//"), JSON.stringify(evil)).toBe(false);
+      expect(new URL(out, "https://madgambit.fun").origin, JSON.stringify(evil)).toBe("https://madgambit.fun");
+    }
+    expect(safeNext("/\\evil.example")).toBe("/preview");
+    expect(safeNext("/profile#cashed")).toBe("/profile#cashed");
+  });
 });
