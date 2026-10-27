@@ -31,6 +31,8 @@ const ZERO_ELIG: WhaleEligibilityInput = {
  * Whale 60%; premium 2–4% of stake; return window 2–24h). No DB and no value
  * movement — always available, safe to call from the marketing surface.
  */
+// PUBLIC-ROUTE: Premium quote — pure maths, no DB, no position opened.
+// Rate-limited, because open still needs a cost ceiling.
 export async function POST(req: Request) {
   const limited = enforceRateLimit(req, "shield-quote", 60, 60_000);
   if (limited) return limited;

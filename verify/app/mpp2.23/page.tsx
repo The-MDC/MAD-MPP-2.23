@@ -61,7 +61,7 @@ import CryptoTickerDual from "@/components/crypto-ticker-dual";
 import DopamineCarouselStrip from "@/components/dopamine-carousel-strip";
 import { AutoShowcaseBadge } from "@/components/carousel";
 import PerpDials from "@/components/perp-dials";
-import MadhatrConcierge from "@/components/madhatr-concierge";
+import MadGambitConcierge from "@/components/mad-gambit-concierge";
 import { EigenTrustWidget } from "@/components/virality-eigen";
 import AuthModal from "@/components/auth-modal";
 
@@ -90,6 +90,7 @@ import { PLATFORM_FEATURES, PLATFORM_TAB_KEYS, type PlatformTabKey } from "@/lib
 import {
   Palette, Sparkles, User, Wallet, LogOut
 } from "lucide-react";
+import { signInWithEthereum, signOut } from "@/lib/siwe-client";
 
 type Tab = PlatformTabKey;
 
@@ -101,6 +102,14 @@ const DECISION_NODES = [
   { evidence: "RSS wire corroboration (7 feeds)",    oldPrior: 0.72, newPosterior: 0.78, shift: 0.06, action: "HOLD" as const },
   { evidence: "Oracle cascade divergence",           oldPrior: 0.78, newPosterior: 0.55, shift: -0.23, action: "STRONG_SELL" as const },
 ];
+
+
+/** 0x1234…abcd — an address is not an email, and the header used to print a
+ *  fabricated one. Truncated because the full 42 chars breaks the nav row. */
+function shortAddr(a: string | null): string {
+  if (!a) return "signed in";
+  return a.length > 10 ? `${a.slice(0, 6)}…${a.slice(-4)}` : a;
+}
 
 export default function GambitPage() {
   return (
@@ -193,12 +202,15 @@ function GambitInner() {
           <div className="flex items-center gap-2">
             <div className="px-3 py-1.5 bg-[#05070c] border border-neutral-800 rounded-lg flex items-center gap-2">
               <User className="w-3.5 h-3.5 text-neutral-400" />
-              <span className="font-mono text-[10px] text-neutral-300">{socialAuth.email}</span>
+              <span className="font-mono text-[10px] text-neutral-300">{shortAddr(walletAuth.address)}</span>
             </div>
             
             {!walletAuth.isConnected ? (
               <button 
-                onClick={() => setWalletAuth({ isConnected: true, address: "0xMAD...8888" })}
+                onClick={async () => {
+                  const r = await signInWithEthereum();
+                  if (r.ok) setWalletAuth({ isConnected: true, address: r.address });
+                }}
                 className="px-4 py-1.5 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-[10px] uppercase font-bold tracking-widest rounded-lg hover:bg-cyan-500/20 transition-colors flex items-center gap-1.5"
               >
                 <Wallet className="w-3.5 h-3.5" /> Connect Wallet
@@ -206,12 +218,15 @@ function GambitInner() {
             ) : (
               <div className="px-3 py-1.5 bg-cyan-500/10 border border-cyan-500/30 rounded-lg flex items-center gap-2">
                 <Wallet className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="font-mono text-[10px] text-cyan-400 font-bold">{walletAuth.address}</span>
+                <span className="font-mono text-[10px] text-cyan-400 font-bold">{shortAddr(walletAuth.address)}</span>
               </div>
             )}
             
             <button 
-              onClick={() => {
+              onClick={async () => {
+                // Clear the httpOnly cookie FIRST. Clearing only React state
+                // left the server session live — logged-out header, logged-in API.
+                await signOut();
                 setSocialAuth({ isAuthenticated: false, provider: null, email: null });
                 setWalletAuth({ isConnected: false, address: null });
               }}
@@ -410,7 +425,7 @@ function GambitInner() {
 
         <footer className="mt-12 text-center space-y-2">
           <p className="font-mono text-[10px] uppercase tracking-widest text-neutral-600">
-            Platform Fee 1.88% · Creator Share 40% · Community 28.8% · $MADx 888,888,888 fixed
+            Platform Fee 1.88% · Creator Share 40% · Community 28.8% · $MADx 888,888,888 cap, mint-on-purchase
           </p>
           <p className="font-mono text-[9px] text-neutral-700">
             © 2026 MΛĐ GAMBIT LLC · Conviction · Prediction · Affliction
@@ -428,7 +443,7 @@ function GambitInner() {
 
       {/* MADHAT'r floating concierge — page-level, persists across every tab.
           Fixed bottom-right, real top-hat logo, GEMINI.md persona. */}
-      <MadhatrConcierge />
+      <MadGambitConcierge />
       
       {/* ── GLOBAL MODALS ── */}
       {showAuthModal && (

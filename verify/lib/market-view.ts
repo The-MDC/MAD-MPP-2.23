@@ -80,8 +80,25 @@ export const PERP_FAMILIES = [
 
 export type PerpFamily6 = (typeof PERP_FAMILIES)[number];
 
-/** Families backed by a `perp_markets` row. The other three are signal-only. */
-const TRADEABLE_FAMILIES: ReadonlySet<string> = new Set(["faces", "zeitgeist", "epiphany"]);
+/**
+ * Families backed by a `perp_markets` row. The other three are signal-only.
+ *
+ * EXPORTED, and it must stay exported. This is the ONE rule that separates the
+ * six families — whether a card offers a position or a SIGNAL ONLY badge — and
+ * it was previously private, which forced lib/perp-family-markets.ts to keep a
+ * hand-written copy whose own comment admitted it ("Mirrors TRADEABLE_FAMILIES
+ * in market-view.ts, which is not exported"). Two sources of truth for a
+ * tradeability rule is how a card ends up offering a position the backend
+ * rejects — exactly what `tradeable: false` exists to prevent.
+ *
+ * Typed on PerpFamily6 rather than string so a family that leaves PERP_FAMILIES
+ * fails the build here instead of silently dropping out of the set.
+ */
+export const TRADEABLE_FAMILIES: ReadonlySet<PerpFamily6> = new Set<PerpFamily6>([
+  "faces",
+  "zeitgeist",
+  "epiphany",
+]);
 
 /** Per-family presentation, matching the deck card-for-card. */
 export const FAMILY_META: Record<PerpFamily6, {

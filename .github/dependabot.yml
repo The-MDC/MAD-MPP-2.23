@@ -1,9 +1,29 @@
 version: 2
 
-# Dependabot config is read from the DEFAULT branch, which is `The-MDC` — NOT `main`
-# (this repo has no `main`). Enhancements here take effect once merged there. Version
-# updates below surface out-of-range bumps (e.g. postcss ≥ 8.5.10 flows through the
-# /verify npm updater on the next run).
+# ⚠️ THIS FILE IS NOT CURRENTLY IN FORCE. Dependabot reads its config from the
+# repository's DEFAULT branch, and this repo's default branch is `The-MDC`, not
+# `main`. The header here used to assert "read from the DEFAULT branch (main)",
+# which was true when it was written and stopped being true at the org move.
+#
+# The consequence is measurable, not theoretical: the `actions/checkout` ignore
+# rule at the bottom of this file — the one holding it at v4 with the incident
+# timestamps written out — exists on `main` and does NOT exist on `The-MDC`. So
+# the rule that was reasoned through and committed is being ignored, and
+# Dependabot is running the older config instead. It also opens its PRs against
+# the default branch, which is why `The-MDC` carries a dependency bump (eslint
+# 8→10, typescript 5→7, siwe 2→3, framer-motion 12→13) that `main` has never
+# seen, on top of a tree that predates main's SIWE and market-book work.
+#
+# FIX (repo admin, one setting): Settings → General → Default branch → `main`.
+# Production already deploys from `main`; nothing else is served by `The-MDC`
+# being default. Editing this file cannot fix it — a config that is not read
+# cannot tell Dependabot where to read the config from.
+#
+# Until then, treat everything below as documentation of intent rather than
+# active configuration.
+#
+# Version updates below surface out-of-range bumps
+# (e.g. postcss ≥ 8.5.10 flows through the /verify npm updater on the next run).
 #
 # For the HIGH/critical advisories specifically, also enable — in repo Settings →
 # Advanced Security → Dependabot — "Dependabot alerts" + "Dependabot security
@@ -33,36 +53,6 @@ updates:
           - "minor"
           - "patch"
 
-  # ── Vendored Foundry libraries: SILENCE, do not update ──────────────
-  # contracts/lib/{openzeppelin-contracts,forge-std} are deliberately VENDORED
-  # (1,069 files committed, no .gitmodules). foundry.yml depends on that — it runs
-  # `actions/checkout` with no submodule step and no `forge install`, so these files
-  # must stay committed. Do NOT un-vendor without first adding dependency install to CI.
-  #
-  # The side effect: Dependabot security updates scan every manifest in the repo,
-  # including OpenZeppelin's own package.json. That produced run 34557792525, which
-  # tried to bump ~40 packages — ajv, js-yaml ×6, minimatch ×9, undici ×12,
-  # serialize-javascript, tmp, uuid — that are OpenZeppelin's internal dev toolchain.
-  # None of them ship in MAD Gambit. None of them are compiled. Pure noise.
-  #
-  # `ignore` (unlike open-pull-requests-limit) applies to SECURITY updates too, so a
-  # wildcard here suppresses both update types for these paths.
-  - package-ecosystem: "npm"
-    directory: "/contracts/lib/openzeppelin-contracts"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 0
-    ignore:
-      - dependency-name: "*"
-
-  - package-ecosystem: "npm"
-    directory: "/contracts/lib/forge-std"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 0
-    ignore:
-      - dependency-name: "*"
-
   # ── GitHub Actions workflow pins ────────────────────────────────────
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -78,3 +68,17 @@ updates:
     commit-message:
       prefix: "ci"
       include: "scope"
+    ignore:
+      # actions/checkout is deliberately held at v4 in every workflow.
+      #
+      # v6.1.0 (2026-06-18) shipped a documented breaking change to how
+      # pull_request_target checkouts resolve refs, and the floating `v6` tag
+      # moved onto it mid-flight — which is why this repo's runs were green on
+      # v6.0.x at 03:34 on 2026-08-16 and failing from 04:07 with no commit of
+      # ours in between. v7.0.0 goes further and refuses fork-PR checkout.
+      # v4 is still actively maintained (v4.3.1 "Port v6 cleanup to v4").
+      #
+      # Revisit when Actions is executing again (see below) and the v6+/v7
+      # behaviour can actually be exercised on a PR rather than assumed.
+      - dependency-name: "actions/checkout"
+        update-types: ["version-update:semver-major"]

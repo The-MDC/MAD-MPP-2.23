@@ -635,3 +635,118 @@ button:active:not(:disabled) { transform: scale(0.955); }
   button { transition: none; }
   button:active:not(:disabled) { transform: none; }
 }
+
+/* ─────────────────────────────────────────────────────────────────────
+   HOVER + HOLD — the app-wide "what is this, and what do I do with it?"
+   affordance. Two halves that only work together:
+
+   1. A hover state on everything interactive. Before this, 637 lines of
+      globals.css contained exactly one :hover rule, so most controls in the
+      app gave no feedback that they were controls at all. brightness() is the
+      one property that can say "you are on it" without knowing anything about
+      the element's colours, background, or shape — and without moving it, so
+      it cannot reflow a dial, a ticker row or an instrument panel. It is also
+      already the idiom here: .mg-ck-item:hover in crypto-ticker-dual.tsx did
+      exactly this locally, and this generalises it.
+
+      Inline `filter` would win over these rules, but every inline filter in
+      the codebase is a drop-shadow on an icon or an <img>, never on the
+      button or link itself.
+
+   2. A marker on the elements that have MORE to show. A press-and-hold
+      gesture that is never advertised is a gesture nobody performs, so
+      anything carrying a hint outlines itself faintly on hover and solidly
+      while its hint is open. `outline` and not `border`/`box-shadow`:
+      outline is drawn outside the box without affecting layout, needs no
+      positioning context (so it cannot break an absolutely-positioned child),
+      and does not collide with the 22 components that set boxShadow inline.
+
+   Cursor is left alone deliberately — `help` on a button would misdescribe a
+   control that still has a primary action.
+───────────────────────────────────────────────────────────────────── */
+:root { --mg-hint: #ffcf40; }
+
+button:hover:not(:disabled),
+a:hover,
+[role="button"]:hover:not([aria-disabled="true"]),
+summary:hover {
+  filter: brightness(1.1);
+}
+
+/* Keyboard parity: the same emphasis, plus a real focus ring. Applied to
+   :focus-visible only, so it never fires on a mouse click. */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible,
+.mg-focusable:focus-visible {
+  outline: 2px solid var(--mg-hint, #ffcf40);
+  outline-offset: 2px;
+}
+
+/* Carries a hint: faint dashed outline on hover, solid while open. */
+[data-hold-hint="true"]:hover {
+  outline: 1px dashed color-mix(in srgb, var(--mg-hint, #ffcf40) 42%, transparent);
+  outline-offset: 2px;
+}
+[data-hold-hint="open"] {
+  outline: 1px solid color-mix(in srgb, var(--mg-hint, #ffcf40) 78%, transparent);
+  outline-offset: 2px;
+}
+/* A hint opens on press-and-hold, and a held finger otherwise starts a text
+   selection or an iOS callout over the very control being asked about. */
+[data-hold-hint] {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Note: no prefers-reduced-motion override here, on purpose. A brightness
+   change is not motion, and the reduced-motion setting is about vestibular
+   triggers — stripping the only hover feedback in the app for the users most
+   likely to need clear affordances would be the wrong reading of it. The
+   press animation further up this file is motion and is already exempted
+   there. */
+
+/* ─────────────────────────────────────────────────────────────────────
+   Z-LIAR METER — container-relative layout.
+
+   The card used `md:grid-cols-[340px_1fr]`, and `md:` is a VIEWPORT media
+   query. Inside the 393px device frame on a desktop it therefore matched the
+   1920px monitor and fired, laying a fixed 340px column plus a 1fr column
+   inside a ~300px card: the gauge column overflowed and pushed the dial
+   off-centre to the right, while the second column collapsed to near-zero
+   width and left a tall empty band beneath the instrument. Both symptoms, one
+   cause.
+
+   This is the same trap already documented on .mg-octavian-grid, which is why
+   the fix is the same shape: measure the CARD, not the window. container-type
+   goes on the shell and the query on the grid inside it — a container query
+   only matches descendants, so an element can never respond to its own
+   container-type.
+
+   700px, not 768px: the two-column form needs 340px of dial plus a usable
+   analysis column plus the gap, and that is the width where it stops being
+   cramped — a number from the content, not from a device class.
+───────────────────────────────────────────────────────────────────── */
+.mg-zliar-shell { container-type: inline-size; }
+
+.mg-zliar-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+@container (min-width: 700px) {
+  .mg-zliar-grid {
+    grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+    gap: 28px;
+  }
+}
+/* Fallback for engines without container queries. It cannot fire inside the
+   device frame — that is what the @container rule above is for — but it still
+   gives a genuinely wide window the two-column form. */
+@supports not (container-type: inline-size) {
+  @media (min-width: 900px) {
+    .mg-zliar-grid { grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 28px; }
+  }
+}

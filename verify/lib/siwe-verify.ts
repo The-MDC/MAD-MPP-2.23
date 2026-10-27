@@ -18,11 +18,15 @@
  */
 import { SiweMessage } from "siwe";
 import { consumeNonce } from "./nonce-store";
+import { SIGN_IN_CHAIN_ID } from "@/lib/chain";
 
 // Re-exported so existing callers (auth/nonce route) keep importing from here.
 export { issueNonce } from "./nonce-store";
 
-export const EXPECTED_CHAIN_ID = 42170; // Arbitrum Nova — launch/gameplay chain
+/** Arbitrum Nova — launch/gameplay chain. Defined in lib/chain.ts because the
+ *  browser needs the same value to BUILD the message this file then verifies,
+ *  and this module is server-only (nonce-store pulls in node:crypto + pg). */
+export const EXPECTED_CHAIN_ID = SIGN_IN_CHAIN_ID;
 
 export interface SiweVerifyResult {
   ok: boolean;

@@ -46,7 +46,7 @@ High-level architecture, public interfaces, test strategies, and security checkl
 5. **Testing Strategy**
    - Unit + fuzz + invariant tests
    - Coverage >90% core, 100% vault/fee
-   - Coordinate with mad-gambit-math for public constant consistency and madhatr-concierge for gate + handoff.
+   - Coordinate with mad-gambit-math for public constant consistency and mad-gambit-concierge for gate + handoff.
 
 6. **Output Format**
    - Proprietary gate status.

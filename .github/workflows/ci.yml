@@ -1,6 +1,13 @@
 name: CI
 
 on:
+  # Dispatchable on purpose. The 2026-08-16 → 08-24 Actions outage let three PRs
+  # merge ungated, and afterwards there was no way to answer "is main actually
+  # green?" — every trigger here is push/PR, so `main`'s tip could only be gated
+  # by pushing to it again. `workflow_dispatch` makes the question answerable
+  # without inventing a commit. Same reasoning as placeholder-guard.yml, which
+  # gained it for exactly this in 8324cf6.
+  workflow_dispatch:
   pull_request:
     paths:
       - "verify/**"
@@ -42,6 +49,14 @@ concurrency:
 # "Lint (eslint)", "Build (next build)", "Route-guard check"), those names no
 # longer exist and required-checks must be repointed at "Verify" or merges
 # will block forever waiting on checks that can never report.
+
+# Least privilege. Without this block a workflow inherits the REPOSITORY
+# default token scope, which on older repos is read-write across the API — an
+# action compromise then reaches far past the job that ran it. The four
+# workflows that already declared this were fine; these did not.
+permissions:
+  contents: read
+
 jobs:
   verify:
     name: Verify
@@ -50,10 +65,14 @@ jobs:
       run:
         working-directory: verify
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      # actions/checkout is held at v4 across every workflow in this repo —
+      # v6.1.0 moved the floating `v6` tag onto a breaking pull_request_target
+      # change on 2026-06-18. Rationale and the Dependabot ignore that keeps it
+      # here live in .github/dependabot.yml. Do not bump this in isolation.
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           cache-dependency-path: verify/package-lock.json
 

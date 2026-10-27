@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
-import { enforceRateLimit } from "@/lib/rate-limit";
+import { requireBearerSecret } from "@/lib/bearer-secret";
 import { parseGdeltField, scoreGdeltRecord, type EmotionScores, type Emotion } from "@/lib/gdelt";
 import { getWhitelist } from "@/lib/whitelist";
 import { hasDatabaseUrl } from "@/lib/database-url";
@@ -37,9 +37,24 @@ function asEmotions(v: unknown): EmotionScores {
  * watcher / eBPF anywhere; the whitelist is read from Neon. Degrades to a
  * non-persisted score when DATABASE_URL is absent.
  */
+/**
+ * OPERATOR ONLY (CRON_SECRET). This accepts a PUSHED GDELT record — parse,
+ * whitelist-filter, score, persist — and `gdelt_signals` is read by seven
+ * routes including /api/v1/markets/proposals, /api/v1/scandal/graph and the
+ * platform chaos index in /api/v1/dopamine/metrics. An anonymous push
+ * therefore did not just add a row: it fed fabricated scandal velocity into
+ * market proposals and into a number the UI presents as measured. The
+ * whitelist filter narrowed which subjects could be pushed; it never
+ * established who was pushing.
+ *
+ * Note this is the PUSH counterpart to /api/v1/ingest/gdelt, which PULLS from
+ * GDELT DOC 2.0 and has been bearer-guarded all along. Same table, same
+ * downstream consumers, opposite direction — and only one of the two was
+ * closed.
+ */
 export async function POST(req: Request) {
-  const limited = enforceRateLimit(req, "gdelt-ingest", 30, 60_000);
-  if (limited) return limited;
+  const denied = requireBearerSecret(req, "CRON_SECRET");
+  if (denied) return denied;
 
   const body = (await req.json().catch(() => null)) as IngestBody | null;
   if (!body) return NextResponse.json({ success: false, error: "invalid JSON" }, { status: 400 });

@@ -44,7 +44,7 @@ Card art source files and LoRA weights are proprietary. Never redistribute raw a
    - Coordinate with dopamine-ui-design-system for visual treatment consistency.
    - brand-enforcer for any logo / emblem assets.
    - production-readiness-gate for screenshot-diff of card renders.
-   - madhatr-concierge for handoff of large art batches.
+   - mad-gambit-concierge for handoff of large art batches.
 
 6. **Output**
    - Always report current CARD_ART_COUNT and missing serial ranges.

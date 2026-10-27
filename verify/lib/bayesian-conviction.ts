@@ -71,9 +71,53 @@ function propagateAt(node: TreeNode, depth: number, maxDepth: number): number {
 }
 
 /** Backward-induction propagation with conviction weighting (depth-bounded).
- *  V_leaf = probability·(1+bonus); V_n = Σ P(c|n)·V_c ·(1+bonus_n). */
+ *  V_leaf = probability·(1+bonus); V_n = Σ P(c|n)·V_c ·(1+bonus_n).
+ *
+ *  NOTE: this does NOT check that a node's `conditionalProb` edges sum to 1 —
+ *  it computes whatever weighted sum it is handed. That is fine for a caller
+ *  whose edges are conserved by construction (see `frontierPrices` in
+ *  lib/paseome.ts, where DL-LMSR guarantees it), and unsafe for one that
+ *  accepts a tree from outside. Validate with `treeConservationError` first
+ *  when the tree did not come from your own maths. */
 export function propagateTree(node: TreeNode, maxDepth = 64): number {
   return propagateAt(node, 0, maxDepth);
+}
+
+/** How far a node's edges may sum from 1 before the tree is judged unsound. */
+export const CONSERVATION_TOLERANCE = 1e-6;
+
+/**
+ * First node whose children's `conditionalProb` do not sum to 1, described as
+ * a path — or `null` if the whole tree conserves.
+ *
+ * A branch market that mints or destroys value at a fork is arbitrageable
+ * within a day, and a node whose edges total 0.8 silently misprices every
+ * position beneath it. Nothing enforced this, and the one caller of
+ * `propagateTree` takes its tree from a request body.
+ *
+ * Iterative with an explicit stack: no recursion depth risk, and no `for...of`
+ * over anything but an array — this file compiles at target es5.
+ */
+export function treeConservationError(node: TreeNode, maxDepth = 64): string | null {
+  const stack: { n: TreeNode; d: number; path: string }[] = [{ n: node, d: 0, path: node?.name || "root" }];
+  while (stack.length > 0) {
+    const top = stack.pop();
+    if (!top) break;
+    const n = top.n;
+    if (!n || top.d >= maxDepth || n.isLeaf || !n.children || n.children.length === 0) continue;
+    let sum = 0;
+    for (let i = 0; i < n.children.length; i++) {
+      const edge = n.children[i];
+      if (!edge || typeof edge !== "object" || !edge.child) continue;
+      const cp = Number(edge.conditionalProb);
+      sum += Number.isFinite(cp) ? cp : 0;
+      stack.push({ n: edge.child, d: top.d + 1, path: `${top.path} › ${edge.child.name || "?"}` });
+    }
+    if (Math.abs(sum - 1) > CONSERVATION_TOLERANCE) {
+      return `${top.path}: children sum to ${sum.toFixed(6)}, expected 1`;
+    }
+  }
+  return null;
 }
 
 /** Conviction-modulated absolute edge. */

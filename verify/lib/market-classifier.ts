@@ -20,6 +20,7 @@
 import { scoreSentiment, type Sentiment } from "@/lib/sentiment";
 import { zLiarMeter, PLATFORM } from "@/lib/gambit-game-math";
 import { perpTriggerProbability } from "@/lib/gdelt";
+import { satirizeHeadline, type NewsCategory } from "@/lib/satire-headline";
 
 /**
  * Every market type, in cascade-evaluation order. The union is DERIVED from this
@@ -156,8 +157,33 @@ function horizonLabel(days: number): string {
   return "days";
 }
 
+/**
+ * Market types are a trading taxonomy; satire voices are an editorial one. This
+ * is the bridge — it picks the voice that suits how each market reads, so a
+ * gossip perp sounds like a tabloid and a chaos perp sounds like politics.
+ */
+const TYPE_VOICE: Record<MarketType, NewsCategory> = {
+  progression: "headlines",
+  saga: "entertainment",
+  zliar: "tabloid",
+  perp: "headlines",
+  gossipcop: "tabloid",
+  faces: "entertainment",
+  zeitgeist: "viraltech",
+  epiphany: "viraltech",
+};
+
 function buildTitle(headline: string, type: MarketType, days: number): string {
-  const h = headline.length > 90 ? `${headline.slice(0, 87)}…` : headline;
+  // `h` was the RAW newsroom headline, interpolated into all eight templates —
+  // which put the least-processed string in the system into the most prominent
+  // card on the landing page ("Z-Liar: how real is \"Breaking: pop star
+  // couple's public spat sparks breakup rumors, statement expected soon\"?").
+  // The satirized line goes in the TITLE; MarketProposal.headline still carries
+  // the original verbatim, so resolution and provenance are untouched.
+  // Supersedes the old 90-char truncation of the raw headline: the satirizer
+  // caps its own output at 70, so there is nothing left to trim. Falls back to
+  // the raw headline only if satire returns empty (blank input).
+  const h = satirizeHeadline(headline, TYPE_VOICE[type]) || headline;
   switch (type) {
     case "faces":
       return `Five Faces: which face is "${h}" permanently wearing?`;

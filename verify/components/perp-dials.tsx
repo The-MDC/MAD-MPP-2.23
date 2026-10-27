@@ -21,6 +21,13 @@
  * would otherwise sit unsized and blank at its default 300×150.
  */
 import React, { useEffect, useMemo, useState } from "react";
+import HoldHint from "@/components/hold-hint";
+import { DECK_ID_TO_FAMILY, pendingBook, type PerpFamilyBook } from "@/lib/perp-family-markets";
+import { PLATFORM, garchUpdate, zLiarVerdictFor } from "@/lib/gambit-game-math";
+import { SCANDAL_BANDS, scandalBand, scandalBandFraction } from "@/lib/scandal-bands";
+import {
+  LEG_STRUCTURE_LINE, PERP_LIBRARY, PERP_REPORTS, liveLeg, type LiveLeg,
+} from "@/lib/perp-reports";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import GambitInstrumentCluster from "@/components/gambit-instrument-cluster";
@@ -63,13 +70,16 @@ function liveVals(t: number) {
   };
 }
 
-/** The five Z-Liar verdict bands, in canon order. */
-const zliarBand = (v: number) =>
-  v < 20 ? "Straight shooter"
-    : v < 38 ? "Mostly candid"
-      : v < 60 ? "Slippery"
-        : v < 84 ? "Serial embellisher"
-          : "Total fabrication";
+/** The Z-Liar verdict for a score, sentence-cased for the dial's sub-label.
+ *  This used to be a local ladder with its own thresholds at 38 and 84 — the
+ *  engine's are 40 and 80, so a score of 39 printed "Mostly candid" under a
+ *  needle the engine called SLIPPERY, and 82 printed "Serial embellisher"
+ *  over TOTAL FABRICATION. It reads `zLiarVerdictFor` now, so there is one
+ *  ladder and it is the engine's. */
+const zliarBand = (v: number) => {
+  const verdict = zLiarVerdictFor(v);
+  return verdict.charAt(0) + verdict.slice(1).toLowerCase();
+};
 
 /* ── Instrument geometries ──────────────────────────────────────────────
    Ported from the design file. Each builds its own shape from the shared
@@ -441,7 +451,10 @@ const NAV: NavEntry[] = [
 ];
 
 /** Scandal's second lane — the dual-lane metric tape. */
-const SCANDAL_LANE2 = ["Cross-source pickup", "Chaos fusion", "Freshness half-life", "Faction drift"];
+const SCANDAL_LANE2 = [
+  "Cross-source pickup", "Chaos fusion", "Freshness half-life", "Faction split",
+  "Risk temperature", "GCAM pressure", "Heat score", "Authority",
+];
 
 /** The five simplex weights, drawn as the waterline strip above Five Faces'
  *  ticker — same allocation the dial's wedges show. */
@@ -496,6 +509,184 @@ function Slider({
   );
 }
 
+
+/**
+ * Every market in one perp family, opened by tapping that card's instrument or
+ * its ticker — the same gesture the Z-Liar gauge already answers to.
+ *
+ * A signal-only family renders the reason instead of a list. Three of the six
+ * families have no perp book (market-view.ts: "The other three are
+ * signal-only"), and inventing rows so all six cards behave identically would
+ * make the deck assert positions the platform cannot take.
+ */
+/** One labelled figure in the perp dialog's structure strip. */
+function Cell({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <div style={{ flex: 1, minWidth: 0, border: "1px solid color-mix(in srgb, var(--tx,#f0f0f8) 9%, transparent)", background: "var(--cd,#111520)", borderRadius: 8, padding: "5px 6px" }}>
+      <div style={{ fontSize: 6, letterSpacing: 1, color: "#565d6b", textTransform: "uppercase" }}>{label}</div>
+      <div style={{ fontSize: 10.5, fontWeight: 800, color, marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</div>
+    </div>
+  );
+}
+
+function PerpBookDialog({ deckId, onClose }: { deckId: string; onClose: () => void }) {
+  // Starts as the pending shell, then fills from the scrape. Signal-only
+  // families never fetch — their answer is a statement, not a list.
+  const [book, setBook] = React.useState<PerpFamilyBook | null>(() => pendingBook(deckId));
+
+  React.useEffect(() => {
+    const family = DECK_ID_TO_FAMILY[deckId];
+    if (!family) return;
+    let alive = true;
+    fetch(`/api/v1/perps/family?family=${encodeURIComponent(family)}&limit=8`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!alive || !d?.success) return;
+        setBook({
+          family: d.family, label: d.label, tradeable: d.tradeable,
+          source: d.source, markets: d.markets ?? [], note: d.note ?? "",
+        });
+      })
+      .catch(() => {/* keep the pending shell; the note already says so */});
+    return () => { alive = false; };
+  }, [deckId]);
+
+  // The leg position is `Date.now()`-derived, so it is read after mount. This
+  // dialog only ever renders from a click, but a reading that can differ
+  // between the server pass and the first client pass has no business in a
+  // render body regardless.
+  const [leg, setLeg] = React.useState<LiveLeg | null>(null);
+  React.useEffect(() => { setLeg(liveLeg()); }, []);
+
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
+
+  if (!book) return null;
+
+  const report = PERP_REPORTS[deckId];
+  const lib = PERP_LIBRARY[deckId];
+
+  return (
+    <div
+      role="dialog" aria-modal="true" aria-label={`${book.label} — all markets`}
+      onClick={onClose}
+      style={{ position: "fixed", inset: 0, zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(3,4,10,.72)", backdropFilter: "blur(6px)" }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ width: "min(460px,94vw)", maxHeight: "86vh", display: "flex", flexDirection: "column", background: "var(--bg,#080a12)", border: "1px solid color-mix(in srgb, var(--tx,#f0f0f8) 12%, transparent)", borderRadius: 16, padding: 16, boxShadow: "0 18px 60px rgba(0,0,0,.55)" }}
+      >
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 2 }}>
+          <span style={{ flex: 1, fontSize: 11, fontWeight: 900, letterSpacing: 2, color: TX, textTransform: "uppercase" }}>{book.label}</span>
+          <button
+            type="button" onClick={onClose} aria-label="Close"
+            style={{ flex: "none", width: 26, height: 26, borderRadius: 8, border: "1px solid color-mix(in srgb, var(--tx,#f0f0f8) 14%, transparent)", background: "transparent", color: "var(--mu,#6b7280)", cursor: "pointer", fontSize: 13, lineHeight: 1 }}
+          >×</button>
+        </div>
+        <div style={{ fontSize: 7, letterSpacing: 1.2, color: "var(--mu,#6b7280)", textTransform: "uppercase", marginBottom: 12 }}>
+          {book.source === "live" ? "From the latest scrape" : book.source === "demo" ? "Demo signals · real classifier" : "Signal-only"}
+        </div>
+
+        {/* What kind of instrument this is. A market surface that never says
+            how it settles is not a market surface — these perps roll on a LEG,
+            they do not expire, and the strip below is where that is stated. */}
+        <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+          {lib ? (
+            <>
+              <Cell label="Class" value={lib.cls} color={GD} />
+              <Cell label="Open" value={lib.open} color={TX} />
+              <Cell label="Depth" value={lib.depth} color={PO} />
+            </>
+          ) : null}
+          <Cell label="Leg" value={leg ? leg.slot : "—"} color={AC} />
+          <Cell label="Rolls in" value={leg ? leg.countdown : "—"} color={leg?.isTurningLeg ? "var(--a2,#ff007f)" : TX} />
+        </div>
+        <div style={{ fontSize: 6.5, letterSpacing: 1, color: "var(--mu,#6b7280)", textTransform: "uppercase", marginBottom: 10 }}>
+          {LEG_STRUCTURE_LINE}
+        </div>
+
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10 }}>
+          {report ? (
+            <>
+              <div style={{ fontSize: 9.5, fontStyle: "italic", color: "var(--mu,#6b7280)" }}>{report.kicker}</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 6 }}>
+                {report.stats.map((st) => (
+                  <div key={st.k} style={{ border: "1px solid color-mix(in srgb, var(--tx,#f0f0f8) 9%, transparent)", background: "var(--cd,#111520)", borderRadius: 8, padding: "6px 5px", textAlign: "center" }}>
+                    <div style={{ fontSize: 6, letterSpacing: 0.8, color: "#565d6b", textTransform: "uppercase", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{st.k}</div>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: st.c, marginTop: 2 }}>{st.v}</div>
+                  </div>
+                ))}
+              </div>
+              {report.sections.map((sec) => (
+                <div key={sec.label}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 3 }}>
+                    <span style={{ fontSize: 7.5, fontWeight: 800, letterSpacing: 1.2, color: TX, textTransform: "uppercase" }}>{sec.label}</span>
+                    {/* Every section names where it is read from. A report line
+                        without a source is the attribution problem again. */}
+                    <span style={{ fontSize: 6.5, letterSpacing: 0.9, color: GD, textTransform: "uppercase" }}>{sec.src}</span>
+                  </div>
+                  {sec.lines.map((line, i) => (
+                    <p key={i} style={{ margin: "0 0 4px", fontSize: 9.5, lineHeight: 1.55, color: "var(--mu,#6b7280)", overflowWrap: "anywhere" }}>{line}</p>
+                  ))}
+                </div>
+              ))}
+              <div style={{ height: 1, background: "color-mix(in srgb, var(--tx,#f0f0f8) 10%, transparent)" }} />
+            </>
+          ) : null}
+
+          {book.tradeable ? (
+          <>
+            <div style={{ fontSize: 8, color: "var(--mu,#6b7280)", marginBottom: 9 }}>{book.note}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {book.markets.length === 0 ? (
+                <div style={{ fontSize: 10, color: "var(--mu,#6b7280)", padding: "10px 0" }}>
+                  Nothing in this family yet — the note above says why.
+                </div>
+              ) : null}
+              {book.markets.map((m) => (
+                <div key={m.id} style={{ border: "1px solid color-mix(in srgb, var(--tx,#f0f0f8) 9%, transparent)", background: "var(--cd,#111520)", borderRadius: 10, padding: 10 }}>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                    <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1, color: TX, textTransform: "uppercase" }}>{m.subject}</span>
+                    <span style={{ flex: "none", fontSize: 12, fontWeight: 900, color: C }}>{Math.round(m.reading * 100)}%</span>
+                  </div>
+                  {/* The satirical one-liner leads; the headline it rewrites sits
+                      under it. A rewrite shown without its source is the
+                      attribution problem the ticker already had. */}
+                  <div style={{ fontSize: 9.5, fontStyle: "italic", color: TX, margin: "3px 0 2px" }}>{m.oneLiner ?? m.subject}</div>
+                  {m.realHeadline ? (
+                    <div style={{ fontSize: 7.5, color: "var(--mu,#6b7280)", margin: "0 0 7px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <span style={{ color: GD }}>satire</span> · {m.realHeadline}
+                    </div>
+                  ) : <div style={{ height: 5 }} />}
+                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    <span style={{ flex: 1, textAlign: "center", borderRadius: 6, padding: "3px 0", fontSize: 8.5, fontWeight: 800, color: PO, background: "color-mix(in srgb, var(--po,#00ff88) 12%, transparent)" }}>LONG {m.longOdds}x</span>
+                    <span style={{ flex: 1, textAlign: "center", borderRadius: 6, padding: "3px 0", fontSize: 8.5, fontWeight: 800, color: "var(--a2,#ff007f)", background: "color-mix(in srgb, var(--a2,#ff007f) 12%, transparent)" }}>SHORT {m.shortOdds}x</span>
+                    <span style={{ flex: "none", fontSize: 7, letterSpacing: 0.8, color: "var(--mu,#6b7280)", textTransform: "uppercase" }}>{m.legDays}d leg · {m.horizonDays}d horizon</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div style={{ border: "1px solid color-mix(in srgb, var(--gd,#ffd700) 24%, transparent)", background: "color-mix(in srgb, var(--gd,#ffd700) 6%, transparent)", borderRadius: 10, padding: 12 }}>
+            <div style={{ fontSize: 8, fontWeight: 800, letterSpacing: 1.4, color: GD, textTransform: "uppercase", marginBottom: 6 }}>Signal-only</div>
+            <p style={{ margin: 0, fontSize: 11, lineHeight: 1.6, color: "var(--mu,#6b7280)" }}>{book.note}</p>
+          </div>
+        )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PerpDials({
   showInstrument = true,
 }: {
@@ -513,6 +704,9 @@ export default function PerpDials({
   showInstrument?: boolean;
 } = {}) {
   const { skin, toggle, name } = useSkin();
+  // Which family's book is open, by DECK card id (not the canonical family
+  // key — see DECK_ID_TO_FAMILY in lib/perp-family-markets.ts).
+  const [openBook, setOpenBook] = React.useState<string | null>(null);
 
   const [tk, setTk] = useControl(CONTROLS.tk);
   const [sym, setSym] = useControl(CONTROLS.sym);
@@ -558,19 +752,47 @@ export default function PerpDials({
 
   const [scandal, setScandal] = useState("44.9");
   useEffect(() => {
-    // Keep the existing proposals fetch: the headline reading comes from the
-    // live book when it is available, and drifts locally when it is not.
+    // The plate is labelled GARCH σ² × 10⁴, and it has to print that. It used
+    // to print `max(perpProbability) × 100` — a percentage, from 0 to 100,
+    // under a variance label, which put a 61% claim on the strip as σ² 0.0061
+    // and read the band off it. The proposals carry no variance to show, so
+    // one is computed the way the engine computes every other one: the
+    // cross-sectional dispersion of the book's own perp probabilities is the
+    // shock ε, and σ²ₜ = ω + α·ε²  + β·σ²ₜ₋₁ is one `garchUpdate` tick.
     let alive = true;
     fetch("/api/v1/markets/proposals?limit=60")
       .then((r) => r.json())
       .then((d: { success?: boolean; proposals?: { perpProbability: number }[] }) => {
         if (!alive || !d?.success || !d.proposals?.length) return;
-        const top = Math.max(...d.proposals.map((p) => p.perpProbability || 0));
-        if (Number.isFinite(top) && top > 0) setScandal((top * 100).toFixed(1));
+        const probs = d.proposals
+          .map((p) => p.perpProbability)
+          .filter((n): n is number => Number.isFinite(n));
+        if (probs.length < 2) return;
+        const mean = probs.reduce((a, b) => a + b, 0) / probs.length;
+        const shock = Math.sqrt(
+          probs.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / probs.length,
+        );
+        setScandal((prev) => {
+          const variance = garchUpdate(
+            PLATFORM.GARCH_OMEGA, PLATFORM.GARCH_ALPHA, PLATFORM.GARCH_BETA,
+            (Number(prev) || 0) / 10000, shock,
+          );
+          return (variance * 10000).toFixed(1);
+        });
       })
       .catch(() => { /* drift stands */ });
     return () => { alive = false; };
   }, []);
+
+  // Scandal's band, sublabel, call-to-action and strip fill are readings, not
+  // captions. They were four literals — QUIET / "Market resting" / 64% /
+  // "Monitor for entry" — that stayed put wherever the numeral above them
+  // went. All four come off the printed σ² now, through the same ladder the
+  // standalone meter uses.
+  const scandalRead = useMemo(() => {
+    const sigmaSq = (Number(scandal) || 0) / 10000; // the plate prints σ² × 10⁴
+    return { sigmaSq, band: scandalBand(sigmaSq), fill: scandalBandFraction(sigmaSq) };
+  }, [scandal]);
 
   /** Live LCD reading + band, per card. */
   const reading = (id: string) => {
@@ -630,6 +852,24 @@ export default function PerpDials({
         @keyframes mgPulse { 0%,100% { opacity:.35; transform: scale(1); } 50% { opacity:1; transform: scale(1.35); } }
         @keyframes mgBar { 0%,100% { transform: scaleY(.72); } 50% { transform: scaleY(1); } }
         @keyframes mgSeg { 0%,100% { opacity:.55; } 50% { opacity:1; } }
+
+        /* Hover + focus on the two controls each card now carries.
+           The deck had no hover state at all — six instruments and six live
+           tickers, none of which gave any sign they could be interacted with.
+           Both cues are drawn from the card's own accent (--c), so each family
+           highlights in its own colour rather than in one borrowed grey. */
+        .mg-perp-well, .mg-perp-tape { transition: background .16s ease, box-shadow .16s ease, filter .16s ease; }
+        .mg-perp-well:hover { filter: brightness(1.07); }
+        .mg-perp-tape:hover { background: color-mix(in srgb, var(--c) 12%, transparent); }
+        .mg-perp-well:focus-visible, .mg-perp-tape:focus-visible {
+          outline: 2px solid var(--c); outline-offset: 2px;
+        }
+        /* The instrument is a canvas, so it cannot carry its own affordance —
+           a ring on the well says "this whole panel is the control". */
+        .mg-perp-well:hover { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 30%, transparent); border-radius: 12px; }
+        @media (prefers-reduced-motion: reduce) {
+          .mg-perp-well, .mg-perp-tape { transition: none; }
+        }
         @media (prefers-reduced-motion: reduce) {
           .mg-tape, .mg-pip, .mg-bar, .mg-seg { animation: none !important; }
         }
@@ -722,6 +962,22 @@ export default function PerpDials({
       >
         {CARDS.map((card) => {
           const tCanvas = tickerCanvas(card.id);
+          // The shell only — the real list comes from the scrape when the
+          // dialog opens. Enough to word the hint and the aria-label.
+          const book = pendingBook(card.id);
+          const openThis = () => setOpenBook(card.id);
+          // Shared by the instrument and the ticker: both open the same book,
+          // because to a reader they are two views of one family.
+          const cardHint = book
+            ? {
+                title: book.label,
+                kind: book.tradeable ? ("measured" as const) : undefined,
+                body: book.tradeable
+                  ? "Tap for every market in this family, straight from the latest scrape — each one classified by the same engine and carrying its satirical one-liner. Readings from GARCH(1,1); legs paced by the lunar phase multiplier."
+                  : book.note,
+                action: { label: book.tradeable ? "Open all markets" : "What this means", onSelect: openThis },
+              }
+            : undefined;
           return (
             <section
               key={card.id}
@@ -755,8 +1011,21 @@ export default function PerpDials({
                 </span>
               </div>
 
-              {/* Instrument well */}
-              <div style={{ minHeight: "calc(183px * var(--dial, 1))", display: "flex", flexDirection: "column", alignItems: card.id === "scandal" ? "stretch" : "center", justifyContent: "center", gap: card.id === "scandal" ? 9 : 0 }}>
+              {/* Instrument well — now a control.
+                  Every card in this deck was inert: no onClick, no href, no
+                  hover state anywhere on the six instruments. The Z-Liar gauge
+                  on its own panel opens that family's markets on tap, and there
+                  was no reason the other five should behave differently. */}
+              <HoldHint hint={cardHint}>
+              <div
+                className="mg-perp-well"
+                role="button"
+                tabIndex={0}
+                aria-label={book ? `${book.label} — open all markets` : undefined}
+                onClick={openThis}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openThis(); } }}
+                style={{ minHeight: "calc(183px * var(--dial, 1))", display: "flex", flexDirection: "column", alignItems: card.id === "scandal" ? "stretch" : "center", justifyContent: "center", gap: card.id === "scandal" ? 9 : 0, cursor: "pointer" }}
+              >
                 {card.id === "scandal" ? (
                   <>
                     <div style={{ display: "flex", alignItems: "flex-end", gap: 12 }}>
@@ -767,7 +1036,7 @@ export default function PerpDials({
                         <div style={{ fontSize: "calc(40px * var(--dial,1))", fontWeight: 800, lineHeight: 1, color: "#8b93a7", letterSpacing: "-.015em", marginTop: 1 }}>
                           {scandal}
                         </div>
-                        <div style={{ fontSize: 8.5, color: "var(--mu,#6b7280)", marginTop: 4 }}>Market resting</div>
+                        <div style={{ fontSize: 8.5, color: "var(--mu,#6b7280)", marginTop: 4 }}>{scandalRead.band.sublabel}</div>
                       </div>
                       <div style={{ flex: 1, display: "flex", alignItems: "flex-end", gap: 1, height: 52 }}>
                         {[16, 24, 19, 31, 27, 38, 22, 33, 41, 29, 36, 44, 30, 48].map((bh, i, a) => (
@@ -780,14 +1049,21 @@ export default function PerpDials({
                     </div>
                     <div>
                       <div style={{ height: 7, borderRadius: 99, background: "#0a0c12", border: "1px solid rgba(255,255,255,.05)", overflow: "hidden", boxShadow: "inset 0 0 5px #000" }}>
-                        <div style={{ width: "64%", height: "100%", borderRadius: 99, background: "linear-gradient(to right, var(--c), #475569)", boxShadow: "0 0 10px rgba(71,85,105,.6)" }} />
+                        <div style={{ width: `${(scandalRead.fill * 100).toFixed(1)}%`, height: "100%", borderRadius: 99, background: `linear-gradient(to right, var(--c), ${scandalRead.band.color})`, boxShadow: `0 0 10px ${scandalRead.band.color}99`, transition: "width .6s ease" }} />
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 6.5, color: "#3f4653", marginTop: 3, letterSpacing: 0.6 }}>
-                        <span>QUIET</span><span>WARMING</span><span>ACTIVE</span><span>HOT</span><span>PEAK</span>
+                        {SCANDAL_BANDS.map((b) => {
+                          const on = b.label === scandalRead.band.label;
+                          return (
+                            <span key={b.label} style={{ color: on ? b.color : "#3f4653", fontWeight: on ? 800 : 400 }}>
+                              {b.label === "SCANDAL PEAK" ? "PEAK" : b.label}
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
-                    <div style={{ border: "1px solid rgba(71,85,105,.5)", background: "rgba(71,85,105,.08)", borderRadius: 9, padding: "6px 9px", fontSize: 9, fontWeight: 700, color: "#94a0b4", letterSpacing: 0.4 }}>
-                      Monitor for entry
+                    <div style={{ border: `1px solid ${scandalRead.band.color}80`, background: `${scandalRead.band.color}${scandalRead.band.bgOpacity}`, borderRadius: 9, padding: "6px 9px", fontSize: 9, fontWeight: 700, color: "#94a0b4", letterSpacing: 0.4 }}>
+                      {scandalRead.band.cta}
                     </div>
                   </>
                 ) : (
@@ -810,6 +1086,7 @@ export default function PerpDials({
                   </>
                 )}
               </div>
+              </HoldHint>
 
               {/* 3-up KPI strip — margin-top:auto keeps every card's row aligned */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginTop: "auto", paddingTop: 8, borderTop: "1px solid color-mix(in srgb, var(--tx,#f0f0f8) 7%, transparent)" }}>
@@ -821,8 +1098,19 @@ export default function PerpDials({
                 ))}
               </div>
 
-              {/* Live ticker — bespoke per market, in the shared strip chrome */}
-              <div style={{ display: "flex", alignItems: "stretch", width: "100%", marginTop: 9, borderTop: "1px solid color-mix(in srgb, var(--c) 24%, transparent)", borderBottom: "1px solid color-mix(in srgb, var(--c) 16%, transparent)", background: "color-mix(in srgb, var(--c) 5%, transparent)", overflow: "hidden" }}>
+              {/* Live ticker — bespoke per market, in the shared strip chrome.
+                  Also a control, and pointed at the same book as the instrument
+                  above it: a reader who taps the tape is asking about the same
+                  family as a reader who taps the dial. */}
+              <div
+                className="mg-perp-tape"
+                role="button"
+                tabIndex={0}
+                aria-label={book ? `${book.label} — open all markets` : undefined}
+                onClick={openThis}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openThis(); } }}
+                style={{ display: "flex", alignItems: "stretch", width: "100%", marginTop: 9, borderTop: "1px solid color-mix(in srgb, var(--c) 24%, transparent)", borderBottom: "1px solid color-mix(in srgb, var(--c) 16%, transparent)", background: "color-mix(in srgb, var(--c) 5%, transparent)", overflow: "hidden", cursor: "pointer" }}
+              >
                 {card.plate ? (
                   <span style={{ flex: "none", display: "flex", flexDirection: "column", justifyContent: "center", gap: 1, padding: "3px 8px", background: "color-mix(in srgb, var(--c) 16%, transparent)", borderRight: "1px solid color-mix(in srgb, var(--c) 30%, transparent)" }}>
                     <span style={{ whiteSpace: "nowrap", fontSize: 6, fontWeight: 800, letterSpacing: 1.2, color: C, textTransform: "uppercase" }}>{card.plate.label}</span>
@@ -975,6 +1263,8 @@ export default function PerpDials({
         </span>
       </div>
       </div>
+
+      {openBook ? <PerpBookDialog deckId={openBook} onClose={() => setOpenBook(null)} /> : null}
     </div>
   );
 }

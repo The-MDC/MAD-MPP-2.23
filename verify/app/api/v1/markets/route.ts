@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
-import { enforceRateLimit } from "@/lib/rate-limit";
+import { withRouteGuard } from "@/lib/with-route-guard";
 import { createMarket, listMarkets, type Market, type MarketStatus } from "@/lib/markets";
 import { hasDatabaseUrl } from "@/lib/database-url";
 
@@ -38,9 +38,16 @@ export async function GET(req: Request) {
 }
 
 /** POST /api/v1/markets — create a prediction market (Part W). 503 without DB. */
-export async function POST(req: Request) {
-  const limited = enforceRateLimit(req, "markets-create", 20, 60_000);
-  if (limited) return limited;
+/**
+ * Creating a market is now SIGNED-IN ONLY. It previously sat behind a rate
+ * limit alone, so any anonymous caller could write rows into `markets` — and
+ * those rows are not inert: /api/v1/markets/proposals and the market decks
+ * read them, so an unauthenticated writer chose what the platform offered.
+ * There is no client caller for this POST; markets-panel only reads.
+ */
+export const POST = withRouteGuard(
+  { mode: "session", bucket: "markets-create", limit: 20, windowMs: 60_000 },
+  async (req) => {
 
   const body = (await req.json().catch(() => null)) as CreateBody | null;
   if (!body || typeof body.title !== "string" || body.title.trim() === "") {
@@ -78,4 +85,5 @@ export async function POST(req: Request) {
     console.error("markets POST error:", e);
     return NextResponse.json({ success: false, error: "create failed" }, { status: 500 });
   }
-}
+  },
+);

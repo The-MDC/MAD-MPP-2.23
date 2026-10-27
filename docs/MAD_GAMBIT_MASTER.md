@@ -8,8 +8,17 @@
 > ordered by who can act. Everything after it is reference.
 >
 > **This is the only planning document.** Maths (Part VI), the tokenomics engine room (Part VII)
-> and the deck lineage (Appendix A) were folded in on 2026-08-16 — there is no second file to
-> check. Do not create one.
+> and the deck lineage (Appendix A) were folded in on 2026-08-16, and the hosting audit (Part VIII)
+> on 2026-08-18 — there is no second file to check. Do not create one. A session handoff belongs
+> *in here* too: 2026-08-18's went into PART 0 §7 and Workstream C, not into a dated file beside
+> this one.
+>
+> **One sanctioned exception: `docs/THREAD_CLOSEOUT.md`.** A single, fixed-path, always-overwritten
+> session handoff — never dated, never versioned, never kept in duplicate. It holds only what is
+> *transient* (what broke this session, what to paste into the next chat); everything durable is
+> folded in here first. Produced by the `close-thread` skill, with `CLAUDE.md` as the fail-safe
+> if that skill does not fire. Unactioned items are **carried forward** into the new close-out,
+> never preserved by keeping the old file.
 >
 > Outside its scope by design, and untouched: each subproject's own docs (`verify/docs/`,
 > `contracts/madhat-core/`, `master-maths/`), live tooling config (`.claude/`, `.agents/`), and
@@ -32,13 +41,42 @@ Merged and live on `main`:
 | **Docs** | ~150 planning docs consolidated into `MAD_GAMBIT_MASTER.md`. 114 files / ~36.5k lines removed, inbound links repaired. |
 | **Maths** | Part VI (canonical algorithms, code-bound) + Part VII (the tokenomics engine room). Both live in this file. Do not create a separate maths doc. |
 | **Octavian** | One creature across all mounts (`octavian-creature.tsx` + `lib/octavian-state.ts`): shared mood/orbit/zoom/selection, firefly star swarm, live platform-activity feed, reduced-motion. |
-| **CI** | 11 checks. `actions/checkout` on v6. Agentic-compile false-green fixed. |
+| **Agent brand** | ⏳ *on `MAD-Gambit-Concierge`, not yet merged.* One canonical name — **MAD-Gambit-Concierge** — for the single LLM character behind every user-facing surface. "The MADHAT'r" is its voice, not a second agent; Sentinel and Strategist are **modes**; Z-Liar and Decay are **product mechanics, not characters**; Tri-Agent is superseded and was never implemented. Full map in `.agents/skills/mad-gambit-concierge/SKILL.md` — do not restate it here. Code consolidated: `components/mad-gambit-concierge.tsx` + `MadGambitConcierge` export. Kept, because they name the *character* not the role: `lib/madhatr-persona.ts`, `brand/madhatr-logo.png`, `from: "madhatr"`. **URL paths unchanged** — restructuring the API surface is a product decision, not a brand one, and `npm ci` is 403 here so no build can verify it. |
+| **CI** | Collapsed to fewer jobs by #108, which also path-filtered the guard and moved `actions/checkout` to **v4** (this row said v6). **Recovered 2026-08-24 after an eight-day outage — see immediately below for what merged unchecked in the meantime.** |
 | **Repo** | Verified complete: working tree fully committed; `.gitignore` excludes only secrets, Vercel link artifacts and build products. |
 
-**Verified green at merge:** Type-check, Lint, Build, Unit tests, Route-guard, guard, Secret scan,
-Dependency review, forge build + test, Slither, Vercel Preview — plus both Vercel previews Ready.
+### The CI outage, 2026-08-16 → 2026-08-24 — resolved, but it left debris
 
-**But green ≠ done.** Lint, Slither and Dependency Review are **report-only** (Slither has ~135
+**This supersedes the "verified green at merge" line that stood here.** For eight days every
+workflow on every branch failed, then stopped completing at all:
+
+| Workflow | Last success before | First failure |
+|---|---|---|
+| `ci.yml` | run 260 — 2026-08-16 **07:42** | run 261 — 2026-08-16 **08:07, on `main`** |
+| `placeholder-guard.yml` | run 311 — 2026-08-16 **07:42** | run 312 — 2026-08-16 **08:07, on `main`** |
+
+It reproduced on `main` across four branches, so it was never any one PR's change — and the
+guard's own script passed when run by hand throughout. **The jobs never reached a runner:**
+~3-second duration, `runner_id: 0`, `runner_name: ""`, logs 404, empty check output. From
+2026-08-19 they stopped even reaching `failure` and simply sat in `queued`.
+
+**Resolved 2026-08-24 ~16:18 UTC** — secret scan ran a genuine 21-second job and passed. The root
+cause was never visible from inside an agent container (billing is not readable), so if it recurs,
+*Settings → Billing → Actions* is still the first place to look.
+
+**Two pieces of debris survive it, both live:**
+
+1. **Three PRs merged completely ungated** — #105, #108, #131. #108 restructured CI itself and
+   downgraded `actions/checkout` **v6 → v4**; #131 **re-enabled production deploys from `main`**,
+   contradicting Part II.3. Neither was checked by anything. Re-run the gates on `main`.
+   *The v4 downgrade has an observable cost:* the 2026-08-24 guard run warns
+   *"actions/checkout@v4 targets Node.js 20… being forced to run on Node.js 24."* v6 did not.
+   The change moved the repo onto a deprecation path, ungated — worth confirming it was intended.
+2. **Orphaned `queued` runs** that will never complete: `ci.yml` #264/#265/#267/#268,
+   `placeholder-guard.yml` #316/#318/#320/#321. **Stale artifacts, not live failures** — judge CI
+   health only by runs created after 2026-08-24 16:18 UTC.
+
+**And green ≠ done, now that it is back.** Lint, Slither and Dependency Review are **report-only** (Slither has ~135
 untriaged findings — green means "ran"). Nothing blocks merge until branch protection requires
 these checks on `main`. And the Octavian creature **merged without any human ever looking at it**.
 
@@ -46,9 +84,30 @@ these checks on `main`. And the Octavian creature **merged without any human eve
 
 ## 2 · Do these first
 
-### 2.1 — Visual pass on the Octavian creature 🔴 *still unreviewed by a human*
+### 2.1 — Visual pass on the Octavian creature 🟡 *rendered and reviewed 2026-08-26; human eyes still wanted*
 It compiles, lints, type-checks, builds and passes tests. None of that catches a canvas that
 renders wrong. Look at `/octavian`, the `/preview` inline mesh, and the desktop corner HUD.
+
+**It has now been rendered.** The draw pipeline was reproduced in a headless-Chromium harness
+importing the real `instrument-chrome` / `octavian-state` / `node-registry` (see §7 for the
+recipe), which found and fixed a defect no source read had caught: node badges were drawn at
+`7.5 * scale` — 20.5px on the 300px panel, **47.8px** in the 700px pop-out — with a depth
+threshold of `p.k > 0.36` that sat barely above the *floor* of k's actual range `[0.339, 0.541]`,
+so nearly every node was labelled at once. The creature was behind a wall of its own labels.
+Font clamped to 6–10px, threshold raised to 0.47 (~the nearest quarter), selected node always
+labelled. Measured envelope, worst painted pixel as a fraction of the half-box:
+
+| case | envelope | |
+|---|---|---|
+| phone panel 300×300, calm | 73.3% | fits (82.2% before the label fix) |
+| phone panel 300×300, agitated | 65.9% | fits |
+| corner HUD 140×140 | 73.3% | fits |
+| pop-out 700×700 | 73.3% | fits |
+| zoom ×4 (max pinch-in) | 293.3% | clipped — expected, that *is* zooming in |
+
+Identical figures at 140/300/700px confirm the `ORB_FIT` derivation is size-invariant as claimed.
+**What a render still cannot answer:** whether the body reads well in motion, and whether the
+mood-tier colour crossfade lands. That part still needs a person.
 
 **A container-sizing bug was found and fixed since this item was written** (`0.42` → derived
 `~0.262` of `min(w,h)`). `project()` places the sphere silhouette at exactly `R`, but nothing
@@ -79,14 +138,22 @@ halo's opacity breathe (`haloPulse`): low-amplitude and non-spatial.
 | Item | The tension |
 |---|---|
 | **`@neondatabase/serverless`** | You asked to install it + add a `neon()` helper. **ADR-008 (2026-08-05) explicitly evaluated and rejected exactly that**, mandates `pg` Pool + Route Handlers, and is marked *"Settled. Do not reopen without a new ADR superseding this one."* Options: (a) drop it, ADR stands — **my recommendation**; (b) write a superseding ADR; (c) use the ADR's own escape hatch — one edge-latency-sensitive route, its own ADR, never the default. |
-| **Near-miss on real-money surfaces** | `dopamine-engine.tsx` renders some losses as almost-wins (`isNear = !won && roll < 0.58`). Ordinary game feel on free-play `madCredits`; on real `$MADx` stakes it is the single most regulated pattern in this space. Recommendation: confine to credits/demo, make the boundary explicit in code. Unchanged pending your call. |
+| **Near-miss on real-money surfaces** | `dopamine-engine.tsx` renders some losses as almost-wins (`isNear = !won && roll < 0.58`, `components/dopamine-engine.tsx:34`). Verified 2026-08-27: it is on free-play `madCredits` behind a `Math.random()` PLACEHOLDER, so today it is the benign case. On real `$MADx` stakes it is the single most regulated pattern in this space. Recommendation: confine to credits/demo, make the boundary explicit in code. **Now has a second surface:** any branching market generates near-misses structurally at every roll — that is why the Paseome settlement rule REFUNDS untaken branches rather than writing them off (§3 decided rows below). Unchanged pending your call. |
 | **Promote `main` to production** | `vercel.json` sets `git.deploymentEnabled.main = false`; production deploys are manual. |
-| **`$MADx` supply** | Canon says 888,888,888 fixed. The deployed Arbitrum One contract is mutable/mint-on-purchase, cap 224,573,096, Pausable. Two candidate addresses in the archive (`0xb61ae772…fd18`, `0x6972370e…151f`). Needs an on-chain check and one written answer. |
+| **`$MADx` supply** | Canon says 888,888,888 fixed. The deployed Arbitrum One contract is mutable/mint-on-purchase, cap 224,573,096, Pausable. Two candidate addresses in the archive (`0xb61ae772…fd18`, `0x6972370e…151f`). **Address resolved 2026-10-26: the founder confirmed `0x6972370e1caAA3624F37D7e87C28e1089D00151f` as the real `$MADx`; `0xb61ae772…fd18` is ORKx.** Still needs one written supply number from you. |
+| **`0xb61ae772…fd18` is NOT `$MADx`** (on-chain, 2026-10-23) | Checked against Arbitrum One (42161) via Blockscout. That address is a **different ERC-20 entirely**: name **"Serpentine Orkain"**, symbol **ORKx**, 18 decimals, total supply **60.073728** tokens, **2 holders**, unverified source, creator `0x49755F66C877040f8EF7F307263F74C352830149`. It is not MADDEX, not MADx, and carries no 224,573,096 cap. It had been written into **three places as canonical** (corrected 2026-10-26): `contracts/madhat-core/DEPLOYED_ADDRESSES.md:7`, `verify/app/api/v1/cards/route.ts:36` and `verify/docs/CARD_CANONICAL_REFERENCE.md:20`. **Founder confirmed `0x6972370e1caAA3624F37D7e87C28e1089D00151f` as the real `$MADx` on 2026-10-26, and those three files plus the data-room page now carry it.** A Blockscout read of it the same day shows a **verified contract on Arbitrum One** (creator `0x4975…0149`), contract name `MyToken`, with no token record indexed — so MADx/MADDEX as symbol/name rests on the founder's confirmation, not on what Blockscout displayed. |
 | **Chain topology** | Work targets Arbitrum One only, but canon restates Nova + One + HyperLiquid as founder-locked and `contracts/foundry.toml` still configures `arbitrum_nova`. |
 | **Token distribution split** | April canon (35/20/15/10/10/10) vs March "vFinal" (45/15/15/15/10). |
 | **O-V deck — 2 canon conflicts** | `MADdegen/OV-Deck-2026` says **"Wyoming L.C."** (slides 0, 7) against a **New Mexico** formation record filed 2026-03-25 — a legal-entity fact on an investor slide. And slide 3 reintroduces **"MAD Upshot"**, which canon bans; the deck is *newer* than the ban. *(A third conflict — the Creator Ladder — turned out to be the master doc's error, not the deck's; already corrected.)* |
 | **React18 / Hono / HonoX** | Never clarified. `verify/` is already Next.js 16 + React **19.2.1** + Tailwind v4, live. Hono/HonoX appears once in the whole archive as a speculative Phase-4 API-gateway idea — not a frontend, not tied to React 18. |
-| **Containerizing the platform** | Asked for, deliberately not started: an architectural reversal for a Vercel-native Next.js app. I'd want your reasoning first. |
+| **Containerizing the platform** | Deferred by the 2026-08-18 decision to stay on Vercel — but **correct the reasoning, because the old one was wrong.** It was declined as "an architectural reversal for a Vercel-native Next.js app"; the coupling audit (Part VIII §1) shows the app is **not** Vercel-native. `next.config.ts` already builds `output: "standalone"` and its own comment names Cloud Run; total Vercel surface is one 44-line Blob adapter behind a pre-existing interface, one analytics import, three cron entries, and **zero** `process.env.VERCEL*` references. So containerizing is a config change, not a reversal — it is deferred for want of a reason to do it, **not** because it is hard. |
+| ~~**Creator profit share — 28.8 / 40 / 60**~~ | **DECIDED 2026-10-23, founder:** *"There is a flat rake of 1.88% platform fee, creators take a sliding 28.8 to 40% and then a limited 4888 seats offering the rare and exclusive 60% VIP profit share exist."* So the **28.8% `User` rung is correct** — the creator floor, not a conflation; creators slide **28.8% → 40%**; and **60% is a VIP profit share capped at 4,888 seats**, not a creator rung. The 27 Aug "40–60%" statement is superseded. *Corrected 2026-10-23:* this row first said the creator ladder deliberately paralleled a "Shield 28.8 / 40 / 60 ladder" — the Shield stops at 40% (row below), so 60% exists only as the VIP seat. **Code diverges** — `CREATOR_LADDER` grants 60% as `CR8TR` by traction (34 markets + 888 followers) with no seat cap. One question before code moves: **how is a VIP seat obtained**, and does CR8TR traction still qualify for one? See §5. |
+| ~~**MAD Shield — the scale**~~ | **DECIDED 2026-10-23, founder:** *"MAD Shield Stop Loss (28.8 to 40%), as well as, the Creator profit share (28.8 - 40%, vip 60%)"* and *"The MAD Shield also offers a scale."* The Shield is a **scale from 28.8% to 40%**: the 2–4% premium moves recovery continuously from 28.8% up to 40% (`calculateShieldPayoutFull`), and the staking tier caps how far up a holder can go — Bronze 28.8 · Silver 32.8 · Gold 36.8 · MAD Tier 40% (`STAKING_TIERS[].shieldRecoveryPct`). **40% is the ceiling; 60% is creator-side only.** Consistent with Part II.7 ("Never use again: Shield 40% / 60%") and the 7 Sep 2026 ruling recorded in the Build Ledger artifact. ⚠️ **Code diverges:** `SHIELD_RECOVERY_WHALE_PCT = 0.60` and `WHALE_SHIELD_ELIGIBILITY` still pay 60% to whale-eligible holders — removal is in §5 and needs your confirmation first, because it moves payouts. |
+| ~~**Paseome — untaken branches**~~ | **DECIDED 2026-08-27: refund, do not write off.** Foresight refunds every untaken sibling at the leg roll; Hindsight writes off nothing because nothing there is ever unrealised. Two reasons and both hold: conditional markets fail when nobody will fund a bet that pays only if a *separate* event also occurs, and a refunded branch cannot be a near-miss. Encoded in `verify/lib/paseome.ts#settleFrontier`, tested in `paseome.test.ts`. |
+| ~~**Paseome — frontier width**~~ | **DECIDED 2026-08-27: 3 to 5 branches.** Three keeps prices legible and liquidity deep; five matches the Five Faces simplex and the existing dial geometry; past five the top branch stops meaning anything. `FRONTIER_MIN`/`FRONTIER_MAX` in `verify/lib/paseome.ts`, enforced by a throw, not a comment. |
+| ~~**Paseome — who authors a branch**~~ | **DECIDED 2026-08-27: gated, VIP *or* creator-ladder.** Eligible at `VIP_STATUS_MIN_MADX` (capital axis) **or** MinorCreator and above (creator axis). Deliberately a disjunction over two axes this engine keeps separate — Part II §7 and `gambit-game-math.ts` both state VIP is "never a creator tier", so they are evaluated and reported independently rather than merged into one score. `canAuthorBranch` in `verify/lib/paseome.ts`. **Extended 2026-10-23, founder:** *"this will be an open Conviction market for open markets, but this will also be offered to a lesser extent by the platform for different uses."* So creators author on the open market (gate unchanged) and earn their rung on the trees they open; platform-offered trees run `splitFee(volume, 0)` — no creator cut. Read as the product line Paseome sits in; settlement is unchanged (forward side still oracle-settled with refunds). |
+| ~~**Paseome — official name**~~ | **DECIDED 2026-10-23: "The Paseome: Certain-UnCertainty"** — the capital U is deliberate (founder confirmed). *Foresight* / *Hindsight* are **not** product names; the sides are the forward side (family 7) and the counterfactual side (family 8), and `foresight`/`hindsight` survive only as internal labels (`PaseomeSide` in `verify/lib/paseome.ts`). Applied to `docs/product-sheets/PASEOME.md` v1.2 and the published artifact v1.2 (repo copy `docs/product-sheets/PASEOME_ARTIFACT.html`). |
+| ~~**Leaving Vercel**~~ | **DECIDED 2026-08-18: stay on Vercel + Neon.** Founder's call, and the audit supports it. Part VIII is retained as a **contingency plan, not a pending recommendation** — see the note at its head for what would reopen it. |
 
 ---
 
@@ -94,9 +161,16 @@ halo's opacity breathe (`haloPulse`): low-amplitude and non-spatial.
 
 | Item | Blocker |
 |---|---|
-| **Neon three-database merge** | `mad-mpp-2-23-postgres` (target), `Neon-DB-MADMPP`, `neon-sky-park`. Ordered procedure + read-only inspection SQL in **Part II.5 below**. Agents cannot reach `*.neon.tech` (403) or TCP 5432. Until this completes there is **no single source database**, so "sync the DBs" has no well-defined target. Correct sequence: merge → `npm run schema:verify` → commit any drift as `verify/sql/0015_*.sql`. Schema-as-code is already complete: 14 migrations + `schema-verify.mjs` checking the ledger, pgvector and 39 named tables. |
+| **Neon three-database merge** | `mad-mpp-2-23-postgres` (target), `Neon-DB-MADMPP`, `neon-sky-park`. Ordered procedure + read-only inspection SQL in **Part II.5 below**. Agents cannot reach `*.neon.tech` (403) or TCP 5432. Until this completes there is **no single source database**, so "sync the DBs" has no well-defined target. Correct sequence: merge → `npm run schema:verify` → commit any drift as `verify/sql/0016_*.sql` (**0015 is taken** — see Part II.5). Schema-as-code is already complete: 15 migrations + `schema-verify.mjs` checking the ledger, pgvector and 39 named tables. |
 | **Generate the two `.lock.yml` files** | `gh aw compile`, then commit `agentic-security-review.lock.yml` + `agentic-quality-review.lock.yml`. Until then **both AI review gates are configured but never run**. The Actions `GITHUB_TOKEN` is *correctly* forbidden from writing `.github/workflows/` — needs a human push or a session with real push credentials. |
 | **eslint / eslint-config-next / @types/node realignment** | `eslint-config-next` is pinned at **15.4.5** while `next` resolves to **16.2.9** (and it's the only dep without a caret); `eslint` is **8.x, EOL** — config 16.x wants ESLint 9 + flat config, so those two move together; `@types/node` is **20.x** against `engines.node: 22.x`. Needs a lockfile regen — the sandbox 403s the npm registry, and hand-editing `package-lock.json` breaks `npm ci` on every job. Because Lint is report-only, the stale config is silently under-checking a Next 16 codebase rather than failing. |
+| ~~**GitHub Actions refusing to run jobs**~~ | ✅ **RESOLVED 2026-08-24.** Secret scan ran a real 21-second job and passed on PR #137 — a runner was assigned, versus the 2–3 second refusals of the outage. Outage window was **2026-08-16 08:07 → 2026-08-24 ~16:18**. Two consequences remain, below. |
+| **Audit what merged during the Actions outage** | 🟠 **#105, #108 and #131 all merged with no CI.** Nothing gated them — not type-check, build, unit tests, secret scan or the guard. #108 restructured CI itself and downgraded `actions/checkout` v6→v4; #131 re-enabled production deploys from `main`. Re-run the gates against `main` and read those two diffs properly. |
+| **Orphaned `queued` runs** | 🟡 Runs from the outage window sit permanently `queued` and will never complete — `ci.yml` #264/#265/#267/#268, `placeholder-guard.yml` #316/#318/#320/#321. **They are stale artifacts, not live failures.** Do not diagnose from them; judge CI health only by runs created after 2026-08-24 16:18 UTC. |
+| **Vercel deploys are failing for the whole repo — plan/account, not code** (found 2026-10-23) | Every deploy from this private org repo now fails two commit statuses: `Vercel – mad-mpp-2-23` → *"Cannot deploy from a private GitHub organization repository on the Hobby plan"*, and a second status reading **`Account is blocked.`** Reproduced on two separate commits of a **docs-only** branch, so nothing in a diff can clear it. **What changed:** the last successful deploy (`18216a0`, #143, 2026-08-27) ran under Vercel team **`madgambit`** (`teamId: team_TgoOJAiilwZ3I3LPyD2FcNZm`, preview host `…-madgambit.vercel.app`); the failures are under team **`MAD-MPP`** (`mad-mpp`), and `list_teams` on the authenticated account now returns `mad-mpp` / `team_ThJlmLcaIliE23YywpmA7uQf` as the **only** visible team. The project looks reconnected to a different Vercel team that is on Hobby and flagged blocked. Consequence: `vercel.json`'s manual-production-deploy arrangement has nothing to deploy with. **Action, in order:** clear the `Account is blocked.` state (the two may share one cause), then either upgrade `mad-mpp` to Pro or point the GitHub integration back at the team that was deploying in August. |
+| **The Crystex fair-launch total supply** | You pointed at the Crystex campaign as the source of the real total supply (`app.crystex.app/campaign-details/e8ad5674-e209-4894-970a-c2ada023e4be`, linked from `DEPLOYED_ADDRESSES.md:10`). **`app.crystex.app` is egress-blocked from the agent container** — the proxy refuses it outright, so no agent can read that page. The number has to be pasted in by you, or the campaign exported. Once it lands, it settles §3's `$MADx supply` row and `PART II §9` contradiction 1 in one move. |
+| **Run migration `0016`** | `verify/sql/0016_market_book.sql` shipped in #139 and merged, but **has never been applied.** Until `npm run migrate:deploy` runs from a DB-connected session, the market book, the price tape and the paid pack-mint all silently fall back to their demo paths. `npm run schema:verify` should report **41/41** afterwards. Agents cannot do this — `*.neon.tech` and TCP 5432 are blocked. |
+| **Set `REGISTRAR_TOKEN` in Vercel** | Complaint resolution (`POST /api/v1/registrar/complaint?resolve=1`) was moved off session auth onto a shared registrar credential (#143, merged). It **fails closed**: with the env var unset the route returns 503, by design. Until you set it, complaint resolution is unavailable in production. |
 | **Founder-gated ops** | Rotate/confirm `NEON_API_KEY` · attach `madgambit.io` · GitHub Advanced Security toggles · push `v2.24-constellation` · Phase-4 named-subject gate (KMS choice, `MADPortraitKeyRegistry` deploy, 6 signed `registry_readiness` rows). |
 
 ---
@@ -107,6 +181,7 @@ Full detail — file paths, exit criteria — in ****Parts III–V + Workstream 
 
 | Phase | Item | Effort |
 |---|---|---|
+| **T1** | **One tokenomics engine — close the perp/stake bypass.** 🟡 **Phase 1 landed 2026-10-23** (`perps/convict` + `faces/stake`): `stakeConviction` now debits `madx_accounts` through `spendWithin(client, …)` **inside its existing transaction**, takes the §6 fee via `splitFee` (1.88%, `creatorShareBps: 0` — a perp slot has no per-market creator), puts the **net** on `perp_positions.conviction` and `perp_markets.volume`, and returns `StakeResult | StakeFailure` so the routes answer **402** for a short wallet and **400** for a bad amount instead of collapsing both to 400. The §6 split is **computed and recorded in the ledger note, never distributed** — deciding a destination would silently resolve §13 item 7. `convictionCost()` is split out as a pure function so the money maths is testable (`lib/perp-store.test.ts`, 10 assertions); the transactional half needs a live Pool and cannot run under vitest. `round6` is now exported from `madx-web2.ts` so a caller cannot round differently from the ledger. 🟡 **Phase 2a landed 2026-10-23** (`shield/opt-in`): `shield_positions.premium_paid` was a column that lied — the route wrote the §5 premium and debited nothing, so every payout and revenue figure derived from it counted money nobody had paid. New `chargeAndInsertShieldPosition` charges and inserts in one transaction; 402 with `premiumDue` when short. `insertShieldPosition` kept, unchanged. **🔴 Phase 2b — `zeitgeist/auction` — DELIBERATELY NOT STARTED, and the reason matters:** the sealed-bid deposit (`requiredDeposit`, `REVEAL_DEPOSIT_SHARE = 0.1`, written to `slot_bids.deposit` at `route.ts:195`) is never debited, but **debiting it alone would strand money.** A deposit needs its whole lifecycle or none of it — debit on commit, **refund on reveal-and-lose**, forfeit to the platform on no-reveal — and the clearing loop (`route.ts:324-340`) currently runs as four separate `pool.query` calls with no transaction, so a partial clear could refund some bidders and not others. The route's own comment at `:152` already warns about "stranding every bidder's deposit permanently". **What it needs:** a `refundWithin(client, …)` in `madx-web2.ts` (the `madx_ledger` `kind` CHECK in `sql/0008` already permits `'refund'`, so no migration), the clear path wrapped in one transaction, and tests for the three terminal states. Treat as its own change, not a one-liner. **Phase 3 remains:** a ledger check in `check-route-guards.mjs`, proven to fail before being trusted. `staking`/`tournament/match`/`cards/evolve` are compute-only (no DB write at all) and need a product call — real backend, or stop presenting their output as a position — not a ledger write. *(Founder requirement, 2026-10-23: "no perps or markets or other indicating it requires connection to tokenomics should be outside this engine.")* The **maths** engine is already single: `verify/lib/gambit-game-math.ts` has **~75 consumers** and is the only pricing/scoring source. The **satire one-liner** engine is also already single and already reaches perps: `verify/lib/satire-headline.ts#satirizeHeadline` is called by `app/api/v1/perps/family/route.ts:114`, `app/api/v1/news/satirical/route.ts:74` and `app/api/satire-engine/route.ts:260`. **The $MADx ledger is the one that is NOT single.** `lib/madx-web2.ts` has exactly **9 importers**: the eight `app/api/v1/madx/*` routes plus `lib/market-book.ts`. Everything else that takes or promises value writes its own state and never debits a balance — verified this session: `app/api/v1/perps/convict` → `perp-store.stakeConviction()` (`lib/perp-store.ts:688`) increments `perp_positions.conviction` and `perp_markets.volume` **with no ledger call, no fee, no book, no price tape** — conviction on a perp card is free; `app/api/v1/faces/stake` uses the same `perp-store` path; `app/api/v1/zeitgeist/auction` performs 7 writes through `lib/slot-auction.ts` and never debits a bid; `app/api/v1/shield/opt-in` writes through `lib/shield.ts` and never charges a premium; `app/api/v1/staking`, `app/api/v1/tournament/match` and `app/api/v1/cards/evolve` are **compute-only** (no DB write at all) while the UI presents them as positions. **Fix shape:** `fill()` in `lib/market-book.ts` is the reference implementation — one transaction, `SELECT … FOR UPDATE`, `spendWithin(client, …)` so the debit joins the caller's transaction. Every path above should route its value movement through `spendWithin` the same way. Do **not** delete or relabel any of these routes. | 3–5d |
 | ~~**0**~~ | ~~`open-pack` fairness bug~~ — **DONE.** Nonce derives server-side from `auth.owner` + persisted `customer_accounts.pack_open_count` via `lib/pack-nonce.ts`; `verify/sql/0015_pack_open_counter.sql` added; regression coverage in `lib/pack-nonce.test.ts`; `madxBalance` no longer read from the request body. | — |
 | **B1-rest** | Octavian perps-deck container sizing. **Narrower than originally written:** `lib/instrument-chrome.ts` already exists and `perp-dials.tsx` already imports its canvas primitives. What is still inline is only the CSS *deck-shell* chrome (`borderRadius: 24`, `clamp(10px,1.4vw,16px)` padding, gradient + `boxShadow`), and only in that one file — so this is an extract-before-second-use, not the third copy-paste. Envelope sizing itself is fixed (Part 0 §2.1); the visual pass remains. | 0.5d |
 | **1** | Perceived-performance foundations. **Partly done:** `app/error.tsx`, `app/global-error.tsx` and `app/loading.tsx` (skeleton, not spinner — reserves the grid footprint so arrival doesn't cause CLS) all shipped; none existed before. **Remaining:** `next/font`, `next/dynamic` code splitting (93 components / 19,455 lines ship eagerly today), image optimization. **Measure LCP/CLS before and after or it's worthless** — and note nothing in CI measures this, so it needs a real browser session. | 1–2d |
@@ -116,7 +191,25 @@ Full detail — file paths, exit criteria — in ****Parts III–V + Workstream 
 | **B2** | O-V deck → exterior interactive experience, bound to `node-registry` state. Source is the **`MADdegen/OV-Deck-2026` repo** (`src/slidesData.ts`, structured, plus 8 ready-built interactive components) — *not* the older HTML export. Blocked on Part 0 §3's deck conflicts. | 4–6d |
 | **—** | Security gaps. **CSP shipped, half-enforced by design:** `frame-ancestors` / `base-uri` / `object-src` / `form-action` are enforced (they restrict capabilities this app never uses, so they cannot break a page), while `script-src` / `style-src` — the two that actually stop XSS and the two that white-screen an app when wrong — ship **Report-Only**, because Next injects inline bootstrap, Tailwind injects inline styles, wallet extensions inject providers, and no browser exists in the agent sandbox to verify against. **Promotion to enforced is a two-line change once reports are quiet, and is the intended follow-up.** Review `connect-src` first: if `RELAYER_RPC_URL` is repointed at a dedicated provider, that host must be added or client-side wallet reads break. **ERC-4337 session keys remain open.** | — |
 | **—** | Promote Lint / Slither / Dependency Review from report-only to blocking, once their backlogs are worked. | — |
+| **—** | **Rename "MAD Upshot" → MAD Gambit** (founder, 2026-10-23). 17 occurrences across 7 files at `72a370e`: MASTER ×7, `verify/public/pitch/index.html` ×3, `madhats-gambit.html` ×3, `ov-pitch-deck.html` ×1, `AGENTS.md` ×1, and two Kotlin prompts in `master-maths/`. Investor surfaces first — slide 3's title is literally *"MAD Upshot: The Card Economy"*. Edit in context, not by sed (§7). | 0.25d |
+| **—** | **Gate 60% on a VIP seat, capped at 4,888.** `CREATOR_LADDER` grants 6000 bps as `CR8TR` by traction with no cap; canon (2026-10-23) makes 60% a VIP profit share limited to 4,888 seats. Needs a seat registry, an issued-seat count enforced on-chain and in `splitFee` callers, and the founder's answer on how a seat is obtained. **Moves real payouts — do not ship before that answer.** | 1–2d |
+| **—** | **Refresh two imported sheets' fee line.** `docs/GOSSIP_COP_Product_Sheet_Technical_Spec.docx` (v1.2) and `docs/PERPETUAL_EPIPHANIES_Product_Sheet_Technical_Spec.docx` (v1.1), added 2026-10-23 from the founder's Drive, predate the creator ruling: they show the creator share as a flat 40% and the community 28.8% without "of platform net". Uploaded verbatim; correct on their next revision (`scripts/build-perp-sheets.py` is the house-format generator). | 0.5h |
+| **—** | **Retire the 60% Shield rung — needs founder confirmation first.** Canon (§3, 2026-10-23) caps the Shield at 40%; the engine still pays 60% via `SHIELD_RECOVERY_WHALE_PCT`, `calculateShieldPayoutFull`'s whale branch, `shieldRecovery(loss, vip=true)` and `WHALE_SHIELD_ELIGIBILITY` (`verify/lib/gambit-game-math.ts`). Removal lowers payouts for whale-eligible holders, so confirm before changing code; the canon-lock test pinning `SHIELD_RECOVERY_WHALE_PCT` 0.60 changes with it. | 1–2h |
+| **—** | **Paseome to a tradeable book.** `lib/paseome.ts` + `GET /api/v1/paseome/frontier` ship real maths on demo data. Missing: tree persistence (`sql/00xx_paseome.sql`), the branch-refund ledger, artefact-gated branch authorship, and the Foresight oracle path. Sheet: `docs/product-sheets/PASEOME.md`. | 3–5d |
 | **—** | Carried from the repo: THE WIRE demo-row · raw-hex design-token scrub (~82 values, 5 panels) · 4 dead components · slot-auction clearing is manual. | — |
+
+### Workstream C — converge the two clients (added 2026-08-18)
+
+`master-maths/` is **not a dead artifact**; it is the second client of this product. See §7 and
+Part I 2026-06 for the evidence. Ordered by dependency:
+
+| # | Item | Notes |
+|---|---|---|
+| **C5** | **A Gradle job in CI.** `master-maths/` is built by **no workflow** — the path filters in `ci.yml` / `foundry.yml` don't match it, so the Kotlin can stop compiling with nothing going red. Same class of gap that left `contracts/script/**` unverified until it was found by accident. **Do this first: it is the cheapest, and it is what makes C1–C4 verifiable.** |
+| **C1** | **One token source.** Generate `master-maths/…/ui/theme/Color.kt` and `verify/lib/gambit-design-tokens.ts` from a single file. The palettes are identical *by coincidence* today; this makes them identical *by construction*. Blocks nothing, unblocks every later visual change. Folds naturally into the raw-hex scrub already queued above. |
+| **C2** | **`MadGambitApiService.kt`.** A third service beside `GeminiApiService.kt` and `RssFeedFetcher.kt`, hitting `/api/v1/{faces,zeitgeist,epiphany,perps,markets,registrar}`. Depends on nothing. This is the whole of "build the backend for the Android app" — the backend exists, the app has never been pointed at it. |
+| **C3** | **Reconcile the two maths.** `GambitMath.kt` and `gambit-game-math.ts` share lineage but have drifted — the web side has since gained CGARCH/EGARCH the Kotlin lacks. Decide canonical per function against Part VI; the web side is better tested (canon-lock suite). ⚠️ Do not silently resolve — this is a Part VI §13-class decision. |
+| **C4** | **Phone-frame theme on the web hub**, plus the genuinely-new backend behind it: KAITO feed, NYSE price panel, O-V Deck release registry, skin/laser selector. Everything else in that design — MULTIPLIER, MIN THRESHOLD, SHIELD APY, Δ-LIMIT — is **already computed** by existing maths. Check whether `The-MDC/mad-gambit-ui` simply *is* this UI before building it (blocked, Part 0 §4/§6). |
 
 **Sequencing constraint:** VRF makes pack-opening asynchronous (request → 3+ confirmations →
 callback). Shipping it onto today's synchronous UI replaces an instant pack-open with an
@@ -135,11 +228,125 @@ unexplained freeze. **Phases 1–2 are prerequisites for Phase 3, not parallel w
 | Cross-org `add_repo` | *"cross-tier adds are not supported"* | Session scoped to `maddegen`; `The-MDC/*` repos unreachable. |
 | v0 MCP server | disconnected | Couldn't query v0 chats (Part 0 §7). |
 
+### Not as blocked as this table has been saying (corrected 2026-08-26)
+
+"No `npm install`, no local typecheck" was half right and cost a lot of
+verification that was available all along. `npm install` is genuinely dead. The
+rest is not:
+
+| Actually available | Where | What it buys |
+|---|---|---|
+| `tsc` | `/opt/node22/bin/tsc` (global, no `node_modules` needed) | Real **parse / syntax / JSX-nesting / arity / iteration-target** checking — see the exact invocation below. Filter out `TS2307` (unresolved module), `TS70xx` (implicit any) and `TS18046/TS2571` (unknown): those are artefacts of missing `@types`. **Anything left is a real error.** |
+
+**Use the project's own compiler settings, or the check is worse than useless.**
+`tsconfig.json` targets **`es5`** with no `downlevelIteration`. A first attempt at
+this ran `--target es2022`, passed 333 files clean, and shipped a route that
+failed Vercel's type-check immediately on `for (const [k, a] of someMap)` —
+`TS2802`. At `es5`, `for...of` and spread over a **Map, Set or any iterator** are
+compile errors; arrays and strings are the only things TypeScript
+special-cases. Use `.forEach()`.
+
+The global `tsc` is a 7.x build, which **hard-errors on `target=es5`**
+(`TS5107`) unless `--ignoreDeprecations 6.0` is passed — and it errors *before
+type-checking*, so the run prints nothing and looks clean. That is this repo's
+signature trap: a green gate that scanned nothing. Always prove the invocation
+can still fail by compiling a two-line probe with a `for...of` over a `Map`
+first; if it does not report `TS2802`, the real run means nothing.
+
+```sh
+tsc --ignoreConfig --noEmit --skipLibCheck --strict --ignoreDeprecations 6.0 \
+    --jsx react-jsx --target es5 --lib dom,dom.iterable,esnext \
+    --module esnext --moduleResolution bundler \
+    $(find app components lib hooks context -name '*.ts' -o -name '*.tsx' | grep -v '\.test\.ts')
+```
+
+Next's build bails at the FIRST type error, so CI shows one; this shows all of
+them. The same route had three.
+| `eslint` 10 | global | Not wired up — no flat config resolves without `eslint-config-next`. Noted so the next session does not re-discover the binary and assume it is usable. |
+| Chromium + `http-server` | `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`, global `http-server` | **Components can be rendered and looked at locally.** See §7 for the recipe. |
+
+The npm-registry block never implied a rendering block; the two were merged into
+one sentence and the second half was never tested.
+
 ---
 
 ## 7 · Things a future session will get wrong without this
 
+- **Never quote a 60% MAD Shield figure.** The Shield is a 28.8% → 40% scale (founder, 2026-10-23); 60% is the creator-side VIP seat only. The engine's `SHIELD_RECOVERY_WHALE_PCT = 0.60` is engine-only until removed — reading the constant and calling it canon is how this branch got it wrong once already.
+- **CI tests the MERGE RESULT of a PR with `main`, not the PR head.** A test count in CI can include files that are not in your branch. On PR #145 the prediction was 379 and CI reported 389: `main` had gained `registrar-auth.test.ts` (6 tests) since the branch was cut. Reconcile a count against `main`, not against your tree, before calling it wrong.
+
+- **`frontierPrices` uses log-sum-exp on purpose — do not "simplify" it back to `calculateDLLMSRPrice`.** The naive softmax overflows to `Infinity` past `q/b ≈ 709` (~851k shares at b=1200) and every price comes back `NaN`. Reproduced before the fix; regression-tested at 900k and 5M shares. The shared `calculateDLLMSRPrice` is deliberately left naive because it is canon-locked and serves the binary book, where `q` stays far lower.
+
+- **"MAD Upshot" is the project's old name; it is now MAD Gambit (founder, 2026-10-23).** Do not blind-replace it: several occurrences are lineage phrasings (*"MAD Upshot to MADHAT's Gambit CardGame"*) where a mechanical swap produces nonsense, and MASTER itself quotes it in places as the banned term. Edit each in context. See §5.
+
+- **A local test harness exists and has bitten its own author.** `lib/` transpiles to CJS and runs under a minimal vitest shim (~340 of ~390 tests run without `node_modules`). It once under-reported two passing tests because the shim lacked `.rejects`/`.resolves`, and a mutation check compared against zero instead of the baseline's own failures. When using it: compare against a baseline, and confirm a mutation actually applied before trusting "survived".
+
+- **"The engine" is three engines, and only one of them is the leaky one — added 2026-10-23.**
+  A session told to "unify everything into one engine" will reach for
+  `verify/lib/gambit-game-math.ts` and find nothing to do, because the **maths** engine is
+  already single with ~75 consumers, and the **satire one-liner** engine
+  (`lib/satire-headline.ts#satirizeHeadline`) is already single and already called from the
+  perp family route. The engine that is actually fragmented is the **$MADx ledger**
+  (`lib/madx-web2.ts`, **9 importers**). Measure importers before concluding anything here;
+  the fix is PART 0 §5 **T1**, and the reference implementation to copy is
+  `market-book.ts#fill()`, not a new abstraction.
+- **The `$MADx` token address is confirmed — 2026-10-26.** The founder confirmed
+  `0x6972370e1caAA3624F37D7e87C28e1089D00151f` as the real `$MADx` (Arbitrum One). `0xb61ae772…fd18` is ORKx, a different ERC-20,
+  and must not be cited as `$MADx` anywhere. This supersedes the 2026-10-23 note that said not
+  to touch the address until one was confirmed. Blockscout shows the confirmed contract as
+  verified, creator `0x4975…0149`, contract name `MyToken`, with no token record indexed, so a
+  symbol/name check against Blockscout will not return MADx — do not take that as a mismatch.
+  Blockscout needs a PRO API key for more than ~10 calls per session.
+- **`app.crystex.app` is egress-blocked — added 2026-10-23.** The fair-launch campaign page is
+  the founder's stated source for the real total supply, and no agent can open it: the proxy
+  returns `EGRESS_BLOCKED`, not a 404, so retrying or rewording the URL will not help. Ask for
+  the number; do not infer it from the 224,573,096 cap in the code, which is a *cap*, not a
+  total supply, and is owner-modifiable.
+- **`satireMetrics().brandSafe` was never a safety gate — corrected 2026-08-27.** It computed
+  `zLiarScore >= 60 && sentiment.intensity >= 0.3`, and Z-Liar ≥ 60 is SERIAL EMBELLISHER or
+  TOTAL FABRICATION. So it **passed wild fabrications and failed measured, credible lines**: a
+  juiciness bar wearing a safety bar's name, consumed by `app/api/satire-engine/route.ts` as
+  `brand_safe` and described there as "fails closed". It did not. The maths is now
+  `entertainmentGrade` (unchanged, legitimate, high-is-good); `assertionRisk` /
+  `lowAssertionRisk` are the actual safety signals and **fail closed** on an empty or
+  unscoreable line. `brandSafe` survives as a deprecated alias so no caller silently flipped
+  meaning. **Do not "fix" the alias by pointing it at the safety signal** — that would invert
+  the value under every existing caller.
+
+- **The local-model roast tier cannot work on Vercel, and that is not a bug.** Ollama listens on
+  the machine that started it; a Vercel serverless function cannot reach a desktop. With
+  `OLLAMA_BASE_URL`/`OLLAMA_MODEL` unset the tier is simply off and the route degrades to the
+  deterministic writer exactly as before. It is for local development and for a self-hosted
+  deployment where the model sits beside the app. `lib/local-satire.ts` calls Ollama's HTTP API
+  over plain `fetch` **on purpose** — `@langchain/community` ships a ChatOllama, but a new
+  dependency means regenerating `package-lock.json`, which cannot be done here and breaks
+  `npm ci` on every job.
+
+- **`satirizeHeadline` must stay pure and deterministic — a model may never be called inside it.**
+  It renders on the server and again on the client, so any divergence is a React hydration
+  error. That is why the model tiers live behind route handlers and are fetched. This is stated
+  in the file's own header and is easy to undo by accident.
+
+- **`propagateTree` does not check that a node's edges sum to 1.** It computes whatever weighted
+  sum it is handed, and its one caller — `app/api/v1/bayesian/tree/route.ts` — takes the tree
+  from a **request body**, so a node totalling 0.8 returned a confident, meaningless number.
+  `treeConservationError` now validates it at that boundary (2026-08-27). Paseome frontiers are
+  conserved by construction instead, because DL-LMSR prices sum to 1 — keep it that way rather
+  than adding a normalisation step later.
+
 - **`octavian-mesh.tsx` does not exist.** Merged into `octavian-creature.tsx` (`compact`/`full` variants). Zoom, two-axis orbit, click-select, pop-out, mood system, shared state and the firefly swarm **all already ship** — don't rebuild them.
+
+- **You can render a canvas component and LOOK at it. Do that before claiming it is fine.** `octavian-creature.tsx` was merged three times without anyone seeing it, and was drawing its node badges at 20px on the phone panel and **48px** in the pop-out, on ~20 nodes at once — the creature was behind a wall of its own grey labels, and no amount of reading the source made that obvious. The recipe, ~5 minutes end to end:
+
+  1. `tsc --ignoreConfig --outDir <scratch> --target es2022 --module esnext --moduleResolution bundler --skipLibCheck lib/<deps>.ts` — emits JS even with type errors, so missing `@types` do not stop it.
+  2. A harness `.html` with `<script type="importmap">` mapping `@/lib/x` → `./x.js`, importing the **real** transpiled modules. Copy only the `draw()` body from the component; never re-implement the maths, or you are reviewing a different creature.
+  3. Serve it: `npx http-server -p 8899 <scratch>`. **This step is not optional** — Chromium refuses ES-module imports over `file://` (CORS), and the symptom is a silent blank page, not an error.
+  4. `chrome --headless=new --no-sandbox --disable-gpu --no-proxy-server --virtual-time-budget=5000 --window-size=W,H --screenshot=out.png http://127.0.0.1:8899/harness.html`
+  5. Read the PNG. Draw a 1px frame at the true canvas bounds and print a measured envelope figure per case, so the answer is a number and not an impression.
+
+  `--no-proxy-server` matters: the agent proxy 403s `madgambit.io`, so **the live app cannot be screenshotted** — only locally-served harnesses. Do not go looking for a way around that again.
+
+- **The repo's default branch is `The-MDC`, not `main`, and that quietly disables `.github/dependabot.yml`.** Dependabot reads its config from the default branch, so the `actions/checkout` v4 hold reasoned out on `main` is **not in force** — `The-MDC`'s copy has no `ignore` block. It also opens PRs against the default branch, which is why `The-MDC` carries a bump `main` has never seen (eslint 8→10, typescript 5→7, siwe 2→3, framer-motion 12→13) sitting on a tree that predates main's SIWE and market-book work. **Do not port that `package.json` to `main`**: the lockfile cannot be regenerated here and `npm ci` fails when the two disagree. Fix is one repo setting — Settings → General → Default branch → `main` — and only the founder can make it.
 - **The build no longer runs migrations.** `next build` only; migrations are a controlled `npm run migrate:deploy`. Don't set `SKIP_MIGRATIONS` on Vercel.
 - **The `$MADx` transfer vulnerability is FIXED.** A stale-tree review reported it open; all seven `madx` routes use `lib/madx-route-auth.ts`. **Do not re-fix it.**
 - **The `.agents/` swarm verdicts are static-only.** All four 2026-07-01 milestones returned CLEAN, but every shell command in that run timed out — nothing was ever executed.
@@ -164,6 +371,44 @@ unexplained freeze. **Phases 1–2 are prerequisites for Phase 3, not parallel w
   demo-fallback code paths, that the database is unconfigured: read the build log, which prints
   `connected to Postgres` and the migration ledger on every deploy.
 - **Morpho / Aerodrome:** no such repos. Morpho returned zero across ~190; the Aerodrome lookup needed approval and never ran.
+- **The repo now lives at `The-MDC/MAD-MPP-2.23`** (transferred by 2026-08-22; it was
+  `MADdegen/`). The old remote still works by redirect, and agent sessions may still be *scoped*
+  to `maddegen/mad-mpp-2.23` — so GitHub tool calls should use owner `MADdegen` while PR links
+  resolve to `The-MDC`. **Worth retrying `The-MDC/mad-gambit-ui`** now: it was blocked as a
+  cross-tier add, and the transfer may have removed that barrier. It may simply *be* the
+  phone-frame UI, which would make most of Workstream C4 redundant.
+- **Two Part II facts went stale within a week — reconcile before trusting them.** PR #108
+  collapsed CI to one job, path-filtered `placeholder-guard.yml`, and downgraded
+  `actions/checkout` **v6 → v4** (Part II.4 still says v6). PR #131 **re-enabled production
+  deploys from `main`**, contradicting Part II.3's *"`main` does not auto-deploy"*. Both landed
+  while CI was not running, so neither was gate-checked.
+- **Session close-outs live at `docs/THREAD_CLOSEOUT.md`** — one file, overwritten each time.
+  Read it at the start of a session for where the last one stopped; write it at the end via the
+  `close-thread` skill (fail-safe instructions in `CLAUDE.md`). Durable content still belongs
+  here in MASTER, not there.
+- **`master-maths/` is the second client, not an abandoned experiment.** Three independent lines of
+  evidence: `verify/lib/gambit-game-math.ts` *names its own origin in its header* as a port of v1.7
+  Kotlin `GambitMath.kt` (`com.example.math`) — both carry `calculateConviction`,
+  `calculateDeltaLimit`, `calculateShieldPayout`, `getLunarPhaseMultiplier`,
+  `calculateDLLMSRCost`, `garchUpdate`. The palettes are **byte-identical** (`0xFFFFD700` /
+  `0xFFB8860B` are `gold: "#ffd700"` / `goldDim: "#b8860b"`). And the Compose screens map 1:1 —
+  `KaitoTerminalScreen` → the KAITO bar, `MadShieldScreen` → MAD Shield, `AuctionScreen` → the
+  ZEITGEIST slot auction, `PersonaSettingsScreen` → FIVE FACES, `DataHouseScreen` → the datahouse
+  fold, `AuthScreen` → LOGIN/SIGN UP. **The gap is narrow:** the Compose `api/` package is two
+  files (Gemini + RSS) and has no backend of its own. Workstream C above.
+- **`master-maths/` is nested, and must stay nested.** Both trees defined `app/` — the Android
+  module sat exactly on `app/page.tsx`. That collision is *why* commit `8c7a195` superficially read
+  as a replacement rather than a deletion. Nesting removes it permanently: `settings.gradle.kts`
+  resolves `include(":app")` relative to itself, so the Gradle build is unaffected. Do not hoist it
+  back to the root. (`rootProject.name` was the Android Studio default `"My Application"`; now
+  `"Master Maths"`.)
+- **`--exclude-detectors=lob` in `secret-scan.yml` is a detector collision, not a suppressed
+  finding.** TruffleHog's Lob detector matches `(live|test)_[a-zA-Z0-9]{35}`; Foundry's convention
+  produces exactly that shape — `function test_DestroyedSubjectCanNeverBeReRegistered()` is `test_`
+  + 38 alphanumerics. It reported five "verified secrets" on the restore PR because that was the
+  **first scan ever to see those files** (the scan is diff-scoped, and they predate the gate).
+  Lob is a vendor this repo has no dependency on, so it cannot produce a true positive. Every other
+  detector stays live. Do not "fix" this by renaming test functions.
 
 ---
 
@@ -193,7 +438,7 @@ Lightly detailed. Dates are from document headers or git history, not inferred.
 
 ### 2026-04/06 — consolidation and a dead end
 - **2026-04-05** — `CANONICAL_NUMBERS.md` last updated — still the numeric source of truth today.
-- **2026-06** — Android/Kotlin (Jetpack Compose) client era. Abandoned; survives only as `master-maths/`.
+- **2026-06** — Android/Kotlin (Jetpack Compose) client era, ~70 Compose files, no WebView. **Dormant, not abandoned** — corrected 2026-08-18. It survives as `master-maths/` and is a genuine second client of this product: the web maths is a *port of its* `GambitMath.kt`, the palettes are byte-identical, and its screens map 1:1 onto the shipped web features. Evidence and remaining work in Part 0 §7 and Workstream C.
 
 ### 2026-07 — the current app takes shape
 - **2026-07-01** — Multi-agent swarm run (`.agents/`): 4 milestones — SIWE auth, `MADShieldVault.sol` + Foundry tests, concierge wiring, local Gemma endpoint. All returned CLEAN verdicts. **Caveat: every shell command in that run timed out on permission prompts, so all four were _statically reviewed, never executed_.** Treat the verdicts accordingly.
@@ -216,8 +461,16 @@ Lightly detailed. Dates are from document headers or git history, not inferred.
 - **2026-08-12** — PR #72: full-stack reconciliation + new Vercel project standup (`VERCEL_PROJECT_SETUP.md`). Same day: #73 (manual prod deploys), #74 (dark theme + Blob portraits), #75 (SafeERC20, 3 open routes closed), #76 (ERC-2771 gasless relayer), #77 (`MADDisputeVoting.sol`).
 - **2026-08-13** — O-V Conviction State Node HUD shipped.
 - **2026-08-14** — The Octavian visual becomes a *living* mesh. Lineage: a 2026-07-13 Three.js/R3F/WebGPU "Master Octavian" experiment (Vulkan-derived pipeline notes, shader + bundle optimization) → the 2D-canvas `octavian-mesh.tsx` shipped 2026-08-07 in PR #63 → `72dccda` static high-fidelity orb → `fb73122` two-axis weave → **`11b8a6f` the living-mesh moment**: a three-tier pointer-driven mood system (idle cool topaz/emerald/cyan → agitated yellow/green/blue → yellow/orange/red, fastest spin, pitch tipping away as if not wanting to be bothered), decaying back to idle on its own. The palette layering is explicitly modelled on **cephalopod chromatophore-over-iridophore skin** — cool/structural at rest, pigment-dominant when agitated — not an arbitrary colour pick. `bb99269` then merged both visuals into one engine. Note: no trace of this originates in the O-V deck repo; it is native to this codebase.
-- **2026-08-14** — PR #80 merged (O-V HUD + stale-Supabase doc cleanup). Neon project split resolved to a concrete cause: **three** live Postgres databases under one integration, needing a founder-run merge (Part II.5). Migrations removed from the Vercel build in favour of a controlled `migrate:deploy`; `main` auto-deploy disabled; two advisory AI review gates added via gh-aw.
+- **2026-08-14** — PR #80 merged (O-V HUD + removal of stale docs describing a rejected data layer). Neon project split resolved to a concrete cause: **three** live Postgres databases under one integration, needing a founder-run merge (Part II.5). Migrations removed from the Vercel build in favour of a controlled `migrate:deploy`; `main` auto-deploy disabled; two advisory AI review gates added via gh-aw.
 - **2026-08-16** — This consolidation; frontend QOL benchmark and Chainlink VRF audit (Parts III–V). Later the same day: PR #91 merged (Octavian cephalopod creature + CI fixes), then the session handoff, the maths master, the engine-room formulas and the deck lineage were all folded in here as PART 0, Parts VI–VII and Appendix A — leaving this as the single planning document.
+- **2026-08-18** — Restore/convergence handoff folded in rather than filed beside this document (§7, Workstream C, the 2026-06 correction). Three stale facts fixed: the migration count (14 → **15**, so the Neon merge is `0016`, not `0015`), the Kotlin client's status ("abandoned" → dormant second client), and the absence of any CI gate over `master-maths/`. **Part VIII added** — the hosting-platform audit, whose finding is that Vercel coupling is one 44-line file, one import and three cron entries. **Same day, decided: stay on Vercel + Neon.** The audit established optionality, not a verdict — it never found a reason to leave, and hosting cannot be migrated while Actions is refusing to run jobs. Part VIII becomes a contingency plan with named reopen triggers.
+- **2026-08-22** — PR #105 merged (`2d53a7d`). Repo transferred to **`The-MDC/MAD-MPP-2.23`**. PRs #108 (CI collapsed to one job, guard path-filtered, `checkout` v6→v4) and #131 (production deploys re-enabled from `main`) also land — **all three merged with CI not running**.
+- **2026-08-24** — Close-out mechanism added: the `close-thread` skill plus `CLAUDE.md` as an independent fail-safe, writing to `docs/THREAD_CLOSEOUT.md`. **Actions recovered the same afternoon (~16:18 UTC)** after eight days down, leaving three ungated merges and a set of permanently-`queued` orphan runs behind it. `workflow_dispatch` added to `placeholder-guard.yml`, because #108's path filters meant the pathspec fix from #105 could not be exercised by any docs-only change — it was merged to `main` and had still never run. **That edit touched the workflow file, which is itself in the path filter, so the guard triggered and validated its own fix: `Placeholder guard passed ✓`, run 32750369469. The pragma check executed for the first time in the repo's history.**
+- **2026-08-26/27** — The engine gets a real book. **PR #139 merged**: `verify/sql/0016_market_book.sql` (`market_book`, `market_prices`, `ALTER TABLE bets` + shares/cost/fee/price_after), `verify/lib/lmsr-book.ts` (pure and isomorphic — the same `quote()` runs in the client preview and the server fill), `verify/lib/market-book.ts` (the `pg` layer; `fill()` is one transaction: `SELECT … FOR UPDATE` → re-price against the locked row → `spendWithin` → book → `bets` → `market_prices` → write back `markets.yes_odds/no_odds`), `spendWithin` added to `madx-web2.ts` so a debit can join a caller's transaction, real SIWE sign-in (`lib/siwe-client.ts`, `auth/session`, `auth/logout`), and `game-context.tsx` switched from `useState(8888)` to the real ledger behind a `creditsSource: "live"|"demo"` flag. **PR #143 merged** (`18216a0`): the Z-Liar Sentinel becomes a real Gemini call with the persona extracted to `lib/madhatr-persona.ts`, the money path starts honouring `PAUSE_GUARDIAN`, `TRADEABLE_FAMILIES` becomes one exported source of truth, and complaint resolution moves off "any signed-in wallet" onto a fail-closed registrar credential. **PR #152 merged**: every agent persona consolidated under MAD-Gambit-Concierge.
+- **2026-08-26 → 08-28** — PRs #142–#145. Perp deck made interactive; Z-Liar band ladder and Scandal readout de-drifted onto the engine; `brandSafe` found to be a juiciness gate wearing a safety gate's name and split into `entertainmentGrade` / `assertionRisk`; a local-model (Ollama) roast tier added with zero new dependencies; **the Paseome** (perp families 7 Foresight & 8 Hindsight) designed, researched and shipped as maths + a live frontier route; a mutation audit found eleven unguarded canon constants and closed them; and the **fee waterfall corrected on founder sign-off** — community 28.8% is of NET, not gross.
+- **2026-10-23** — Founder confirms "MAD Upshot" is the project's old name (now MAD Gambit) and names the Paseome's thesis **"Certain-UnCertainty"**. Rename scoped (§5), not yet applied. Same day, the creator profit share is settled: **creators 28.8% → 40%; 60% is a VIP share limited to 4,888 seats.** The 28.8% base rung is confirmed correct; the code's uncapped traction route to 60% now diverges from canon (§3, §5).
+- **2026-10-23** — `0xb61ae772…fd18` read on-chain and **eliminated as `$MADx`** — it is "Serpentine Orkain"/ORKx (§3, PART II §9). The Crystex campaign page, the founder's stated source for the real total supply, is **egress-blocked** from the agent container. The "one engine" requirement gets a measurement rather than an opinion: maths is single (`gambit-game-math.ts`, ~75 consumers), the satire one-liner engine is single and already reaches the perp family route, and **the $MADx ledger is not** — `perps/convict`, `faces/stake`, `zeitgeist/auction` and `shield/opt-in` all move or promise value without touching it. Now PART 0 §5 item **T1**.
+- **2026-10-23 (later)** — Paseome authorship and name settled: an **open conviction market** that creators author, with the platform offering a smaller share of trees and no creator cut (`paseomeFeeSplit`); official name **"The Paseome: Certain-UnCertainty"**, Foresight/Hindsight demoted to internal labels. **MAD Shield confirmed as a 28.8% → 40% scale** — this branch's earlier "deliberate 28.8/40/60 parallel" note was wrong and is corrected; the engine's 60% Shield rung is queued for removal pending confirmation. Gossip-Cop v1.2 and Perpetual Epiphanies v1.1 sheets added to `docs/` from Drive; the Paseome artifact (v1.2) republished and copied to `docs/product-sheets/PASEOME_ARTIFACT.html`. PART VI caught up with the code: the six-tier staking table (stale since 31 Jul) replaced by the eights ladder; creator ladder, VIP seat cap, community-of-net and a §2b for the Paseome's maths added. Engine: `VIP_PROFIT_SHARE_SEATS` (4,888) / `VIP_PROFIT_SHARE_BPS` / `vipSeatAvailable` pinned, not yet enforced.
 
 ---
 
@@ -238,7 +491,16 @@ Everything below is believed true as of 2026-08-16. Where something is stale or 
 | AI | `@langchain/google-genai` + `langgraph`, **inside Next.js API routes** |
 | Dev | Claude Code against GitHub PRs |
 
-**Explicitly rejected, do not reintroduce:** Supabase · Drizzle · Prisma · NestJS · MongoDB · Privy · NextAuth · tRPC · a separate Python/FastAPI backend · "mEth" secondary currency.
+**The data layer is closed, not merely preferred.** ADR-008 makes `pg` Pool + Next.js Route
+Handlers against Neon the **only** data pattern in this codebase: `lib/db.ts` is the single
+client and `verify/app/api/**/route.ts` is the sole backend boundary. **No other database
+platform, BaaS, or ORM is part of this orchestration** — any such dependency appearing in
+`package.json` is by definition a regression, and needs an ADR superseding 008 before it is
+anything else. That rule is positive and exhaustive, so it does not depend on maintaining a
+list of named alternatives.
+
+**Also explicitly rejected, do not reintroduce:** Drizzle · Prisma · NestJS · MongoDB · Privy ·
+NextAuth · tRPC · a separate Python/FastAPI backend · "mEth" secondary currency.
 
 Next 16 renamed `middleware.ts` → **`proxy.ts`**; confirmed on disk. The guest Basic-auth gate covers pages *and* `/api` (except `/api/health` and `/api/v1/health/db`).
 
@@ -271,7 +533,7 @@ Project **`mad-gambit-2.23`** (team `madgambit`, Pro), replacing the dead `mpp2.
 - Build: **`next build`** only. Migrations were removed from the build — they now run as a controlled, manual `npm run migrate:deploy` (with `npm run schema:verify` alongside). `SKIP_MIGRATIONS` is a legacy escape hatch; do **not** set it on Vercel, since normal builds no longer migrate.
 - **`main` does not auto-deploy** — `vercel.json` sets `git.deploymentEnabled.main = false`; production deploys are manual/promoted.
 - Neon connected via Vercel Marketplace ("connectable existing account"), branch-per-preview on
-- Crons: rollup hourly · `perps/roll` 00:00 UTC · `registrar/lapse` 00:30 UTC. `proxy.ts` bearer-passes these three around the guest gate; both handlers export `GET`.
+- Crons: `perps/roll` 00:00 UTC · `registrar/lapse` 00:30 UTC · `ingest/gdelt` every 30 min. The hourly `cron/rollup` schedule was removed on 2026-10-26; the route still exists and can be called with the `CRON_SECRET` bearer, and `proxy.ts` still bearer-passes it around the guest gate. Runtime is Node 24.
 - **Deployment Protection must stay OFF** — `proxy.ts` is the real gate
 - Ignored Build Step allows `main`, `feat/*`, `claude/*` only
 - GitHub secrets `DATABASE_URL` / `NEON_API_KEY` / `NEON_PROJECT_ID` are now unused and deletable
@@ -297,9 +559,38 @@ Project **`mad-gambit-2.23`** (team `madgambit`, Pro), replacing the dead `mpp2.
 
 Nothing blocks merge until branch protection actually requires these checks on `main`. The two AI review gates are deliberately non-blocking while they prove out; their `.lock.yml` files are generated by `gh aw compile` and only the `.md` sources are checked in so far.
 
+**Coverage gap: `master-maths/` is gated by nothing.** No workflow's path filter matches it, so the
+Kotlin client can stop compiling and every check still goes green. Workstream C5 (Part 0 §5).
+Precedent: `contracts/script/**` sat outside `foundry.yml`'s filter the same way — `forge build`
+compiled it, but the gate never ran on changes to it, leaving INTERLOCK L4 unverified until it was
+found by accident.
+
+**A third instance of the same pattern, fixed 2026-08-18: Placeholder Guard was scanning nothing.**
+A git pathspec is not a shell glob. Without `:(glob)` magic, `*` already crosses `/`, while `**` is
+*not* special and matches a literal path component — so `contracts/src/**/*.sol` demanded an
+intervening directory that does not exist:
+
+```
+git ls-files 'contracts/src/**/*.sol'   -> 0   (should be 10)
+git ls-files 'contracts/test/**/*.sol'  -> 0   (should be  9)
+git ls-files 'verify/**/*.ts'           -> 203 (should be 206)
+```
+
+The pragma check had **never scanned a single contract**, and the code-token check silently skipped
+the files at the top of `verify/` — including `proxy.ts`, the SIWE gate. The guard passed by
+scanning nothing, which is worse than failing. Now `dir/*.ext`, with the trap written into the
+workflow so it cannot be "tidied" back. All 19 contracts and 321 TS/TSX files pass, so this turned
+coverage on without changing the verdict.
+
+**The lesson, three times over:** a green gate is not evidence until you have confirmed it is
+looking at something. Check the file *count* a filter or pathspec actually yields, not just its exit
+code.
+
 ### 5. Database & migrations
 
-14 migrations, `verify/sql/0001–0014_*.sql`, applied by `verify/scripts/migrate.mjs` — one transaction each, tracked in a `_migrations` ledger, idempotent (`CREATE ... IF NOT EXISTS`). Schema lands **only** via reviewed numbered migrations; interactive `psql` is both discouraged and network-blocked in-container.
+**15** migrations, `verify/sql/0001–0015_*.sql`, applied by `verify/scripts/migrate.mjs` — one transaction each, tracked in a `_migrations` ledger, idempotent (`CREATE ... IF NOT EXISTS`). Schema lands **only** via reviewed numbered migrations; interactive `psql` is both discouraged and network-blocked in-container.
+
+**The next free number is `0016`.** `0015_pack_open_counter.sql` shipped with the Phase-0 fairness fix, so the merge migration below is `0016_neon_merge.sql`, not `0015_*` — this section said "14 migrations" until 2026-08-18 and would have collided.
 
 **Current blocker — three Neon databases, one app (2026-08-14).** Under the same Neon-via-Vercel integration there are three live Postgres databases:
 
@@ -314,7 +605,7 @@ Nothing blocks merge until branch protection actually requires these checks on `
 **Founder-driven sequence, in order — do not skip ahead to the delete:**
 1. Run the read-only inspection query (below) in each of the three Neon SQL Editors.
 2. Diff the three outputs; decide a conflict policy per overlapping table.
-3. Author the merge migration as `verify/sql/00NN_neon_merge.sql`, following the existing migrations-as-code convention.
+3. Author the merge migration as `verify/sql/0016_neon_merge.sql`, following the existing migrations-as-code convention.
 4. Validate row counts and app behaviour against the merged result.
 5. **Only then** delete `Neon-DB-MADMPP` and `neon-sky-park`.
 
@@ -371,16 +662,16 @@ Locked, from `CANONICAL_NUMBERS.md` (2026-04-05) and implemented + unit-tested i
 | Parameter | Value |
 |---|---|
 | Platform fee | **1.88%** global |
-| Community profit share | **28.8%** (displays as 28%) |
-| Creator revenue share | **Creator Ladder 28.8% → 40% → 60%** by status (User / MinorCreator / CR8TR), creator-made markets **only**. Supersedes the flat 40% — founder sign-off 31 Jul 2026, recorded in `verify/lib/node-registry.ts` and implemented as `CREATOR_LADDER` in `gambit-game-math.ts`. |
-| MAD Shield loss recovery | **28.8%**, premium-funded (not a subsidy) |
+| Community profit share | **28.8% of platform NET** — after the creator cut, not of gross (corrected 2026-08-27) (displays as 28%) |
+| Creator revenue share | **Creators slide 28.8% → 40%** (User / MinorCreator), creator-made markets **only**. **60% is a VIP profit share limited to 4,888 seats** — rare and exclusive, not a traction rung (founder, 2026-10-23). The 31 Jul ladder is otherwise intact. ⚠️ Code still grants 60% as `CR8TR` by traction with no seat cap — see §3 and §5. |
+| MAD Shield loss recovery | **A scale, 28.8% → 40%** — premium-funded (not a subsidy), capped by staking tier; **40% is the ceiling** (founder, 2026-10-23). ⚠️ The engine still carries a 60% whale rung — engine only, Part 0 §5 |
 | Token supply | **888,888,888** fixed |
 | Seed ask | $1M–$2M @ $12M pre · min viable raise $688K |
-| Staking APY | 8.8% (1mo) · 18.8% (12mo) · 28.8% (24mo) · **68%** MAD tier (250K $MADx / 365d) |
+| Staking tiers | **Four-tier eights ladder by stake** (founder sign-off 31 Jul 2026): Bronze 88 / 8.8% · Silver 888 / 18.8% · Gold 8,888 / 28.8% · MAD Tier 88,888 / 38.8% APY, × (1 + clout/200). *Corrected 2026-10-23 — this row showed a superseded lock-duration ladder ending at 68%; `STAKING_TIERS` and `MADStaking.sol` both carry the eights ladder (PART VI §1).* |
 | MADDAO quadratic cap | 24x |
 | Founder's Golden Ticket | 2,488 ERC-1155 |
 
-**Fee distribution.** Platform markets: $100 bet → $1.88 fee → 35% Ops / 25% Shield / 10% Burn / 30% Community. Creator markets: 40% to creator (lifetime, on-chain) / 60% to platform, allocated as above.
+**Fee distribution.** Platform markets: $100 bet → $1.88 fee → 35% Ops / 25% Shield / 10% Burn / 30% Community. Creator markets: the creator's rung — 28.8% → 40%, or 60% on one of the 4,888 VIP seats — to the creator (lifetime, on-chain), the rest to the platform; the community's 28.8% is of the platform's net (`splitFee`, PART VI §6).
 
 **Never use again:** fee 1.66% / 2.88% / 4.88% · Shield 40% / 60% · "TeaBag" (old Shield name — banned in investor/public comms) · "MAD Upshot" · seed $2.4M–$3M · Y3 $42M · Base-L2-as-primary · $MAD 1B supply · 888-as-founders-NFT · creator fee 42% · phantom co-founders Isabella H. / Parphul B.
 
@@ -408,7 +699,7 @@ Perp families live under `/api/v1/{faces,zeitgeist,epiphany,perps,registrar}`. N
 - Phase-4 named-subject gate: KMS choice, `MADPortraitKeyRegistry` deploy, 6 signed-off `registry_readiness` rows
 
 **Unresolved contradictions — worth closing:**
-1. **$MADx supply.** Canon says 888,888,888 fixed. The deployed Arbitrum One contract has a **mutable, mint-on-purchase** supply, cap 224,573,096, Pausable. Two candidate addresses appear across the archive (`0xb61ae772…fd18` Crystex fair-launch, and `0x6972370e…151f` used as the `lib/contracts.ts` fallback). This needs an on-chain check and one written answer.
+1. **$MADx supply.** Canon says 888,888,888 fixed. The deployed Arbitrum One contract has a **mutable, mint-on-purchase** supply, cap 224,573,096, Pausable. Two candidate addresses appear across the archive (`0xb61ae772…fd18` Crystex fair-launch, and `0x6972370e…151f` used as the `lib/contracts.ts` fallback). **On-chain check performed 2026-10-23 and it eliminates the first address, it does not confirm it:** `0xb61ae772…fd18` on Arbitrum One (42161) is an unrelated ERC-20 — name "Serpentine Orkain", symbol **ORKx**, 18 decimals, total supply 60.073728, 2 holders, unverified source. `0x6972370e…151f` was not reachable that day; **the founder confirmed it as the real `$MADx` on 2026-10-26**, and a Blockscout read the same day shows a verified contract on Arbitrum One. Founder's stated source for the real total supply is the **Crystex campaign page, which is egress-blocked from the agent container** (Part 0 §4). One written answer still required.
 2. **Chain topology.** Current work targets Arbitrum One (42161) only, but `CANONICAL_NUMBERS.md` restates Nova (gameplay) + One (vaults/$MADx) + HyperLiquid as founder-locked, and `contracts/foundry.toml` still configures an `arbitrum_nova` RPC. Either Nova is retired and the config is cruft, or it isn't.
 3. **Token distribution split** — see §7.
 4. **Card rarity taxonomy** — NFT docs use 7 tiers / 992 cards; later tokenomics docs use 6 tiers with different distributions. Relabel or genuine divergence, unknown.
@@ -644,29 +935,31 @@ Numeric source of truth is Part II.7; unresolved contradictions are §13 below.*
 | Constant | Value | Code home |
 |---|---|---|
 | Platform fee | **1.88%** (`FEE_BPS 188`) — never changes | `PLATFORM.FEE_BPS` |
-| Creator share of fee | **40%** (`CREATOR_SHARE_BPS 4000`) — creator-made markets only | `PLATFORM.CREATOR_SHARE_BPS` |
-| Community share of fee | **28.8%** (`COMMUNITY_SHARE_BPS 2880`) | `PLATFORM.COMMUNITY_SHARE_BPS` |
+| Creator share of fee | **Sliding 28.8% → 40%** by ladder rung (User 2880 · MinorCreator 4000 bps), off the gross, creator-made markets only | `CREATOR_LADDER` · `PLATFORM.CREATOR_SHARE_BPS` (= the 40% rung) |
+| VIP profit share | **60%**, limited to **4,888 seats** — rare and exclusive, not a traction rung (founder, 2026-10-23). ⚠️ Pinned, **not yet enforced**: `CR8TR` still reaches 6000 bps by traction with no seat count (Part 0 §5) | `VIP_PROFIT_SHARE_SEATS` · `VIP_PROFIT_SHARE_BPS` · `vipSeatAvailable` |
+| Community share of fee | **28.8% of platform NET** — after the creator cut, never of gross (`COMMUNITY_SHARE_BPS 2880`) | `PLATFORM.COMMUNITY_SHARE_BPS` · `#splitFee` |
 | Shield recovery — standard | **28.8%** | `PLATFORM.SHIELD_RECOVERY_PCT` |
+| Shield recovery — the scale | **28.8% → 40%**, continuous in the 2–4% premium, capped by staking tier; **40% is the ceiling** (founder, 2026-10-23) | `#calculateShieldPayoutFull` · `STAKING_TIERS[].shieldRecoveryPct` |
 | Shield recovery — shielded ceiling | **40%** | `PLATFORM.SHIELD_RECOVERY_PREMIUM_PCT` |
-| Shield recovery — Whale/VIP | **60%** | `PLATFORM.SHIELD_RECOVERY_WHALE_PCT` |
+| ~~Shield recovery — Whale/VIP~~ | ~~60%~~ — **engine only, not canon.** Still pays when whale-eligible; removal awaits founder confirmation (Part 0 §5). Never quote it | `PLATFORM.SHIELD_RECOVERY_WHALE_PCT` |
 | Shield premium band | **2%–4%** of bet | `PLATFORM.SHIELD_PREMIUM_MIN/MAX` |
 | $MADx fixed supply | **888,888,888** | `PLATFORM.MADX_FIXED_SUPPLY` |
 | Furnace burn cap | **≤4.9%** / 30d | `PLATFORM.FURNACE_BURN_CAP` |
 | Card pack cost / size | **4.88 $MADx** / **5** cards | `PLATFORM.CARD_PACK_COST/SIZE` |
 | Canonical deck size / seed | **992** / **8888** | `PLATFORM.TOTAL_DECK_SIZE/CARD_GENERATION_SEED` |
 
-**Staking tiers** (stake-amount thresholds — `STAKING_TIERS`, authoritative; mirrored on-chain by `contracts/src/MADStaking.sol`):
+**Staking tiers** — the four-tier **eights ladder** by stake amount (founder sign-off 31 Jul 2026). Authoritative: `STAKING_TIERS`, pinned by the `staking — 4-tier eights ladder` tests and mirrored on-chain by `contracts/src/MADStaking.sol` (reconciled 2026-09-01). Each tier is also the **Shield gate** — it caps how far up the 28.8% → 40% scale a holder can go:
 
-| Tier | Min $MADx | APY |
-|---|---|---|
-| Bronze | 100 | 12% |
-| Silver | 500 | 18% |
-| Gold | 2,500 | 28% |
-| Platinum | 10,000 | 42% |
-| Diamond | 50,000 | 58% |
-| MAD Tier | 100,000 | 68% |
+| Tier | Min $MADx | APY | Shield recovery cap |
+|---|---|---|---|
+| Bronze | 88 | 8.8% | 28.8% |
+| Silver | 888 | 18.8% | 32.8% |
+| Gold | 8,888 | 28.8% | 36.8% |
+| MAD Tier | 88,888 | 38.8% | 40.0% |
 
-> ⚠️ Two *other* staking models appear in the tokenomics docs (lock-duration APY 8.8/18.8/28.8/68; rarity-multiplier 8/10/13/20/28/68). The **code + contract use the stake-amount tiers above.** See §13.
+VIP (≥ 888,888 $MADx, `VIP_STATUS_MIN_MADX`) is a capital-side **status**, not a tier. Effective APY = tier APY × (1 + clout/200), so 77.6% at clout 200 on MAD Tier — earned, never promised.
+
+> *Corrected 2026-10-23:* this table showed a superseded six-tier ladder (Bronze 100 / 12% … MAD Tier 100,000 / 68%) that neither the engine nor the contract has carried since the 31 Jul ruling. Other ladders in older tokenomics docs (lock-duration 8.8/18.8/28.8/68; rarity-multiplier 8→68) are also not the code. See §13.
 
 ---
 
@@ -678,6 +971,19 @@ Numeric source of truth is Part II.7; unresolved contradictions are §13 below.*
 - **Kelly sizing:** `f* = (p·(b+1) − 1) / b`, half-Kelly default (`scale=0.5`). Home: `#kellyFraction`.
 - **δ-limit (position cap):** `#calculateDeltaLimit(multiplier, convictionStake)`.
 - **Market classification** (Progression / Saga / Z-Liar / Perp taxonomy): `market-classifier.ts` composing `zLiarMeter` + perp-trigger + sentiment.
+
+### §2b — The Paseome: Certain-UnCertainty (`paseome.ts`)
+
+Perp families 7 and 8 — the forward side (internal label `foresight`, oracle-settled) and the counterfactual side (`hindsight`, never settles). The certainty is the arithmetic; the uncertainty is kept **epistemic**, never aleatory.
+
+- **Frontier pricing — DL-LMSR, log-sum-exp:** `pᵢ = e^((qᵢ−m)/b) / Σ e^((qⱼ−m)/b)`, `m = max q`. Σp = 1 by construction; `b = FRONTIER_B = 1,200`; **3–5 branches** (`FRONTIER_MIN/MAX`, enforced by a throw). Home: `#frontierPrices`, `#frontierSum`. The max-subtraction is load-bearing — the naive form overflows to NaN past q/b ≈ 709 (≈ 851k shares at b = 1,200); Part 0 §7.
+- **The certain part — the maker's worst-case loss:** `b · ln n` = **1,318 / 1,664 / 1,931 $MADx** for n = 3 / 4 / 5. Fixed before a single trade.
+- **Path price:** product of the branch prices along the path (`#pathPrice`); deep what-ifs get cheap on their own. **Knife Edge** sort: `|p − 0.5|` ascending (`#knifeEdgeDistance`, `#rankByKnifeEdge`) — the uncertainty ramp peaks at p = 0.5 (Fiorillo, Tobler & Schultz 2003).
+- **MCI score → `m_meme`:** count the expectation categories a branch violates; optimum is exactly one (`MCI_OPTIMUM`). Fitness 0 → 0.35 · 1 → 1.0 · 2 → 0.5 · 3+ → max(0.1, 1/(1+(v−1))). `memeMultiplier = 0.85 + 0.50 · fitness`, bounded **0.85–1.35** so memetics never outweighs time held or capital (`#mciScore`, `#memeMultiplier`).
+- **Irrealis constraint:** a counterfactual title must carry the counterfactual mood (`#hasIrrealisMood`); benignity rises with path depth (`#benignityAtDepth`).
+- **Settlement (`#settleFrontier`):** forward side — the taken branch pays, every untaken sibling is **refunded in full**; counterfactual side — nothing settles, every branch carries. Counterfactual print = permanent − transitory from `cgarchUpdate` (`#hindsightDivergence`); ranked on calibration (`brierScore`, `logScore`).
+- **Who authors, who earns (founder, 2026-10-23):** an open conviction market — VIP (`VIP_STATUS_MIN_MADX`) **or** MinorCreator+ authors (`#canAuthorBranch`) and earns their rung on the trees they open. The platform offers trees of its own to a lesser extent, with **no creator cut**: `#paseomeFeeSplit(volume, "platform")` ≡ `splitFee(volume, 0)`; an unknown origin or non-finite share also pays no creator cut.
+- **Leg:** 59.061 d on the global lunar grid (`lib/lunar-legs.ts`). Fee: the flat 1.88%.
 
 ### §3 — Liar meter & scandal signal
 
@@ -694,20 +1000,20 @@ Numeric source of truth is Part II.7; unresolved contradictions are §13 below.*
 ### §5 — MAD Shield engine (`gambit-game-math.ts`)
 
 - **Premium:** `Stake × P(win) × √Volatility × SafetyMargin`, clamped to the 2–4% band. Home: `#calculateShieldPremium` / `#shieldPremium`.
-- **Recovery:** 28.8% standard · 40% shielded ceiling · 60% Whale. Homes: `#shieldRecovery`, `#calculateShieldPayoutFull`/`Tiered`.
+- **Recovery — a scale, 28.8% → 40%:** 28.8% standard; the premium tier (0..1) moves it continuously up to the 40% ceiling; the staking tier caps the top (§1). Homes: `#calculateShieldPayoutFull` (the resolver product code should call), `#calculateShieldPayoutTiered`, `#shieldRecovery`. ⚠️ The resolver's whale branch and `shieldRecovery(loss, vip=true)` still pay **60%** — engine only, not canon (founder, 2026-10-23); removal awaits confirmation, Part 0 §5.
 - **φ-shield ratio:** golden-ratio-weighted (`PHI = 1.618…`). Home: `#shieldPhiRatio`.
 - **Lifecycle:** `#createShieldOptIn` · `#requestShieldUnstake` · `#calculateShieldReturnWindow` · `#isShieldUnstakeComplete` · `#shieldReturnCountdown`. Whale gate: `#WHALE_SHIELD_ELIGIBILITY`.
 - **Compliance:** MAD Shield is **loss mitigation, never insurance/subsidy** — keep framing server-side and in canon.
 
 ### §6 — Fee & revenue split
 
-`splitFee(volume, isCreatorMarket)`: `grossFee = volume·1.88%`; `creatorCut = isCreator ? grossFee·40% : 0`; `communityCut = grossFee·28.8%`. Home: `#splitFee`. **Furnace burn** ≤4.9%/30d: `#calculateFurnaceBurnPercent` (live via `revenue-engine.ts`).
+`splitFee(volume, creatorShareBps)` — **two-stage waterfall, corrected 2026-08-27 (founder sign-off, PR #145):** `grossFee = volume·1.88%`; `creatorCut = grossFee·rung` on creator-made markets only; `platformNet = grossFee − creatorCut`; `communityCut = platformNet·28.8%`; `protocolCut = platformNet − communityCut`. ~~`communityCut = grossFee·28.8%`~~ was the bug: on a 40% creator market it over-allocated **11.52 pp of gross** (community now 17.28% of gross, matching canon to the decimal). Regression-tested. Home: `#splitFee`. Per 10,000 $MADx: gross 188.00 → platform tree 0 / 54.14 / 133.86 (creator / community / protocol) · User rung 28.8% 54.14 / 38.55 / 95.31 · MinorCreator 40% 75.20 / 32.49 / 80.31 · VIP seat 60% 112.80 / 21.66 / 53.54. The 60% row needs a VIP seat (≤ 4,888, `vipSeatAvailable`) — not yet enforced. **Furnace burn** ≤4.9%/30d: `#calculateFurnaceBurnPercent` (live via `revenue-engine.ts`).
 
-> ⚠️ The 40% creator and 28.8% community are **non-additive by design** (creator = per-market gross; community = platform-net). Never wire governance to `FEE_BPS`/`CREATOR_SHARE_BPS`. §13.
+> ⚠️ The creator rung (28.8–40%; 60% on a VIP seat) and the 28.8% community are **non-additive by design** (creator = per-market gross; community = platform-net). Never wire governance to `FEE_BPS`/`CREATOR_SHARE_BPS`. §13.
 
 ### §7 — Staking yield
 
-`calculateStakingYield` — base tier APY (§1) × NFT-clout boost `1 + clout/200`. Home: `gambit-game-math.ts`. Surfaced `POST /api/v1/staking/yield`. On-chain: `MADStaking.sol` (rewards from a separately-funded reserve — a stake never funds another's rewards).
+`calculateStakingYield` — base tier APY (§1, the eights ladder) × NFT-clout boost `1 + clout/200` (max 77.6% effective at clout 200 on MAD Tier). Home: `gambit-game-math.ts`. Surfaced `POST /api/v1/staking/yield`. On-chain: `MADStaking.sol` (rewards from a separately-funded reserve — a stake never funds another's rewards).
 
 ### §8 — Card economy
 
@@ -754,7 +1060,7 @@ Folded in from `MAD_HAT_Mathematical_Handoff_Document.md` (Drive). These are the
 These conflicts exist **across the old docs**; the maths/formulas are reconciled to code above, but these **numbers/decisions are the founder's to lock**:
 
 1. **$MADx token distribution — two different splits.** `CANONICAL_NUMBERS.md` (Public 35% / Liquidity 20% / DAO 15% / Team 10% / Staking 10% / Reserve 10%) vs `madx-token-system.md` (Community&Gameplay 45% / DAO 15% / Liquidity 15% / Team 15% / Seed&Private 10%). **Pick one.**
-2. **$MADx contract address — two values.** `CANONICAL_NUMBERS.md` → `0xb61ae7727579e3781ca0ec4902b6ba21d335fd18`; master action plan (Part AB, on-chain-verified as symbol MADx / name MADDEX) → `0x6972370e1caAA3624F37D7e87C28e1089D00151f`. **Confirm the live one.**
+2. **$MADx contract address — two values, and the better-documented one is wrong.** `CANONICAL_NUMBERS.md` → `0xb61ae7727579e3781ca0ec4902b6ba21d335fd18`; master action plan (Part AB, claimed on-chain-verified as symbol MADx / name MADDEX) → `0x6972370e1caAA3624F37D7e87C28e1089D00151f`. **Corrected 2026-10-23 by a live Blockscout read of chain 42161:** the first address is **"Serpentine Orkain" / ORKx**, a different token with 2 holders and a 60.07 supply — so `DEPLOYED_ADDRESSES.md:7`, `verify/app/api/v1/cards/route.ts:36` and `verify/docs/CARD_CANONICAL_REFERENCE.md:20` are all citing a non-$MADx contract. **Resolved 2026-10-26:** the founder confirmed `0x6972370e1caAA3624F37D7e87C28e1089D00151f` as the real `$MADx`, and those three files now carry it. Any copy of `CANONICAL_NUMBERS.md` that still cites `0xb61…` needs the same fix.
 3. **Staking model framing** — stake-amount tiers (code/contract, §1) vs lock-duration APY (8.8/18.8/28.8/68) vs rarity-multiplier (8→68). Code is authoritative; confirm the marketing framing matches.
 4. ~~**Primary chain**~~ — ✅ **RESOLVED, founder sign-off August 2026.** The chain story is locked as:
    - **Arbitrum Nova (42170)** — launch and gameplay chain
@@ -765,7 +1071,9 @@ These conflicts exist **across the old docs**; the maths/formulas are reconciled
    Two notes on how this resolved. First, `contracts/foundry.toml` was already the ground truth and already said exactly this (`arbitrum_nova` "launch/gameplay chain (42170)", `arbitrum_one` "MAD Shield vaults / liquidity (42161)"), so the ruling ratifies the code rather than overriding it. Second, one leg of the stated three-way conflict was **phantom**: there is no `CLAUDE.md` anywhere in this repository, so the "Base L2" position it was credited with had no source here. Where "Base L2" does still appear it is either explicitly flagged as wrong (`MAD_GAMBIT_MASTER_ACTION_PLAN.md`), explicitly flagged as aspirational (`MAD_GAMBIT_MASTER_PLAN.md`), or in superseded 2024 material. `CANONICAL_NUMBERS.md`'s "Arbitrum One is primary" was not wrong so much as **incomplete** — One is primary for vaults and $MADx; Nova is primary for gameplay. Both rows are corrected in this change.
 5. **Seed range** — `$1M–$2M` (CANONICAL_NUMBERS) vs `$1.24M–$2.48M @ $12M pre` (skill + master plan). **Pick one public range.**
 6. **Y3 revenue** — $154.5M / $121.4M / $86–154M across decks. **Pick one.** (Carried from master action plan Part A.)
-7. **Community 28.8% semantics** — code comment says "of the fee"; master plan Part A says "of net platform profit, platform-wide, non-additive with the 40% creator." Confirm which the contracts should implement.
+7. ~~**Community 28.8% semantics**~~ — **RESOLVED 2026-08-27, founder:** *"flat platform rake of 1.88%, the Community profit share is 28.8% of NET profits, the creator profit share is only from activity and fees from those creator made markets."* Implemented in `splitFee` (PR #145). Contracts must implement the same waterfall.
+8. **The 60% Shield rung — engine vs canon.** Founder 2026-10-23: *"MAD Shield Stop Loss (28.8 to 40%)"* — the Shield is a 28.8% → 40% scale. The engine still pays 60% to whale-eligible holders (`SHIELD_RECOVERY_WHALE_PCT`, `WHALE_SHIELD_ELIGIBILITY`). Docs now say 40%; the code waits on your confirmation because removing it lowers payouts (Part 0 §5).
+9. **How a VIP seat is obtained.** 60% is limited to 4,888 seats; bought, earned or granted — and whether `CR8TR` traction still qualifies — decides the seat registry. Until answered, `VIP_PROFIT_SHARE_SEATS` is pinned but does not gate payouts.
 
 ---
 
@@ -877,6 +1185,170 @@ MaxBurn(30d) = TotalSupply × 0.049 = 43,555,555 $MADx
 ```
 
 Prevents deflationary death spiral. Hard-coded in contract.
+
+---
+
+## PART VIII — HOSTING PLATFORM EVALUATION (2026-08-18)
+
+> ## ✅ DECIDED — staying on Vercel + Neon (2026-08-18)
+>
+> **Read this before reading the rest.** This part is a **contingency plan, not a proposal.**
+>
+> **What the audit actually found was optionality, not a verdict.** It was commissioned as "find an
+> up-and-coming Vercel alternative"; it answered that, and Sevalla is the ranked pick if the day
+> comes. What it did **not** find is a reason to go — no cost wall, no scaling limit, no capability
+> gap. The live problems are the CI outage (Part 0 §1), the three-database Neon split (Part II.5)
+> and the report-only gates. **None of those are Vercel's doing, and none of them improve on another
+> host.** Do not mistake "the exit is cheap" for "the exit is indicated."
+>
+> **A timing point that would hold even if the merits were closer:** hosting cannot be migrated
+> while GitHub Actions is refusing to run jobs. That move is precisely the change that needs
+> type-check, build, tests and secret scan watching it, and right now none of them execute.
+>
+> **What would reopen this**, in rough order of likelihood:
+> 1. A Vercel bill that outgrows the platform's value — the only argument with real force, and it
+>    needs your actual invoice, which no agent can see.
+> 2. Sustained connection-pool pressure under `pg` (ADR-008) that a persistent container would fix.
+> 3. Needing long-running workers or queues — genuinely awkward on Vercel, native on the §3 field.
+> 4. A Vercel platform incident of the severity Railway's 2026 record shows (§5).
+>
+> Absent one of those, **the cheapest correct action is to do nothing**, and the §1 coupling table
+> is the reason that stays true: the exit does not get more expensive by waiting.
+
+*Everything below is the audit as run, kept for whenever one of those triggers fires. The §7
+‹verify› list still applies — those figures were never confirmed against live pages.*
+
+### 1 · The finding that decides this: the app is barely coupled to Vercel
+
+Measured against the tree, not assumed. **Every** Vercel-specific surface in `verify/`:
+
+| Surface | Extent | Portable? |
+|---|---|---|
+| `next.config.ts` | already `output: "standalone"`, and its own header comment says *"works directly in AI Studio and Google Cloud Run… run with `node .next/standalone/server.js`"* | **already portable — this was built to run in a container** |
+| `@vercel/*` imports | **two, in the whole app**: `lib/vercel-blob-store.ts` and one `@vercel/speed-insights` line in `app/layout.tsx` | yes |
+| `lib/vercel-blob-store.ts` | 44 lines, **one** consumer (`app/api/v1/registrar/lapse/route.ts`), and it already implements a pre-existing `ObjectStore` interface from `lib/portrait-vault` | yes — an S3 swap is a *second implementation of an interface that already exists*, not a refactor |
+| `process.env.VERCEL*` | **zero references** in application code | n/a |
+| `export const runtime` | **zero** — nothing is pinned to the Edge runtime, so `proxy.ts` is a plain Node proxy | yes |
+| ISR | no page-level ISR at all; two route handlers carry `revalidate = 300` (`feeds`, `news/satirical`) | yes, with a caveat — §4 |
+| `vercel.json` headers | **redundant**: `next.config.ts`'s `SECURITY_HEADERS` is a strict superset (adds CSP, Referrer-Policy, Permissions-Policy) | yes — headers travel with the framework, not the platform |
+| `vercel.json` `crons` | 3 jobs — `perps/roll` 00:00, `registrar/lapse` 00:30, `ingest/gdelt` every 30 min (hourly `cron/rollup` schedule removed 2026-10-26) | **the one real port**: needs a platform scheduler |
+| `vercel.json` `git` / `ignoreCommand` | Vercel-only branch rules | replaced by the new platform's equivalent |
+| Database | **Neon, an independent managed Postgres reached over `DATABASE_URL`** — not Vercel Postgres | **does not move at all** |
+
+**The shape of this app argues for a container, not for serverless.** 90 route handlers, a custom
+SIWE proxy, three crons, and ADR-008's `pg` **Pool** — a long-lived pool is actively penalised by
+per-request serverless isolates and is exactly right on a persistent Node process. The one thing
+Vercel does that a container does not is per-route autoscaling and CDN-backed ISR, and this app
+uses neither.
+
+**Conclusion: the lock-in is one 44-line file, one analytics import, and three cron entries.**
+That is the whole cost, and it is low enough that platform choice should be decided on merit
+rather than on switching cost.
+
+### 2 · Why the question is answerable at all in 2026
+
+**Next.js 16.2 (March 2026) shipped a stable, public Adapter API**, built with OpenNext, Netlify,
+Cloudflare, AWS Amplify and Google Cloud. Platforms no longer reverse-engineer `.next/`; the build
+emits a typed, versioned description of routes, prerenders, assets, runtime targets and caching
+rules. This is what unblocked full Next 16 support — `proxy.ts` included — off Vercel.
+
+Status as of writing: **verified adapters for Vercel and Bun**; Netlify, Cloudflare and AWS
+(via OpenNext) in active development. Every PaaS below therefore still runs Next.js the *other*
+way — as a standalone Node server in a container. For this app that is fine (§1), and it means
+adapter maturity is **not** a gating concern for us the way it would be for an ISR-heavy site.
+
+### 3 · Candidates
+
+Ranked against what this repo actually needs: Node container · managed Postgres · S3-compatible
+private object storage · scheduled jobs · per-PR preview environments.
+
+| Platform | Own Postgres | Object storage | Cron | PR previews | Read |
+|---|---|---|---|---|---|
+| **Sevalla** (Kinsta) | ✅ managed, from ~$5/mo | ✅ S3-compatible, R2-backed, $0.02/GB, **zero egress** | ✅ cron process type | ✅ | **Recommended.** Genuinely up-and-coming — took over Kinsta's whole PaaS line on 2026-02-02 — but with an established parent rather than a runway clock. Only platform here that covers all four needs *and* the object-storage half. |
+| **Northflank** | ✅ from ~$3.91/mo | via BYOC / S3 | ✅ | ✅ built-in | The serious-infrastructure pick: BYOC, multi-cloud, managed K8s, GPUs, per-second billing, $50/mo free credits. More power and more configuration than this app needs today; the right answer if the platform later grows workers and queues. |
+| **Zerops** | ✅ managed, HA option | ✅ S3-compatible | ✅ | ✅ | The most "up-and-coming" of the set — private networking, hostname service discovery, credentials auto-injected, queues and search in-catalogue, 2026 work on workload-aware Postgres tuning. EU-based. Smallest company: the highest-variance pick. |
+| **Render** | ✅ compute ~$6/mo + $0.30/GB storage | ❌ | ✅ | ✅ | Boring and safe, and *not* up-and-coming. Note: **no native ISR** on a standalone server — irrelevant here (§1). |
+| **Railway** | ✅ auto-injected `DATABASE_URL`, one-click HA Postgres (Patroni, Mar 2026) | ❌ | ✅ | ✅ | Best DX and the tightest DB integration — **but see §5.** |
+| **Coolify / Dokploy** | self-managed | self-managed | ✅ | ✅ | Self-hosted on your own VPS. Cheapest at scale, and you become the SRE. Wrong trade for a one-founder team already short on operator time. |
+| **Cloudflare Workers** | ❌ (Hyperdrive proxies to an external PG) | ✅ R2 | ✅ | ✅ | Best edge story, and an OpenNext adapter in development — but no first-party Postgres, which is precisely the bonus asked for. |
+
+### 4 · Recommendation
+
+**Sevalla**, with **Neon staying exactly where it is** — at least through the first cutover.
+
+Two decisions, and they should be taken separately:
+
+1. **Move the runtime.** Sevalla runs the standalone build the config already produces, gives the
+   `pg` Pool a persistent process to live in, and covers Blob and the three crons with first-party
+   services instead of one-off glue.
+2. **Leave the database.** Neon is not a Vercel product and nothing forces it to move. Changing
+   host *and* database in one step means a failure has two candidate causes. Move the runtime,
+   confirm it, and only then decide whether consolidating onto Sevalla Postgres is worth it.
+
+There is a real argument for consolidating later: it would collapse the **three-database Neon
+split** (Part II.5) into one migration onto one clean target, and put the database on the same
+private network as the app. That is a genuinely attractive endgame — but it is the *second* move,
+not the first, and it is gated on the same founder-run inspection that Part II.5 already blocks on.
+
+**The `revalidate = 300` caveat, stated plainly:** on a standalone server that cache is
+per-instance. At one instance, nothing changes. Past one instance, `feeds` and
+`news/satirical` refetch per pod — which costs upstream calls, not correctness. If it ever matters,
+the fix is a shared cache handler, which is the same fix everyone self-hosting Next uses.
+
+### 5 · The case against Railway, since it is the obvious pick
+
+Railway has the best integrated-database experience of the set and would otherwise top this list.
+Against it: it published incident reports for **2026-02-11** and for **2026-05-19**, the latter a
+~8-hour platform-wide outage after **Google Cloud suspended Railway's own production account** —
+API, control plane, databases and compute all down, persistent disks inaccessible. Contractual
+SLAs exist only on Business Class and above; Hobby and Pro publish targets without them.
+
+Some of the harshest commentary comes from competitors (Northflank, Kuberns) and should be
+discounted accordingly — but the two incident reports are Railway's own. For an app that will
+custody real `$MADx` and settle markets on a lunar clock, a single-cloud-account dependency with
+no SLA at our tier is the wrong risk, and it is the one factor that outweighs Railway's better DX.
+
+### 6 · Migration checklist, if the decision is yes
+
+Small enough to state completely:
+
+1. `lib/s3-object-store.ts` — second implementation of the existing `ObjectStore` interface. Keep
+   `deletable: true`; crypto-shredding depends on it, and a store that cannot really delete breaks
+   THE LAPSE. Select on env, keep `vercel-blob-store.ts` until the cutover is proven.
+2. Drop `@vercel/speed-insights` from `app/layout.tsx` (and its `connect-src` entry in the CSP).
+3. Port the three crons to the platform scheduler. **They stay HTTP calls to the existing routes**,
+   still bearing `CRON_SECRET` — the handlers already export `GET` and `proxy.ts` already
+   bearer-passes them around the guest gate. Nothing in the app changes.
+4. Reproduce the env set (Part II.2). `DATABASE_URL` stops being integration-injected and becomes
+   an ordinary secret — **note this**, since Part II.2 currently says never to hand-set it.
+5. Point a preview environment at a Neon branch; keep `main` non-auto-deploying to match
+   `vercel.json`'s current posture.
+6. Cut DNS last, and keep the Vercel project alive until the new one has survived a full lunar leg
+   boundary — a roll is the one event no staging environment reproduces.
+
+**Do not** promote CSP `script-src`/`style-src` to enforced during the same change (Part 0 §5).
+A white-screen during a host migration is indistinguishable from a failed migration.
+
+### 7 · Facts marked ‹verify›
+
+`sevalla.com` and `docs.sevalla.com` are **egress-blocked from the agent container** (Part 0 §6),
+so Sevalla specifics came from search summaries and third-party writeups, not the live pages.
+Confirm before committing:
+
+- **Pod pricing** ‹verify›: S1 0.5 CPU/1 GB **$10/mo**, S2 1 CPU/2 GB **$40/mo**, M1 0.5 CPU/2 GB
+  **$20/mo**. The S1→S2 jump is 4× price for 2× resources, which is odd enough to be a
+  transcription artefact. A Next.js standalone server wants ≥1 GB, so the realistic line is M1 or
+  S2 — **the difference between them is the whole cost story**, and it is the one number worth
+  checking first.
+- **Cron process type** ‹verify›: reportedly a process that launches on schedule and exits, with no
+  persistent storage and no horizontal scaling. Fine for three HTTP pokes; confirm the schedule
+  syntax and any minimum interval.
+- **Preview environments** ‹verify›: PR previews are opt-in and bill build minutes and bandwidth.
+  One source describes previews being created *on merge*, which would be the wrong semantics for
+  this repo — confirm previews are per **open PR**, since every gate here runs against a preview.
+- **Object storage** ‹verify›: S3-compatible, Cloudflare R2-backed, $0.02/GB, zero ingress/egress,
+  six regions. Confirm **private-by-default** buckets — `vercel-blob-store.ts` deliberately
+  requires a private store because portrait ciphertext must never be served from a public URL.
 
 ---
 

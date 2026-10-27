@@ -4,26 +4,67 @@ import type { NextRequest } from "next/server";
 /**
  * Guest access gate (HTTP Basic Auth) for the MPP.
  *
- * Presents a browser username/password prompt so mpp.madgambit.io is only
- * reachable with the shared guest credentials. Values come from env when set
- * (override in Vercel → Settings → Environment Variables) and fall back to the
- * intentionally-shareable guest login otherwise.
+ * Presents a browser username/password prompt so the platform is only reachable
+ * with the shared guest credentials.
+ *
+ * ⚠️ REQUIRES ENVIRONMENT VARIABLES. This gate previously carried four
+ * username/password pairs as literals in this file. They are gone, and setting
+ * `GUEST_LOGINS` (or `GUEST_USER`/`GUEST_PASS`) in Vercel is now mandatory —
+ * with neither set, every request is refused. See "fails closed" below.
+ *
+ * ── Why the literals had to go ────────────────────────────────────────
+ * Vercel's deployment protection on this project is
+ * `ssoProtection: all_except_custom_domains`, which exempts madgambit.io by
+ * configuration. So SSO gates the preview URLs and this file is the ENTIRE
+ * access control for production. Four passwords committed to a repository is
+ * not access control: they appear in at least 7 commits, git history keeps
+ * them after any later edit, they were sequential and guessable from any one
+ * of them, and the repository was public for part of 2026-08-16.
+ *
+ * Treat Guest0001–Guest0004 / Guest1979–Guest1982 as burned. Rotating to new
+ * values in env is the point of this change; re-using the old ones in env
+ * would move them out of the diff while leaving them just as compromised.
+ *
+ * ── Fails closed, deliberately ────────────────────────────────────────
+ * With no credentials configured this refuses everything rather than falling
+ * back to a default. A gate that silently opens when its configuration is
+ * missing is worse than no gate, because it reports as protection. The
+ * trade-off is real and is the intended one: if the env vars are not set in
+ * Vercel before this ships, production returns 401 for everyone, which is
+ * loud, immediate and fixable in one settings change — as opposed to quietly
+ * serving the whole platform to anyone who reads a two-year-old commit.
  *
  * NOTE: this is an application-level gate. It only takes effect once Vercel
  * Deployment Protection is turned OFF for this project — otherwise Vercel's own
  * SSO gate blocks the request before proxy runs.
  */
-// Shared guest logins (intentionally shareable). Multiple pairs are accepted;
-// the primary pair can also be overridden/added via env (GUEST_USER/GUEST_PASS).
-const GUESTS: Record<string, string> = {
-  Guest0001: "Guest1979",
-  Guest0002: "Guest1980",
-  Guest0003: "Guest1981",
-  Guest0004: "Guest1982",
-};
-if (process.env.GUEST_USER && process.env.GUEST_PASS) {
-  GUESTS[process.env.GUEST_USER] = process.env.GUEST_PASS;
+/**
+ * `GUEST_LOGINS` — comma-separated `user:pass` pairs, so the multi-guest model
+ * survives the move to env. `GUEST_USER`/`GUEST_PASS` still adds a single pair
+ * and is kept because it already existed and may already be set.
+ *
+ *   GUEST_LOGINS="alpha:s3cret,beta:0ther"
+ *
+ * Parsed with indexOf rather than split(":") so a password containing a colon
+ * is preserved rather than silently truncated at the first one.
+ */
+function loadGuests(): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const entry of (process.env.GUEST_LOGINS ?? "").split(",")) {
+    const pair = entry.trim();
+    if (!pair) continue;
+    const sep = pair.indexOf(":");
+    if (sep <= 0 || sep === pair.length - 1) continue; // malformed: no user, or no pass
+    out[pair.slice(0, sep)] = pair.slice(sep + 1);
+  }
+  if (process.env.GUEST_USER && process.env.GUEST_PASS) {
+    out[process.env.GUEST_USER] = process.env.GUEST_PASS;
+  }
+  return out;
 }
+
+const GUESTS = loadGuests();
+const GUESTS_CONFIGURED = Object.keys(GUESTS).length > 0;
 
 const PUBLIC_PATHS = new Set([
   "/api/health",
@@ -33,6 +74,15 @@ const PUBLIC_PATHS = new Set([
   "/favicon.png",
   "/robots.txt",
   "/sitemap.xml",
+  // CSP violation reports are sent by the browser out-of-band, not by page
+  // code — the Reporting API may deliver a batch minutes later, from no page
+  // context at all — so whether the guest Basic credentials ride along is
+  // browser- and timing-dependent. Gating this path would drop reports
+  // unpredictably and leave the Report-Only policy unmeasurable, which is the
+  // exact defect it was added to fix. The route caps its own exposure: POST is
+  // rate-limited and write-only, and its GET summary requires CRON_SECRET
+  // regardless of what happens here.
+  "/api/v1/csp-report",
 ]);
 
 // Cron routes verify their own `Authorization: Bearer` secret (lib/bearer-secret.ts),
@@ -47,11 +97,33 @@ const BEARER_PATHS = new Set([
   "/api/v1/ingest/gdelt",
   "/api/v1/agents/scraper",
   "/api/v1/agents/trader",
+  // Newly bearer-guarded operator routes. Without these entries the guest gate
+  // would 401 an operator call carrying a correct CRON_SECRET before the
+  // route's own check ever ran — the guard would be in place and unreachable.
+  //
+  // /api/v1/gdelt/ingest is the PUSH counterpart to /api/v1/ingest/gdelt above:
+  // same gdelt_signals table, same seven downstream readers (market proposals,
+  // scandal graph, the platform chaos index), opposite direction. Only the pull
+  // side was ever closed.
+  "/api/v1/gdelt/ingest",
+  "/api/v1/gdelt/whitelist",
+  "/api/v1/registrar/reply",
 ]);
 
 export function proxy(req: NextRequest) {
   if (PUBLIC_PATHS.has(req.nextUrl.pathname)) {
     return NextResponse.next();
+  }
+
+  // No credentials configured → refuse everything, and say why. Falling back
+  // to a built-in pair is what this change exists to remove; a distinct body
+  // makes a misconfiguration diagnosable at a glance instead of looking like
+  // a wrong password.
+  if (!GUESTS_CONFIGURED) {
+    return new NextResponse(
+      "Guest access is not configured. Set GUEST_LOGINS (or GUEST_USER/GUEST_PASS) in the deployment environment.",
+      { status: 401, headers: { "cache-control": "no-store" } },
+    );
   }
 
   if (

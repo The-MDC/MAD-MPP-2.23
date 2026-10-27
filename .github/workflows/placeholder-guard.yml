@@ -27,20 +27,57 @@ on:
       - "contracts/src/**"
       - "contracts/test/**"
       - ".github/workflows/placeholder-guard.yml"
+  # On-demand, because the path filters above make this workflow unrunnable when
+  # you most want to run it. The scan reads ALL tracked files, not the diff — so
+  # after a change to the scan logic itself, or after an Actions outage, the only
+  # way to confirm it still passes was to wait for an unrelated PR to touch
+  # verify/ or contracts/. That is how the pathspec bug fixed in #105 ended up
+  # merged to main and still never executed. This makes verifying the guard a
+  # button rather than a coincidence.
+  workflow_dispatch:
 
 concurrency:
   group: guard-${{ github.ref }}
   cancel-in-progress: true
 
+
+# Least privilege. Without this block a workflow inherits the REPOSITORY
+# default token scope, which on older repos is read-write across the API — an
+# action compromise then reaches far past the job that ran it. The four
+# workflows that already declared this were fine; these did not.
+permissions:
+  contents: read
+
 jobs:
   guard:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
       - name: Scan for placeholder source files
         run: |
           set -euo pipefail
           fail=0
+
+          # Pathspecs below are DELIBERATELY `dir/*.ext`, not `dir/**/*.ext`.
+          #
+          # A git pathspec is not a shell glob. Without :(glob) magic, `*`
+          # already crosses `/`, so `verify/*.ts` matches every depth — while
+          # `**` is NOT special and matches a literal path component, so
+          # `contracts/src/**/*.sol` requires an intervening directory that
+          # does not exist. Result, until 2026-08-18:
+          #
+          #   git ls-files 'contracts/src/**/*.sol'  -> 0 files   (should be 10)
+          #   git ls-files 'contracts/test/**/*.sol' -> 0 files   (should be  9)
+          #   git ls-files 'verify/**/*.ts'          -> 203 files (should be 206)
+          #
+          # So the pragma check had never scanned a single contract, and the
+          # code-token check silently skipped exactly the files sitting at the
+          # top of verify/ — including proxy.ts, the SIWE gate. The guard
+          # reported success by scanning nothing. Both are fixed here; all 19
+          # contracts and all 206 TS/TSX files pass on the tree as of this
+          # commit, so this turns coverage on without changing the verdict.
+          #
+          # If you reintroduce `**`, prefix the pathspec with `:(glob)`.
 
           # 1) TS/TSX under verify/ must contain real code tokens.
           while IFS= read -r f; do
@@ -49,7 +86,7 @@ jobs:
               echo "::error file=$f::TS/TSX file has no code tokens (placeholder?)"
               fail=1
             fi
-          done < <(git ls-files 'verify/**/*.ts' 'verify/**/*.tsx')
+          done < <(git ls-files 'verify/*.ts' 'verify/*.tsx')
 
           # 2) Solidity under contracts/src and contracts/test must have a pragma.
           while IFS= read -r f; do
@@ -57,7 +94,7 @@ jobs:
               echo "::error file=$f::Solidity file missing pragma (placeholder?)"
               fail=1
             fi
-          done < <(git ls-files 'contracts/src/**/*.sol' 'contracts/test/**/*.sol')
+          done < <(git ls-files 'contracts/src/*.sol' 'contracts/test/*.sol')
 
           # 3) Known placeholder phrases anywhere in tracked source.
           if git grep -nIE 'file_content from|The content of [a-z_]+\.ts|Full [A-Za-z]+ with rewards|Minimal core staking|Orchestrator layer' -- \

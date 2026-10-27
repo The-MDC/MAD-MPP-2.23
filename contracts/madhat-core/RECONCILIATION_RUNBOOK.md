@@ -25,7 +25,7 @@ forge install smartcontractkit/chainlink-brownie-contracts --no-commit
 - **Pragma:** madhat-core is `^0.8.28`, app `contracts/src` is `0.8.24`. Recommend bumping the app: `contracts/foundry.toml` `solc_version 0.8.24 → 0.8.28`. Confirm the app's existing contracts still build.
 - **`game.sol`:** replace raw `token.transfer()/transferFrom()` with OpenZeppelin `SafeERC20` (`using SafeERC20 for IERC20;`) — flagged in `SECURITY_AUDIT_LOG.md`.
 - **`staking/StakingPool.sol`:** point the staking token to **$MADx** (not `MADDEX`); confirm APY tiers = **8.8 / 18.8 / 28.8 / 68%**.
-- **`tokens/MADxToken.sol`:** deploy supply **888,888,888**; confirm the canonical address on-chain — `DEPLOYED_ADDRESSES.md` = `0xb61ae7727579e3781ca0ec4902b6ba21d335fd18`; the `0x6972…` in the header comment is a different/legacy record — correct the comment once verified.
+- **`tokens/MADxToken.sol`:** deploy supply **888,888,888**; canonical address confirmed by the founder on 2026-10-26 as `0x6972370e1caAA3624F37D7e87C28e1089D00151f` — it matches the header comment, `Deploy.s.sol` and `DEPLOYED_ADDRESSES.md`. The old `0xb61ae772…fd18` is a different ERC-20 (ORKx) and must not be cited as $MADx.
 - **Naming:** `Madhat*` → `MAD*` (`MadhatCard`→`MADCard*`, `MadhatTreasury`→`MADTreasury`) + update imports, deploy script, and tests together (rename with compile feedback to catch every reference).
 
 ## 4. Rebuild the lost contracts (on `BondingCurve.sol` + the `Errors.sol` error sets)

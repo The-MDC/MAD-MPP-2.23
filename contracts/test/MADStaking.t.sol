@@ -42,16 +42,14 @@ contract MADStakingTest is Test {
         vm.stopPrank();
     }
 
-    /* ── tier boundaries mirror STAKING_TIERS exactly ── */
+    /* ── tier boundaries mirror the 4-tier STAKING_TIERS canon exactly ── */
     function testApyTierBoundaries() public view {
-        assertEq(staking.apyBpsFor(99 * 1e18), 0);
-        assertEq(staking.apyBpsFor(100 * 1e18), 1_200); // Bronze
-        assertEq(staking.apyBpsFor(500 * 1e18), 1_800); // Silver
-        assertEq(staking.apyBpsFor(2_500 * 1e18), 2_800); // Gold
-        assertEq(staking.apyBpsFor(10_000 * 1e18), 4_200); // Platinum
-        assertEq(staking.apyBpsFor(50_000 * 1e18), 5_800); // Diamond
-        assertEq(staking.apyBpsFor(100_000 * 1e18), 6_800); // MAD Tier
-        assertEq(staking.tierFor(100_000 * 1e18), 6);
+        assertEq(staking.apyBpsFor(87 * 1e18), 0);
+        assertEq(staking.apyBpsFor(88 * 1e18), 880); // Bronze, 8.8%
+        assertEq(staking.apyBpsFor(888 * 1e18), 1_880); // Silver, 18.8%
+        assertEq(staking.apyBpsFor(8_888 * 1e18), 2_880); // Gold, 28.8%
+        assertEq(staking.apyBpsFor(88_888 * 1e18), 3_880); // MAD Tier, 38.8%
+        assertEq(staking.tierFor(88_888 * 1e18), 4);
         assertEq(staking.tierFor(50 * 1e18), 0);
     }
 
@@ -62,16 +60,16 @@ contract MADStakingTest is Test {
         assertEq(staking.totalStaked(), 2_500 * 1e18);
     }
 
-    /* ── Gold tier: 2,500 MADx @ 28% APY for one year → 700 MADx ── */
+    /* ── Silver tier: 2,500 MADx @ 18.8% APY for one year → 470 MADx ── */
     function testRewardAccrualOneYear() public {
         _stake(alice, 2_500 * 1e18);
         vm.warp(block.timestamp + 365 days);
         uint256 pending = staking.pendingRewards(alice);
-        assertApproxEqAbs(pending, 700 * 1e18, 1e15);
+        assertApproxEqAbs(pending, 470 * 1e18, 1e15);
     }
 
     function testClaimTransfersRewardsFromReserve() public {
-        _stake(alice, 10_000 * 1e18); // Platinum, 42%
+        _stake(alice, 10_000 * 1e18); // Gold, 28.8%
         vm.warp(block.timestamp + 365 days);
 
         uint256 balBefore = token.balanceOf(alice);
@@ -80,7 +78,7 @@ contract MADStakingTest is Test {
         vm.prank(alice);
         uint256 reward = staking.claim();
 
-        assertApproxEqAbs(reward, 4_200 * 1e18, 1e16); // 42% of 10k
+        assertApproxEqAbs(reward, 2_880 * 1e18, 1e16); // 28.8% of 10k
         assertEq(token.balanceOf(alice), balBefore + reward);
         assertEq(staking.rewardReserve(), reserveBefore - reward);
 

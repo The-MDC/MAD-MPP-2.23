@@ -17,29 +17,9 @@
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { garchUpdate, getLunarPhaseMultiplier, PLATFORM } from "@/lib/gambit-game-math";
+import { scandalBand, scandalBandFraction } from "@/lib/scandal-bands";
 import { Activity, Wifi } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface VolatilityBand {
-  label: string;
-  sublabel: string;
-  color: string;
-  bgOpacity: string;
-  cta: string;
-  minSigma: number;
-}
-
-const BANDS: VolatilityBand[] = [
-  { minSigma: 0.000, label: "QUIET",        sublabel: "Market resting",                   color: "#475569", bgOpacity: "05", cta: "Monitor for entry" },
-  { minSigma: 0.010, label: "WARMING",       sublabel: "Liquidity building",               color: "#00f0ff", bgOpacity: "08", cta: "Early conviction window" },
-  { minSigma: 0.020, label: "ACTIVE",        sublabel: "Conviction opportunities rising",  color: "#7cffc7", bgOpacity: "10", cta: "Liquidity deepening. Prices flattened." },
-  { minSigma: 0.035, label: "HOT",           sublabel: "GARCH σ² elevated",               color: "#fbbf24", bgOpacity: "12", cta: "Optimal time for heavy Conviction entry." },
-  { minSigma: 0.050, label: "SCANDAL PEAK",  sublabel: "Maximum cultural velocity",        color: "#ec4899", bgOpacity: "18", cta: "Spike in progress. Execute now or wait for cooldown." },
-];
-
-function getBand(sigma: number): VolatilityBand {
-  return [...BANDS].reverse().find(b => sigma >= b.minSigma) ?? BANDS[0];
-}
 
 // Seeded pseudo-random GARCH series (deterministic, consistent across renders)
 function generateSeries(length: number): number[] {
@@ -80,10 +60,11 @@ export default function ScandalVelocityMeter() {
     return () => { if (tickRef.current) clearInterval(tickRef.current); };
   }, [tick]);
 
-  const band = getBand(sigma2);
+  const band = scandalBand(sigma2);
   const sigmaDisplay = (sigma2 * 10000).toFixed(1);
-  // Normalize σ² to 0..1 for gauge (0.000→0.000, 0.07→1.0)
-  const gaugeWidth = Math.min(100, (sigma2 / 0.07) * 100);
+  // Normalize σ² to 0..1 for gauge — full-scale deflection lives with the band
+  // ladder now, so the perp deck's strip fills to the same fraction.
+  const gaugeWidth = scandalBandFraction(sigma2) * 100;
   const maxH = Math.max(...history);
 
   return (

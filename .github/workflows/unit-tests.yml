@@ -1,6 +1,9 @@
 name: Unit Tests
 
 on:
+  # See ci.yml — dispatchable so this gate can be run against `main` on demand
+  # rather than only as a side effect of a push.
+  workflow_dispatch:
   pull_request:
     paths:
       - "verify/**"
@@ -15,6 +18,14 @@ concurrency:
   group: unit-tests-${{ github.ref }}
   cancel-in-progress: true
 
+
+# Least privilege. Without this block a workflow inherits the REPOSITORY
+# default token scope, which on older repos is read-write across the API — an
+# action compromise then reaches far past the job that ran it. The four
+# workflows that already declared this were fine; these did not.
+permissions:
+  contents: read
+
 jobs:
   unit-tests:
     name: Unit tests (vitest)
@@ -23,10 +34,10 @@ jobs:
       run:
         working-directory: verify
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           cache-dependency-path: verify/package-lock.json
       - name: Install app dependencies (locked)

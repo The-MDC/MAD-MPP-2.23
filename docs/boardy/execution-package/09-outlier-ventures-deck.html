@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MAD Gambit — Outlier Ventures Technical Review</title>
+<meta name="description" content="Technical diligence and co-development brief for MAD Gambit, prepared for Outlier Ventures.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg-deep:#080a12; --bg-panel:#0d1018; --bg-card:#111520; --bg-card-hov:#161c28;
+  --gold:#ffd700; --gold-dim:#b8860b; --gold-lcd:#ffcf40;
+  --cyan:#00e5ff; --cyan-dim:#007a8a;
+  --pink:#ff007f; --pink-dim:#7a003c;
+  --green:#00ff88; --green-dim:#008844;
+  --white:#f0f0f8; --muted:#6b7280;
+  --border:rgba(255,255,255,.06); --border-gold:rgba(255,215,0,.3); --border-cyan:rgba(0,229,255,.25);
+  --display:"Chakra Petch",system-ui,sans-serif;
+  --body:"Manrope",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg-deep); color:var(--white);
+  font-family:var(--body); -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+.rig{position:fixed; inset:0; display:flex; flex-direction:column}
+.topbar{
+  display:flex; align-items:center; gap:1rem; flex-wrap:wrap;
+  padding:.7rem clamp(1rem,3vw,2.2rem);
+  background:var(--bg-panel); border-bottom:1px solid var(--border);
+}
+.wordmark{font-family:Georgia,"Times New Roman",serif; font-weight:700; letter-spacing:.02em;
+  font-size:1rem; color:var(--gold); white-space:nowrap}
+.sub{font-family:var(--mono); font-size:.58rem; letter-spacing:.22em; text-transform:uppercase; color:var(--muted)}
+.spacer{flex:1 1 auto}
+.badge{
+  font-family:var(--mono); font-size:.56rem; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--pink); background:rgba(255,0,127,.08); border:1px solid var(--pink-dim);
+  padding:.3rem .6rem; border-radius:.3rem; white-space:nowrap;
+}
+.btn{
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--white); background:var(--bg-card); border:1px solid var(--border);
+  padding:.45rem .75rem; border-radius:.35rem; cursor:pointer; transition:background .15s,border-color .15s;
+}
+.btn:hover{background:var(--bg-card-hov); border-color:var(--border-cyan)}
+.btn:focus-visible{outline:2px solid var(--cyan); outline-offset:2px}
+.rail{display:flex; gap:4px; padding:0 clamp(1rem,3vw,2.2rem) .55rem; background:var(--bg-panel)}
+.dot{flex:1; height:3px; background:#1b2130; border-radius:2px}
+.dot.done{background:var(--gold-dim)}
+.dot.now{background:var(--gold)}
+.stage{flex:1; position:relative; overflow:hidden}
+.slide{
+  position:absolute; inset:0; display:none;
+  padding:clamp(1.4rem,4vh,3rem) clamp(1.2rem,5vw,4rem);
+  overflow-y:auto;
+}
+.slide.on{display:flex; flex-direction:column; justify-content:center}
+.eyebrow{
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.28em; text-transform:uppercase;
+  color:var(--cyan); margin-bottom:.85rem; display:flex; align-items:center; gap:.7rem; flex-wrap:wrap;
+}
+.eyebrow .t{color:var(--muted); letter-spacing:.16em}
+h1{
+  font-family:var(--display); font-weight:700; margin:0 0 1rem;
+  font-size:clamp(1.5rem,4.2vw,2.9rem); line-height:1.08; letter-spacing:-.01em;
+  text-wrap:balance; max-width:24ch;
+}
+h1 em{font-style:normal; color:var(--gold)}
+h1 .cy{color:var(--cyan)}
+.lede{
+  font-size:clamp(.95rem,1.6vw,1.15rem); line-height:1.55; color:#c9cddb;
+  max-width:64ch; margin:0 0 1.2rem; text-wrap:pretty;
+}
+.lede strong{color:var(--white); font-weight:700}
+.chip{
+  display:inline-flex; align-items:center; gap:.32rem; vertical-align:middle;
+  font-family:var(--mono); font-size:.55rem; font-weight:600; letter-spacing:.14em; text-transform:uppercase;
+  padding:.16rem .42rem; border-radius:.25rem; white-space:nowrap;
+}
+.chip::before{content:""; width:5px; height:5px; border-radius:50%; background:currentColor}
+.chip.live{color:var(--green); background:rgba(0,255,136,.09); border:1px solid var(--green-dim)}
+.chip.demo{color:var(--cyan); background:rgba(0,229,255,.08); border:1px solid var(--cyan-dim)}
+.chip.spec{color:var(--muted); background:rgba(107,114,128,.1); border:1px solid #2c3444}
+.legend{display:flex; gap:.75rem; flex-wrap:wrap; margin-top:1rem;
+  font-family:var(--mono); font-size:.56rem; letter-spacing:.1em; color:var(--muted)}
+.grid{display:grid; gap:.65rem; margin:.3rem 0 0}
+.g2{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.card{
+  background:var(--bg-card); border:1px solid var(--border); border-radius:.6rem;
+  padding:.85rem .95rem;
+}
+.card.gold{border-color:var(--border-gold)}
+.card.pink{border-color:var(--pink-dim)}
+.card h3{
+  font-family:var(--display); font-weight:600; margin:.15rem 0 .3rem;
+  font-size:.95rem; letter-spacing:.01em; color:var(--white);
+}
+.card p{margin:0; font-size:.79rem; line-height:1.5; color:#a8aec0}
+.card .q{font-family:var(--mono); font-size:.58rem; letter-spacing:.05em; color:var(--cyan); display:block; margin-top:.4rem}
+.figs{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:.65rem; margin:.2rem 0 0}
+.fig{background:var(--bg-card); border:1px solid var(--border-gold); border-radius:.6rem; padding:.85rem 1rem}
+.fig .n{
+  font-family:var(--mono); font-weight:600; font-variant-numeric:tabular-nums;
+  font-size:clamp(1.4rem,3.2vw,2.1rem); line-height:1;
+  background:linear-gradient(150deg,#fffcf0 0%,#efc76d 25%,#ab7b29 50%,#f7d983 75%,#5c3c04 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.fig .l{font-family:var(--mono); font-size:.56rem; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--muted); margin-top:.4rem; display:block; line-height:1.4}
+.truth{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:.65rem}
+.tcol{background:var(--bg-card); border:1px solid var(--border); border-radius:.6rem; padding:.8rem .9rem}
+.tcol.live{border-color:var(--green-dim)}
+.tcol.demo{border-color:var(--cyan-dim)}
+.tcol.spec{border-color:#2c3444}
+.tcol ul{margin:.5rem 0 0; padding-left:1rem}
+.tcol li{font-size:.77rem; line-height:1.55; color:#a8aec0}
+.ask{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:.65rem}
+.askcard{background:var(--bg-card); border:1px solid var(--border-gold); border-radius:.6rem; padding:.95rem 1.05rem}
+.askcard .amt{font-family:var(--mono); font-weight:600; font-size:1.4rem; color:var(--gold); letter-spacing:.01em;
+  font-variant-numeric:tabular-nums}
+.askcard .k{font-family:var(--mono); font-size:.56rem; letter-spacing:.16em; text-transform:uppercase; color:var(--cyan)}
+.askcard p{margin:.4rem 0 0; font-size:.79rem; line-height:1.5; color:#a8aec0}
+table.data{width:100%; border-collapse:collapse; font-size:.78rem; margin-top:.3rem}
+table.data th{font-family:var(--mono); font-size:.55rem; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--muted); text-align:left; padding:.4rem .6rem; border-bottom:1px solid var(--border-gold)}
+table.data td{padding:.45rem .6rem; border-bottom:1px solid var(--border); color:#c9cddb}
+table.data td.n{font-family:var(--mono); color:var(--gold); font-variant-numeric:tabular-nums}
+.closer{
+  margin-top:1rem; padding:.8rem 1rem; border-left:2px solid var(--pink);
+  background:rgba(255,0,127,.04); font-size:.9rem; line-height:1.55; color:var(--white); max-width:64ch;
+}
+.foot{
+  font-family:var(--mono); font-size:.55rem; letter-spacing:.1em; color:var(--muted);
+  padding:.5rem clamp(1rem,3vw,2.2rem) .7rem; background:var(--bg-panel); border-top:1px solid var(--border);
+  display:flex; gap:1rem; align-items:center; flex-wrap:wrap;
+}
+.nav{display:flex; gap:.4rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+@media (max-width:640px){ body{overflow:auto} .rig{position:static; min-height:100%} .stage{min-height:80vh} }
+</style>
+</head>
+<body>
+<div class="rig">
+
+  <div class="topbar">
+    <div>
+      <div class="wordmark">MΛĐ GAMBIT</div>
+      <div class="sub">Technical Review · Outlier Ventures</div>
+    </div>
+    <div class="spacer"></div>
+    <div class="badge">Not a partnership — a working conversation</div>
+    <button class="btn" id="prev">← Prev</button>
+    <button class="btn" id="next">Next →</button>
+  </div>
+
+  <div class="rail" id="rail" aria-hidden="true"></div>
+
+  <div class="stage" id="stage">
+
+    <section class="slide on">
+      <div class="eyebrow"><span>01 · Cover</span></div>
+      <h1>MAD Gambit — technical diligence for <em>Outlier Ventures</em>.</h1>
+      <p class="lede">Prepared for a working technical conversation, not a signed relationship.
+      Every figure in this deck is cited against the current codebase — see the appendix links
+      at the end for line-level evidence.</p>
+      <div class="grid g2" style="margin-top:.6rem">
+        <div class="card gold"><h3>What this deck is for</h3><p>An honest technical read on
+        what's built, what's tested, what's live, and what closing the remaining gaps would
+        take — the exact conversation an infrastructure-focused fund needs before co-development.</p></div>
+        <div class="card"><h3>What this deck is not</h3><p>Not a claim of an existing
+        partnership, MOU, or commitment on either side. No funding referenced here is closed.</p></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>02 · The gap</span></div>
+      <h1>Nobody prices culture <em>continuously</em>.</h1>
+      <p class="lede">Polymarket and Kalshi settle facts once. DraftKings and Stake move
+      liquidity. Culture — a headline, a claim, a story that either holds up or doesn't — moves
+      faster than either can settle, and nothing prices it as it moves.</p>
+      <div class="card gold" style="max-width:64ch"><h3>The structural point</h3><p>Where
+      "peer-to-peer" markets go one-sided, professional market makers step in and carry the
+      risk — the same economic position a sportsbook takes, with a different regulator.
+      <span class="q">Third-party analysis, not our claim</span></p></div>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>03 · The product</span></div>
+      <h1>An EVM-native <em class="cy">conviction market</em> for culture.</h1>
+      <p class="lede">A creator turns a live headline into a market. People take a position.
+      The market prices continuously, not just at resolution. The creator who made it earns a
+      traction-gated share of the fee.</p>
+      <div class="grid g4">
+        <div class="card"><h3>Ingest</h3><p>26 real publisher RSS feeds. <span class="chip live">Live</span></p></div>
+        <div class="card"><h3>Classify</h3><p>Deterministic rules engine, not an LLM. <span class="chip live">Live</span></p></div>
+        <div class="card"><h3>Price</h3><p>DL-LMSR, volume-scaled. <span class="chip demo">Demo</span></p></div>
+        <div class="card"><h3>Settle</h3><p>Contract built, tested, unwired. <span class="chip spec">Spec</span></p></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>04 · The wedge</span></div>
+      <h1>A family of <em>specialised perpetuals</em>, not one market type.</h1>
+      <p class="lede">Binary markets are a novelty format here, not the product. Conviction is
+      continuous, so a market never has to close to be meaningful.</p>
+      <div class="grid g2">
+        <div class="card"><h3>Z-Liar Meter <span class="chip live">Live logic</span></h3>
+        <p>Deception signal from language, contradiction, and sentiment shift — a real
+        composite formula, tested.</p></div>
+        <div class="card"><h3>Gossip-Cop <span class="chip spec">Spec</span></h3>
+        <p>The classifier already recognizes this market type; the dedicated showcase surface
+        is explicitly marked "soon" in its own code.</p></div>
+        <div class="card"><h3>Progression <span class="chip live">Live</span></h3>
+        <p>Chained outcomes that compound — implemented in the card system today.</p></div>
+        <div class="card"><h3>Perpetual Epiphanies <span class="chip spec">Spec</span></h3>
+        <p>Urban legends, Murphy's-law claims. Designed, not yet coded as its own type.</p></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>05 · Technical proof</span><span class="t">what an infrastructure diligence pass actually finds</span></div>
+      <h1>What's real, read directly from the code — not the deck.</h1>
+      <div class="truth">
+        <div class="tcol live">
+          <div class="eyebrow" style="margin:0"><span style="color:var(--green)">Live &amp; tested</span></div>
+          <ul>
+            <li>DL-LMSR pricing formulas</li>
+            <li>GARCH(1,1) volatility model</li>
+            <li>Deterministic headline classifier</li>
+            <li>SIWE auth (chain-bound)</li>
+            <li>10 contracts, 90+ Foundry tests</li>
+            <li>Real Chainlink VRF integration (built, not yet wired in)</li>
+          </ul>
+        </div>
+        <div class="tcol demo">
+          <div class="eyebrow" style="margin:0"><span style="color:var(--cyan)">Demo</span></div>
+          <ul>
+            <li>Price-movement swap demo (local state)</li>
+            <li>Volatility gauge (seeded data, self-labeled)</li>
+            <li>Manual market creation</li>
+          </ul>
+        </div>
+        <div class="tcol spec">
+          <div class="eyebrow" style="margin:0"><span style="color:var(--muted)">Not yet</span></div>
+          <ul>
+            <li>Automatic headline → market creation</li>
+            <li>Oracle wired to settlement</li>
+            <li>Any contract deployed to a real network</li>
+            <li>Independent security audit</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>06 · The economic layer</span></div>
+      <h1>The economics are enforced in the <em>contract function</em>, not the pitch.</h1>
+      <div class="figs">
+        <div class="fig"><div class="n">1.88%</div><span class="l">Platform fee, global <span class="chip live">Live</span></span></div>
+        <div class="fig"><div class="n">28.8→60%</div><span class="l">Creator share, by traction rung <span class="chip live">Live</span></span></div>
+        <div class="fig"><div class="n">2–4%</div><span class="l">MAD Shield opt-in premium <span class="chip live">Live</span></span></div>
+      </div>
+      <p class="lede" style="margin-top:1rem">One open item, stated plainly because that's the
+      standard we're holding this whole deck to: the community-pool cut in <code>splitFee()</code>
+      is currently computed on gross fee rather than the platform's post-creator share — a real,
+      unresolved allocation question, not a bug we're hiding. Full math appendix available on request.</p>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>07 · What closing the gap requires</span></div>
+      <h1>Here's the actual punch list — not a roadmap slide.</h1>
+      <div class="grid g2">
+        <div class="card pink"><h3>Security</h3><p>MADShieldVault — the fund-custody contract
+        — has no reentrancy guard yet. No contract has an external audit.</p></div>
+        <div class="card pink"><h3>Settlement</h3><p>The optimistic-oracle contract exists and
+        is tested; it isn't called by the market factory yet. Resolution is owner-attested today.</p></div>
+        <div class="card"><h3>Deployment</h3><p>Zero contracts have ever been broadcast to a
+        real network from this repo — everything so far is local/testnet development.</p></div>
+        <div class="card"><h3>Consistency</h3><p>A parallel, legacy contract package doesn't
+        currently compile and is being formally retired rather than left ambiguous.</p></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>08 · Test coverage, precisely</span></div>
+      <h1><span class="cy">21.5%</span> of the math engine's testable surface has unit coverage.</h1>
+      <p class="lede">20 of 93 runtime-testable exports. Fee constants, the creator ladder,
+      staking tiers, and GARCH volatility are well-covered. The DL-LMSR pricing functions
+      themselves and the live MAD Shield payout resolver currently have zero test coverage —
+      exactly the kind of gap an audit exists to close, named here rather than left for one to find.</p>
+      <div class="figs">
+        <div class="fig"><div class="n">90+</div><span class="l">Foundry tests, 10 canonical contracts</span></div>
+        <div class="fig"><div class="n">21.5%</div><span class="l">Math-engine unit-test coverage</span></div>
+        <div class="fig"><div class="n">0</div><span class="l">Independent audits to date</span></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>09 · Why an infrastructure fund</span></div>
+      <h1>Reusable settlement infrastructure, not a single consumer app.</h1>
+      <p class="lede">Continuous-pricing markets on claims that never formally resolve — DL-LMSR
+      pricing, GARCH-modeled risk, a fee-routing and loss-mitigation primitive — is a layer any
+      platform pricing subjective cultural claims will eventually need. We think it's worth
+      building as infrastructure, not just as this product's backend. That's our case to make,
+      not a claim about your fund's thesis.</p>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>10 · The ask</span></div>
+      <h1>Co-development, against milestones — not passive capital.</h1>
+      <div class="ask">
+        <div class="askcard">
+          <div class="k">Tranche 01 · Infrastructure</div>
+          <div class="amt">$15K – $20K</div>
+          <p>3–6 months of build velocity, CI/RPC reliability, and one capable dev machine.</p>
+        </div>
+        <div class="askcard">
+          <div class="k">Tranche 02 · Bridge, milestone-gated</div>
+          <div class="amt">$300K – $500K</div>
+          <p>Closes exactly the gap on slide 7 — settlement wiring, an independent audit, a
+          technical partner against explicit milestones.</p>
+        </div>
+      </div>
+      <table class="data" style="margin-top:1rem">
+        <tr><th>Bridge allocation</th><th>Share</th><th>Funds</th></tr>
+        <tr><td>Technical partner / studio</td><td class="n">45%</td><td>Settlement wiring, hardening</td></tr>
+        <tr><td>Independent security audit</td><td class="n">25%</td><td>Fund-custody contracts, paid direct to the auditor</td></tr>
+        <tr><td>Testing / QA infra</td><td class="n">10%</td><td>Testnet ops, bug bounty seed</td></tr>
+        <tr><td>Founder runway</td><td class="n">12%</td><td>Continuity through the bridge window</td></tr>
+        <tr><td>Legal + contingency</td><td class="n">8%</td><td>Round docs, buffer</td></tr>
+      </table>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>11 · Status</span></div>
+      <h1>Where this actually stands, today.</h1>
+      <div class="grid g2">
+        <div class="card"><h3>Committed capital</h3><p><strong style="color:var(--white)">$0.</strong> No soft circles, no lead, no prior institutional raise.</p></div>
+        <div class="card"><h3>This relationship</h3><p>A live, working conversation. Nothing
+        here should be read as an executed agreement, MOU, or partnership.</p></div>
+      </div>
+      <div class="closer">If the infrastructure framing on slide 9 is genuinely a fit for how
+      you invest, we'd like to pressure-test the market design with someone who's done this
+      before — and we're accountable to specific, milestone-gated deliverables, not a retainer.</div>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow"><span>12 · Appendix</span></div>
+      <h1>Full evidence, on request.</h1>
+      <p class="lede">Every claim in this deck traces to a companion document: the one-page
+      truth sheet, the feature traceability matrix, the full mathematical-engine appendix, and
+      the security &amp; oracle risk register. Ask and we'll share the set.</p>
+      <p class="foot" style="position:static; background:none; border:none; padding:0; margin-top:1rem">
+      Informational only — not an offer or solicitation of securities. © 2026 MAD Gambit LLC (New Mexico).</p>
+    </section>
+
+  </div>
+
+  <div class="foot">
+    <span id="counter">01 / 12</span>
+    <span class="spacer"></span>
+    <span>Evidence-labelled · Not an offer or solicitation · © 2026 MAD Gambit LLC (New Mexico)</span>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0;
+  var rail = document.getElementById('rail');
+  slides.forEach(function(){ var d = document.createElement('div'); d.className='dot'; rail.appendChild(d); });
+  var dots = Array.prototype.slice.call(rail.children);
+  var counter = document.getElementById('counter');
+  function pad(n){ return (n<10?'0':'') + n; }
+  function paint(){
+    slides.forEach(function(s,n){ s.classList.toggle('on', n===i); });
+    dots.forEach(function(d,n){ d.className = 'dot' + (n < i ? ' done' : n === i ? ' now' : ''); });
+    counter.textContent = pad(i+1) + ' / ' + pad(slides.length);
+  }
+  function go(n){ i = Math.max(0, Math.min(slides.length-1, n)); slides[i].scrollTop = 0; paint(); }
+  document.getElementById('next').addEventListener('click', function(){ go(i+1); });
+  document.getElementById('prev').addEventListener('click', function(){ go(i-1); });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight' || e.key === 'PageDown'){ e.preventDefault(); go(i+1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); go(i-1); }
+  });
+  var x0 = null;
+  document.getElementById('stage').addEventListener('touchstart', function(e){ x0 = e.changedTouches[0].clientX; }, {passive:true});
+  document.getElementById('stage').addEventListener('touchend', function(e){
+    if(x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    if(Math.abs(dx) > 55) go(dx < 0 ? i+1 : i-1);
+    x0 = null;
+  }, {passive:true});
+  paint();
+})();
+</script>
+</body>
+</html>

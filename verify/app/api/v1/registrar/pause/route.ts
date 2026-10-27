@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { timingSafeEqual } from "crypto";
 import { getDbPool } from "@/lib/db";
 import { hasDatabaseUrl } from "@/lib/database-url";
 import { getPauseState, setPaused } from "@/lib/registrar-queue";
 import { enforceRateLimit } from "@/lib/rate-limit";
+import { secretMatches } from "@/lib/bearer-secret";
 
 /**
  * PAUSE_GUARDIAN (§9.1) — halt new conviction platform-wide.
@@ -26,14 +26,14 @@ import { enforceRateLimit } from "@/lib/rate-limit";
  * auth. A stop control that degrades to a weaker check under misconfiguration
  * is a stop control anyone can eventually reach.
  */
+// The timing-safe compare moved to lib/bearer-secret.ts so the registrar's
+// credential check is the SAME implementation rather than a second one written
+// from memory. Two privileged routes side by side with two comparison styles is
+// how the weaker one gets copied next.
 function guardianAuthorised(req: Request): boolean {
   const expected = process.env.PAUSE_GUARDIAN_TOKEN;
   if (!expected) return false;
-  const provided = req.headers.get("x-pause-guardian") ?? "";
-  const a = Buffer.from(provided, "utf8");
-  const b = Buffer.from(expected, "utf8");
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
+  return secretMatches(req.headers.get("x-pause-guardian") ?? "", expected);
 }
 
 export async function GET() {

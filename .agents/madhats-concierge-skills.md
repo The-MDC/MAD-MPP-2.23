@@ -2,7 +2,7 @@
 
 ## Core Concierge Skills for MAD Gambit / MADHATs (Updated 2026-07-14)
 
-1. **madhatr-concierge** — Primary orchestrator, session continuity, proprietary IP protection, brand voice, handoff routing. (Front door for everything)
+1. **mad-gambit-concierge** — Primary orchestrator, session continuity, proprietary IP protection, brand voice, handoff routing. (Front door for everything)
 2. **mad-gambit-math** — High-level verification of DL-LMSR, Bayesian trees, GARCH, tokenomics, shield economics (public numbers only + gate).
 3. **solidity-foundry-security** — Foundry tests, fuzz, Slither, UUPS, reentrancy, MADShieldVault / MADCard audits.
 4. **dopamine-ui-design-system** — SKIN_TOKENS, DeviceFrame, carousel, neurodiversity prefs, no raw hex, original logo only.

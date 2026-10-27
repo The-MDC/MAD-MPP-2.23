@@ -44,6 +44,7 @@ export default function MarketsForTodayPanel() {
   const [data, setData] = useState<Resp | null>(null);
   const [filter, setFilter] = useState<MarketType | "all">("all");
   const [pulling, setPulling] = useState(false);
+  const [pullNote, setPullNote] = useState<string | null>(null);
 
   const load = useCallback(() => {
     fetch("/api/v1/markets/proposals?limit=16")
@@ -58,11 +59,24 @@ export default function MarketsForTodayPanel() {
     load();
   }, [load]);
 
-  // Yank fresh chaos from GDELT, then re-classify. (Live in prod; a no-op flourish
-  // without a DB — the button still spins and reloads the demo set.)
+  // Yank fresh chaos from GDELT, then re-classify. Calls the public, rate-limited
+  // refresh route (not /api/v1/ingest/gdelt directly — that one is CRON_SECRET-gated
+  // for the scheduled job and a browser can never supply that header, so calling it
+  // here always 401/503'd). That route does real work now instead of always refusing;
+  // a genuine failure (rate-limited, network error) is surfaced via pullNote rather
+  // than swallowed by an empty .catch(). Degrades the same way the route does: without
+  // a DB it still fetches+scores a preview, persisting nothing, rather than failing.
   const pullFresh = async () => {
     setPulling(true);
-    await fetch("/api/v1/ingest/gdelt", { method: "POST" }).catch(() => {});
+    setPullNote(null);
+    const res = await fetch("/api/v1/markets/proposals/refresh", { method: "POST" }).catch(() => null);
+    if (!res || !res.ok) {
+      setPullNote(
+        res?.status === 429
+          ? "Refresh is rate-limited — try again in a few minutes."
+          : "Refresh failed. Showing the last stored signals.",
+      );
+    }
     load();
     setPulling(false);
   };
@@ -96,6 +110,16 @@ export default function MarketsForTodayPanel() {
           >
             {pulling ? "…" : "⚡ Pull fresh"}
           </button>
+          {/* Rendered, not just stored. A note nobody displays swallows the
+              failure exactly as the empty .catch() used to. */}
+          {pullNote && (
+            <span
+              role="status"
+              style={{ fontSize: 7, letterSpacing: 0.6, color: skin.muted, fontFamily: INSTRUMENT_FONT, maxWidth: 220 }}
+            >
+              {pullNote}
+            </span>
+          )}
           {data && (
             <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "2px 6px", borderRadius: 4, color: live ? skin.accent : skin.muted, background: `${live ? skin.accent : skin.muted}18`, border: `1px solid ${live ? skin.accent : skin.muted}40` }}>
               {live ? "live" : "demo"}

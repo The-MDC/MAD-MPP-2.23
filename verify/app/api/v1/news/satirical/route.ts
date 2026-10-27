@@ -40,7 +40,9 @@ export interface SatiricalNewsItem {
   satiricalHeadline: string;
   satireScore: number;
   verdict: string;
-  brandSafe: boolean;
+  entertainmentGrade: boolean;
+  assertionRisk: number;
+  needsReview: boolean;
   link: string;
   heat: number;            // 0–100 composite traffic-value score (drives the ordering)
   heatSignals: HeatSignals; // per-signal breakdown for the explainer popup
@@ -72,7 +74,9 @@ function toRaw(
   return {
     source, sourceId, category, image: image ?? null, realHeadline: title,
     satiricalHeadline: satirizeHeadline(title, category),
-    satireScore: m.satireScore, verdict: m.verdict, brandSafe: m.brandSafe, link,
+    satireScore: m.satireScore, verdict: m.verdict,
+    entertainmentGrade: m.entertainmentGrade,
+    assertionRisk: m.assertionRisk, needsReview: !m.lowAssertionRisk, link,
     publishedMs, trustScore: meta.trust, viralityWeight: meta.virality,
   };
 }

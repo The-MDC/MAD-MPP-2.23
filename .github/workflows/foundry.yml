@@ -38,6 +38,14 @@ concurrency:
   group: foundry-${{ github.ref }}
   cancel-in-progress: true
 
+
+# Least privilege. Without this block a workflow inherits the REPOSITORY
+# default token scope, which on older repos is read-write across the API — an
+# action compromise then reaches far past the job that ran it. The four
+# workflows that already declared this were fine; these did not.
+permissions:
+  contents: read
+
 jobs:
   forge:
     name: forge build + test
@@ -47,7 +55,7 @@ jobs:
         working-directory: contracts
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -76,13 +84,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Slither
-        uses: crytic/slither-action@v0.4.2
+        uses: crytic/slither-action@v0.4.0
         continue-on-error: true
         with:
           target: "contracts/"

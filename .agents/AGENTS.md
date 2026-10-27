@@ -17,10 +17,10 @@ See `.agents/SUPERGROK_GUARDRAILS_AND_SKILLS.md` for the full proprietary protec
 All skills live under `.agents/skills/` (and the SuperGrok user skills directory).
 
 **P0 (always available)**:
-- madhatr-concierge — front-door orchestrator + IP protector
+- mad-gambit-concierge — front-door orchestrator + IP protector (was `madhatr-concierge`)
 - mad-gambit-math — high-level math verification + public numbers only
 - solidity-foundry-security — Foundry audits, fuzz, UUPS, Arbitrum
 
 **Full list + triggers**: See `.agents/skills/README.md` and `.agents/SUPERGROK_GUARDRAILS_AND_SKILLS.md`.
 
-**Usage**: SuperGrok / any agent must load the guardrails file first, then match triggers to skills. Route all user-facing work through madhatr-concierge.
+**Usage**: SuperGrok / any agent must load the guardrails file first, then match triggers to skills. Route all user-facing work through **mad-gambit-concierge** — the single canonical brand and front door. `madhatr-concierge`, `MADHATr Concierge` and `Tri-Agent` are superseded names for the same character and resolve to it.
