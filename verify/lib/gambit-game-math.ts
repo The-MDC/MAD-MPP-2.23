@@ -144,6 +144,18 @@ export const RARITY_DROP_WEIGHTS = {
 } as const;
 // Note: Mythic (1-of-1) is never in packs — only obtainable via special events
 
+/** How the 992-card deck is made up (founder, 13-sections maths brief,
+ *  2026-10-27). 8 factions × 14 base cards = 112; the parts sum to
+ *  PLATFORM.TOTAL_DECK_SIZE, pinned by a test. */
+export const DECK_COMPOSITION = {
+  factions: 8,
+  base: 112,
+  crossovers: 784,
+  chaosFusions: 56,
+  legendaryCrossovers: 32,
+  goldenPanderverse: 8,
+} as const;
+
 /* ====================================================================
  * SHIELD OPT-IN / OPT-OUT MECHANICS
  *     All shield tiers (Standard 28.8%, Shielded 40%, Whale 60%) are
@@ -486,11 +498,9 @@ export interface FeeSplit {
  * The community's 32.4864 is 17.28% of gross — exactly the figure canon
  * specifies, versus the 54.144 (28.8% of gross) the old code paid out.
  *
- * NOTE, unresolved: CREATOR_LADDER's first rung is 2880 bps (28.8%), which sits
- * BELOW the founder's stated 40–60% creator range and reuses the community
- * number. That looks like the same conflation CANONICAL_NUMBERS §10 flagged
- * between creator share and the Shield 28.8/40/60 recovery tiers. Not changed
- * here — it needs its own answer.
+ * RESOLVED 2026-10-23 (founder): the 2880-bps first rung is correct. Creators
+ * slide 28.8% → 40%; 60% is a VIP profit share limited to 4,888 seats, not a
+ * rung. Every row of this waterfall is pinned in lib/pitch-canon.test.ts.
  *
  * `creatorShareBps` is the creator's CREATOR_LADDER rung
  *  (2880 User / 4000 MinorCreator / 6000 CR8TR) and applies ONLY on that
@@ -1280,9 +1290,16 @@ export function calculateFurnaceBurnPercent(volume: number, fees: number): numbe
   return Math.min(burnPercent, PLATFORM.FURNACE_BURN_CAP * 100);
 }
 
-/** NFT-clout-scaled staking yield: APY_user = APY_base · (1 + clout/200) */
+/** Clout is a 0–200 score (canon §7: clout ∈ [0, 200]), so the boost tops out at 2×. */
+export const MAX_NFT_CLOUT = 200;
+
+/** NFT-clout-scaled staking yield: APY_user = APY_base · (1 + clout/200),
+ *  clout clamped to [0, 200]. MAD Tier therefore tops out at 38.8% × 2 = 77.6%.
+ *  Unclamped, POST /api/v1/staking/yield (which only floors clout at 0) would
+ *  quote any multiple a caller asked for. */
 export function calculateStakingYield(apyBase: number, nftClout: number): number {
-  return apyBase * (1 + Math.max(nftClout, 0) / 200);
+  const clout = Number.isFinite(nftClout) ? Math.min(MAX_NFT_CLOUT, Math.max(nftClout, 0)) : 0;
+  return apyBase * (1 + clout / MAX_NFT_CLOUT);
 }
 
 /** Softmax liquidity allocator across N market scenarios by crowd speed.

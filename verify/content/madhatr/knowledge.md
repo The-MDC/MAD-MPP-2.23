@@ -2,7 +2,7 @@
 
 What the MAD Gambit Concierge knows and is allowed to say. The concierge reads this file directly. Edit a line here and he says the new line on the next deploy.
 
-**As of 2026-10-27.** Anything dated can go stale: update it, or let him use the pay-grade ladder.
+**As of 2026-10-27** (maths reconciled to the founder's 13-sections brief). Anything dated can go stale: update it, or let him use the pay-grade ladder.
 
 How the file is read:
 
@@ -61,6 +61,9 @@ Facts:
 - Canon numbers only: the figures in this file. If an old deck or data-room page shows a different number, this file wins.
 - Free-play only: the beta floor uses demo $MADx. Nothing on it is real money.
 - Anything dated past this file's as-of date: say how old the fact is, or take the pay-grade ladder.
+- Never use the platform's old project name. It is MAD Gambit.
+- Never quote traction or fundraising figures (sign-ups, alpha results, raise size, use of funds). Those are the founder's to share.
+- Never describe the reward rhythm as anything but game-economy engagement.
 
 ---
 
@@ -72,13 +75,14 @@ Say:
 - MAD Gambit is a conviction market for culture. You don't just call yes or no. You price how hard and how long people believe it, and the market keeps pricing whether or not the story ever ends.
 - Three ways to play: Prediction for dated calls, Conviction for beliefs and what-ifs, and Affliction, the card game, where every win or loss leaves you a collectible with its history on it.
 - Satire on the wire, a card game on the side, and creators who get paid on the markets they open. One flat 1.88% fee on everything.
+- Most prediction markets are a question that settles: you trade toward the answer, it resolves, everybody leaves. Here the position keeps repricing as the story moves, and some of our markets never end.
 
 Facts:
 - Market classes: PREDICTION (dated, settles on a named source), CONVICTION (continuous belief; the Paseome what-if trees), AFFLICTION (gossip and scandal perpetuals, plus the MADHAT's Gambit card game).
 - Pricing: a DL-LMSR automated market maker, so every market always has a price and the outcome prices always add up to 100%.
-- Randomness is allowed only in card packs, never in a market price.
+- Randomness lives only in the card game (packs, evolutions, battles), never in a market price.
 - Built as a Next.js app on Vercel with Neon Postgres. Contracts in Solidity with Foundry, targeting Arbitrum One.
-- Legal entity: MAD Gambit LLC, New Mexico, filed March 2026. The old project name was MAD Upshot.
+- Legal entity: MAD Gambit LLC, New Mexico, filed March 2026.
 - The card game is MADHAT's Gambit. The platform is MAD Gambit. Never call the platform "MADHATs Gambit".
 
 ---
@@ -117,6 +121,8 @@ Say:
 - Do the math with me: $100,000 a month through your market is $1,880 in fees. At the 40% rung, $752 of that is yours, every month it keeps trading.
 - There's a rare VIP seat that pays 60%. Only 4,888 of them will ever exist. That's not a rung you climb. It's a chair you're offered.
 - Platform-made markets pay no creator cut. That's the house's own book.
+- Creators bring their own crowd because they earn from it. We pay out distribution instead of buying ads.
+- Every market opens with a price on day one: the market maker always quotes, and the house's worst case is fixed before the first trade.
 
 Facts:
 - Ladder: User 28.8% (2880 bps), MinorCreator 40% (4000 bps, 12 markets). VIP 60% limited to 4,888 seats; pinned in code, not yet enforced.
@@ -133,6 +139,9 @@ Say:
 - The community takes 28.8% of what the platform keeps after the creator's cut. Not of the gross, of what's left.
 - Per $10,000 traded on a 40% creator market: $188 in fees, $75.20 to the creator, $32.49 to the community, $80.31 to the protocol. Adds to the penny.
 
+Facts:
+- Per 10,000 traded (creator / community / protocol, each row sums to 188.00): platform-offered market 0 / 54.14 / 133.86; User rung 28.8% 54.14 / 38.55 / 95.31; MinorCreator 40% 75.20 / 32.49 / 80.31; VIP seat 60% 112.80 / 21.66 / 53.54.
+
 ---
 
 ## The founder: Nick J. McLeod
@@ -142,11 +151,13 @@ Keywords: founder, nick, mcleod, nick mcleod, nick j mcleod, ceo, who built, who
 Say:
 - Nick J. McLeod is the founder and CEO of MAD Gambit. He designed the maths engine end to end: conviction scoring, volatility, the market maker, the Bayesian layer, the fee waterfall. He's also the one who sets the canon numbers.
 - He wrote the card taxonomy too. All 992 cards add up exactly to the engine's deck size. The man counts.
+- He spent three months taking Kalshi and Polymarket apart before writing a line of code, then built the engine himself instead of handing it to a studio.
 - The team: Nick on product and protocol, Carlo Fernandez as COO on operations and partnerships, and Zena Shah as CFO and head of economics.
 - Want the man himself? Join the beta. Creators get looked at first.
 
 Facts:
 - GitHub: MADdegen (personal); org The-MDC.
+- Founder-stated (2026-10-27): has founded and exited a company before. Self-funded MAD Gambit to date.
 - Carlo Fernandez: COO, 12 years in Web3, creator acquisition and partnerships.
 - Zena Shah: CFO and Head of Economics, fee architecture, token economics, Shield solvency.
 - Never share personal details: contact goes through the beta signup.
@@ -155,31 +166,30 @@ Facts:
 
 ## The MDC and the MADdegens
 
-Keywords: mdc, the mdc, maddegens, mad degens, degens, dao, maddao, community, history, origin, mad upshot, megalomaniac
+Keywords: mdc, the mdc, maddegens, mad degens, degens, dao, maddao, community, history, origin, megalomaniac
 
 Say:
 - The MADdegens, The MDC, are the crew this all came out of. A degen collective that wrote its first whitepaper in September 2024 and has been building ever since.
 - Started on Solana with 6,666 "Megalomaniac" NFTs, moved through CrossFi, and landed on EVM. Now it's Arbitrum.
-- MAD Upshot was the old name. MAD Gambit is the grown-up version. Same attitude, better maths.
 - The MADDAO is the governance side: quadratic voting, so a thousand small holders outweigh one whale.
 
 Facts:
 - Founding MDC/MADdegens whitepaper dated 2024-09-30.
 - GitHub org: The-MDC (product repo The-MDC/MAD-MPP-2.23).
-- Original brand (November 2024): crimson, jet black, metallic gold, "MAD Upshot".
+- Original brand (November 2024): crimson, jet black, metallic gold.
 
 ---
 
 ## The card game: MADHAT's Gambit
 
-Keywords: card, cards, card game, madhat's gambit, madhats gambit, pack, packs, rip, nft, collect, collection, rarity, mythic, affliction card, golden aura, dutch auction, deck
+Keywords: card, cards, card game, madhat's gambit, madhats gambit, pack, packs, rip, nft, collect, collection, rarity, mythic, affliction card, golden aura, dutch auction, deck, random, randomness, luck, rigged, provably fair
 
 Say:
 - MADHAT's Gambit: 992 cards, packs at 4.88 $MADx for 5. Rip one on the beta floor with free-play money.
 - Win and a card can evolve toward Golden Aura. Lose and it becomes an Affliction card, a trophy of the trade you can't take back. Every loss leaves you something.
 - Rarity runs from Common to Mythic. Mythic is one of one and never comes out of a pack. Special events only.
 - Drops can run as a Dutch auction: the price walks down until buyers clear, and everybody pays the same clearing price.
-- Luck lives in the packs. Never in a market price.
+- Randomness lives in the card game: packs, evolutions and battles. Never in a market price.
 
 Facts:
 - Deck: 112 base across 8 factions, 784 crossovers, 56 chaos fusions, 32 legendary crossovers, 8 Golden Panderverse = 992. Seed 8888.
@@ -207,7 +217,7 @@ Facts:
 
 ## MAD Shield
 
-Keywords: shield, mad shield, stop loss, stop-loss, protection, protect, insurance, loss, lose, losing
+Keywords: shield, mad shield, stop loss, stop-loss, protection, protect, insurance, loss, lose, losing, premium, shield cost, shield price, the shield
 
 Say:
 - MAD Shield is an opt-in stop-loss. Pay 2% to 4% up front, and if the bet loses you get 28.8% to 40% of the stake back.
@@ -217,6 +227,7 @@ Say:
 Facts:
 - Premium = stake × P(win) × √volatility × 0.35, clamped to 2–4% of the stake.
 - Tier caps: Bronze 28.8%, Silver 32.8%, Gold 36.8%, MAD Tier 40%.
+- Worked example: stake 100 $MADx at P(win) 0.5 and σ 0.20 → 100 × 0.5 × 0.20 × 0.35 = 3.5 $MADx, inside the 2–4% band.
 
 ---
 
@@ -228,6 +239,7 @@ Say:
 - Four tiers, all eights: Bronze from 88 $MADx at 8.8%, Silver from 888 at 18.8%, Gold from 8,888 at 28.8%, MAD Tier from 88,888 at 38.8%.
 - Hold influential cards and your clout can lift that rate up to double. MAD Tier tops out at 77.6% effective. Earned, never promised.
 - Your tier also caps your Shield recovery, so the longer you're in, the better you're protected.
+- The max is 77.6% effective: MAD Tier's 38.8% doubled at full clout. Clout tops out at 200, so nothing goes past double.
 
 Facts:
 - Effective APY = tier APY × (1 + clout/200), clout 0–200. Rewards come from a separately funded reserve.
@@ -258,6 +270,8 @@ Keywords: perp, perps, perpetual, perpetuals, z-liar, zliar, gossip-cop, gossip 
 Say:
 - Perps never close. They roll on a lunar grid: one leg is two moon cycles, 59.061 days. Six legs make a Turning.
 - The families: Scandal Velocity, the Z-Liar Meter, Gossip-Cop, Perpetual Epiphanies, Five Faces and Zeitgeist.
+- Perps you can trade today: Five Faces, Zeitgeist and Perpetual Epiphanies. The other three are dials you can watch, not trade yet.
+- A story becomes a perpetual when the trigger says it won't die. Eight matching signals put that at 86.5%, twelve at 95%. A happy story makes a bad perpetual: joy pulls the score down.
 - The Z-Liar Meter scores a statement's credibility. It never names who said it. Ever.
 - Perpetual Epiphanies prices laws that never resolve: Murphy's, Peter's, Hofstadter's. Evidence moves the number; the market never closes.
 
@@ -277,15 +291,33 @@ Say:
 
 Facts:
 - Price: pᵢ = e^(qᵢ/b) / Σ e^(qⱼ/b), b = 1,200 on the demo floor.
-- MADConv: M = t^1.35 · c^0.75 · d^1.45 · ψ^1.15 · (1+π^0.9) · m_meme · satire · liar · garch_amp.
+- MADConv, live core: M = t^1.35 · c^0.75 · d^1.45 · ψ^1.15 × card multiplier × lunar multiplier. The full spec adds (1+π^0.9) · m_meme · satire · liar · garch_amp; those terms exist as separate meters and are not yet multiplied into the live score. Never call the full form live.
 - GARCH(1,1): σ² = 0.0001 + 0.05·ε² + 0.90·σ²(prev).
 - Half-Kelly sizing with a δ-limit cap.
 - Z-Liar BS index = 0.6·narrative variance + 0.4·(1 − source credibility) − 0.25·corroboration; plus a volatility term (≤ 20) and half the lunar tilt (≤ 7.5).
 - Scandal velocity emotion weights: shame 1.8, anger 1.4, disgust 1.3, fear 1.2, sadness 1.0, joy −0.5.
 - Perp trigger: P = 1 − e^(−0.25 · matches · themeWeight · (1 + velocity)).
 - Lunar multiplier 1.00 (new moon) to 1.15 (full moon), thematic layer only, never fees, prices or the Shield.
-- Governance: quadratic funding (Σ√cᵢ)², voting power √stake capped at 24×.
+- Governance: quadratic funding raises (Σ√cᵢ)² in total; the match is that total minus what people gave. Voting power = √stake, capped at 240 votes, so no wallet outweighs a 100-$MADx holder by more than 24 to 1. The fee and creator share are never on the ballot.
+- Futarchy (designed): a proposal executes only above 80% pass probability sustained for 24 hours.
+- Bayesian layer: logit(p) moves by ln of each likelihood ratio; hybrid M' = M^0.85 · (1 + β·bayes); decision trees depth-bounded at 64; forecasts graded by Brier and log score. Live at POST /api/v1/bayesian/{update, tree, voi, score, garch}.
+- GARCH amplification = 1 + 0.8σ: 1.07× at σ 0.09, 1.54× at σ 0.68.
 - PvP: win chance = 0.5 + Δpower/25,000 + 0.06·Δstage + 0.15·Δwear, held to 0.12–0.88; Elo K = 32.
+
+---
+
+## Why it's an information market
+
+Keywords: information market, information, insight, insights, data, signal, signals, why better, what's different, different from polymarket, different from kalshi, data feed, what do you learn
+
+Say:
+- A binary market gives you one number per event, and then it closes. Every layer here gives off a different signal, and they all join up per user and per market on one engine.
+- Prediction gives dated probabilities. Conviction gives how hard and how long people believe. The Paseome gives scenario maps: if this, then that, at a price. The cards show how people behave after a loss.
+- Culture never stops making stories, so the floor never goes quiet between elections.
+- Everything we learn comes from people trading with money on it. Nobody fills in a survey.
+
+Facts:
+- Top insights the engine produces: conviction-weighted probability; belief persistence (from counterfactual trees); claim credibility (Z-Liar); story lifespan (emotion mix and velocity); scenario maps (branch prices); calibration rankings (Brier score); risk appetite by cohort (Shield opt-in, staying after a loss); an uncertainty map (books near p ≈ 0.5); attention demand (what creators list, what draws volume); a narrative-turbulence index (GARCH bands by category).
 
 ---
 
@@ -317,6 +349,7 @@ Facts:
 - Arbitrum Nova: in a DAO-voted migration to Arbitrum One; afterwards it moves to a passive data-availability committee model (L2BEAT, Aug 2026).
 - ArbOS 61 "Elara" approved for One and Nova; raises the Stylus contract size limit from 24 KB to 96 KB.
 - Robinhood Chain is an Arbitrum Orbit chain.
+- MAD Gambit's contracts: 10 Solidity contracts, 1,943 lines, in Foundry. Merged is not deployed: no mainnet addresses until an audit is done.
 
 ---
 
@@ -329,6 +362,8 @@ Say:
 - Kalshi raised $1 billion at a $22 billion valuation in May 2026, and by late June was reported to be talking about $40 billion. Polymarket was last reported at $15 billion in April.
 - Polymarket's U.S. arm got its CFTC designation in July 2025. The big boys are chasing institutions now, which leaves the creators and the degens to us.
 - Creator-made markets are the open race. XO Market, Limitless and Xmarket are all running at it. Nobody's won it yet.
+- Kalshi and Polymarket are built on questions that settle, and they're very good at it. We sell what happens after the question is answered, so we're not bidding for the same flow.
+- A question that never settles needs a market maker that can price it continuously. For a venue built around resolution dates, that's an architecture decision, not a feature.
 
 Facts:
 - Polymarket monthly volume peaked at $10.5B in March 2026 and was $8.9B in May (Sacra). U.S. arm $1.8B in May 2026.
