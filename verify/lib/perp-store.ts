@@ -18,6 +18,8 @@
  */
 import type { Pool, PoolClient } from "pg";
 import type { FaceId } from "@/lib/persona-codex";
+import { round6, spendWithin } from "@/lib/madx-web2";
+import { splitFee, type FeeSplit } from "@/lib/gambit-game-math";
 import { nextLegClose, vintageAt } from "@/lib/lunar-legs";
 import type { ExitStatus } from "@/lib/position-exit";
 
@@ -678,22 +680,137 @@ export interface StakeInput {
   vintage?: number | null;
 }
 
+/** Why a stake was refused. Mirrors `FillFailure` in lib/market-book.ts. */
+export type StakeFailure = "bad-amount" | "insufficient-balance";
+
+/**
+ * A settled stake. Shaped like `market-book.ts`'s fill result on purpose: gross
+ * in, fee off the top, net onto the position, and the computed split carried
+ * alongside.
+ */
+export interface StakeResult {
+  position: PerpPosition;
+  /** Gross $MADx debited from the wallet, fee inclusive — what the user asked to stake. */
+  spend: number;
+  /** The §6 platform fee at `PLATFORM.FEE_BPS` (1.88%), taken off the top. */
+  fee: number;
+  /** What actually lands on the position and on market volume: `spend − fee`. */
+  net: number;
+  /**
+   * The §6 two-stage waterfall as computed, NOT as distributed. Per the founder's
+   * "conserve now, distribute later" call, the fee is conserved on the platform
+   * side and the split is recorded so distribution can be settled later from the
+   * record. Deciding a destination here would silently resolve §13 item 7 — the
+   * open question of whether 28.8% community means "of the fee" or "of platform
+   * net" — which that section says explicitly not to do.
+   */
+  split: FeeSplit;
+}
+
+/**
+ * The §6 cost of a stake — PURE, so it can be unit-tested and so the client can
+ * preview the charge with the same arithmetic the server settles on.
+ *
+ * Split out of `stakeConviction` deliberately: the transactional part needs a
+ * live `Pool` and cannot run under vitest, so leaving the fee arithmetic inside
+ * it would leave the money maths permanently unverifiable. Tests live in
+ * `lib/perp-store.test.ts` — and must stay under `lib/`, because vitest's
+ * `include` is `["lib/**\/*.test.ts"]` and a test outside it silently never runs.
+ *
+ * Returns `null` for anything that is not a positive, finite, fee-survivable
+ * amount, rather than throwing — the caller turns that into a 400.
+ */
+export function convictionCost(
+  conviction: number,
+): { spend: number; fee: number; net: number; split: FeeSplit } | null {
+  const spend = Number.isFinite(conviction) ? Math.max(0, conviction) : 0;
+  if (spend <= 0) return null;
+  // §6 — the one home of the 1.88% fee and its two-stage waterfall.
+  // `creatorShareBps` is 0: a perp slot has no per-market creator to pay off the
+  // gross, since ZEITGEIST slots and EPIPHANY models are platform-authored. When
+  // creator-authored perps land, that rung is the only argument that changes.
+  const split = splitFee(spend, 0);
+  const fee = round6(split.grossFee);
+  const net = round6(spend - fee);
+  // Two dust bands, both of which have to be refused rather than rounded away:
+  //
+  //   net <= 0  — the fee consumed the whole stake, so the position would be
+  //               written at zero conviction and the money taken anyway.
+  //   fee <= 0  — the stake is small enough that 1.88% of it rounds to nothing
+  //               at ledger precision, which is a FEE-FREE stake. Tiny, but it
+  //               is a second money model again, and "every value movement pays
+  //               the §6 fee" has to be true without an exception band at the
+  //               bottom or it is not an invariant.
+  //
+  // The practical floor is ~0.0000266 $MADx, where 1.88% first survives round6.
+  if (net <= 0 || fee <= 0) return null;
+  return { spend, fee, net, split };
+}
+
 /**
  * Add conviction to a position, creating it if absent, and bump market volume.
  *
- * Transactional because the two writes must not diverge — a stake that lands on
- * the position but not on `volume` silently corrupts the dominance surcharge
+ * Transactional because the three writes must not diverge — a stake that lands
+ * on the position but not on `volume` silently corrupts the dominance surcharge
  * that gates every subsequent exit from this market.
+ *
+ * CONVICTION COSTS $MADx, AND IT DID NOT USED TO. Until now this function wrote
+ * `perp_positions.conviction` and bumped `perp_markets.volume` and touched no
+ * balance at all: conviction on a perp card was free, on every family, for every
+ * wallet. The number on screen was a quantity of nothing. `market-book.fill()`
+ * debited the ledger for a market swap while this path — the one the perp deck
+ * actually calls — did not, so the platform had two kinds of money.
+ *
+ * The debit joins THIS transaction through `spendWithin(client, …)` rather than
+ * `spend(pool, …)`, which opens its own. That is the whole point: a debit in a
+ * separate transaction can commit while the position write rolls back, which
+ * takes a user's balance and gives them nothing. One transaction or none.
+ *
+ * Returns a `StakeFailure` string rather than `null` so the caller can tell
+ * "you cannot afford this" (402) from "that is not a number" (400). `null` could
+ * not express the difference, and an insufficient balance answered as 400 reads
+ * to the client as a bug in its own request.
+ *
+ * THE FEE IS §6's, NOT A NEW ONE. `splitFee` is the single home of the 1.88%
+ * platform fee and its two-stage waterfall, and it is what `market-book.fill()`
+ * already uses. Taking a bespoke cut here — or none, which is what this function
+ * did — would put a second fee model on the same platform. The gross is debited,
+ * the fee comes off the top, and the NET is what lands on the position and on
+ * market volume, exactly as a market swap treats `spend → fee → netIn`.
  */
-export async function stakeConviction(pool: Pool, input: StakeInput): Promise<PerpPosition | null> {
+export async function stakeConviction(
+  pool: Pool,
+  input: StakeInput,
+): Promise<StakeResult | StakeFailure> {
   const wallet = input.walletAddress.toLowerCase();
   const layer = input.layer ?? "single";
-  const amount = Number.isFinite(input.conviction) ? Math.max(0, input.conviction) : 0;
-  if (amount <= 0) return null;
+
+  const cost = convictionCost(input.conviction);
+  if (!cost) return "bad-amount";
+  const { spend: amount, fee, net, split } = cost;
 
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
+
+    // The debit comes FIRST so the cheapest refusal is also the earliest, and
+    // because `spendWithin`'s `balance >= $2` predicate is what makes two
+    // concurrent stakes from one wallet unable to both pass — it locks the
+    // account row. Checking the balance and then deducting it would not.
+    // The GROSS is debited — the user pays what they said they would stake. The
+    // note carries the fee so the split is reconstructable from the ledger row
+    // alone, which is what "conserve now, distribute later" needs to be auditable.
+    const paid = await spendWithin(
+      client,
+      wallet,
+      amount,
+      `conviction ${input.marketId}${input.face ? ` ${input.face}` : ""} net=${net} fee=${fee}`,
+    );
+    if (!paid) {
+      await client.query("ROLLBACK");
+      return "insufficient-balance";
+    }
+
     const existing = await client.query(
       `SELECT * FROM perp_positions
         WHERE market_id = $1 AND wallet_address = $2 AND layer = $3
@@ -706,7 +823,9 @@ export async function stakeConviction(pool: Pool, input: StakeInput): Promise<Pe
       const upd = await client.query(
         `UPDATE perp_positions SET conviction = conviction + $2, updated_at = now()
           WHERE id = $1 RETURNING *`,
-        [(existing.rows[0] as RawPosition).id, amount],
+        // NET, not gross — the fee is off the top (§6), so conviction reflects
+        // what is actually staked on the subject.
+        [(existing.rows[0] as RawPosition).id, net],
       );
       row = upd.rows[0] as RawPosition;
     } else {
@@ -719,19 +838,22 @@ export async function stakeConviction(pool: Pool, input: StakeInput): Promise<Pe
           wallet,
           input.face ?? null,
           layer,
-          amount,
+          net,
           input.entryLeg ?? 0,
           input.vintage ?? null,
         ],
       );
       row = ins.rows[0] as RawPosition;
     }
+    // Volume takes the NET too, so `volume` stays the quantity conviction is
+    // actually resting on. The dominance surcharge and every exit price derive
+    // from this column; inflating it by the fee would overstate every one of them.
     await client.query(
       `UPDATE perp_markets SET volume = volume + $2, updated_at = now() WHERE id = $1`,
-      [input.marketId, amount],
+      [input.marketId, net],
     );
     await client.query("COMMIT");
-    return mapPosition(row);
+    return { position: mapPosition(row), spend: amount, fee, net, split };
   } catch (err) {
     await client.query("ROLLBACK").catch(() => {});
     throw err;

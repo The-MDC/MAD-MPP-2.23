@@ -1,0 +1,12 @@
+paths:
+  - src
+  - lib
+queries:
+  - uses: security-and-quality
+languages:
+  - cpp
+  - csharp
+  - go
+  - java
+  - javascript-typescript
+  - python
