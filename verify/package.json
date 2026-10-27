@@ -2,9 +2,6 @@
   "name": "applet",
   "version": "0.1.0",
   "private": true,
-  "engines": {
-    "node": "22.x"
-  },
   "scripts": {
     "dev": "next dev --port 3000",
     "build": "next build",
