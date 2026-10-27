@@ -60,6 +60,8 @@ const PUBLIC_PATHS = new Set([
   "/health",
   "/favicon.ico",
   "/favicon.png",
+  "/icon.png",
+  "/apple-icon.png",
   "/robots.txt",
   "/sitemap.xml",
   // CSP violation reports are sent by the browser out-of-band, not by page
