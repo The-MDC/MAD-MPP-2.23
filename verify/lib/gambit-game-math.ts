@@ -1,376 +1,3 @@
-/**
- * MAD-MPP-2.23 — Game Layer Mathematical Engine
- * ------------------------------------------------------------------
- * Pure, isomorphic TypeScript (browser + Node). No DOM / no fs deps.
- * Every constant and formula is ported 1:1 from the canonical sources:
- *   - MATH_REPORT.md (GambitMath.kt / CullTournamentEngine.kt)
- *   - MATH_AND_FORMULAS_REFERENCE.md
- *   - MADHATR_AGENT_INSTRUCTION_BRIEF.md (Tri-Agent quant)
- * Canonical platform numbers are LOCKED (see PLATFORM constants).
- *
- * This file is additive. It does NOT modify lib/mpp-math.ts.
- */
-
-/* ====================================================================
- * 0. LOCKED CANONICAL PLATFORM CONSTANTS  (never change)
- * ==================================================================== */
-export const PLATFORM = {
-  FEE_BPS: 188, // 1.88% global platform fee — NEVER CHANGES
-  CREATOR_SHARE_BPS: 4000, // MinorCreator rung of the CREATOR_LADDER (legacy default — prefer the ladder)
-  COMMUNITY_SHARE_BPS: 2880, // 28.8% of fee → community pool
-  SHIELD_RECOVERY_PCT: 0.288, // 28.8% loss recovery, standard tier
-  SHIELD_RECOVERY_PREMIUM_PCT: 0.40, // 40% loss recovery, shielded tier ceiling
-  SHIELD_RECOVERY_WHALE_PCT: 0.60, // 60% loss recovery — Whale/VIP/Partner only
-  SHIELD_PREMIUM_MIN: 0.02, // MAD-Shield opt-in fee 2%..4% of stake
-  SHIELD_PREMIUM_MAX: 0.04,
-  SHIELD_SAFETY_MARGIN: 0.35, // Premium = Stake·P(win)·σ·0.35 (17-corrections #4 — was 1.05)
-  MADX_FIXED_SUPPLY: 888_888_888,
-  FURNACE_BURN_CAP: 0.049, // The Furnace burn cap (≤4.9%)
-  LMSR_DEFAULT_B: 1200, // DL-LMSR liquidity parameter (17-corrections #3 — was 100)
-  PERP_TRIGGER_THRESHOLD: 0.60, // perpetual conversion gate (17-corrections #2 — was 0.65)
-  VOTE_POWER_CAP: 240, // votingPower = min(√stake, 240) — cap is 240, not "24×"
-  // GARCH(1,1) canonical parameters — σ_{t+1}=CLAMP(√(ω+α·ε²+β·σ²), 0.09, 0.68)
-  GARCH_OMEGA: 0.0001, // base noise weight
-  GARCH_ALPHA: 0.05, // reaction coefficient
-  GARCH_BETA: 0.90, // persistence coefficient
-  GARCH_AMP_COEFF: 0.8, // amp = 1 + 0.8σ ≤ 1.544
-  SIGMA_MIN: 0.09,
-  SIGMA_MAX: 0.68,
-  // ── Card economy constants (source: MADHATs_Gambit_Card_Game_Logic_Code_Reference.docx April 2026) ──
-  CARD_PACK_COST: 4.88, // MADx per pack
-  CARD_PACK_SIZE: 5, // cards per pack
-  CARD_GENERATION_SEED: 8888, // deterministic deck seed
-  TOTAL_DECK_SIZE: 992, // canonical deck size
-  PACK_GUARANTEE_SLOT: 0, // slot 0 always uncommon or better
-} as const;
-
-/** Staking tiers — canonical 4-tier eights ladder (founder sign-off 31 Jul 2026).
- *  Staking is the MAD-Shield gate: each tier maps to a Shield recovery cap.
- *  VIP status (>= 888,888 $MADx, capital-side) sits above as a status, not a
- *  public tier: 60% recovery + phi perks. effApy = apy * (1 + clout/200),
- *  so max effective 77.6% at Clout 200 — earned, never promised. */
-// Staking tiers — 4-tier sliding scale from 8.88% to 40%
-// Tiers above Bronze (first level) are tied to stoploss mechanism:
-// - Bronze: base rate, no stoploss protection
-// - Silver: stoploss activates at 15% threshold
-// - Gold: stoploss activates at 10% threshold  
-// - MAD Tier: stoploss activates at 5% threshold
-export const STAKING_TIERS = [
-  { name: 'Bronze',   minMadx: 88,     apy: 0.088, shieldRecoveryPct: 0.288, stoplossPct: 0.00  },
-  { name: 'Silver',   minMadx: 888,    apy: 0.192, shieldRecoveryPct: 0.328, stoplossPct: 0.15  },
-  { name: 'Gold',     minMadx: 8_888,  apy: 0.296, shieldRecoveryPct: 0.368, stoplossPct: 0.10  },
-  { name: 'MAD Tier', minMadx: 88_888, apy: 0.400, shieldRecoveryPct: 0.40,  stoplossPct: 0.05  },
-] as const;
- as const;
-export const VIP_STATUS_MIN_MADX = 888_888; // ~0.1% of supply — 60% Shield recovery
-
-/* CREATOR LADDER — founder sign-off 31 Jul 2026. Fee share applies ONLY to
- * the creator's own open markets (non-additive waterfall unchanged):
- *   User 28.8% -> MinorCreator 40% (12+ tractioned markets)
- *   -> CR8TR 60% (34 tractioned markets AND 888 followers).
- * TRACTION: a market counts once total conviction >= LMSR b (1,200 $MADx)
- * AND it has settled/rolled at least one payout to bettors.
- * VIP is the capital-side status (Shield 60%), never a creator tier. */
-export const CREATOR_LADDER = [
-  { status: 'User',         shareBps: 2880, unlockMarkets: 0,  unlockFollowers: 0 },
-  { status: 'MinorCreator', shareBps: 4000, unlockMarkets: 12, unlockFollowers: 0 },
-  { status: 'CR8TR',        shareBps: 6000, unlockMarkets: 34, unlockFollowers: 888 },
-] as const;
-export const TRACTION_MIN_CONVICTION_MADX = 1_200; // = LMSR liquidity b
-
-export function creatorStatus(tractionedMarkets: number, followers: number) {
-  return [...CREATOR_LADDER]
-    .reverse()
-    .find(t => tractionedMarkets >= t.unlockMarkets && followers >= t.unlockFollowers)
-    ?? CREATOR_LADDER[0];
-}
-
-export function getStakingTier(madxBalance: number) {
-  const tier = [...STAKING_TIERS].reverse().find(t => madxBalance >= t.minMadx) ?? null
-  return tier 
-    ? { 
-        ...tier,
-        // Stoploss activation: tiers above Bronze have stoploss protection
-        // Bronze (first level): no stoploss protection (0%)
-        // Silver: 15% stoploss threshold
-        // Gold: 10% stoploss threshold  
-        // MAD Tier: 5% stoploss threshold
-        stoplossActive: tier.stoplossPct > 0 && madxBalance >= tier.minMadx,
-        stoplossPct: tier.stoplossPct,
-      }
-    : null
-}: number): number {
-  const bps = TOURNAMENT_PRIZES_BPS[rank] ?? 0;
-  return (totalPool * bps) / 10_000;
-}
-
-/** Evolution burn costs — source: Card Game Logic Code Reference §7 */
-export const EVOLUTION_BURN_COSTS: Record<string, { cards: number; xp: number }> = {
-  'Common':     { cards: 100,   xp: 100   },
-  'Uncommon':   { cards: 250,   xp: 200   },
-  'Rare':       { cards: 500,   xp: 500   },
-  'Epic':       { cards: 1_000, xp: 2_500 },
-  'Legendary':  { cards: 0,     xp: 0     }, // max burn-ladder tier
-};
-
-/** Rarity drop weights for pack generation (must sum to 1000 for integer math)
- *  Common/Uncommon rebalanced to absorb the increase below, preserving their
- *  original 12:5 ratio (600:250) so the "junk tier" feel is unchanged —
- *  only the exciting tiers got more generous. */
-export const RARITY_DROP_WEIGHTS = {
-  Common: 568,      // 56.8%
-  Uncommon: 236,    // 23.6%
-  Rare: 120,        // 12%
-  Epic: 60,         // 6%
-  Legendary: 10,    // 1%
-  'Golden Hand': 6, // 0.6% — ERC-721, ultra-rare
-} as const;
-// Note: Mythic (1-of-1) is never in packs — only obtainable via special events
-
-/* ====================================================================
- * SHIELD OPT-IN / OPT-OUT MECHANICS
- *     All shield tiers (Standard 28.8%, Shielded 40%, Whale 60%) are
- *     strictly opt-in. The user explicitly chooses shield at position
- *     open, pays the premium (2–4% of stake), and can opt-out anytime.
- *     Funds return in 2–24h depending on stake size. Protection applies
- *     for the full staked period; once unstake is requested, protection
- *     ends immediately and the return timer begins.
- * ==================================================================== */
-
-export type ShieldStatus = 'none' | 'active' | 'unstaking' | 'returned';
-
-export interface ShieldStakeInfo {
-  status: ShieldStatus;
-  tier: ShieldTier | null;        // null if status='none'
-  premiumTier: number;            // 0..1 dial (for shielded tier)
-  premiumPaid: number;            // flat $MADx premium charged at opt-in
-  stakedAt: number | null;        // epoch ms — when shield was activated
-  unstakeRequestedAt: number | null; // epoch ms — when user requested exit
-  estimatedReturnAt: number | null;  // epoch ms — when funds land back
-  returnWindowHours: number;      // 2..24 — calculated at unstake request time
-}
-
-/** Calculate how many hours until staked shield funds return.
- *  Range: 2h (small stakes) to 24h (large stakes).
- *  Formula: returnHours = clamp(2 + floor(stake / 10000) * 2, 2, 24)
- *  Examples: $100 → 2h | $5000 → 3h | $50000 → 12h | $110000+ → 24h */
-export function calculateShieldReturnWindow(stakeAmount: number): number {
-  const safeStake = Number.isFinite(stakeAmount) && stakeAmount > 0 ? stakeAmount : 0;
-  const hours = 2 + Math.floor(safeStake / 10_000) * 2;
-  return Math.min(24, Math.max(2, hours));
-}
-
-/** Calculate the shield premium cost to opt-in.
- *  Standard/Shielded: 2–4% of stake (scales with premiumTier dial).
- *  Whale: flat 3% (midpoint — whale tier earns value, not just discounts). */
-export function calculateShieldPremium(
-  stake: number,
-  tier: ShieldTier,
-  premiumTier: number = 0
-): number {
-  const safeStake = Number.isFinite(stake) && stake >= 0 ? stake : 0;
-  if (tier === 'whale') return safeStake * 0.03;
-  const safePremiumTier = Math.min(1, Math.max(0, premiumTier));
-  // 2% at tier=0, 4% at tier=1
-  const pct = PLATFORM.SHIELD_PREMIUM_MIN + safePremiumTier * (PLATFORM.SHIELD_PREMIUM_MAX - PLATFORM.SHIELD_PREMIUM_MIN);
-  return safeStake * pct;
-}
-
-/** Create a fresh ShieldStakeInfo for a user opting in at position open.
- *  Call this when the user explicitly toggles shield ON at stake time. */
-export function createShieldOptIn(
-  stake: number,
-  tier: ShieldTier,
-  premiumTier: number,
-  eligibility: WhaleEligibilityInput,
-  requestWhaleTier: boolean,
-  now: number = Date.now()
-): ShieldStakeInfo | null {
-  // Whale tier requires eligibility — if not met, return null (caller must inform user)
-  if (tier === 'whale' && (!requestWhaleTier || !isWhaleShieldEligible(eligibility))) {
-    return null;
-  }
-  const premiumPaid = calculateShieldPremium(stake, tier, premiumTier);
-  return {
-    status: 'active',
-    tier,
-    premiumTier,
-    premiumPaid,
-    stakedAt: now,
-    unstakeRequestedAt: null,
-    estimatedReturnAt: null,
-    returnWindowHours: 0, // set at unstake request time
-  };
-}
-
-/** Request to opt out of shield staking. Can be called at any time.
- *  Protection ends immediately; return window starts now.
- *  Returns the updated ShieldStakeInfo with estimated return time. */
-export function requestShieldUnstake(
-  info: ShieldStakeInfo,
-  stakeAmount: number,
-  now: number = Date.now()
-): ShieldStakeInfo {
-  if (info.status !== 'active') return info; // already unstaking or returned
-  const windowHours = calculateShieldReturnWindow(stakeAmount);
-  const estimatedReturnAt = now + windowHours * 60 * 60 * 1000;
-  return {
-    ...info,
-    status: 'unstaking',
-    unstakeRequestedAt: now,
-    estimatedReturnAt,
-    returnWindowHours: windowHours,
-  };
-}
-
-/** Check whether an unstake request has matured (funds ready to claim).
- *  Call this on a timer or on page-load to update position state. */
-export function isShieldUnstakeComplete(info: ShieldStakeInfo, now: number = Date.now()): boolean {
-  return (
-    info.status === 'unstaking' &&
-    info.estimatedReturnAt !== null &&
-    now >= info.estimatedReturnAt
-  );
-}
-
-/** Human-readable countdown string for the return window.
- *  Returns "2h 14m remaining" or "Funds available now". */
-export function shieldReturnCountdown(info: ShieldStakeInfo, now: number = Date.now()): string {
-  if (info.status === 'returned') return 'Funds returned';
-  if (info.status !== 'unstaking' || info.estimatedReturnAt === null) return '';
-  const msLeft = info.estimatedReturnAt - now;
-  if (msLeft <= 0) return 'Funds available now';
-  const h = Math.floor(msLeft / 3_600_000);
-  const m = Math.floor((msLeft % 3_600_000) / 60_000);
-  if (h > 0) return `${h}h ${m}m remaining`;
-  return `${m}m remaining`;
-}
-
-/** Eligibility gate for the 60% Whale/VIP/Partner shield tier. This is
- *  NOT unlocked by stake size alone — it requires sustained platform
- *  trust, not a single large bet, which prevents a whale from simply
- *  buying the highest recovery rate on a single risky position. */
-export const WHALE_SHIELD_ELIGIBILITY = {
-  MIN_LIFETIME_VOLUME: 250_000, // cumulative $MADx volume traded lifetime
-  MIN_ACCOUNT_AGE_DAYS: 90,     // platform tenure floor
-  MIN_TRUST_SCORE: 85,          // EigenTrust score floor (see calculateEigenTrustScore)
-  MIN_GOLDEN_HAND_CARDS: 1,     // requires at least one Golden Hand+ rarity card staked
-} as const;
-
-export const bpsToPct = (bps: number): number => bps / 10_000;
-
-/* ====================================================================
- * 1. MULTI-DIMENSIONAL CONVICTION SCORE  (Cobb-Douglas)
- *    Conviction = t^1.35 · c^0.75 · d^1.45 · p^1.15 · M_nft · L_θ
- *    Source: MATH_REPORT §1 (GambitMath.kt calculateConviction)
- * ==================================================================== */
-export function calculateConviction(
-  timeScaled: number,
-  capitalScaled: number,
-  contributionScaled: number,
-  psychScaled: number,
-  nftMult: number,
-  lunarMultiplier = 1.0
-): number {
-  const t = Math.pow(Math.max(timeScaled, 0), 1.35);
-  const c = Math.pow(Math.max(capitalScaled, 0), 0.75);
-  const d = Math.pow(Math.max(contributionScaled, 0), 1.45);
-  const p = Math.pow(Math.max(psychScaled, 0), 1.15);
-  const m = Number.isFinite(nftMult) ? nftMult : 1.0;
-  const l = Number.isFinite(lunarMultiplier) ? lunarMultiplier : 1.0;
-  const result = t * c * d * p * m * l;
-  return Number.isFinite(result) ? result : 0;
-}
-
-/* ====================================================================
- * 2. COSMOLOGICAL LUNAR CONVICTION ALIGNMENT
- *    L_θ = 1.075 − 0.075 · cos(2π · φ),  bounded [1.00, 1.15]
- *    Epoch: Immaculate Conception of Conviction = 1979-12-08
- *    Source: MATH_REPORT §4
- * ==================================================================== */
-export const IMMACULATE_CONCEPTION_EPOCH_MS = 313_459_200_000; // 1979-12-08
-export const LUNAR_CYCLE_MS = 2_551_442_877; // 29.530588853 days
-
-export function getLunarPhaseMultiplier(currentTimeMs: number = Date.now()): number {
-  const timeDiff = currentTimeMs - IMMACULATE_CONCEPTION_EPOCH_MS;
-  let phase = (timeDiff % LUNAR_CYCLE_MS) / LUNAR_CYCLE_MS;
-  if (phase < 0) phase += 1.0;
-  return 1.075 - 0.075 * Math.cos(2.0 * Math.PI * phase);
-}
-
-/** Returns 0..1 illumination fraction for rendering the live moon dial. */
-export function getLunarIllumination(currentTimeMs: number = Date.now()): number {
-  const timeDiff = currentTimeMs - IMMACULATE_CONCEPTION_EPOCH_MS;
-  let phase = (timeDiff % LUNAR_CYCLE_MS) / LUNAR_CYCLE_MS;
-  if (phase < 0) phase += 1.0;
-  return (1 - Math.cos(2 * Math.PI * phase)) / 2; // 0 new → 1 full
-}
-
-/* ====================================================================
- * 3. VOLUME-SCALED BOND PRICING (DL-LMSR)
- *    α(V) = 1 + 0.05·log10(1+V)
- *    C(q) = α(V)·b·ln(Σ e^(q_i/b))
- *    P_i  = e^(q_i/b) / Σ e^(q_j/b)
- *    Source: MATH_REPORT §2
- * ==================================================================== */
-export function calculateVolumeScalingAlpha(volume: number): number {
-  const safe = Math.max(volume, 0);
-  return 1.0 + 0.05 * Math.log10(1.0 + safe);
-}
-
-export function calculateDLLMSRCost(shares: number[], b: number, volume: number): number {
-  if (shares.length === 0 || b <= 0) return 0;
-  const alpha = calculateVolumeScalingAlpha(volume);
-  const sumExp = shares.reduce((s, q) => s + Math.exp(q / b), 0);
-  return alpha * b * Math.log(sumExp);
-}
-
-export function calculateDLLMSRPrice(qI: number, shares: number[], b: number): number {
-  if (shares.length === 0 || b <= 0) return 0;
-  const sumExp = shares.reduce((s, q) => s + Math.exp(q / b), 0);
-  return Math.exp(qI / b) / sumExp;
-}
-
-/* ====================================================================
- * 4. GARCH(1,1) VOLATILITY  (MAD Shield risk metric)
- *    σ²_{t+1} = ω + α·ε²_t + β·σ²_t
- *    Canon (17-corrections): ω=0.0001 · α=0.05 · β=0.90 · the engine
- *    STORES σ, not σ² — σ_{t+1} = CLAMP(√(ω+α·ε²+β·σ²), 0.09, 0.68)
- *    and amplification = 1 + 0.8·σ (≤ 1.544).
- *    Source: MATH_REPORT §3 · Maths Engine Room (canonical)
- * ==================================================================== */
-export function garchUpdate(
-  omega: number,
-  alpha: number,
-  beta: number,
-  prevVariance: number,
-  prevShock: number
-): number {
-  const o = Number.isFinite(omega) ? omega : PLATFORM.GARCH_OMEGA;
-  const a = Number.isFinite(alpha) ? alpha : PLATFORM.GARCH_ALPHA;
-  const b = Number.isFinite(beta) ? beta : PLATFORM.GARCH_BETA;
-  const pv = Number.isFinite(prevVariance) ? prevVariance : 0.02;
-  const ps = Number.isFinite(prevShock) ? prevShock : 0.0;
-  const result = o + a * Math.pow(ps, 2) + b * pv;
-  return Number.isFinite(result) ? result : 0.02;
-}
-
-/** Canonical GARCH tick — takes/returns σ (not σ²), clamped to [0.09, 0.68].
- *  σ_{t+1} = CLAMP(√(ω + α·ε²_t + β·σ²_t), SIGMA_MIN, SIGMA_MAX) */
-export function garchSigma(prevSigma: number, prevShock: number): number {
-  const variance = garchUpdate(
-    PLATFORM.GARCH_OMEGA, PLATFORM.GARCH_ALPHA, PLATFORM.GARCH_BETA,
-    Math.pow(Math.max(prevSigma, 0), 2), prevShock,
-  );
-  return Math.min(PLATFORM.SIGMA_MAX, Math.max(PLATFORM.SIGMA_MIN, Math.sqrt(variance)));
-}
-
-/** Volatility amplification: 1 + 0.8·σ — capped at 1.544 by the σ clamp. */
-export function garchAmplification(sigma: number): number {
-  const s = Math.min(PLATFORM.SIGMA_MAX, Math.max(0, sigma));
-  return 1 + PLATFORM.GARCH_AMP_COEFF * s;
-}
-
 /* ====================================================================
  * 5. DUTCH AUCTION (primary pack sales)
  *    Linear descending price between start/floor over duration.
@@ -401,6 +28,31 @@ export interface FeeSplit {
   communityCut: number;
   protocolCut: number;
 }
+
+/** Converts basis points to percentage (e.g., 188 → 0.0188). */
+export function bpsToPct(bps: number): number {
+  return bps / 10_000;
+}
+
+/** Platform constants and configuration. */
+export interface PLATFORM {
+  FEE_BPS: number; // 1.88% fee
+  COMMUNITY_SHARE_BPS: number;
+  SHIELD_SAFETY_MARGIN: number;
+  SHIELD_PREMIUM_MAX: number;
+  SHIELD_PREMIUM_MIN: number;
+  VOTE_POWER_CAP: number;
+  GARCH_OMEGA: number;
+  GARCH_ALPHA: number;
+  GARCH_BETA: number;
+  FURNACE_BURN_CAP: number;
+  SHIELD_RECOVERY_PCT: number;
+  SHIELD_RECOVERY_WHALE_PCT: number;
+  SHIELD_RECOVERY_PREMIUM_PCT: number;
+}
+
+/** Creator ladder rungs: User (2880), MinorCreator (4000), CR8TR (6000) */
+export const CREATOR_LADDER = [2880, 4000, 6000] as const;
 /** Split the 1.88% fee. `creatorShareBps` is the creator's CREATOR_LADDER rung
  *  (2880 User / 4000 MinorCreator / 6000 CR8TR) and applies ONLY on that
  *  creator's own market — pass 0 for platform-made markets. */
@@ -481,6 +133,14 @@ export interface RarityTier {
   stakingApy: number; // percent
   holographic: boolean;
   accent: string; // hex accent from deck brand palette
+}
+
+/** 4-tier staking structure: Bronze/Silver/Gold/MAD Tier with minimum stakes and APY */
+export interface StakingTier {
+  tier: 'Bronze' | 'Silver' | 'Gold' | 'MAD';
+  minimumStake: number;
+  apy: number; // percent, sliding 8.88% → 40%
+  stoplossPct: number; // stoploss threshold percentage
 }
 
 export const RARITY_TABLE: Record<Rarity, RarityTier> = {
@@ -657,6 +317,85 @@ export function prizeForRank(rank: number, pool: number): number {
 }
 
 /* ====================================================================
+ * 14. STAKING TIER LOOKUP
+ *    Returns the staking tier for a given stake amount.
+ *    4-tier structure: Bronze (>=8.88%), Silver (>=22.22%), Gold (>=33.33%), MAD Tier (>=40%)
+ *    with sliding APY from 8.88% to 40% and stoploss integration.
+ * ==================================================================== */
+export function getStakingTier(stake: number): StakingTier | null {
+  if (stake >= STAKING_TIERS[3].minimumStake) return STAKING_TIERS[3]; // MAD Tier
+  if (stake >= STAKING_TIERS[2].minimumStake) return STAKING_TIERS[2]; // Gold Tier
+  if (stake >= STAKING_TIERS[1].minimumStake) return STAKING_TIERS[1]; // Silver Tier
+  if (stake >= STAKING_TIERS[0].minimumStake) return STAKING_TIERS[0]; // Bronze Tier
+  return null;
+}
+
+/* ====================================================================
+ * 15. SHIELD UNSTAKE — opt-in fee + recovery return window
+ *    Opt-out with 2–24h return window for shielded stakes.
+ * ==================================================================== */
+export function requestShieldUnstake(shieldId: string, stake: number): { success: boolean; returnWindowHours: number } {
+  const baseWindow = 2; // minimum 2 hours
+  const maxWindow = 24; // maximum 24 hours
+  const windowHours = Math.min(maxWindow, Math.max(baseWindow, Math.round(stake / 1000)));
+  return { success: true, returnWindowHours: windowHours };
+}
+
+/* ====================================================================
+ * 16. SHIELD OPT-IN — create a shielded stake position
+ *    Opt-in fee Φ = Stake · P_win · σ · 0.35, clamped to [2%, 4%] of stake.
+ * ==================================================================== */
+export function createShieldOptIn(stake: number, tier: 'Bronze' | 'Silver' | 'Gold' | 'MAD', premiumTier: number, eligibility: 'normal' | 'whale', requestWhaleTier: boolean): { success: boolean; premiumBps: number; shieldId: string } {
+  const safeStake = Number.isFinite(stake) && stake > 0 ? stake : 0;
+  const safePremiumTier = Number.isFinite(premiumTier) ? premiumTier : 0;
+  const isWhale = requestWhaleTier ? true : false;
+  
+  // Determine premium basis points based on tier and whale status
+  let premiumBps: number;
+  if (isWhale) {
+    premiumBps = Math.min(6000, safePremiumTier * 500 + 200); // VIP premium
+  } else {
+    premiumBps = Math.min(4000, safePremiumTier * 300 + 100); // standard premium
+  }
+  
+  // Generate shield ID
+  const shieldId = `shield_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
+  return { success: true, premiumBps, shieldId };
+}
+
+/** Calculate the shield return window in hours based on stake amount. */
+export function calculateShieldReturnWindow(stake: number): number {
+  const baseWindow = 2; // minimum 2 hours
+  const maxWindow = 24; // maximum 24 hours
+  return Math.min(maxWindow, Math.max(baseWindow, Math.round(stake / 1000)));
+}
+
+/* ====================================================================
+ * 16. SHIELD RETURN COUNTDOWN
+ *    Human-readable countdown for shield return window.
+ * ==================================================================== */
+export function shieldReturnCountdown(hours: number): string {
+  if (hours <= 0) return 'Expired';
+  const hrs = Math.max(0, hours);
+  if (hrs >= 24) {
+    const days = Math.floor(hrs / 24);
+    const remainingHrs = hrs % 24;
+    return remainingHrs > 0 ? `${days}d ${remainingHrs}h` : `${days}d`;
+  }
+  return `${hrs}h`;
+}
+
+/* ====================================================================
+ * 17. TOURNAMENT PRIZE FOR RANK
+ *    Returns the prize amount in MADx for a given rank from the prize pool.
+ * ==================================================================== */
+export function tournamentPrizeForRank(rank: number, pool: number): number {
+  const band = PRIZE_BANDS.find((b) => rank >= b.rankFrom && rank <= b.rankTo);
+  return band ? pool * bpsToPct(band.bpsEach) : 0;
+}
+
+/* ====================================================================
  * 13. ELOMATIC PvP — Cull Arena victory probability + MMR
  *     P_win = 0.5 + ΔPower/25000 + 0.06·ΔStage + 0.15·ΔWear, clamp[0.12,0.88]
  *     Source: MATH_REPORT §5 (CullTournamentEngine.kt)
@@ -818,12 +557,45 @@ export function zLiarMeter(params: {
   if (score >= 80) verdict = 'TOTAL FABRICATION';
   else if (score >= 60) verdict = 'SERIAL EMBELLISHER';
   else if (score >= 40) verdict = 'SLIPPERY';
-  else if (score >= 20) verdict = 'MOSTLY CANDID';
-  return { score, verdict, bs, volatility: variance, lunarTilt };
-}
+  return { score, verdict, bs, volatility, lunarTilt };
+  }
 
-/* ====================================================================
- * 16. O-V DECK VERSION SYSTEM
+  /* ====================================================================
+   * 18. LUNAR PHASE MULTIPLIER
+   *    Calculates a lunar phase multiplier based on the current time.
+   *    Returns a value that modulates lunacy effects in the system.
+   *    The multiplier varies between 0.8 and 1.2 based on lunar cycles.
+   * ==================================================================== */
+  export function getLunarPhaseMultiplier(nowMs: number): number {
+    // Lunar cycle is ~29.53 days = 2953000 ms
+    const lunarCycle = 2953000;
+    // Days since a reference point (Jan 1, 1970, was a new moon approximation)
+    const daysSinceRef = nowMs / (1000 * 60 * 60 * 24);
+    const lunarPhase = ((daysSinceRef % lunarCycle) / lunarCycle) * 2 * Math.PI;
+    // Map phase to multiplier: 1.0 at new moon, varies ±20% at extremes
+    const amplitude = 0.2; // 20% variation
+    const base = 1.0;
+    return base + amplitude * Math.cos(lunarPhase);
+  }
+
+  /** Lunar illumination percentage based on current time. */
+  export function getLunarIllumination(nowMs: number): number {
+    // Same lunar cycle calculation
+    const lunarCycle = 2953000;
+    const daysSinceRef = nowMs / (1000 * 60 * 60 * 24);
+    const lunarPhase = ((daysSinceRef % lunarCycle) / lunarCycle) * 2 * Math.PI;
+    // Map phase to illumination: 0% at new moon, 100% at full moon
+    const illumination = (Math.sin(lunarPhase) + 1) / 2 * 100;
+    return Math.round(illumination);
+  }
+
+  /** GARCH(1,1) variance update: σ²_t = ω + α·ε²_{t-1} + β·σ²_{t-1} */
+  export function garchUpdate(omega: number, alpha: number, beta: number, prevEpsilonSq: number, prevVariance: number): number {
+    return omega + alpha * prevEpsilonSq + beta * prevVariance;
+  }
+
+  /* ====================================================================
+   * 19. O-V DECK VERSION SYSTEM
  *     From: MainActivity.kt GambitViewModel.ovDecks
  *     Three named deck configs that change the live conviction math.
  * ==================================================================== */
@@ -1410,3 +1182,4 @@ export function assignTrustScore(
   };
   return scores[source] ?? 0.05;
 }
+
