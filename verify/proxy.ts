@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { BETA_COOKIE, loadGuests, verifyPass } from "@/lib/beta-gate";
 
 /**
  * Guest access gate (HTTP Basic Auth) for the MPP.
@@ -48,21 +49,8 @@ import type { NextRequest } from "next/server";
  * Parsed with indexOf rather than split(":") so a password containing a colon
  * is preserved rather than silently truncated at the first one.
  */
-function loadGuests(): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const entry of (process.env.GUEST_LOGINS ?? "").split(",")) {
-    const pair = entry.trim();
-    if (!pair) continue;
-    const sep = pair.indexOf(":");
-    if (sep <= 0 || sep === pair.length - 1) continue; // malformed: no user, or no pass
-    out[pair.slice(0, sep)] = pair.slice(sep + 1);
-  }
-  if (process.env.GUEST_USER && process.env.GUEST_PASS) {
-    out[process.env.GUEST_USER] = process.env.GUEST_PASS;
-  }
-  return out;
-}
-
+// loadGuests() lives in lib/beta-gate.ts so the /beta sign-in route checks
+// exactly the same credentials this gate does.
 const GUESTS = loadGuests();
 const GUESTS_CONFIGURED = Object.keys(GUESTS).length > 0;
 
@@ -83,7 +71,15 @@ const PUBLIC_PATHS = new Set([
   // rate-limited and write-only, and its GET summary requires CRON_SECRET
   // regardless of what happens here.
   "/api/v1/csp-report",
+  // The private-beta gate itself: the page and its two forms must be reachable
+  // by someone who has no pass yet.
+  "/beta",
+  "/api/v1/beta/signin",
+  "/api/v1/beta/signup",
 ]);
+
+/** Public brand assets the /beta page renders (logo, mascot, self-hosted fonts). */
+const PUBLIC_PREFIXES = ["/brand/", "/fonts/", "/_vercel/"];
 
 // Cron routes verify their own `Authorization: Bearer` secret (lib/bearer-secret.ts),
 // and Vercel Cron sends exactly that header — not Basic auth. Without this
@@ -110,8 +106,9 @@ const BEARER_PATHS = new Set([
   "/api/v1/registrar/reply",
 ]);
 
-export function proxy(req: NextRequest) {
-  if (PUBLIC_PATHS.has(req.nextUrl.pathname)) {
+export async function proxy(req: NextRequest) {
+  const path = req.nextUrl.pathname;
+  if (PUBLIC_PATHS.has(path) || PUBLIC_PREFIXES.some((p) => path.startsWith(p))) {
     return NextResponse.next();
   }
 
@@ -147,13 +144,32 @@ export function proxy(req: NextRequest) {
     }
   }
 
-  return new NextResponse("Guest access required.", {
+  // Creator Sign-in pass from /beta: an HMAC-signed cookie, re-verified here.
+  if (await verifyPass(req.cookies.get(BETA_COOKIE)?.value, GUESTS)) {
+    return NextResponse.next();
+  }
+
+  // No pass. A page goes to the private-beta gate (request access, or Creator
+  // Sign-in) instead of the browser's Basic-auth popup.
+  if (!path.startsWith("/api/") && (req.method === "GET" || req.method === "HEAD")) {
+    const to = req.nextUrl.clone();
+    to.pathname = "/beta";
+    to.search = "";
+    if (path !== "/" && path !== "/beta") to.searchParams.set("next", path + req.nextUrl.search);
+    return NextResponse.redirect(to, 307);
+  }
+
+  // An API call. Scripts and curl still get the Basic challenge; a fetch from
+  // a page (sec-fetch-dest: empty) gets a plain 401, so no browser popup fires.
+  // Realm must be Latin-1 only — a non-ASCII char (e.g. an em-dash) makes the
+  // Edge runtime drop the whole header. Keep it plain ASCII.
+  const fromPage = req.headers.get("sec-fetch-dest") === "empty";
+  return new NextResponse(JSON.stringify({ success: false, error: "Private beta: sign in at /beta." }), {
     status: 401,
     headers: {
-      // Realm must be Latin-1 only — a non-ASCII char (e.g. an em-dash) makes the
-      // Edge runtime drop the whole header, so the browser never shows the login
-      // dialog and users just see the 401 body. Keep it plain ASCII.
-      "WWW-Authenticate": 'Basic realm="MAD Gambit Guest Access", charset="UTF-8"',
+      "content-type": "application/json",
+      "cache-control": "no-store",
+      ...(fromPage ? {} : { "WWW-Authenticate": 'Basic realm="MAD Gambit Guest Access", charset="UTF-8"' }),
     },
   });
 }
