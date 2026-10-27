@@ -17,7 +17,7 @@
 | `PLATFORM.PACK_GUARANTEE_SLOT` | 0 | §4 |
 | `PLATFORM.FEE_BPS` | 188 (1.88%) | §1 |
 | `PLATFORM.MADX_FIXED_SUPPLY` | 888,888,888 | §1 |
-| Token address (Arbitrum One) | `0xb61ae7727579e3781ca0ec4902b6ba21d335fd18` | §1 |
+| Token address (Arbitrum One) | `0x6972370e1caAA3624F37D7e87C28e1089D00151f` | §1 |
 
 ---
 

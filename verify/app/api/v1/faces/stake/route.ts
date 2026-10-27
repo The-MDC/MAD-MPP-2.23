@@ -101,7 +101,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const position = await stakeConviction(pool, {
+    const staked = await stakeConviction(pool, {
       marketId,
       walletAddress: auth.owner,
       conviction,
@@ -109,10 +109,26 @@ export async function POST(req: Request) {
       layer,
       entryLeg: market.legIndex,
     });
-    if (!position) {
-      return NextResponse.json({ success: false, error: "stake rejected" }, { status: 400 });
+    // A FIVE FACES stake costs $MADx — `stakeConviction` debits the ledger in
+    // the same transaction as the position write. 402 when the wallet is short,
+    // 400 when the conviction is not a positive number; the old `if (!position)`
+    // answered both as 400 and so reported an empty balance as a client error.
+    if (typeof staked === "string") {
+      const status = staked === "insufficient-balance" ? 402 : 400;
+      const error =
+        staked === "insufficient-balance"
+          ? "insufficient $MADx balance"
+          : "positive conviction required";
+      return NextResponse.json({ success: false, error }, { status });
     }
-    return NextResponse.json({ success: true, position });
+    return NextResponse.json({
+      success: true,
+      position: staked.position,
+      spend: staked.spend,
+      fee: staked.fee,
+      net: staked.net,
+      split: staked.split,
+    });
   } catch (e) {
     console.error("faces/stake error:", e);
     return NextResponse.json({ success: false, error: "stake failed" }, { status: 500 });
