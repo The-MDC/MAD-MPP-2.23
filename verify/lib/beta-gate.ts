@@ -72,21 +72,26 @@ export async function signPass(user: string, nowMs: number = Date.now()): Promis
 
 /** True when the cookie's HMAC checks out, it has not expired, and its user is still a guest. */
 export async function verifyPass(value: string | undefined, guests: Record<string, string>, nowMs: number = Date.now()): Promise<boolean> {
-  if (!value) return false;
+  return (await passUser(value, guests, nowMs)) !== null;
+}
+
+/** The guest a valid pass belongs to, or null (same checks as verifyPass). */
+export async function passUser(value: string | undefined, guests: Record<string, string>, nowMs: number = Date.now()): Promise<string | null> {
+  if (!value) return null;
   const parts = value.split(".");
-  if (parts.length !== 3) return false;
+  if (parts.length !== 3) return null;
   const [u, expStr, mac] = parts;
   const exp = Number(expStr);
-  if (!Number.isFinite(exp) || exp * 1000 < nowMs) return false;
-  if (!sameString(await hmac(`${u}.${expStr}`), mac)) return false;
+  if (!Number.isFinite(exp) || exp * 1000 < nowMs) return null;
+  if (!sameString(await hmac(`${u}.${expStr}`), mac)) return null;
   let user = "";
   try {
     user = atob(u.replace(/-/g, "+").replace(/_/g, "/"));
   } catch {
-    return false;
+    return null;
   }
   // A guest removed from env loses access at the next request, not at expiry.
-  return Object.prototype.hasOwnProperty.call(guests, user);
+  return Object.prototype.hasOwnProperty.call(guests, user) ? user : null;
 }
 
 /** Only same-site relative paths survive as a post-sign-in destination. */

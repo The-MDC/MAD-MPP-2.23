@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { BETA_COOKIE, loadGuests, verifyPass } from "@/lib/beta-gate";
+import { BETA_COOKIE, BETA_TTL_SECONDS, guestValid, loadGuests, passUser } from "@/lib/beta-gate";
+import { ALWAYS_OPEN, CAPTURE_COOKIE, VIEWER_COOKIE, captureAllowed, classifyUserAgent, isProbePath } from "@/lib/bot-guard";
 
 /**
  * Guest access gate (HTTP Basic Auth) for the MPP.
@@ -112,10 +113,75 @@ const BEARER_PATHS = new Set([
   "/api/v1/registrar/reply",
 ]);
 
+/** Who is asking: a guest username, "bearer" for a cron/operator call, or null. */
+async function identify(req: NextRequest, path: string): Promise<string | null> {
+  const header = req.headers.get("authorization");
+  if (BEARER_PATHS.has(path) && header?.startsWith("Bearer ")) return "bearer";
+
+  if (header?.startsWith("Basic ")) {
+    // atob is available in the Edge runtime; a malformed header is just "no".
+    let decoded = "";
+    try {
+      decoded = atob(header.slice(6));
+    } catch {
+      decoded = "";
+    }
+    const sep = decoded.indexOf(":");
+    if (sep > 0) {
+      const user = decoded.slice(0, sep);
+      const pass = decoded.slice(sep + 1);
+      // Constant-time, and Object.hasOwn-safe against prototype keys.
+      if (guestValid(GUESTS, user, pass)) return user;
+    }
+  }
+
+  // Creator Sign-in pass from /beta: an HMAC-signed cookie, re-verified here.
+  return passUser(req.cookies.get(BETA_COOKIE)?.value, GUESTS);
+}
+
+/**
+ * Pass the request on. For a signed-in guest loading a page, also (re)issue the
+ * two script-readable cookies the screenshot watermark reads: the guest's name,
+ * and whether they are exempt from capture deterrents (CAPTURE_ALLOWED_USERS).
+ */
+function pass(req: NextRequest, user: string | null): NextResponse {
+  const res = NextResponse.next();
+  if (!user || user === "bearer" || req.method !== "GET" || req.nextUrl.pathname.startsWith("/api/")) return res;
+  const opts = { httpOnly: false, secure: true, sameSite: "lax" as const, path: "/", maxAge: BETA_TTL_SECONDS };
+  if (req.cookies.get(VIEWER_COOKIE)?.value !== user) res.cookies.set(VIEWER_COOKIE, user, opts);
+  const cap = captureAllowed(user);
+  if (cap && req.cookies.get(CAPTURE_COOKIE)?.value !== "1") res.cookies.set(CAPTURE_COOKIE, "1", opts);
+  if (!cap && req.cookies.has(CAPTURE_COOKIE)) res.cookies.delete(CAPTURE_COOKIE);
+  return res;
+}
+
 export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
+
+  // Liveness checks and robots.txt answer everyone, bots included.
+  if (ALWAYS_OPEN.has(path)) return NextResponse.next();
+
+  // Scanner probes (.env, .git, wp-login.php …) get a flat, bodiless 404 —
+  // before the gate, so the gate is not a "something lives here" signal.
+  if (isProbePath(path)) {
+    return new NextResponse(null, { status: 404, headers: { "cache-control": "no-store" } });
+  }
+
+  const user = await identify(req, path);
+
+  // Crawlers, scanners and HTTP libraries without a pass are turned away, on
+  // the public paths too (the /beta page, brand assets, the concierge). A
+  // signed-in guest is never blocked by User-Agent, so scripts with Basic
+  // credentials keep working.
+  if (!user && classifyUserAgent(req.headers.get("user-agent")) === "blocked") {
+    return new NextResponse("Automated access is not permitted.", {
+      status: 403,
+      headers: { "cache-control": "no-store", "content-type": "text/plain; charset=utf-8" },
+    });
+  }
+
   if (PUBLIC_PATHS.has(path) || PUBLIC_PREFIXES.some((p) => path.startsWith(p))) {
-    return NextResponse.next();
+    return pass(req, user);
   }
 
   // No credentials configured → refuse everything, and say why. Falling back
@@ -129,31 +195,7 @@ export async function proxy(req: NextRequest) {
     );
   }
 
-  if (
-    BEARER_PATHS.has(req.nextUrl.pathname) &&
-    req.headers.get("authorization")?.startsWith("Bearer ")
-  ) {
-    return NextResponse.next();
-  }
-
-  const header = req.headers.get("authorization");
-
-  if (header?.startsWith("Basic ")) {
-    // atob is available in the Edge runtime.
-    const decoded = atob(header.slice(6));
-    const sep = decoded.indexOf(":");
-    const user = decoded.slice(0, sep);
-    const pass = decoded.slice(sep + 1);
-    // Object.hasOwn guards against prototype keys (e.g. "constructor").
-    if (Object.hasOwn(GUESTS, user) && GUESTS[user] === pass) {
-      return NextResponse.next();
-    }
-  }
-
-  // Creator Sign-in pass from /beta: an HMAC-signed cookie, re-verified here.
-  if (await verifyPass(req.cookies.get(BETA_COOKIE)?.value, GUESTS)) {
-    return NextResponse.next();
-  }
+  if (user) return pass(req, user);
 
   // No pass. A page goes to the private-beta gate (request access, or Creator
   // Sign-in) instead of the browser's Basic-auth popup.

@@ -10,11 +10,26 @@ import LunarVars from "@/components/lunar-vars";
 import DeviceFrame from "@/components/device-frame";
 import HoldHintProvider from "@/components/hold-hint-provider";
 import MarginExplainer from "@/components/margin-explainer";
+import CaptureGuard from "@/components/capture-guard";
 
 // Display typography uses local/system fallbacks so builds do not depend on Google Fonts availability.
 export const metadata: Metadata = {
   title: "Mad Gambit Conviction Workspace",
   description: "High-fidelity neon quantitative workspace with custom mathematical models.",
+  // Private beta: nothing here should be indexed, cached, snippeted or used to
+  // train a model. Mirrors the X-Robots-Tag header (next.config.ts) and
+  // app/robots.ts, for crawlers that only read the page.
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    noarchive: true,
+    nosnippet: true,
+    noimageindex: true,
+    notranslate: true,
+    googleBot: { index: false, follow: false, noimageindex: true, "max-snippet": 0, "max-image-preview": "none", "max-video-preview": 0 },
+  },
+  formatDetection: { telephone: false, email: false, address: false },
 };
 
 // viewport-fit=cover is REQUIRED for env(safe-area-inset-*) to return real
@@ -59,6 +74,9 @@ export default function RootLayout({
                 <DeviceFrame>{children}</DeviceFrame>
                 {/* Beside the phone, never inside it: .mg-device is transformed. */}
                 <MarginExplainer />
+                {/* Watermark + capture veil: fixed to the viewport, so it must also
+                    live outside the transformed device frame. */}
+                <CaptureGuard />
               </HoldHintProvider>
             </MppProvider>
           </WorkspaceProvider>

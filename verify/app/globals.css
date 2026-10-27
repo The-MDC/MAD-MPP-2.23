@@ -931,3 +931,37 @@ button:focus-visible > .mg-mascot-fab-bob > .mg-mascot-fab {
 }
 @keyframes mg-mascot-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) { .mg-mascot-fab-bob { animation: none; } }
+
+/* ── Capture guard (components/capture-guard.tsx) ───────────────────────────
+   Active only when the guard adds html.mg-guard (production, not exempt).
+   Watermark + veil sit above everything, including modals, so a capture of a
+   dialog is marked too; pointer-events:none keeps the floor fully usable. */
+.mg-watermark {
+  position: fixed; inset: 0; z-index: 2147483000; pointer-events: none;
+  background-repeat: repeat; background-size: 300px 190px;
+}
+.mg-capture-veil {
+  position: fixed; inset: 0; z-index: 2147483001;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(3, 3, 3, 0.55);
+  -webkit-backdrop-filter: blur(28px) saturate(0.6); backdrop-filter: blur(28px) saturate(0.6);
+}
+.mg-capture-veil.is-opaque { background: #030303; }
+.mg-capture-veil-card {
+  display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center;
+  padding: 18px 22px; border-radius: 14px; border: 1px solid rgba(249, 86, 57, 0.45);
+  background: rgba(10, 10, 10, 0.85); color: #f5f5f5; font: 600 14px/1.35 ui-sans-serif, system-ui, sans-serif;
+}
+.mg-capture-veil-card strong { color: var(--mg-gold, #ffd700); letter-spacing: 0.04em; }
+html.mg-guard body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+html.mg-guard :is(input, textarea, select, [contenteditable], .mg-selectable) {
+  -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
+}
+html.mg-guard img { -webkit-user-drag: none; }
+@media print {
+  html.mg-guard body > * { display: none !important; }
+  html.mg-guard body::after {
+    content: "MAD Gambit \00B7  private beta \2014  printing is off.";
+    display: block; padding: 48px; color: #000; font: 600 18px/1.4 system-ui, sans-serif;
+  }
+}
