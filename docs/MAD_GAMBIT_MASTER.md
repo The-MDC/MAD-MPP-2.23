@@ -533,7 +533,7 @@ Project **`mad-gambit-2.23`** (team `madgambit`, Pro), replacing the dead `mpp2.
 - Build: **`next build`** only. Migrations were removed from the build — they now run as a controlled, manual `npm run migrate:deploy` (with `npm run schema:verify` alongside). `SKIP_MIGRATIONS` is a legacy escape hatch; do **not** set it on Vercel, since normal builds no longer migrate.
 - **`main` does not auto-deploy** — `vercel.json` sets `git.deploymentEnabled.main = false`; production deploys are manual/promoted.
 - Neon connected via Vercel Marketplace ("connectable existing account"), branch-per-preview on
-- Crons: rollup hourly · `perps/roll` 00:00 UTC · `registrar/lapse` 00:30 UTC. `proxy.ts` bearer-passes these three around the guest gate; both handlers export `GET`.
+- Crons: `perps/roll` 00:00 UTC · `registrar/lapse` 00:30 UTC · `ingest/gdelt` every 30 min. The hourly `cron/rollup` schedule was removed on 2026-10-26; the route still exists and can be called with the `CRON_SECRET` bearer, and `proxy.ts` still bearer-passes it around the guest gate. Runtime is Node 24.
 - **Deployment Protection must stay OFF** — `proxy.ts` is the real gate
 - Ignored Build Step allows `main`, `feat/*`, `claude/*` only
 - GitHub secrets `DATABASE_URL` / `NEON_API_KEY` / `NEON_PROJECT_ID` are now unused and deletable
@@ -1231,7 +1231,7 @@ Measured against the tree, not assumed. **Every** Vercel-specific surface in `ve
 | `export const runtime` | **zero** — nothing is pinned to the Edge runtime, so `proxy.ts` is a plain Node proxy | yes |
 | ISR | no page-level ISR at all; two route handlers carry `revalidate = 300` (`feeds`, `news/satirical`) | yes, with a caveat — §4 |
 | `vercel.json` headers | **redundant**: `next.config.ts`'s `SECURITY_HEADERS` is a strict superset (adds CSP, Referrer-Policy, Permissions-Policy) | yes — headers travel with the framework, not the platform |
-| `vercel.json` `crons` | 3 jobs — `cron/rollup` hourly, `perps/roll` 00:00, `registrar/lapse` 00:30 | **the one real port**: needs a platform scheduler |
+| `vercel.json` `crons` | 3 jobs — `perps/roll` 00:00, `registrar/lapse` 00:30, `ingest/gdelt` every 30 min (hourly `cron/rollup` schedule removed 2026-10-26) | **the one real port**: needs a platform scheduler |
 | `vercel.json` `git` / `ignoreCommand` | Vercel-only branch rules | replaced by the new platform's equivalent |
 | Database | **Neon, an independent managed Postgres reached over `DATABASE_URL`** — not Vercel Postgres | **does not move at all** |
 
