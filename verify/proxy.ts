@@ -23,9 +23,9 @@ import { ALWAYS_OPEN, CAPTURE_COOKIE, VIEWER_COOKIE, captureAllowed, classifyUse
  * them after any later edit, they were sequential and guessable from any one
  * of them, and the repository was public for part of 2026-08-16.
  *
- * Treat Guest0001–Guest0004 / Guest1979–Guest1982 as burned. Rotating to new
- * values in env is the point of this change; re-using the old ones in env
- * would move them out of the diff while leaving them just as compromised.
+ * Treat every pair that was ever committed here as burned. Rotating to new
+ * values in env is the point of this change; re-using an old one in env
+ * would move it out of the diff while leaving it just as compromised.
  *
  * ── Fails closed, deliberately ────────────────────────────────────────
  * With no credentials configured this refuses everything rather than falling
