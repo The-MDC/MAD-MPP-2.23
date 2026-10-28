@@ -266,7 +266,7 @@ export default function PositionsDashboard() {
                     <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-yellow-500/15 border border-yellow-500/40">
                       <ShieldCheck className="w-2.5 h-2.5 text-yellow-400" />
                       <span className="font-mono text-[9px] font-bold uppercase tracking-wider text-yellow-400">
-                        {pos.shield.tier === 'whale' ? '60%' : pos.shield.tier === 'shielded' ? `${Math.round((0.288 + pos.shield.premiumTier * 0.112) * 100)}%` : '28.8%'} SHIELD
+                        {pos.shield.tier === 'whale' ? '60%' : pos.shield.tier === 'shielded' ? `${Math.round((0.296 + pos.shield.premiumTier * 0.112) * 100)}%` : '28.8%'} SHIELD
                       </span>
                     </div>
                     <button
