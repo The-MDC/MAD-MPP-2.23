@@ -35,7 +35,10 @@ function elapsed(ms: number): string {
 
 export default function PositionsDashboard() {
   const { positions, resolvePosition, shieldTogglePosition, requestShieldUnstake, madCredits } = useGame();
-  const [sigma2, setSigma2] = useState(getCurrentSigma);
+  // Deterministic first paint (the page is prerendered): a clock-derived σ²
+  // in initial state differs between build time and hydration (React #418).
+  // The live reading lands on mount, then every 3 s.
+  const [sigma2, setSigma2] = useState(0.02);
   const [now, setNow] = useState(Date.now()); // ticks every 30s for return countdown
   const [resolving, setResolving] = useState<Record<string, "won" | "lost">>({});
 
@@ -72,6 +75,7 @@ export default function PositionsDashboard() {
   }
 
   useEffect(() => {
+    setSigma2(getCurrentSigma()); setNow(Date.now());
     const t = setInterval(() => { setSigma2(getCurrentSigma()); setNow(Date.now()); }, 3000);
     return () => clearInterval(t);
   }, []);
@@ -282,7 +286,7 @@ export default function PositionsDashboard() {
                     <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-yellow-500/15 border border-yellow-500/40">
                       <ShieldCheck className="w-2.5 h-2.5 text-yellow-400" />
                       <span className="font-mono text-[9px] font-bold uppercase tracking-wider text-yellow-400">
-                        {pos.shield.tier === 'whale' ? '60%' : pos.shield.tier === 'shielded' ? `${Math.round((0.296 + pos.shield.premiumTier * 0.112) * 100)}%` : '28.8%'} SHIELD
+                        {pos.shield.tier === 'whale' ? '60%' : pos.shield.tier === 'shielded' ? `${Math.round((0.288 + pos.shield.premiumTier * 0.112) * 100)}%` : '28.8%'} SHIELD
                       </span>
                     </div>
                     <button

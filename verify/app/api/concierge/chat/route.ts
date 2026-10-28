@@ -4,6 +4,10 @@ import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { MADHATR_SYSTEM_INSTRUCTION } from "@/lib/madhatr-persona";
+import {
+    greetingReply, isGreeting, knowledgePrompt, loadKnowledge, normalizeHistory,
+    PAY_GRADE_MARKER, payGradeReply, retrieve, wantsOpinionOrAdvice,
+} from "@/lib/madhatr-knowledge";
 
 // The persona now lives in lib/madhatr-persona.ts so the Z-Liar Sentinel and
 // any future LLM surface speak in the same voice instead of each carrying a
@@ -46,9 +50,24 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
         const { message, history = [], tone = "Satirical", risk = 0.75, regen_count = 0 } = body;
+        const text = String(message ?? "").trim();
+        const turns = normalizeHistory(history);
+        const kb = loadKnowledge();
 
-        if (!process.env.GOOGLE_API_KEY) {
-            return NextResponse.json({ error: "Missing GOOGLE_API_KEY" }, { status: 500 });
+        // A plain hello is copied straight back; every 5th one gets a brush-off.
+        if (isGreeting(text, kb)) {
+            return NextResponse.json({ reply: greetingReply(text, turns, kb), quipSource: "greeting" });
+        }
+
+        if (!text || !process.env.GOOGLE_API_KEY) {
+            // No model key on this deployment: answer from the knowledge base,
+            // and walk the pay-grade ladder when it has nothing to say.
+            const hit = text && !wantsOpinionOrAdvice(text) ? retrieve(text, turns, kb) : null;
+            return NextResponse.json(
+                hit
+                    ? { reply: hit.reply, quipSource: "knowledge", topic: hit.topic }
+                    : { reply: payGradeReply(turns, kb), quipSource: "pay-grade" },
+            );
         }
 
         const llm = new ChatGoogleGenerativeAI({
@@ -59,7 +78,7 @@ export async function POST(req: NextRequest) {
 
         const toneLine = TONE_DIRECTIVES[tone] || TONE_DIRECTIVES["Satirical"];
         const riskLine = getRiskDirective(risk);
-        const directive = `${GEMINI_SYSTEM_INSTRUCTION}\n\n${toneLine}\n${riskLine}`;
+        const directive = `${GEMINI_SYSTEM_INSTRUCTION}\n\n${toneLine}\n${riskLine}\n\n${knowledgePrompt(kb)}`;
 
         const prompt = ChatPromptTemplate.fromMessages([
             new SystemMessage(directive),
@@ -67,19 +86,24 @@ export async function POST(req: NextRequest) {
             new HumanMessage("{input}"),
         ]);
 
-        const lcHistory = history.slice(-10).map((turn: any) => 
+        const lcHistory = turns.slice(-10).map((turn) =>
             turn.role === "user" ? new HumanMessage(turn.content) : new AIMessage(turn.content)
         );
 
-        let inputText = message;
+        let inputText = text;
         if (regen_count >= 1) {
-            inputText = `${message}\n\n[The user asked you to regenerate this response — ${regen_count} time(s). Escalate your intensity. Be sharper, funnier, more unhinged than your first take.]`;
+            inputText = `${text}\n\n[The user asked you to regenerate this response — ${regen_count} time(s). Escalate your intensity. Be sharper, funnier, more unhinged than your first take.]`;
         }
 
         const chain = prompt.pipe(llm);
         const result = await chain.invoke({ history: lcHistory, input: inputText });
+        const reply = typeof result.content === "string" ? result.content.trim() : "";
 
-        return NextResponse.json({ reply: result.content });
+        // The model signals "not in my file" with a marker; the ladder decides the words.
+        if (!reply || reply.includes(PAY_GRADE_MARKER)) {
+            return NextResponse.json({ reply: payGradeReply(turns, kb), quipSource: "pay-grade" });
+        }
+        return NextResponse.json({ reply });
     } catch (error: any) {
         console.error("Concierge Chat Error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });

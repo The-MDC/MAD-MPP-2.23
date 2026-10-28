@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { BETA_COOKIE, BETA_TTL_SECONDS, guestValid, loadGuests, passUser } from "@/lib/beta-gate";
+import { ALWAYS_OPEN, CAPTURE_COOKIE, VIEWER_COOKIE, captureAllowed, classifyUserAgent, isProbePath } from "@/lib/bot-guard";
 
 /**
  * Guest access gate (HTTP Basic Auth) for the MPP.
@@ -21,9 +23,9 @@ import type { NextRequest } from "next/server";
  * them after any later edit, they were sequential and guessable from any one
  * of them, and the repository was public for part of 2026-08-16.
  *
- * Treat Guest0001–Guest0004 / Guest1979–Guest1982 as burned. Rotating to new
- * values in env is the point of this change; re-using the old ones in env
- * would move them out of the diff while leaving them just as compromised.
+ * Treat every pair that was ever committed here as burned. Rotating to new
+ * values in env is the point of this change; re-using an old one in env
+ * would move it out of the diff while leaving it just as compromised.
  *
  * ── Fails closed, deliberately ────────────────────────────────────────
  * With no credentials configured this refuses everything rather than falling
@@ -48,21 +50,8 @@ import type { NextRequest } from "next/server";
  * Parsed with indexOf rather than split(":") so a password containing a colon
  * is preserved rather than silently truncated at the first one.
  */
-function loadGuests(): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const entry of (process.env.GUEST_LOGINS ?? "").split(",")) {
-    const pair = entry.trim();
-    if (!pair) continue;
-    const sep = pair.indexOf(":");
-    if (sep <= 0 || sep === pair.length - 1) continue; // malformed: no user, or no pass
-    out[pair.slice(0, sep)] = pair.slice(sep + 1);
-  }
-  if (process.env.GUEST_USER && process.env.GUEST_PASS) {
-    out[process.env.GUEST_USER] = process.env.GUEST_PASS;
-  }
-  return out;
-}
-
+// loadGuests() lives in lib/beta-gate.ts so the /beta sign-in route checks
+// exactly the same credentials this gate does.
 const GUESTS = loadGuests();
 const GUESTS_CONFIGURED = Object.keys(GUESTS).length > 0;
 
@@ -72,6 +61,8 @@ const PUBLIC_PATHS = new Set([
   "/health",
   "/favicon.ico",
   "/favicon.png",
+  "/icon.png",
+  "/apple-icon.png",
   "/robots.txt",
   "/sitemap.xml",
   // CSP violation reports are sent by the browser out-of-band, not by page
@@ -83,7 +74,19 @@ const PUBLIC_PATHS = new Set([
   // rate-limited and write-only, and its GET summary requires CRON_SECRET
   // regardless of what happens here.
   "/api/v1/csp-report",
+  // The private-beta gate itself: the page and its two forms must be reachable
+  // by someone who has no pass yet.
+  "/beta",
+  "/api/v1/beta/signin",
+  "/api/v1/beta/signup",
+  // The MADHAT'r Concierge on /beta answers visitors who have no pass yet. The
+  // route is guest-facing by design (its own PUBLIC-ROUTE note) and rate-limited
+  // at 20/min per IP.
+  "/api/concierge/chat",
 ]);
+
+/** Public brand assets the /beta page renders (logo, mascot, self-hosted fonts). */
+const PUBLIC_PREFIXES = ["/brand/", "/fonts/", "/_vercel/"];
 
 // Cron routes verify their own `Authorization: Bearer` secret (lib/bearer-secret.ts),
 // and Vercel Cron sends exactly that header — not Basic auth. Without this
@@ -110,9 +113,75 @@ const BEARER_PATHS = new Set([
   "/api/v1/registrar/reply",
 ]);
 
-export function proxy(req: NextRequest) {
-  if (PUBLIC_PATHS.has(req.nextUrl.pathname)) {
-    return NextResponse.next();
+/** Who is asking: a guest username, "bearer" for a cron/operator call, or null. */
+async function identify(req: NextRequest, path: string): Promise<string | null> {
+  const header = req.headers.get("authorization");
+  if (BEARER_PATHS.has(path) && header?.startsWith("Bearer ")) return "bearer";
+
+  if (header?.startsWith("Basic ")) {
+    // atob is available in the Edge runtime; a malformed header is just "no".
+    let decoded = "";
+    try {
+      decoded = atob(header.slice(6));
+    } catch {
+      decoded = "";
+    }
+    const sep = decoded.indexOf(":");
+    if (sep > 0) {
+      const user = decoded.slice(0, sep);
+      const pass = decoded.slice(sep + 1);
+      // Constant-time, and Object.hasOwn-safe against prototype keys.
+      if (guestValid(GUESTS, user, pass)) return user;
+    }
+  }
+
+  // Creator Sign-in pass from /beta: an HMAC-signed cookie, re-verified here.
+  return passUser(req.cookies.get(BETA_COOKIE)?.value, GUESTS);
+}
+
+/**
+ * Pass the request on. For a signed-in guest loading a page, also (re)issue the
+ * two script-readable cookies the screenshot watermark reads: the guest's name,
+ * and whether they are exempt from capture deterrents (CAPTURE_ALLOWED_USERS).
+ */
+function pass(req: NextRequest, user: string | null): NextResponse {
+  const res = NextResponse.next();
+  if (!user || user === "bearer" || req.method !== "GET" || req.nextUrl.pathname.startsWith("/api/")) return res;
+  const opts = { httpOnly: false, secure: true, sameSite: "lax" as const, path: "/", maxAge: BETA_TTL_SECONDS };
+  if (req.cookies.get(VIEWER_COOKIE)?.value !== user) res.cookies.set(VIEWER_COOKIE, user, opts);
+  const cap = captureAllowed(user);
+  if (cap && req.cookies.get(CAPTURE_COOKIE)?.value !== "1") res.cookies.set(CAPTURE_COOKIE, "1", opts);
+  if (!cap && req.cookies.has(CAPTURE_COOKIE)) res.cookies.delete(CAPTURE_COOKIE);
+  return res;
+}
+
+export async function proxy(req: NextRequest) {
+  const path = req.nextUrl.pathname;
+
+  // Liveness checks and robots.txt answer everyone, bots included.
+  if (ALWAYS_OPEN.has(path)) return NextResponse.next();
+
+  // Scanner probes (.env, .git, wp-login.php …) get a flat, bodiless 404 —
+  // before the gate, so the gate is not a "something lives here" signal.
+  if (isProbePath(path)) {
+    return new NextResponse(null, { status: 404, headers: { "cache-control": "no-store" } });
+  }
+
+  const user = await identify(req, path);
+
+  // Crawlers, scanners and HTTP libraries without a pass are turned away, on
+  // the public paths too (the /beta page, brand assets, the concierge). A
+  // signed-in guest is never blocked by User-Agent, so scripts with Basic
+  // credentials keep working.
+  if (!user && classifyUserAgent(req.headers.get("user-agent")) === "blocked") {
+    return new NextResponse("Automated access is not permitted.", {
+      status: 403,
+      headers: { "cache-control": "no-store", "content-type": "text/plain; charset=utf-8" },
+    });
+  }
+
+  if (PUBLIC_PATHS.has(path) || PUBLIC_PREFIXES.some((p) => path.startsWith(p))) {
+    return pass(req, user);
   }
 
   // No credentials configured → refuse everything, and say why. Falling back
@@ -126,34 +195,29 @@ export function proxy(req: NextRequest) {
     );
   }
 
-  if (
-    BEARER_PATHS.has(req.nextUrl.pathname) &&
-    req.headers.get("authorization")?.startsWith("Bearer ")
-  ) {
-    return NextResponse.next();
+  if (user) return pass(req, user);
+
+  // No pass. A page goes to the private-beta gate (request access, or Creator
+  // Sign-in) instead of the browser's Basic-auth popup.
+  if (!path.startsWith("/api/") && (req.method === "GET" || req.method === "HEAD")) {
+    const to = req.nextUrl.clone();
+    to.pathname = "/beta";
+    to.search = "";
+    if (path !== "/" && path !== "/beta") to.searchParams.set("next", path + req.nextUrl.search);
+    return NextResponse.redirect(to, 307);
   }
 
-  const header = req.headers.get("authorization");
-
-  if (header?.startsWith("Basic ")) {
-    // atob is available in the Edge runtime.
-    const decoded = atob(header.slice(6));
-    const sep = decoded.indexOf(":");
-    const user = decoded.slice(0, sep);
-    const pass = decoded.slice(sep + 1);
-    // Object.hasOwn guards against prototype keys (e.g. "constructor").
-    if (Object.hasOwn(GUESTS, user) && GUESTS[user] === pass) {
-      return NextResponse.next();
-    }
-  }
-
-  return new NextResponse("Guest access required.", {
+  // An API call. Scripts and curl still get the Basic challenge; a fetch from
+  // a page (sec-fetch-dest: empty) gets a plain 401, so no browser popup fires.
+  // Realm must be Latin-1 only — a non-ASCII char (e.g. an em-dash) makes the
+  // Edge runtime drop the whole header. Keep it plain ASCII.
+  const fromPage = req.headers.get("sec-fetch-dest") === "empty";
+  return new NextResponse(JSON.stringify({ success: false, error: "Private beta: sign in at /beta." }), {
     status: 401,
     headers: {
-      // Realm must be Latin-1 only — a non-ASCII char (e.g. an em-dash) makes the
-      // Edge runtime drop the whole header, so the browser never shows the login
-      // dialog and users just see the 401 body. Keep it plain ASCII.
-      "WWW-Authenticate": 'Basic realm="MAD Gambit Guest Access", charset="UTF-8"',
+      "content-type": "application/json",
+      "cache-control": "no-store",
+      ...(fromPage ? {} : { "WWW-Authenticate": 'Basic realm="MAD Gambit Guest Access", charset="UTF-8"' }),
     },
   });
 }

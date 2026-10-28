@@ -45,16 +45,16 @@ export default function TopMarketsRail() {
         </span>
       </div>
       <div className="mg-marquee-mask py-2" style={{ overflow: "hidden" }}>
-        <div className="mg-marquee-track flex" style={{ width: "max-content", gap: 8 }}>
+        <div className="mg-marquee-track flex" style={{ width: "max-content" }}>
           {loop.map((m, i) => (
-            <div key={i} className="shrink-0 w-[190px] rounded-xl border p-2.5" style={{ borderColor: m.hot ? INK.borderGold : INK.border, background: INK.bgCard }}>
+            <div key={i} className="shrink-0 w-[190px] rounded-xl border p-2.5" style={{ marginRight: 8, borderColor: m.hot ? INK.borderGold : INK.border, background: INK.bgCard }}>
               <div className="flex items-start gap-1 mb-1.5">
                 {m.hot && <Flame className="w-3 h-3 shrink-0 mt-0.5" style={{ color: INK.gold }} />}
                 <p className="font-sans text-[11px] font-semibold leading-tight" style={{ color: INK.white }}>{m.q}</p>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="flex-1 text-center rounded-md py-1 font-mono text-[9px] font-bold" style={{ background: `${INK.green}18`, color: INK.green }}>YES {m.yes}x</span>
-                <span className="flex-1 text-center rounded-md py-1 font-mono text-[9px] font-bold" style={{ background: `${INK.pink}18`, color: INK.pink }}>NO {m.no}x</span>
+                <a href="/open-markets?tab=prediction" className="flex-1 text-center rounded-md py-2 font-mono text-[9px] font-bold" style={{ background: `${INK.green}18`, color: INK.green, textDecoration: "none" }}>YES {m.yes}x</a>
+                <a href="/open-markets?tab=prediction" className="flex-1 text-center rounded-md py-2 font-mono text-[9px] font-bold" style={{ background: `${INK.pink}18`, color: INK.pink, textDecoration: "none" }}>NO {m.no}x</a>
               </div>
               <p className="mt-1 font-mono text-[8px] uppercase text-right" style={{ color: INK.muted }}>vol {m.vol}</p>
             </div>
@@ -63,9 +63,10 @@ export default function TopMarketsRail() {
       </div>
       <style>{`
         .mg-marquee-mask { -webkit-mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent); mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent); }
-        .mg-marquee-track { animation: mgMarquee 90s linear infinite; }
-        .mg-marquee-mask:hover .mg-marquee-track { animation-play-state: paused; }
-        @keyframes mgMarquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        .mg-marquee-track { animation: mgMarquee 90s linear infinite; -webkit-backface-visibility: hidden; backface-visibility: hidden; will-change: transform; }
+        @media (hover: hover) and (pointer: fine) { .mg-marquee-mask:hover .mg-marquee-track { animation-play-state: paused; } }
+        @-webkit-keyframes mgMarquee { from { -webkit-transform: translate3d(0,0,0); } to { -webkit-transform: translate3d(-50%,0,0); } }
+        @keyframes mgMarquee { from { transform: translate3d(0,0,0); } to { transform: translate3d(-50%,0,0); } }
         @media (prefers-reduced-motion: reduce) {
           .mg-marquee-track { animation: none; }
           .mg-marquee-mask { overflow-x: auto !important; }

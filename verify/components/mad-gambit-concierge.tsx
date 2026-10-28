@@ -34,7 +34,6 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import Image from "next/image";
 import { GOLD_CHISEL_STOPS, INSTRUMENT_FONT, INK } from "@/lib/gambit-design-tokens";
 import { Send, X, RotateCw } from "lucide-react";
 
@@ -167,12 +166,15 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     const el = rootRef.current;
-    if (!el) return;
+    // Only the closed bubble drags. Capturing the pointer while the panel is
+    // open retargets every click to this wrapper, so the panel's own buttons
+    // (send, close, tone) would never receive them.
+    if (!el || open) return;
     const r = el.getBoundingClientRect();
     dragRef.current = { dx: e.clientX - r.left, dy: e.clientY - r.top, moved: false };
     el.setPointerCapture(e.pointerId);
     setDragging(true);
-  }, []);
+  }, [open]);
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
@@ -202,9 +204,18 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
     // A drag must not also open the panel. `click` fires AFTER `pointerup` and
     // is a separate event, so stopping propagation here would not reach it —
     // the button's handler checks this flag instead.
-    justDraggedRef.current = dragRef.current?.moved === true;
+    const d = dragRef.current;
     dragRef.current = null;
-  }, []);
+    if (!d) return;
+    // With pointer capture the browser delivers the follow-up click to this
+    // wrapper, not the button inside it — so a tap opens the panel here.
+    if (!d.moved && !open) {
+      justDraggedRef.current = false;
+      setOpen(true);
+      return;
+    }
+    justDraggedRef.current = d.moved;
+  }, [open]);
 
   // Keep the bubble inside its host when the window (or the frame's zoom)
   // changes, so a resize cannot strand it off-screen.
@@ -313,7 +324,7 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
         // both are set together so the two systems never fight.
         ...(pos
           ? { left: pos.left, top: pos.top, right: "auto", bottom: "auto" }
-          : { right: "20px", bottom: "20px" }),
+          : { right: "14px", bottom: "calc(84px + env(safe-area-inset-bottom, 0px))" }),
         zIndex: 200,
         touchAction: "none", // pointermove must not be eaten by scrolling
         cursor: dragging ? "grabbing" : "grab",
@@ -329,35 +340,21 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
           }}
           aria-label="Open MADHAT'r concierge"
           style={{
-            width: "60px", height: "60px", borderRadius: "50%", border: "none",
+            width: "64px", height: "70px", border: "none",
             cursor: "pointer", position: "relative", overflow: "visible",
-            background: "transparent", padding: 0,
+            background: "transparent", padding: 0, display: "grid", placeItems: "end center",
           }}
         >
-          <svg width="60" height="60" viewBox="0 0 60 60" style={{ position: "absolute", inset: 0 }}>
-            <defs>
-              <linearGradient id={`fab-gold-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                {GOLD_CHISEL_STOPS.map(([offset, c]) => <stop key={offset} offset={`${offset}%`} stopColor={c} />)}
-              </linearGradient>
-            </defs>
-            <circle cx="30" cy="30" r="29" fill={`url(#fab-gold-${uid})`} />
-            <circle cx="30" cy="30" r="26" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.3" />
-            <circle cx="30" cy="30" r="24" fill="#0a0a12" />
-          </svg>
+          {/* The MADHAT'r himself — a transparent cutout of the mascot master
+              (public/brand/madhatr-bust.png, 240×257, background removed; the
+              face is the master's, untouched). No disc behind him: the
+              silhouette is the shape. */}
+          <span aria-hidden="true" className="mg-mascot-fab-bob">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/madhatr-bust.png" alt="" width={62} height={66} className="mg-mascot-fab" draggable={false} />
+          </span>
           <div style={{
-            position: "absolute", inset: "9px", borderRadius: "50%", overflow: "hidden",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <Image
-              src="/brand/madhatr-logo.png"
-              alt="The MADHAT'r"
-              width={42}
-              height={42}
-              style={{ objectFit: "contain" }}
-            />
-          </div>
-          <div style={{
-            position: "absolute", top: "-2px", right: "-2px",
+            position: "absolute", top: "4px", right: "2px",
             width: "12px", height: "12px", borderRadius: "50%",
             background: "#00ff88", boxShadow: "0 0 8px #00ff88",
             border: "2px solid #080a12",
@@ -384,13 +381,8 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
               <rect x="2" y="2" width="336" height="48" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1" />
             </svg>
             <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", gap: "9px", padding: "0 14px" }}>
-              <div style={{
-                width: "30px", height: "30px", borderRadius: "50%", background: "#0a0a12",
-                display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden",
-                border: "1px solid rgba(255,255,255,0.3)",
-              }}>
-                <Image src="/brand/madhatr-logo.png" alt="" width={24} height={24} style={{ objectFit: "contain" }} />
-              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/madhatr-bust.png" alt="" width={36} height={38} style={{ flex: "none", objectFit: "contain", filter: "drop-shadow(0 2px 3px rgba(0,0,0,.45))", marginTop: -2 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: INSTRUMENT_FONT, fontSize: "10px", fontWeight: 900, color: "#2a1a00", letterSpacing: "0.5px" }}>
                   THE MADHAT&apos;R

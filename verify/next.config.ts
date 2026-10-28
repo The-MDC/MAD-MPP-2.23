@@ -11,7 +11,18 @@ const nextConfig = (phase: string): NextConfig => {
   const isDev = phase === PHASE_DEVELOPMENT_SERVER;
   return {
     reactStrictMode: true,
+    // Don't advertise the framework: `X-Powered-By: Next.js` is the first thing
+    // a fingerprinting scanner reads.
+    poweredByHeader: false,
+    // Source maps never ship to the browser (explicit, so a later edit can't
+    // quietly publish the source tree).
+    productionBrowserSourceMaps: false,
     output: "standalone",
+    // The MADHAT'r reads his knowledge base from disk at runtime; make sure the
+    // markdown ships with the concierge route's serverless bundle.
+    outputFileTracingIncludes: {
+      "/api/concierge/chat": ["./content/madhatr/**"],
+    },
     distDir: isDev ? ".next-dev" : ".next",
     typescript: { ignoreBuildErrors: false },
     // Legacy uppercase bookmark → canonical lowercase route. Handled here rather
@@ -152,9 +163,17 @@ const SECURITY_HEADERS = [
   // only cross-site, keep the full path for same-origin analytics.
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   // Deny hardware this app never requests, so an injected iframe cannot ask.
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+  // display-capture=() also stops any script on these pages from recording the
+  // screen via getDisplayMedia. (USB/HID are left alone: hardware wallets.)
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), display-capture=(), browsing-topics=()" },
   // Belt-and-braces alongside frame-ancestors for older browsers.
   { key: "X-Frame-Options", value: "DENY" },
+  // Private beta — no indexing, caching, snippets or image indexing, on every
+  // response including API JSON and images (meta tags cannot cover those).
+  { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate" },
+  // Other sites cannot hot-link or embed this app's images, fonts or scripts.
+  // Server-side fetchers (link unfurls) are unaffected; only browsers enforce it.
+  { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
 ];
 
 export default nextConfig;

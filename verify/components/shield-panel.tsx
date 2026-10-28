@@ -191,7 +191,7 @@ export default function ShieldPanel() {
         <div style={{ marginBottom: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, color: skin.muted, textTransform: "uppercase", letterSpacing: 1 }}>
             <span>Premium dial</span>
-            <span style={{ color: skin.gold }}>{pct(0.296 + premiumTier * (0.4 - 0.296))} recovery</span>
+            <span style={{ color: skin.gold }}>{pct(0.288 + premiumTier * (0.4 - 0.288))} recovery</span>
           </div>
           <input
             type="range"

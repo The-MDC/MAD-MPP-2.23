@@ -9,7 +9,7 @@
 import React, { useState, useEffect } from "react";
 import { useGame } from "@/context/game-context";
 import { STAKING_TIERS, getStakingTier } from "@/lib/gambit-game-math";
-import { Zap, Lock } from "lucide-react";
+import { Zap, Lock, ShieldCheck, X } from "lucide-react";
 
 export default function StakingTiersPanel() {
   const { madCredits } = useGame();
@@ -23,6 +23,10 @@ export default function StakingTiersPanel() {
 
   // Server-computed projected yield (mirrors on-chain MADStaking APY math).
   const [projection, setProjection] = useState<{ daily: number; monthly: number; annual: number } | null>(null);
+  // The Shield cap per tier is a control, not a footnote: tap it to see the
+  // stop-loss scale this tier unlocks.
+  const [shieldTier, setShieldTier] = useState<(typeof STAKING_TIERS)[number] | null>(null);
+  const [lossDemo, setLossDemo] = useState(100);
   useEffect(() => {
     let cancelled = false;
     fetch(`/api/v1/staking?staked=${encodeURIComponent(madCredits)}`)
@@ -145,6 +149,16 @@ export default function StakingTiersPanel() {
                   <span className="font-mono text-[9px] font-black" style={{ color: isActive ? color : "#64748b" }}>
                     {(tier.apy * 100).toFixed(0)}%
                   </span>
+                  <button
+                    type="button"
+                    data-explain="shield"
+                    onClick={() => setShieldTier(tier)}
+                    aria-label={`${tier.name} MAD Shield stop loss — up to ${(tier.shieldRecoveryPct * 100).toFixed(1)}% recovery`}
+                    className="font-mono text-[9px] font-black rounded-full px-2.5"
+                    style={{ minHeight: 30, display: "inline-flex", alignItems: "center", gap: 4, cursor: "pointer", color: "#1a1205", background: "var(--mg-gold-fill, #ffd700)", border: "none" }}
+                  >
+                    <ShieldCheck className="w-3 h-3" /> {(tier.shieldRecoveryPct * 100).toFixed(1)}%
+                  </button>
                   {!isUnlocked && <Lock className="w-2.5 h-2.5 text-neutral-700" />}
                   {isActive && <Zap className="w-2.5 h-2.5 text-yellow-400" />}
                 </div>
@@ -153,6 +167,37 @@ export default function StakingTiersPanel() {
           );
         })}
       </div>
+      {shieldTier ? (
+        <div role="dialog" aria-modal="true" aria-label="MAD Shield stop loss" data-explain="shield" onClick={() => setShieldTier(null)}
+          style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(0,0,0,.72)", display: "grid", placeItems: "end center", padding: 12 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 420, borderRadius: 22, padding: 2, background: "var(--mg-gold-chisel)" }}>
+            <div style={{ borderRadius: 20, padding: 18, background: "linear-gradient(180deg, #17130b, #0a0907)", color: "#f6f1e3" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.4, textTransform: "uppercase", color: "#f95639" }}>MAD Shield · stop loss</span>
+                <button type="button" aria-label="Close" onClick={() => setShieldTier(null)} style={{ background: "none", border: "none", color: "#c9bfa9", cursor: "pointer", minWidth: 44, minHeight: 44, display: "grid", placeItems: "center" }}><X className="w-4 h-4" /></button>
+              </div>
+              <div className="mg-display" style={{ fontSize: 30, marginTop: 2 }}>{shieldTier.name} tier</div>
+              <div style={{ fontSize: 12.5, color: "#cfc6b2", marginTop: 4, lineHeight: 1.5 }}>Opt-in loss mitigation. A 2–4% premium moves recovery up the 28.8% → 40% scale; this tier caps it at <b style={{ color: "#ffd700" }}>{(shieldTier.shieldRecoveryPct * 100).toFixed(1)}%</b>.</div>
+              <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+                {STAKING_TIERS.map((t) => (
+                  <div key={t.name} style={{ textAlign: "center", padding: "8px 4px", borderRadius: 12, border: `1px solid ${t.name === shieldTier.name ? "#ffd700" : "rgba(255,215,0,.15)"}`, background: t.name === shieldTier.name ? "rgba(255,215,0,.1)" : "transparent" }}>
+                    <div style={{ fontSize: 9, color: "#a99f8a", fontWeight: 800 }}>{t.name}</div>
+                    <div className="font-mono" style={{ fontSize: 13, fontWeight: 800, color: "#ffd700" }}>{(t.shieldRecoveryPct * 100).toFixed(1)}%</div>
+                  </div>
+                ))}
+              </div>
+              <label style={{ display: "block", marginTop: 14, fontSize: 10, fontWeight: 900, letterSpacing: 1.2, color: "#a99f8a" }}>IF A POSITION LOSES · {lossDemo} $MADx</label>
+              <input type="range" min={10} max={1000} step={10} value={lossDemo} onChange={(e) => setLossDemo(Number(e.target.value))} style={{ width: "100%", accentColor: "#ffd700" }} aria-label="Loss amount" />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 6 }}>
+                <span style={{ fontSize: 12, color: "#cfc6b2" }}>Shield returns up to</span>
+                <span className="font-mono" style={{ fontSize: 26, fontWeight: 800, color: "#ffd700" }}>{(lossDemo * shieldTier.shieldRecoveryPct).toFixed(2)}</span>
+              </div>
+              <a href="/dashboard" style={{ marginTop: 14, display: "flex", alignItems: "center", justifyContent: "center", minHeight: 48, borderRadius: 999, background: "var(--mg-gold-fill, #ffd700)", color: "#1a1205", fontWeight: 900, textDecoration: "none" }}>Get a live Shield quote ›</a>
+              <div style={{ marginTop: 10, fontSize: 10.5, color: "#8e8a80", textAlign: "center" }}>40% is the ceiling. Loss mitigation, not a guarantee.</div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

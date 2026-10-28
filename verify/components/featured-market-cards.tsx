@@ -75,7 +75,7 @@ export default function FeaturedMarketCards() {
               </div>
             </div>
             <a
-              href="/gambit"
+              href="/open-markets?tab=prediction"
               style={{
                 display: "block",
                 width: "100%",

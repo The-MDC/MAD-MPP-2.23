@@ -288,6 +288,20 @@ export default function NewsTwoRow() {
           </button>
         ) : null}
       </div>
+      {/* Inline filter — the left rail that drives mg:category is hidden on
+          phones, so the wire carries its own chips. Same event, same state. */}
+      <div role="tablist" aria-label="Filter the news wire" style={{ display: "flex", gap: 6, overflowX: "auto", margin: "0 0 10px", paddingBottom: 2, scrollbarWidth: "none" }}>
+        {([null, "entertainment", "tabloid", "zliar", "gossipcop", "headlines", "sports", "viraltech", "crypto"] as (Kind | null)[]).map((k) => {
+          const on = active === k;
+          return (
+            <button key={k ?? "all"} type="button" role="tab" aria-selected={on}
+              onClick={() => { setActive(k); window.dispatchEvent(new CustomEvent("mg:category", { detail: k })); }}
+              className="mg-chip" style={{ flex: "none", height: 30, cursor: "pointer", color: on ? "#1a1205" : "#d7d2c4", background: on ? "var(--mg-gold-fill)" : "rgba(255,255,255,.04)" }}>
+              {k ? LABEL[k] : "All"}
+            </button>
+          );
+        })}
+      </div>
       {cards === null ? (
         <div style={{ fontSize: 9, color: skin.muted, padding: "18px 2px" }}>Loading the scandal wire…</div>
       ) : list.length === 0 ? (
