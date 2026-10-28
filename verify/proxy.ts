@@ -5,22 +5,24 @@ import type { NextRequest } from "next/server";
  * Guest access gate (HTTP Basic Auth) for the MPP.
  *
  * Presents a browser username/password prompt so mpp.madgambit.io is only
- * reachable with the shared guest credentials. Values come from env when set
- * (override in Vercel → Settings → Environment Variables) and fall back to the
- * intentionally-shareable guest login otherwise.
+ * reachable with guest credentials. Credentials come ONLY from env
+ * (Vercel → Settings → Environment Variables): GUEST_LOGINS="user:pass,…"
+ * and/or GUEST_USER + GUEST_PASS. There are no built-in pairs; with none set,
+ * every request is refused. Pairs once committed here are burned.
  *
  * NOTE: this is an application-level gate. It only takes effect once Vercel
  * Deployment Protection is turned OFF for this project — otherwise Vercel's own
  * SSO gate blocks the request before proxy runs.
  */
-// Shared guest logins (intentionally shareable). Multiple pairs are accepted;
-// the primary pair can also be overridden/added via env (GUEST_USER/GUEST_PASS).
-const GUESTS: Record<string, string> = {
-  Guest0001: "Guest1979",
-  Guest0002: "Guest1980",
-  Guest0003: "Guest1981",
-  Guest0004: "Guest1982",
-};
+// Guest logins from env only. `GUEST_LOGINS` takes comma-separated
+// `user:pass` pairs (split on the FIRST colon, so a password may contain one);
+// `GUEST_USER`/`GUEST_PASS` adds one more pair.
+const GUESTS: Record<string, string> = {};
+for (const entry of (process.env.GUEST_LOGINS ?? "").split(",")) {
+  const pair = entry.trim();
+  const sep = pair.indexOf(":");
+  if (sep > 0 && sep < pair.length - 1) GUESTS[pair.slice(0, sep)] = pair.slice(sep + 1);
+}
 if (process.env.GUEST_USER && process.env.GUEST_PASS) {
   GUESTS[process.env.GUEST_USER] = process.env.GUEST_PASS;
 }
@@ -65,7 +67,12 @@ export function proxy(req: NextRequest) {
 
   if (header?.startsWith("Basic ")) {
     // atob is available in the Edge runtime.
-    const decoded = atob(header.slice(6));
+    let decoded = "";
+    try {
+      decoded = atob(header.slice(6));
+    } catch {
+      decoded = ""; // malformed header → treated as no credentials
+    }
     const sep = decoded.indexOf(":");
     const user = decoded.slice(0, sep);
     const pass = decoded.slice(sep + 1);
