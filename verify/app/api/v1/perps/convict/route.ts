@@ -61,7 +61,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: `market is ${market.status}` }, { status: 409 });
     }
 
-    const position = await stakeConviction(pool, {
+    const staked = await stakeConviction(pool, {
       marketId,
       walletAddress: auth.owner,
       conviction,
@@ -69,10 +69,33 @@ export async function POST(req: Request) {
       entryLeg: market.legIndex,
       vintage: market.family === "zeitgeist" ? vintageAt() : null,
     });
-    if (!position) {
-      return NextResponse.json({ success: false, error: "conviction rejected" }, { status: 400 });
+
+    // CONVICTION NOW COSTS $MADx. `stakeConviction` debits the ledger inside its
+    // own transaction, so the two refusals have to be distinguishable: 402 means
+    // the wallet is short, 400 means the request was malformed. Collapsing both
+    // into 400 — which is what `if (!position)` did while the result was
+    // `PerpPosition | null` — told a user with an empty balance that their
+    // client had sent a bad request.
+    if (typeof staked === "string") {
+      const status = staked === "insufficient-balance" ? 402 : 400;
+      const error =
+        staked === "insufficient-balance"
+          ? "insufficient $MADx balance"
+          : "positive conviction required";
+      return NextResponse.json({ success: false, error }, { status });
     }
-    return NextResponse.json({ success: true, position });
+
+    // The fee breakdown is returned, not just the position, so the panel can
+    // show what was charged rather than implying the whole stake landed on the
+    // subject. The split is the §6 computation, recorded not distributed.
+    return NextResponse.json({
+      success: true,
+      position: staked.position,
+      spend: staked.spend,
+      fee: staked.fee,
+      net: staked.net,
+      split: staked.split,
+    });
   } catch (e) {
     console.error("perps/convict error:", e);
     return NextResponse.json({ success: false, error: "conviction failed" }, { status: 500 });

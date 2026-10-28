@@ -96,17 +96,34 @@ describe("staking — 4-tier eights ladder (founder sign-off 31 Jul 2026)", () =
   it("has exactly 4 tiers", () => {
     expect(STAKING_TIERS.length).toBe(4);
   });
-  it("Bronze 88 / 8.8% APY / 28.8% recovery", () => {
-    expect(STAKING_TIERS[0]).toMatchObject({ name: "Bronze", minMadx: 88, apy: 0.088, shieldRecoveryPct: 0.288 });
+  it("Bronze 88 / 8.88% APY / 28.8% recovery / no stoploss", () => {
+    expect(STAKING_TIERS[0]).toMatchObject({ name: "Bronze", minMadx: 88, apy: 0.088, shieldRecoveryPct: 0.288, stoplossPct: 0.00 });
   });
-  it("Silver 888 / 18.8% / 32.8%", () => {
-    expect(STAKING_TIERS[1]).toMatchObject({ name: "Silver", minMadx: 888, apy: 0.188, shieldRecoveryPct: 0.328 });
+  it("Silver 888 / 19.2% / 32.8% / 15% stoploss", () => {
+    expect(STAKING_TIERS[1]).toMatchObject({ name: "Silver", minMadx: 888, apy: 0.192, shieldRecoveryPct: 0.328, stoplossPct: 0.15 });
   });
-  it("Gold 8,888 / 28.8% / 36.8%", () => {
-    expect(STAKING_TIERS[2]).toMatchObject({ name: "Gold", minMadx: 8_888, apy: 0.288, shieldRecoveryPct: 0.368 });
+  it("Gold 8,888 / 29.6% / 36.8% / 10% stoploss", () => {
+    expect(STAKING_TIERS[2]).toMatchObject({ name: "Gold", minMadx: 8_888, apy: 0.296, shieldRecoveryPct: 0.368, stoplossPct: 0.10 });
   });
-  it("MAD Tier 88,888 / 38.8% / 40.0% — the Shield ceiling", () => {
-    expect(STAKING_TIERS[3]).toMatchObject({ name: "MAD Tier", minMadx: 88_888, apy: 0.388, shieldRecoveryPct: 0.4 });
+  it("MAD Tier 88,888 / 40.0% / 40.0% / 5% stoploss — the Shield ceiling", () => {
+    expect(STAKING_TIERS[3]).toMatchObject({ name: "MAD Tier", minMadx: 88_888, apy: 0.400, shieldRecoveryPct: 0.40, stoplossPct: 0.05 });
+  });
+  it("getStakingTier returns stoploss activation status", () => {
+    // Bronze (first level): no stoploss protection
+    const bronze = getStakingTier(50);
+    expect(bronze?.stoplossActive).toBe(false);
+    // Silver: 15% stoploss threshold
+    const silver = getStakingTier(2000);
+    expect(silver?.stoplossActive).toBe(true);
+    expect(silver?.stoplossPct).toBe(0.15);
+    // Gold: 10% stoploss threshold
+    const gold = getStakingTier(10000);
+    expect(gold?.stoplossActive).toBe(true);
+    expect(gold?.stoplossPct).toBe(0.10);
+    // MAD Tier: 5% stoploss threshold
+    const madTier = getStakingTier(100000);
+    expect(madTier?.stoplossActive).toBe(true);
+    expect(madTier?.stoplossPct).toBe(0.05);
   });
   it("VIP status gate is 888,888 $MADx with 60% recovery above the ladder", () => {
     expect(VIP_STATUS_MIN_MADX).toBe(888_888);

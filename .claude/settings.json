@@ -1,0 +1,36 @@
+{
+  "hookProfile": "standard",
+  "disabledHooks": [],
+  "modelPreferences": {
+    "default": "claude-opus-4-6",
+    "fast": "claude-sonnet-4-6",
+    "research": "claude-opus-4-6",
+    "investor": "claude-opus-4-6"
+  },
+  "extendedThinking": true,
+  "contextFiles": [
+    "CLAUDE.md",
+    "AGENTS.md",
+    "ABOUT-ME/about-me.md",
+    "ABOUT-ME/anti-ai-writing-style.md",
+    "ABOUT-ME/voice-profile.md",
+    "ABOUT-ME/global-instructions.md",
+    "docs/boardy/CANONICAL_NUMBERS_2026-08-19.md"
+  ],
+  "outputDirectory": "OUTPUTS",
+  "projectDirectories": {
+    "platform": "PROJECTS/platform",
+    "investors": "PROJECTS/investors",
+    "marketing": "PROJECTS/marketing",
+    "contracts": "PROJECTS/smart-contracts",
+    "tokenomics": "PROJECTS/tokenomics"
+  },
+  "codeDirectories": {
+    "app": "app",
+    "dataRoom": "verify",
+    "contracts": "contracts",
+    "backend": "backend-node",
+    "maths": "master-maths",
+    "docs": "docs"
+  }
+}
