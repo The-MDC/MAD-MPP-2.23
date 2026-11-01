@@ -49,31 +49,41 @@ export default function FeaturedMarketCards() {
               maxWidth: "100%",
               height: "100%",
               background: skin.card,
-              border: `2px solid ${neon}`,
+              position: "relative",
+              overflow: "hidden",
+              border: `1px solid ${neon}99`,
               borderRadius: 16,
-              padding: 18,
-              boxShadow: `0 0 18px ${neon}44, inset 0 0 24px ${neon}11`,
+              padding: 16,
+              boxShadow: `0 0 18px ${neon}33, inset 0 0 24px ${neon}11`,
               display: "flex",
               flexDirection: "column",
               gap: 14,
               fontFamily: INSTRUMENT_FONT,
             }}
           >
+            {/* Graphic first: the prediction symbol glows behind the question. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/sym-prediction.png" alt="" loading="lazy" style={{ position: "absolute", top: 10, right: 10, width: 52, height: 52, objectFit: "contain", filter: `drop-shadow(0 0 10px ${neon}aa)`, pointerEvents: "none" }} />
             {/* Caps are a display choice, applied here — the data stays sentence case. */}
-            <div style={{ fontSize: 15, fontWeight: 900, color: skin.gold, lineHeight: 1.25, letterSpacing: 0.4, textTransform: "uppercase" }}>
+            <div style={{ fontSize: 15, fontWeight: 900, color: skin.gold, lineHeight: 1.25, letterSpacing: 0.4, textTransform: "uppercase", paddingRight: 58 }}>
               {m.question}
             </div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 11, fontWeight: 900, color: skin.positive, letterSpacing: 1 }}>YES</div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: skin.text }}>{odds(m.yes)}</div>
-              </div>
-              <div style={{ width: 1, height: 34, background: `${skin.text}22` }} />
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 11, fontWeight: 900, color: skin.accent2, letterSpacing: 1 }}>NO</div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: skin.text }}>{odds(m.no)}</div>
-              </div>
-            </div>
+            {/* The odds as a picture: implied share from the two multipliers, YES left, NO right. */}
+            {(() => {
+              const py = 1 / m.yes, pn = 1 / m.no, yesShare = Math.round((py / (py + pn)) * 100);
+              return (
+                <div>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 6 }}>
+                    <span style={{ fontSize: 18, fontWeight: 900, color: skin.positive }}>{odds(m.yes)} <span style={{ fontSize: 9, letterSpacing: 1 }}>YES</span></span>
+                    <span style={{ fontSize: 18, fontWeight: 900, color: skin.accent2 }}><span style={{ fontSize: 9, letterSpacing: 1 }}>NO</span> {odds(m.no)}</span>
+                  </div>
+                  <div style={{ display: "flex", height: 8, borderRadius: 99, overflow: "hidden", background: "rgba(255,255,255,0.08)" }} role="img" aria-label={`Implied ${yesShare} percent yes, ${100 - yesShare} percent no`}>
+                    <span style={{ width: `${yesShare}%`, background: skin.positive, boxShadow: `0 0 9px ${skin.positive}88` }} />
+                    <span style={{ width: `${100 - yesShare}%`, background: skin.accent2 }} />
+                  </div>
+                </div>
+              );
+            })()}
             <a
               href="/open-markets?tab=prediction"
               style={{

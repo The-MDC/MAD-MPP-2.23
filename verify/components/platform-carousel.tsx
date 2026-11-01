@@ -143,7 +143,7 @@ function GoldPillarTile({ pillar, uid, hint }: { pillar: PillarCard; uid: string
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
           <span style={{ fontSize: "18px", color: pillar.color }}>{pillar.glyph}</span>
           <span style={{
-            fontFamily: INSTRUMENT_FONT, fontSize: "7px", fontWeight: 800,
+            fontFamily: INSTRUMENT_FONT, fontSize: "9px", fontWeight: 800,
             color: pillar.color, letterSpacing: "1.5px",
           }}>
             {pillar.title}
@@ -157,7 +157,7 @@ function GoldPillarTile({ pillar, uid, hint }: { pillar: PillarCard; uid: string
           {pillar.stat}
         </div>
         <div style={{
-          fontFamily: INSTRUMENT_FONT, fontSize: "7px", color: INK.muted,
+          fontFamily: INSTRUMENT_FONT, fontSize: "9px", color: INK.muted,
           letterSpacing: "0.5px", marginTop: "4px",
         }}>
           {pillar.statLabel}

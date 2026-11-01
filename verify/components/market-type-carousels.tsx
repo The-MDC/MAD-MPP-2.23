@@ -59,6 +59,12 @@ const BLURB: Record<MarketType, string> = {
   epiphany: "Mental models · conviction on cultural persistence",
 };
 
+/** Symbol per market class — each carousel card leads with its class graphic. */
+const TYPE_SYMBOL: Record<MarketType, string> = {
+  progression: "/brand/card-epi.png", saga: "/brand/card-faces.png", zliar: "/brand/card-zliar.png", perp: "/brand/card-scandal.png",
+  gossipcop: "/brand/card-gossip.png", faces: "/brand/card-faces.png", zeitgeist: "/brand/card-zeit.png", epiphany: "/brand/card-epi.png",
+};
+
 function Carousel({ type, items, live }: { type: MarketType; items: Proposal[]; live: boolean }) {
   const { skin } = useSkin();
   const ref = useRef<HTMLDivElement>(null);
@@ -72,9 +78,9 @@ function Carousel({ type, items, live }: { type: MarketType; items: Proposal[]; 
   const arrow: React.CSSProperties = { width: 24, height: 24, borderRadius: "50%", background: "transparent", border: `1px solid ${color}`, color, cursor: "pointer", fontSize: 13, fontWeight: 900, lineHeight: "22px", padding: 0, fontFamily: INSTRUMENT_FONT };
 
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "0 0 4px 2px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 900, letterSpacing: 1.5, color, textTransform: "uppercase" }}>
+    <div style={{ opacity: items.length === 0 ? 0.45 : 1 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "0 0 8px 2px" }}>
+        <div title={BLURB[type]} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 900, letterSpacing: 1.5, color, textTransform: "uppercase" }}>
           {LABEL[type]} <span style={{ color: skin.muted, fontSize: 9 }}>{items.length}</span>
           <AutoShowcaseBadge />
         </div>
@@ -83,19 +89,25 @@ function Carousel({ type, items, live }: { type: MarketType; items: Proposal[]; 
           <button type="button" aria-label="Scroll right" onClick={() => nudge(1)} style={arrow}>›</button>
         </div>
       </div>
-      <div style={{ fontSize: 8, color: skin.muted, margin: "0 0 8px 2px" }}>{BLURB[type]}</div>
-      {items.length === 0 ? (
-        <div style={{ fontSize: 9, color: skin.muted, padding: "8px 2px" }}>No {live ? "live" : "demo"} signals in this class yet.</div>
-      ) : (
-        <div ref={ref} {...showcase} style={{ display: "flex", gap: 10, overflowX: "auto", scrollBehavior: "smooth", paddingBottom: 4 }}>
+      {items.length === 0 ? null : (
+        <div ref={ref} {...showcase} style={{ display: "flex", gap: 10, overflowX: "auto", scrollBehavior: "smooth", paddingBottom: 4, scrollbarWidth: "none" }}>
           {items.map((p, i) => (
-            <div key={i} style={{ minWidth: 232, flex: "0 0 auto", background: skin.card, border: `1px solid ${color}66`, borderRadius: 12, padding: 12, fontFamily: INSTRUMENT_FONT }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: skin.text, lineHeight: 1.35, minHeight: 54 }}>{p.title}</div>
-              <div style={{ display: "flex", gap: 10, marginTop: 8, fontSize: 7, color: skin.muted }}>
-                <span>Z-Liar <b style={{ color: skin.gold }}>{Math.round(p.zliarScore)}</b></span>
-                <span>Perp <b style={{ color: skin.accent2 }}>{Math.round(p.perpProbability * 100)}%</b></span>
-                <span>~{p.horizonDays}d</span>
-                <span style={{ marginLeft: "auto" }}>score <b style={{ color: skin.accent }}>{p.score.toFixed(2)}</b></span>
+            <div key={i} style={{ position: "relative", minWidth: 232, flex: "0 0 auto", background: `radial-gradient(circle at 18% 28%, ${color}33, ${skin.card} 62%)`, border: `1px solid ${color}66`, borderRadius: 14, padding: 12, fontFamily: INSTRUMENT_FONT, overflow: "hidden" }}>
+              {/* Graphic first: the class symbol leads, the title follows it. */}
+              <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={TYPE_SYMBOL[type]} alt="" loading="lazy" style={{ width: 46, height: 46, objectFit: "contain", flex: "none", filter: `drop-shadow(0 0 8px ${color}aa)` }} />
+                <div style={{ fontSize: 11, fontWeight: 800, color: skin.text, lineHeight: "14px", height: 42, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{p.title}</div>
+              </div>
+              {/* Perp probability as a bar, not a sentence. */}
+              <div style={{ marginTop: 10, height: 6, borderRadius: 99, background: "rgba(255,255,255,0.08)", overflow: "hidden" }} role="img" aria-label={`Perp probability ${Math.round(p.perpProbability * 100)} percent`}>
+                <div style={{ width: `${Math.max(3, Math.min(100, Math.round(p.perpProbability * 100)))}%`, height: "100%", borderRadius: 99, background: color, boxShadow: `0 0 8px ${color}99` }} />
+              </div>
+              <div style={{ display: "flex", gap: 8, marginTop: 7, fontSize: 9, fontWeight: 900, alignItems: "center" }}>
+                <span style={{ color }}>{Math.round(p.perpProbability * 100)}%</span>
+                <span style={{ color: skin.gold }} title="Z-Liar score">ZL {Math.round(p.zliarScore)}</span>
+                <span style={{ color: skin.muted }}>~{p.horizonDays}d</span>
+                <span style={{ marginLeft: "auto", color: skin.accent }} title="Market score">{p.score.toFixed(2)}</span>
               </div>
             </div>
           ))}
@@ -128,7 +140,7 @@ export default function MarketTypeCarousels() {
           Markets by Class
         </div>
         {data && (
-          <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "2px 6px", borderRadius: 4, color: live ? skin.accent : skin.muted, background: `${live ? skin.accent : skin.muted}18`, border: `1px solid ${live ? skin.accent : skin.muted}40`, fontFamily: INSTRUMENT_FONT }}>
+          <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "2px 6px", borderRadius: 4, color: live ? skin.accent : skin.muted, background: `${live ? skin.accent : skin.muted}18`, border: `1px solid ${live ? skin.accent : skin.muted}40`, fontFamily: INSTRUMENT_FONT }}>
             {live ? "live" : "demo"}
           </span>
         )}

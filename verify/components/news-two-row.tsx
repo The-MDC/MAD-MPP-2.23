@@ -76,6 +76,13 @@ function marketLabel(kind: Kind): string {
     : "CONVICTION";
 }
 
+/** Brand symbol per feed kind — the card's graphic when a story has no photo. */
+const KIND_SYMBOL: Record<Kind, string> = {
+  headlines: "/brand/card-epi.png", entertainment: "/brand/card-faces.png", sports: "/brand/card-zeit.png",
+  viraltech: "/brand/card-scandal.png", crypto: "/brand/card-scandal.png", tabloid: "/brand/card-gossip.png",
+  zliar: "/brand/card-zliar.png", gossipcop: "/brand/card-gossip.png",
+};
+
 function ThumbImg({ src }: { src: string }) {
   const [broken, setBroken] = useState(false);
   if (broken) return null;
@@ -109,64 +116,71 @@ function CardView({ c }: { c: Card }) {
     if (c.link.charAt(0) === "/") window.location.href = c.link;
     else window.open(c.link, "_blank", "noopener");
   };
+  const symbol = KIND_SYMBOL[c.kind];
+  const perp = PERP_KINDS.has(c.kind);
   return (
     <div
       onClick={onClick}
       role="link"
       title={c.link ? "Open" : undefined}
       // marginRight (not the track's gap) carries the spacing — see MarqueeRow.
-      style={{ minWidth: 238, width: 238, flex: "0 0 auto", marginRight: 10, background: skin.card, border: `1px solid ${color}66`, borderRadius: 12, overflow: "hidden", cursor: c.link ? "pointer" : "default", fontFamily: INSTRUMENT_FONT }}
+      style={{ position: "relative", minWidth: 238, width: 238, height: 156, flex: "0 0 auto", marginRight: 12, background: skin.card, border: `1px solid ${color}66`, borderRadius: 14, overflow: "hidden", cursor: c.link ? "pointer" : "default" }}
     >
-      <div style={{ height: 76, position: "relative", background: `linear-gradient(135deg, ${color}, ${skin.accent})` }}>
-        {c.image ? <ThumbImg src={c.image} /> : null}
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.05))" }} />
-        <span style={{ position: "absolute", top: 6, left: 6, fontSize: 6.5, fontWeight: 900, letterSpacing: 0.5, textTransform: "uppercase", color: "#fff", background: `${color}cc`, padding: "2px 6px", borderRadius: 5 }}>{LABEL[c.kind]}</span>
-        {/* Heat badge — clickable; explains how the ranking is measured. */}
-        {c.signals ? (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); setInfo(true); }}
-            title="How is Heat measured?"
-            style={{ position: "absolute", top: 6, right: 6, display: "inline-flex", alignItems: "center", gap: 2, fontSize: 8, fontWeight: 900, color: "#0b0b12", background: skin.gold, border: "none", borderRadius: 6, padding: "2px 6px", cursor: "pointer", fontFamily: INSTRUMENT_FONT, boxShadow: `0 0 10px ${skin.gold}66` }}
-          >
-            🔥 {Math.round(c.heat)}
-          </button>
-        ) : null}
-        {/* The instrument this headline trades as — every card names one. */}
+      {/* Graphic first. The story photo fills the card; with no photo the market's own
+          symbol sits on a tinted ground, so a card is never an empty gradient. */}
+      <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at 50% 36%, ${color}55, ${skin.card} 74%)` }} />
+      {c.image ? (
+        <ThumbImg src={c.image} />
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={symbol} alt="" loading="lazy" style={{ position: "absolute", left: "50%", top: "8%", height: "58%", transform: "translateX(-50%)", objectFit: "contain", filter: `drop-shadow(0 0 14px ${color}aa)` }} />
+      )}
+      {/* The scrim carries the headline; nothing else competes with the picture. */}
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(4,5,10,0.94) 0%, rgba(4,5,10,0.6) 40%, rgba(4,5,10,0) 68%)" }} />
+
+      {/* Top row: the instrument this headline trades as, and the two scores — nothing else. */}
+      <div style={{ position: "absolute", top: 8, left: 8, right: 8, display: "flex", alignItems: "center", gap: 6 }}>
         <span
           style={{
-            position: "absolute", bottom: 6, left: 6,
-            fontSize: 6.5, fontWeight: 900, letterSpacing: 0.7, textTransform: "uppercase",
-            color: PERP_KINDS.has(c.kind) ? "#0b0b12" : "#fff",
-            background: PERP_KINDS.has(c.kind) ? skin.gold : "rgba(8,8,14,0.78)",
-            border: `1px solid ${PERP_KINDS.has(c.kind) ? skin.gold : `${color}88`}`,
-            padding: "2px 6px", borderRadius: 5, whiteSpace: "nowrap",
+            fontSize: 9, fontWeight: 900, letterSpacing: 0.7, textTransform: "uppercase", whiteSpace: "nowrap",
+            color: perp ? "#0b0b12" : "#fff",
+            background: perp ? skin.gold : "rgba(8,8,14,0.78)",
+            border: `1px solid ${perp ? skin.gold : `${color}88`}`,
+            padding: "2px 7px", borderRadius: 6,
           }}
         >
           {marketLabel(c.kind)}
         </span>
+        <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span title="Z-Liar score" style={{ fontSize: 9, fontWeight: 900, color: skin.gold, background: "rgba(8,8,14,0.78)", border: `1px solid ${skin.gold}66`, padding: "2px 6px", borderRadius: 6 }}>
+            ZL {Math.round(c.z)}
+          </span>
+          {/* Heat badge — clickable; explains how the ranking is measured. */}
+          {c.signals ? (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setInfo(true); }}
+              title="How is Heat measured?"
+              style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 9, fontWeight: 900, color: "#0b0b12", background: skin.gold, border: "none", padding: "2px 6px", borderRadius: 6, cursor: "pointer" }}
+            >
+              🔥 {Math.round(c.heat)}
+            </button>
+          ) : null}
+        </span>
       </div>
-      <div style={{ padding: "8px 10px" }}>
-        {/* Headline box.
-            Was lineHeight:1.3 (= 11.7px) in a 35px box, so the third line was
-            sliced through the glyphs — the formatting artifact on this wire.
-            An integer 12px line box times exactly 3 lines is 36px, so nothing
-            is ever cut mid-character, and line-clamp ends an over-long
-            headline with an ellipsis instead of a shaved row of letters. */}
+
+      {/* Headline on the scrim. 14px line box x 2 lines = 28px, clamped, so a glyph is never sliced. */}
+      <div style={{ position: "absolute", left: 10, right: 10, bottom: 9 }}>
         <div
           style={{
-            fontSize: 9, fontWeight: 700, color: skin.text,
-            lineHeight: "12px", height: 36,
-            display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical",
-            overflow: "hidden",
+            fontSize: 11, fontWeight: 800, color: "#fff", lineHeight: "14px", height: 28,
+            display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+            textShadow: "0 1px 6px rgba(0,0,0,0.7)",
           }}
         >
           {c.headline}
         </div>
-        <div style={{ display: "flex", gap: 6, marginTop: 6, fontSize: 6.5, color: skin.muted }}>
-          <span style={{ color, fontWeight: 900 }}>{c.source}</span>
-          <span style={{ marginLeft: "auto" }}>Z-Liar <b style={{ color: skin.gold }}>{Math.round(c.z)}</b></span>
-        </div>
+        <div style={{ marginTop: 4, fontSize: 9, fontWeight: 900, color, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.source}</div>
       </div>
       {c.signals ? (
         <MetricPopover
@@ -273,7 +287,7 @@ export default function NewsTwoRow() {
         {feedDemo ? (
           <span
             title="Serving demo constants — the RSS feed is unreachable or DATABASE_URL is unset. Not a code fault."
-            style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: skin.bg, background: skin.gold, borderRadius: 5, padding: "2px 6px", whiteSpace: "nowrap" }}
+            style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: skin.bg, background: skin.gold, borderRadius: 5, padding: "2px 6px", whiteSpace: "nowrap" }}
           >
             demo feed
           </span>
@@ -282,7 +296,7 @@ export default function NewsTwoRow() {
           <button
             type="button"
             onClick={() => { setActive(null); if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("mg:category", { detail: null })); }}
-            style={{ marginLeft: "auto", fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: skin.gold, background: `${skin.gold}18`, border: `1px solid ${skin.gold}55`, borderRadius: 7, padding: "3px 8px", cursor: "pointer", fontFamily: INSTRUMENT_FONT }}
+            style={{ marginLeft: "auto", fontSize: 9, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: skin.gold, background: `${skin.gold}18`, border: `1px solid ${skin.gold}55`, borderRadius: 7, padding: "3px 8px", cursor: "pointer", fontFamily: INSTRUMENT_FONT }}
           >
             All ✕
           </button>
@@ -312,7 +326,7 @@ export default function NewsTwoRow() {
           <button
             type="button"
             onClick={() => window.dispatchEvent(new CustomEvent("mg:open-node", { detail: "markets-all" }))}
-            style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: skin.gold, background: `${skin.gold}18`, border: `1px solid ${skin.gold}55`, borderRadius: 7, padding: "3px 8px", cursor: "pointer", fontFamily: INSTRUMENT_FONT }}
+            style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: skin.gold, background: `${skin.gold}18`, border: `1px solid ${skin.gold}55`, borderRadius: 7, padding: "3px 8px", cursor: "pointer", fontFamily: INSTRUMENT_FONT }}
           >
             Browse markets →
           </button>
