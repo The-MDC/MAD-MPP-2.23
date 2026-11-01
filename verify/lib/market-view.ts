@@ -110,7 +110,7 @@ export const FAMILY_META: Record<PerpFamily6, {
   },
   zliar: {
     label: "Z-Liar Meter", accent: "--a2", kicker: "Narrative credibility",
-    sym: "/brand/card-zliar.png", symGlow: "rgba(252,52,55,.6)",
+    sym: "/brand/card-zliar.png", symGlow: "rgba(245,36,42,.6)",
   },
   gossip: {
     label: "Gossip-Cop Perp", accent: "--a2", kicker: "Long-arc claim contest",

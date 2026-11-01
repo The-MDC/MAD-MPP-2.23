@@ -29,7 +29,7 @@ const SLIDES: Slide[] = [
     title: "Deflationary Flywheel Moat",
     subtitle: "Fail-Yield Loop Architecture",
     icon: "🔥",
-    color: "#fc3437",
+    color: "#f5242a",
     bullets: [
       { label: "Furnace burn cap", value: "4.9% / epoch" },
       { label: "Evolution burns",   value: "100→1,000 cards" },

@@ -198,7 +198,7 @@ function Band({ title, note, items, more, explain }: { title: string; note: stri
 function CertainBand({ items }: { items: OMMarket[] }) {
   if (!items.length) return null;
   return (
-    <section data-explain="om-certain" style={{ position: "relative", borderRadius: 24, padding: "20px 16px 16px", overflow: "hidden", border: "1px solid rgba(249,86,57,.35)", background: "radial-gradient(120% 80% at 100% 0%, rgba(249,86,57,.28) 0%, rgba(122,17,15,.18) 40%, #0b0907 75%)" }}>
+    <section data-explain="om-certain" style={{ position: "relative", borderRadius: 24, padding: "20px 16px 16px", overflow: "hidden", border: "1px solid rgba(245,36,42,.35)", background: "radial-gradient(120% 80% at 100% 0%, rgba(245,36,42,.28) 0%, rgba(122,17,15,.18) 40%, #0b0907 75%)" }}>
       <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.6, textTransform: "uppercase", color: "#ffd3c4" }}>Platform-offered · no creator cut</div>
       <h2 style={{ margin: "6px 0 0", lineHeight: .95 }}>
         <span className="mg-display" style={{ fontSize: 34, color: "#fff4e8" }}>Certain-</span>

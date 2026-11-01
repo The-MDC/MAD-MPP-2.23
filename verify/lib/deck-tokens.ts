@@ -32,7 +32,7 @@ export const ROLE = {
   text: "var(--tx,#f0f0f8)",
   muted: "var(--mu,#6b7280)",
   accent: "var(--ac,#00e5ff)",
-  accent2: "var(--a2,#fc3437)",
+  accent2: "var(--a2,#f5242a)",
   gold: "var(--gd,#d69d41)",
   positive: "var(--po,#00ff88)",
   /** The card's own accent. Only valid inside a card that sets it. */

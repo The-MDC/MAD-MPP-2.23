@@ -63,7 +63,7 @@ function ProfileInner() {
       <div style={{ display: "flex", gap: 8 }}>
         <Stat k="Positions" v={String(rows.length)} />
         <Stat k="Staked" v={madx(staked)} />
-        <Stat k="P&L" v={`${pnl >= 0 ? "+" : ""}${madx(pnl)}`} accent={pnl >= 0 ? "#7cffc7" : "#ff8f7a"} />
+        <Stat k="P&L" v={`${pnl >= 0 ? "+" : ""}${madx(pnl)}`} accent={pnl >= 0 ? "#7cffc7" : "#f85b5f"} />
       </div>
 
       <section id="positions" style={{ display: "flex", flexDirection: "column", gap: 10, scrollMarginTop: 80 }}>
@@ -81,7 +81,7 @@ function ProfileInner() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6, fontFamily: MONO, fontSize: 12 }}>
               <span><span style={{ color: MUTED }}>Stake </span>{madx(r.x.stake)}</span>
               <span><span style={{ color: MUTED }}>Mark </span>{madx(r.mark)}</span>
-              <span style={{ textAlign: "right", color: r.pnl >= 0 ? "#7cffc7" : "#ff8f7a" }}>{r.pnl >= 0 ? "+" : ""}{madx(r.pnl)}</span>
+              <span style={{ textAlign: "right", color: r.pnl >= 0 ? "#7cffc7" : "#f85b5f" }}>{r.pnl >= 0 ? "+" : ""}{madx(r.pnl)}</span>
             </div>
             <div data-explain="om-profile" title="Conviction = 1 − e^(−t/30d): 63% at a month held, 95% at three" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 10, color: MUTED }}>
               <span style={{ flex: "none", fontWeight: 900, letterSpacing: 1, textTransform: "uppercase" }}>Conviction</span>
@@ -115,7 +115,7 @@ function ProfileInner() {
             return (
               <div key={c.id} className="mg-tile" style={{ padding: "10px 14px", display: "flex", justifyContent: "space-between", gap: 10, fontSize: 12 }}>
                 <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}><b style={{ color: GOLD }}>{label}</b> · {m?.title ?? "Market"}</span>
-                <span style={{ flex: "none", fontFamily: MONO, color: r >= 0 ? "#7cffc7" : "#ff8f7a" }}>{r >= 0 ? "+" : ""}{madx(r)}</span>
+                <span style={{ flex: "none", fontFamily: MONO, color: r >= 0 ? "#7cffc7" : "#f85b5f" }}>{r >= 0 ? "+" : ""}{madx(r)}</span>
               </div>
             );
           })}

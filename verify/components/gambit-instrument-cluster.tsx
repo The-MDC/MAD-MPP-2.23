@@ -100,7 +100,7 @@ export interface DialStat {
 const DEFAULT_PAIR1_PRESETS: DigitPairStat[] = [
   { label: "ACTIVE PREDICTIONS", value: "24", color: "#ffcf40" },
   { label: "WIN STREAK RECORD",  value: "12", color: "#00e5ff" },
-  { label: "CARDS OPENED TODAY", value: "41", color: "#fc3437" },
+  { label: "CARDS OPENED TODAY", value: "41", color: "#f5242a" },
 ];
 const DEFAULT_PAIR2_PRESETS: DigitPairStat[] = [
   { label: "COMMUNITY POOL %",   value: "88", color: "#00ff88" },
@@ -108,7 +108,7 @@ const DEFAULT_PAIR2_PRESETS: DigitPairStat[] = [
   { label: "TOURNAMENT ENTRIES", value: "56", color: "#00e5ff" },
 ];
 const DEFAULT_PAIR3_PRESETS: DigitPairStat[] = [
-  { label: "CHAOS INDEX",        value: "67", color: "#fc3437" },
+  { label: "CHAOS INDEX",        value: "67", color: "#f5242a" },
   { label: "APY BOOST %",        value: "48", color: "#00ff88" },
   { label: "SHIELD UTILIZATION", value: "31", color: "#ffcf40" },
 ];
@@ -397,7 +397,7 @@ function AnalogGauge({
               {c.price}
             </text>
             <text x={CX} y={CY + 36} textAnchor="middle" fontSize="6" fontWeight="800"
-              fill={c.up ? "#00ff88" : "#fd6769"} fontFamily={INSTRUMENT_FONT}>
+              fill={c.up ? "#00ff88" : "#f85b5f"} fontFamily={INSTRUMENT_FONT}>
               {c.change}
             </text>
           </>

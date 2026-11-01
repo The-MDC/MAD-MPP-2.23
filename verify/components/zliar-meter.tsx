@@ -31,7 +31,7 @@ const VERDICT_COLOR: Record<ZLiarVerdict, string> = {
   "STRAIGHT SHOOTER": "#7cffc7",
   "MOSTLY CANDID": "#fbbf24",
   "SLIPPERY": "#f59e0b",
-  "SERIAL EMBELLISHER": "#fc3437",
+  "SERIAL EMBELLISHER": "#f5242a",
   "TOTAL FABRICATION": "#ff00f0",
 };
 
@@ -168,7 +168,7 @@ export default function ZLiarMeter() {
 
           {/* breakdown */}
           <div className="grid grid-cols-3 gap-2.5">
-            <Metric icon={<Search className="w-3.5 h-3.5" />} label="BS Index" value={`${Math.round(reading.bs)}%`} color="#fc3437" />
+            <Metric icon={<Search className="w-3.5 h-3.5" />} label="BS Index" value={`${Math.round(reading.bs)}%`} color="#f5242a" />
             <Metric icon={<Activity className="w-3.5 h-3.5" />} label="GARCH σ²" value={reading.volatility.toFixed(3)} color="#58a6ff" />
             <Metric icon={<Moon className="w-3.5 h-3.5" />} label="Lunar Tilt" value={`+${reading.lunarTilt.toFixed(1)}`} color="#c98aff" />
           </div>
@@ -178,7 +178,7 @@ export default function ZLiarMeter() {
 
           {/* knobs */}
           <div className="space-y-2.5 pt-1">
-            <Knob label="Narrative Variance" value={variance} onChange={setVariance} color="#fc3437" />
+            <Knob label="Narrative Variance" value={variance} onChange={setVariance} color="#f5242a" />
             <Knob label="Source Credibility" value={credibility} onChange={setCredibility} color="#7cffc7" />
             <Knob label="Corroboration" value={corroboration} onChange={setCorroboration} color="#58a6ff" />
           </div>
@@ -273,7 +273,7 @@ function ZMarketCard({ m, onOpen, wide }: { m: ZLiarMarket; onOpen?: () => void;
         <span className="font-mono text-[8px] uppercase tracking-wider text-neutral-700 shrink-0">credibility</span>
       </div>
       <div className="flex gap-1.5">
-        <span className="flex-1 text-center rounded-md py-1 font-mono text-[9px] font-bold" style={{ background: "#ff007f18", color: "#fc3437" }}>LIAR {m.liarOdds}x</span>
+        <span className="flex-1 text-center rounded-md py-1 font-mono text-[9px] font-bold" style={{ background: "#f5242a18", color: "#f5242a" }}>LIAR {m.liarOdds}x</span>
         <span className="flex-1 text-center rounded-md py-1 font-mono text-[9px] font-bold" style={{ background: "#00ff8818", color: "#00ff88" }}>TRUTH {m.truthOdds}x</span>
       </div>
     </>
@@ -321,7 +321,7 @@ function ZMarketsDialog({ markets, onClose }: { markets: ZLiarMarket[]; onClose:
         style={{ boxShadow: "0 18px 60px rgba(0,0,0,0.55)" }}
       >
         <div className="flex items-center gap-2 mb-1">
-          <ShieldAlert className="w-4 h-4 shrink-0" style={{ color: "#fc3437" }} />
+          <ShieldAlert className="w-4 h-4 shrink-0" style={{ color: "#f5242a" }} />
           <h3 className="flex-1 font-mono text-[11px] font-black uppercase tracking-[0.2em] text-[#f0f0f8]">
             All Z-Liar Markets
           </h3>

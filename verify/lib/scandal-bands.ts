@@ -27,7 +27,7 @@ export const SCANDAL_BANDS: VolatilityBand[] = [
   { minSigma: 0.010, label: "WARMING",       sublabel: "Liquidity building",               color: "#00f0ff", bgOpacity: "08", cta: "Early conviction window" },
   { minSigma: 0.020, label: "ACTIVE",        sublabel: "Conviction opportunities rising",  color: "#7cffc7", bgOpacity: "10", cta: "Liquidity deepening. Prices flattened." },
   { minSigma: 0.035, label: "HOT",           sublabel: "GARCH σ² elevated",               color: "#fbbf24", bgOpacity: "12", cta: "Optimal time for heavy Conviction entry." },
-  { minSigma: 0.050, label: "SCANDAL PEAK",  sublabel: "Maximum cultural velocity",        color: "#fc3437", bgOpacity: "18", cta: "Spike in progress. Execute now or wait for cooldown." },
+  { minSigma: 0.050, label: "SCANDAL PEAK",  sublabel: "Maximum cultural velocity",        color: "#f5242a", bgOpacity: "18", cta: "Spike in progress. Execute now or wait for cooldown." },
 ];
 
 /** The band a raw σ² falls in. Descending indexed scan — no `for...of`, no

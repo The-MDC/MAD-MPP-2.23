@@ -15,7 +15,7 @@
      applies a saved user-selected skin after hydration. */
   --mg-primary: #00f0ff;
   --mg-secondary: #7cffc7;
-  --mg-accent: #fc3437;
+  --mg-accent: #f5242a;
   --mg-bg: #01010a;
   --mg-panel: #03040e;
   --mg-border: #00f0ff33;
@@ -28,7 +28,7 @@
   /* Dopamine color ramp — temperature rises with excitement */
   --dopamine-calm:    #00f0ff;   /* blue-cyan — resting state */
   --dopamine-active:  #7cffc7;   /* green-cyan — engaged */
-  --dopamine-peak:    #fc3437;   /* pink — VRS near-miss band */
+  --dopamine-peak:    #f5242a;   /* pink — VRS near-miss band */
   --dopamine-jackpot: #d69d41;   /* gold — Fibonacci jackpot hit */
   --dopamine-chaos:   #ff00f0;   /* magenta — chaos max */
 
@@ -192,8 +192,8 @@
 }
 
 @utility border-glow-pink {
-  border: 1.15px solid rgba(252,52,55,0.85) !important;
-  box-shadow: 0 0 12px rgba(252,52,55,0.4), inset 0 0 6px rgba(252,52,55,0.15) !important;
+  border: 1.15px solid rgba(245,36,42,0.85) !important;
+  box-shadow: 0 0 12px rgba(245,36,42,0.4), inset 0 0 6px rgba(245,36,42,0.15) !important;
 }
 
 @keyframes gold-sheen-move {
@@ -773,7 +773,7 @@ a:focus-visible,
   --mg-gold-deep: #a86821;
   --mg-gold-chisel: linear-gradient(135deg, #794816 0%, #a86821 22%, #d69d41 48%, #f6d378 56%, #d69d41 64%, #a86821 82%, #794816 100%);
   --mg-gold-fill: linear-gradient(180deg, #fff1a8 0%, #d69d41 38%, #d9a514 100%);
-  --mg-rossa: #f95639;
+  --mg-rossa: #f5242a;
   --mg-tangerine: #fa550d;
   --mg-rossa-hot: #fb292b;
   --mg-peach: #fbac73;
@@ -791,7 +791,7 @@ a:focus-visible,
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   min-height: 44px; padding: 0 20px; border-radius: 999px; border: none; cursor: pointer;
   background: var(--mg-gold-fill); color: #1a1205; font-weight: 900; letter-spacing: .6px;
-  box-shadow: 0 1px 0 rgba(255,255,255,.55) inset, 0 -2px 0 rgba(0,0,0,.18) inset, 0 8px 22px -8px rgba(255,190,0,.65);
+  box-shadow: 0 1px 0 rgba(255,255,255,.55) inset, 0 -2px 0 rgba(0,0,0,.18) inset, 0 8px 22px -8px rgba(214,157,65,.65);
   transition: transform .16s var(--mg-ease), box-shadow .16s var(--mg-ease), filter .16s var(--mg-ease);
   text-decoration: none;
 }
@@ -813,7 +813,7 @@ a:focus-visible,
 }
 .mg-tile-hover:hover, .mg-tile-hover:focus-visible {
   transform: translateY(-4px); border-color: rgba(214,157,65,.55);
-  box-shadow: 0 0 0 1px rgba(214,157,65,.25), 0 18px 36px -14px rgba(255,190,0,.35), 0 0 28px -6px rgba(249,86,57,.35);
+  box-shadow: 0 0 0 1px rgba(214,157,65,.25), 0 18px 36px -14px rgba(214,157,65,.35), 0 0 28px -6px rgba(245,36,42,.35);
 }
 .mg-odds {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
@@ -831,7 +831,7 @@ a:focus-visible,
 .mg-seam { position: relative; overflow: hidden; }
 .mg-seam::before {
   content: ""; position: absolute; inset: -40% -20% auto -20%; height: 120%;
-  background: radial-gradient(120% 90% at 50% 0%, rgba(214,157,65,.16) 0%, rgba(249,86,57,.08) 38%, transparent 70%);
+  background: radial-gradient(120% 90% at 50% 0%, rgba(214,157,65,.16) 0%, rgba(245,36,42,.08) 38%, transparent 70%);
   pointer-events: none;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -848,7 +848,7 @@ a:focus-visible,
   .mg-workbench {
     background:
       radial-gradient(900px 620px at 50% 118%, rgba(214,157,65,.42) 0%, rgba(171,123,41,.24) 34%, transparent 66%),
-      radial-gradient(700px 520px at 85% -10%, rgba(249,86,57,.16) 0%, transparent 60%),
+      radial-gradient(700px 520px at 85% -10%, rgba(245,36,42,.16) 0%, transparent 60%),
       linear-gradient(180deg, #0b0a08 0%, #0d0b07 55%, #1c1406 100%);
   }
   .mg-device {
@@ -912,7 +912,7 @@ a:focus-visible,
 }
 .mg-holo::after {
   content: ""; position: absolute; inset: -40%; pointer-events: none; mix-blend-mode: color-dodge; opacity: .45;
-  background: conic-gradient(from 0deg, #ff00f0, #00e5ff, #d69d41, #7cffc7, #f95639, #ff00f0);
+  background: conic-gradient(from 0deg, #ff00f0, #00e5ff, #d69d41, #7cffc7, #f5242a, #ff00f0);
   animation: mg-holo 4s linear infinite;
 }
 @keyframes mg-holo { to { transform: rotate(360deg); } }
@@ -922,7 +922,7 @@ a:focus-visible,
 .mg-mascot-fab-bob { display: block; animation: mg-mascot-bob 3.4s var(--mg-ease, ease-in-out) infinite; transform-origin: 50% 100%; }
 .mg-mascot-fab {
   display: block; width: 62px; height: 66px; object-fit: contain; user-select: none; -webkit-user-drag: none;
-  filter: drop-shadow(0 8px 10px rgba(0,0,0,.7)) drop-shadow(0 0 12px rgba(249,86,57,.38));
+  filter: drop-shadow(0 8px 10px rgba(0,0,0,.7)) drop-shadow(0 0 12px rgba(245,36,42,.38));
   transition: transform .22s var(--mg-ease, ease), filter .22s ease;
 }
 button:hover > .mg-mascot-fab-bob > .mg-mascot-fab,
@@ -950,7 +950,7 @@ button:focus-visible > .mg-mascot-fab-bob > .mg-mascot-fab {
 .mg-capture-veil.is-opaque { background: #030303; }
 .mg-capture-veil-card {
   display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center;
-  padding: 18px 22px; border-radius: 14px; border: 1px solid rgba(249, 86, 57, 0.45);
+  padding: 18px 22px; border-radius: 14px; border: 1px solid rgba(245,36,42, 0.45);
   background: rgba(10, 10, 10, 0.85); color: #f5f5f5; font: 600 14px/1.35 ui-sans-serif, system-ui, sans-serif;
 }
 .mg-capture-veil-card strong { color: var(--mg-gold, #d69d41); letter-spacing: 0.04em; }

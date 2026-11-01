@@ -42,14 +42,14 @@
   --ink-3: #605d5d;
   --paper: #f3f2f2;
   /* ——— BRAND RED — San Pellegrino, sampled from product photography (2026-11-01).
-     ONE hue: lighter tints and darker shades of #fc3437 give variety without a second red or pink. ——— */
-  --red-100: #feebeb;
-  --red-200: #fd9a9b;
-  --red-300: #fd6769;
-  --red-500: #fc3437; /* the red — the cross-property invariant */
-  --red-600: #d62c2f;
-  --red-700: #b02427;
-  --red-900: #711719;
+     ONE hue: lighter tints and darker shades of #f5242a give variety without a second red or pink. ——— */
+  --red-100: #fee9ea;
+  --red-200: #fa9295;
+  --red-300: #f85b5f;
+  --red-500: #f5242a; /* the red — the cross-property invariant */
+  --red-600: #d01f24;
+  --red-700: #ac191d;
+  --red-900: #6e1013;
   /* legacy names, kept so existing consumers resolve to the one red */
   --blood-1: var(--red-500);
   --blood-2: var(--red-500);

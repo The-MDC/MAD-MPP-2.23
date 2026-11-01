@@ -67,7 +67,7 @@ export default function TradeDesk() {
   return (
     <OMShell title={m.perp ? "Perpetual desk" : m.cls === "prediction" ? "Prediction desk" : "Paseome desk"} back={{ href: "/open-markets", label: "Back to markets" }}>
       {created ? (
-        <div style={{ padding: "12px 14px", borderRadius: 16, background: "linear-gradient(90deg, rgba(214,157,65,.16), rgba(249,86,57,.12))", border: "1px solid rgba(214,157,65,.4)", fontSize: 13, fontWeight: 700 }}>
+        <div style={{ padding: "12px 14px", borderRadius: 16, background: "linear-gradient(90deg, rgba(214,157,65,.16), rgba(245,36,42,.12))", border: "1px solid rgba(214,157,65,.4)", fontSize: 13, fontWeight: 700 }}>
           ✨ Market minted. Take the first position — you earn your creator share on every trade.
         </div>
       ) : null}
@@ -102,7 +102,7 @@ export default function TradeDesk() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             {m.outcomes.map((o, i) => (
               <button key={o.id} type="button" className="mg-odds" aria-pressed={sel === o.id} onClick={() => { setSel(o.id); setFilled(null); setError(null); }} style={{ minHeight: 72 }}>
-                <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: sel === o.id ? "#1a1205" : i === 0 ? "#7cffc7" : "#ff8f7a" }}>{o.label} · {pct(p[i])}</span>
+                <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: sel === o.id ? "#1a1205" : i === 0 ? "#7cffc7" : "#f85b5f" }}>{o.label} · {pct(p[i])}</span>
                 <span style={{ fontFamily: MONO, fontSize: 22, fontWeight: 800 }}>{decimalOdds(p[i]).toFixed(2)}</span>
               </button>
             ))}
@@ -115,7 +115,7 @@ export default function TradeDesk() {
                 <button key={o.id} type="button" onClick={() => { setSel(o.id); setFilled(null); setError(null); }} aria-pressed={on}
                   style={{ position: "relative", overflow: "hidden", display: "flex", alignItems: "center", gap: 12, minHeight: 60, padding: "10px 12px", borderRadius: 14, cursor: "pointer", textAlign: "left", fontFamily: "inherit", color: "#f6f1e3",
                     background: on ? "rgba(214,157,65,.1)" : "#12131a", border: `1px solid ${on ? "rgba(214,157,65,.7)" : LINE}` }}>
-                  <span aria-hidden="true" style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${p[i] * 100}%`, background: on ? "rgba(214,157,65,.10)" : "rgba(249,86,57,.08)" }} />
+                  <span aria-hidden="true" style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${p[i] * 100}%`, background: on ? "rgba(214,157,65,.10)" : "rgba(245,36,42,.08)" }} />
                   <span style={{ position: "relative", flex: "none", width: 28, height: 28, display: "grid", placeItems: "center", borderRadius: 9, background: on ? GOLD : "#1d1f28", color: on ? "#1a1205" : ROSSA, fontFamily: MONO, fontWeight: 900, fontSize: 12 }}>{i + 1}</span>
                   <span style={{ position: "relative", flex: 1, fontSize: 13.5, fontWeight: 700, lineHeight: 1.35 }}>{o.label}</span>
                   <span style={{ position: "relative", flex: "none", textAlign: "right" }}>
@@ -198,7 +198,7 @@ export default function TradeDesk() {
               <div key={x.id} className="mg-tile" style={{ padding: "10px 12px 10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, fontSize: 12.5 }}>
                 <span style={{ minWidth: 0 }}>
                   <span style={{ display: "block", fontWeight: 700 }}>{m.outcomes[i]?.label} · {x.shares.toFixed(2)} sh</span>
-                  <span style={{ display: "block", fontFamily: MONO, fontSize: 11, color: mark >= x.stake ? "#7cffc7" : "#ff8f7a" }}>mark {madx(mark)} · stake {madx(x.stake)}</span>
+                  <span style={{ display: "block", fontFamily: MONO, fontSize: 11, color: mark >= x.stake ? "#7cffc7" : "#f85b5f" }}>mark {madx(mark)} · stake {madx(x.stake)}</span>
                 </span>
                 <button type="button" className="mg-btn-gold" onClick={() => sellPosition(x.id)} style={{ flex: "none", minHeight: 36, padding: "0 12px", fontSize: 11.5 }}>
                   Cash out {madx(sellQuote(m, i, x.shares).net)}

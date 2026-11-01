@@ -37,7 +37,7 @@ export const INK = {
   goldLcd:    "#ffcf40",
   cyan:       "#00e5ff",
   cyanDim:    "#007a8a",
-  pink:       "#fc3437",
+  pink:       "#f5242a",
   pinkDim:    "#7a003c",
   green:      "#00ff88",
   greenDim:   "#008844",

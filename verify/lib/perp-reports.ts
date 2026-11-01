@@ -89,8 +89,8 @@ export const PERP_REPORTS: Record<string, PerpReport> = {
     title: "Z-Liar Meter",
     kicker: "Read from the audit book · verdict SERIAL EMBELLISHER",
     stats: [
-      { k: "Z-Liar", v: "77", c: "#fc3437" },
-      { k: "Implied fail", v: "71%", c: "#fc3437" },
+      { k: "Z-Liar", v: "77", c: "#f5242a" },
+      { k: "Implied fail", v: "71%", c: "#f5242a" },
       { k: "Audits 24h", v: "312", c: "#00e5ff" },
       { k: "Book skew", v: "3.1×", c: "#d69d41" },
     ],
@@ -116,7 +116,7 @@ export const PERP_REPORTS: Record<string, PerpReport> = {
     title: "Gossip-Cop Perp",
     kicker: "Read from the claim book · 12 live arcs · leg 2 of 6",
     stats: [
-      { k: "Perp %", v: "61", c: "#fc3437" },
+      { k: "Perp %", v: "61", c: "#f5242a" },
       { k: "Δ since roll", v: "+9", c: "#00ff88" },
       { k: "Leg depth", v: "$410K", c: "#00e5ff" },
       { k: "Claim heat", v: "61", c: "#d69d41" },
@@ -171,7 +171,7 @@ export const PERP_REPORTS: Record<string, PerpReport> = {
     kicker: "Read from the simplex book · crowned Saint · leg 3 of 6",
     stats: [
       { k: "Divergence", v: "88", c: "#d69d41" },
-      { k: "Crown change", v: "27%", c: "#fc3437" },
+      { k: "Crown change", v: "27%", c: "#f5242a" },
       { k: "Leg depth", v: "$1.2M", c: "#00e5ff" },
       { k: "τ perm", v: ".34", c: "#00e5ff" },
     ],

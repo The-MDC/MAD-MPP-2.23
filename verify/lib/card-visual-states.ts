@@ -29,7 +29,7 @@ export const CHAOS_BORDER_CYCLE = [
   "#CC0000", // Politicos
   "#0066CC", // Athletes
   "#7B00D4", // Disruptors
-  "#FF1493", // Pop Icons
+  "#f5242a", // Pop Icons
   "#00FF41", // Memes
   "#FF6600", // Villains
   "#8B5E3C", // Classics
@@ -46,7 +46,7 @@ export const FACTION_COLORS: Record<FactionKey, FactionStyle> = {
   politicos: { name: "Politicos", color: "#CC0000", border: "#CC000055" },
   athletes: { name: "Athletes", color: "#0066CC", border: "#0066CC55" },
   disruptors: { name: "Disruptors", color: "#7B00D4", border: "#7B00D455" },
-  popIcons: { name: "Pop Icons", color: "#FF1493", border: "#FF149355" },
+  popIcons: { name: "Pop Icons", color: "#f5242a", border: "#f5242a55" },
   memes: { name: "Memes", color: "#00FF41", border: "#00FF4155" },
   villains: { name: "Villains", color: "#FF6600", border: "#FF660055" },
   classics: { name: "Classics", color: "#8B5E3C", border: "#8B5E3C55" },

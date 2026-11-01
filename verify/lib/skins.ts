@@ -9,13 +9,13 @@
 /**
  * Brand ramps shared by every surface (DOM, SVG and canvas can all read plain strings).
  * Gold is the bronze-yellow sampled from the Royal Vein rings and the MADHAT neon;
- * red is San Pellegrino #fc3437 with lighter/darker shades, the only red/pink in the app.
+ * red is San Pellegrino #f5242a with lighter/darker shades, the only red/pink in the app.
  * Mirrors --gold-* / --red-* in app/tokens.css.
  */
 export const BRAND = {
   gold: { shadow: "#794816", deep: "#a86821", base: "#d69d41", hot: "#f6d378" },
-  red: { tint: "#feebeb", light2: "#fd9a9b", light: "#fd6769", base: "#fc3437", dark: "#d62c2f", deeper: "#b02427", deepest: "#711719" },
-  glow: { gold: "rgba(246,211,120,0.45)", red: "rgba(252,52,55,0.45)" },
+  red: { tint: "#fee9ea", light2: "#fa9295", light: "#f85b5f", base: "#f5242a", dark: "#d01f24", deeper: "#ac191d", deepest: "#6e1013" },
+  glow: { gold: "rgba(246,211,120,0.45)", red: "rgba(245,36,42,0.45)" },
 } as const;
 
 export type SkinName = "neonNoir" | "gilded";
@@ -48,7 +48,7 @@ export const SKINS: Record<SkinName, Skin> = {
     muted: "#8a93a3",
     accent: "#00e5ff",
     // MAD rossa — the brand tangerine orange-red (founder palette, 2026-10-26).
-    accent2: "#f95639",
+    accent2: "#f5242a",
     gold: "#d69d41",
     positive: "#00ff88",
   },

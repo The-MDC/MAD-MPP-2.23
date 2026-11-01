@@ -126,7 +126,7 @@ export default function CreateMarketPage() {
             <button key={k} type="button" role="tab" aria-selected={on} onClick={() => { setKind(k); setError(null); }}
               data-explain={k === "prediction" ? "om-prediction" : "om-conviction"}
               style={{ minHeight: 48, borderRadius: 14, border: "none", cursor: "pointer", fontWeight: 900, fontSize: 13, letterSpacing: .4,
-                background: on ? "var(--mg-gold-fill)" : "transparent", color: on ? "#1a1205" : "#cfc9b9", boxShadow: on ? "0 6px 18px -8px rgba(255,190,0,.7)" : "none" }}>
+                background: on ? "var(--mg-gold-fill)" : "transparent", color: on ? "#1a1205" : "#cfc9b9", boxShadow: on ? "0 6px 18px -8px rgba(214,157,65,.7)" : "none" }}>
               {k === "prediction" ? "🎯 Prediction" : "♞ Conviction · Paseome"}
             </button>
           );
@@ -172,7 +172,7 @@ export default function CreateMarketPage() {
               <input id="om-p" type="range" min={2} max={98} value={prob} onChange={(e) => setProb(Number(e.target.value))} style={{ width: "100%", accentColor: GOLD }} />
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
                 <OddsReadout side="Yes" p={prob / 100} color="#7cffc7" />
-                <OddsReadout side="No" p={1 - prob / 100} color="#ff8f7a" />
+                <OddsReadout side="No" p={1 - prob / 100} color="#f85b5f" />
               </div>
             </div>
           </>
@@ -186,7 +186,7 @@ export default function CreateMarketPage() {
                   return (
                     <button key={sd} type="button" onClick={() => setSide(sd)} aria-pressed={on}
                       style={{ minHeight: 64, padding: "10px 12px", borderRadius: 14, cursor: "pointer", textAlign: "left", fontFamily: "inherit",
-                        background: on ? "rgba(249,86,57,.14)" : "#0f1016", border: `1px solid ${on ? "rgba(249,86,57,.6)" : LINE}`, color: "#f3efe4" }}>
+                        background: on ? "rgba(245,36,42,.14)" : "#0f1016", border: `1px solid ${on ? "rgba(245,36,42,.6)" : LINE}`, color: "#f3efe4" }}>
                       <div style={{ fontWeight: 900, fontSize: 13 }}>{sd === "forward" ? "Forward · Foresight" : "Counterfactual · Hindsight"}</div>
                       <div style={{ fontSize: 10.5, color: MUTED, marginTop: 3 }}>{sd === "forward" ? "Settles at the leg roll · untaken refunded" : "Never resolves · prices belief"}</div>
                     </button>
