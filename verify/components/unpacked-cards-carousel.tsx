@@ -92,7 +92,7 @@ export default function UnpackedCardsCarousel({ count = 8 }: { count?: number })
           tabIndex={0}
           style={{
             fontFamily: INSTRUMENT_FONT, fontSize: "8px", fontWeight: 800,
-            letterSpacing: "2px", color: "#ffd700", padding: "0 4px 8px",
+            letterSpacing: "2px", color: "#d69d41", padding: "0 4px 8px",
             display: "inline-block",
           }}
         >

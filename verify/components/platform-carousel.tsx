@@ -76,7 +76,7 @@ function pillars(m: Metrics | null): PillarCard[] {
   return [
     { id: "convictions", title: "CONVICTIONS", stat: live ? String(m.activeMarkets) : dash, statLabel: "OPEN MARKETS",      color: "#ffcf40", glyph: "\u2696" },
     { id: "predictions", title: "PREDICTIONS", stat: live ? String(m.openBets) : dash,      statLabel: "PENDING WAGERS",    color: "#00e5ff", glyph: "\u25CE" },
-    { id: "zliar",       title: "Z-LIAR METER", stat: live ? `${Math.round(m.chaos)}` : dash, statLabel: "CHAOS INDEX (24H)", color: "#ff007f", glyph: "\u26A0" },
+    { id: "zliar",       title: "Z-LIAR METER", stat: live ? `${Math.round(m.chaos)}` : dash, statLabel: "CHAOS INDEX (24H)", color: "#fc3437", glyph: "\u26A0" },
     { id: "cardgame",    title: "CARD GAME",    stat: DECK_SIZE, statLabel: "CANONICAL DECK SIZE", color: "#00ff88", glyph: "\u2660" },
   ];
 }

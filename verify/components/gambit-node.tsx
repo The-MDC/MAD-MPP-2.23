@@ -136,7 +136,7 @@ function LiveSlider({ el }: { el: Extract<LiveElement, { kind: "slider" }> }) {
     return (
       <div>
         <input type="range" min={0} max={200} step={1} value={clout} onChange={(e) => setV(+e.target.value)}
-          aria-label="Clout" style={{ width: "100%", accentColor: "#ffd700" }} />
+          aria-label="Clout" style={{ width: "100%", accentColor: "#d69d41" }} />
         <div className="font-numeral" style={{ fontSize: "var(--t-overline)", color: "var(--ink-3)", letterSpacing: 1, marginBottom: 6 }}>
           CLOUT {clout} · {el.label}
         </div>
@@ -184,7 +184,7 @@ function LiveDial({ el }: { el: Extract<LiveElement, { kind: "dial" }> }) {
   return (
     <div style={{ textAlign: "center" }}>
       <div style={{ position: "relative", width: 150, height: 78, margin: "0 auto", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, borderRadius: "150px 150px 0 0", background: "conic-gradient(from -90deg at 50% 100%, #00f0ff 0deg 60deg, #ffd700 60deg 120deg, var(--blood-1) 120deg 180deg)", opacity: 0.7 }} />
+        <div style={{ position: "absolute", inset: 0, borderRadius: "150px 150px 0 0", background: "conic-gradient(from -90deg at 50% 100%, #00f0ff 0deg 60deg, #d69d41 60deg 120deg, var(--blood-1) 120deg 180deg)", opacity: 0.7 }} />
         <div style={{ position: "absolute", inset: 8, top: 8, borderRadius: "150px 150px 0 0", background: "var(--ink-0)" }} />
         {/* sweet-spot pulse at σ=0.385 */}
         <div style={{ position: "absolute", left: "50%", bottom: 0, width: 2, height: 70, transformOrigin: "bottom center", transform: `rotate(${-90 + sweet * 180}deg)`, background: "var(--gold)", opacity: 0.5, animation: "mgSweetPulse 2s ease-in-out infinite" }} />
@@ -277,7 +277,7 @@ function LiveCapture() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <input type="email" placeholder="wallet or email" aria-label="Wallet or email"
-        style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", fontSize: "var(--t-body)", color: "var(--paper)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,215,0,0.3)", borderRadius: "var(--radius)", outline: "none" }} />
+        style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", fontSize: "var(--t-body)", color: "var(--paper)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(214,157,65,0.3)", borderRadius: "var(--radius)", outline: "none" }} />
       <div className="font-numeral" style={{ display: "flex", justifyContent: "space-between", fontSize: "var(--t-overline)", color: "var(--ink-3)", letterSpacing: 1 }}>
         <span>GUEST LOGINS</span><span style={{ color: "var(--gold)" }}>4 / 4 ACTIVE</span>
       </div>
@@ -427,7 +427,7 @@ export default function GambitNode({
         touchY.current = null;
       }}
       className={variant === "modal" ? (closing ? "mg-node-out" : "mg-node-in") : undefined}
-      style={{ width: "min(92vw, 380px)", maxHeight: "84vh", overflowY: "auto", padding: "var(--s2)", background: "var(--ink-0)", border: "1px solid rgba(255,215,0,0.25)", borderRadius: variant === "modal" ? 12 : "var(--radius)", boxShadow: "var(--glow-gold)", outline: "none" }}
+      style={{ width: "min(92vw, 380px)", maxHeight: "84vh", overflowY: "auto", padding: "var(--s2)", background: "var(--ink-0)", border: "1px solid rgba(214,157,65,0.25)", borderRadius: variant === "modal" ? 12 : "var(--radius)", boxShadow: "var(--glow-gold)", outline: "none" }}
     >
       <NodeContent def={def} onCta={fireCta} onClose={closeNode} />
     </div>

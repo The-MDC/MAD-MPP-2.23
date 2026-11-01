@@ -32,8 +32,8 @@ export const ROLE = {
   text: "var(--tx,#f0f0f8)",
   muted: "var(--mu,#6b7280)",
   accent: "var(--ac,#00e5ff)",
-  accent2: "var(--a2,#ff007f)",
-  gold: "var(--gd,#ffd700)",
+  accent2: "var(--a2,#fc3437)",
+  gold: "var(--gd,#d69d41)",
   positive: "var(--po,#00ff88)",
   /** The card's own accent. Only valid inside a card that sets it. */
   c: "var(--c)",
@@ -168,7 +168,7 @@ export const DECK_KEYFRAMES = `
 @keyframes mgPulse { 0%,100% { opacity:.35; transform: scale(1); } 50% { opacity:1; transform: scale(1.35); } }
 @keyframes mgBar { 0%,100% { transform: scaleY(.72); } 50% { transform: scaleY(1); } }
 @keyframes mgSeg { 0%,100% { opacity:.55; } 50% { opacity:1; } }
-.mg-focusable:focus-visible { outline: 2px solid var(--gd,#ffd700); outline-offset: 2px; }
+.mg-focusable:focus-visible { outline: 2px solid var(--gd,#d69d41); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   .mg-tape, .mg-pip, .mg-bar, .mg-seg { animation: none !important; }
 }

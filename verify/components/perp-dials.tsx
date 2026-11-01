@@ -39,8 +39,8 @@ import {
 const PI = Math.PI;
 const TAU = 6.2832;
 
-const VERDICT_STOPS = ["#7cffc7", "#fbbf24", "#f43f5e", "#ff00f0"];
-const GOLD_CHISEL = ["#5c3c04", "#ab7b29", "#efc76d", "#fffcf0"];
+const VERDICT_STOPS = ["#7cffc7", "#fbbf24", "#fc3437", "#ff00f0"];
+const GOLD_CHISEL = ["#794816", "#a86821", "#d69d41", "#f6d378"];
 const FACES: [string, number][] = [
   ["Saint", 0.31], ["Rice", 0.24], ["Mega", 0.18], ["Narc", 0.15], ["Sell", 0.12],
 ];
@@ -92,10 +92,10 @@ function drawDialZliar(cv: HTMLCanvasElement, t: number) {
   bezel(ctx, cx, cy, 118 * k, PI, 2 * PI, 26 * k);
   track(ctx, cx, cy, 106 * k, PI, 2 * PI, 15 * k);
   arc(ctx, cx, cy, 106 * k, PI, PI + PI * (v / 100), 9 * k,
-    ramp(ctx, cx - 106 * k, cx + 106 * k, VERDICT_STOPS), "#f43f5e");
+    ramp(ctx, cx - 106 * k, cx + 106 * k, VERDICT_STOPS), "#fc3437");
   ticks(ctx, cx, cy, PI, 2 * PI, 21, 100 * k, 92 * k, 86 * k);
-  needle(ctx, cx, cy, (v / 100) * PI - PI / 2, 96 * k, 3.5 * k, "#ffe3e8", "#ff5d76", "#c81e3c", false);
-  hub(ctx, cx, cy, 14 * k, "#f43f5e");
+  needle(ctx, cx, cy, (v / 100) * PI - PI / 2, 96 * k, 3.5 * k, "#feebeb", "#fd6769", "#b02427", false);
+  hub(ctx, cx, cy, 14 * k, "#fc3437");
 }
 
 /** GOSSIP-COP — a full ring gauge: closed bezel, ring track, 36 ticks and a
@@ -152,7 +152,7 @@ function drawDialFaces(cv: HTMLCanvasElement, t: number) {
   });
   ticks(ctx, cx, cy, PI, 2 * PI, 21, r + 8, r + 15, r + 13);
   needle(ctx, cx, cy, PI * 0.155 - PI / 2 + 0.05 * Math.sin(t * 0.0009), r * 0.95, 3.2,
-    "#fffcf0", "#efc76d", "#5c3c04", false);
+    "#f6d378", "#d69d41", "#794816", false);
   hub(ctx, cx, cy, 12, s.c);
   ctx.font = `800 7px ${INSTRUMENT_FONT}`; ctx.textAlign = "center";
   let b = PI;
@@ -209,7 +209,7 @@ function drawZliarTape(cv: HTMLCanvasElement, t: number) {
     ctx.beginPath(); ctx.moveTo(x, yb - 7); ctx.lineTo(x, yb + 7); ctx.stroke();
   }
   const mx = (v / 100) * w;
-  ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.6; ctx.shadowBlur = 12; ctx.shadowColor = "#f43f5e";
+  ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.6; ctx.shadowBlur = 12; ctx.shadowColor = "#fc3437";
   ctx.beginPath(); ctx.moveTo(mx, yb - 11); ctx.lineTo(mx, yb + 11); ctx.stroke();
   ctx.fillStyle = "#fff";
   ctx.beginPath(); ctx.moveTo(mx, yb - 12); ctx.lineTo(mx - 4, yb - 18); ctx.lineTo(mx + 4, yb - 18);
@@ -373,7 +373,7 @@ interface CardDef {
 const TX = "var(--tx,#f0f0f8)";
 const PO = "var(--po,#00ff88)";
 const AC = "var(--ac,#00e5ff)";
-const GD = "var(--gd,#ffd700)";
+const GD = "var(--gd,#d69d41)";
 const C = "var(--c)";
 
 const CARDS: CardDef[] = [
@@ -388,9 +388,9 @@ const CARDS: CardDef[] = [
   },
   {
     id: "zliar", title: "Z-Liar Meter", kicker: "Narrative credibility · Sentinel",
-    accent: "--a2", sym: "/brand/card-zliar.png", symGlow: "rgba(255,0,127,.6)",
+    accent: "--a2", sym: "/brand/card-zliar.png", symGlow: "rgba(252,52,55,.6)",
     lcd: { label: "Z-Liar score", unit: "ZL" },
-    kpis: [["BS Index", "63%", "#f43f5e"], ["GARCH σ²", "0.018", "#58a6ff"], ["Lunar tilt", "+1.7", "#c98aff"]],
+    kpis: [["BS Index", "63%", "#fc3437"], ["GARCH σ²", "0.018", "#58a6ff"], ["Lunar tilt", "+1.7", "#c98aff"]],
     plate: { label: "Verdict", value: "", sub: "5 bands" },
     caption: "Band spectrum · BS-index trace", right: "BS 63%",
     chips: ["BS-index", "Audit log", "Moon tilt"],
@@ -415,7 +415,7 @@ const CARDS: CardDef[] = [
   },
   {
     id: "faces", title: "Five Faces", kicker: "Permanent vs transitory mask",
-    accent: "--gd", sym: "/brand/card-faces.png", symGlow: "rgba(255,215,0,.6)",
+    accent: "--gd", sym: "/brand/card-faces.png", symGlow: "rgba(214,157,65,.6)",
     lcd: { label: "The divergence", unit: "Δ" },
     kpis: [["Crowned", "Saint", C], ["Entropy", ".61", TX], ["τ perm", ".34", AC]],
     caption: "τ perm .34 flowing against τ trans .66",
@@ -433,7 +433,7 @@ const CARDS: CardDef[] = [
   },
 ];
 
-const TAPE_COLOR: Record<TapeTone, string> = { po: PO, c: C, a2: "var(--a2,#ff007f)", gd: GD };
+const TAPE_COLOR: Record<TapeTone, string> = { po: PO, c: C, a2: "var(--a2,#fc3437)", gd: GD };
 
 interface NavEntry {
   label: string; sub: string; title: string; href: string;
@@ -445,7 +445,7 @@ interface NavEntry {
 /** The four class entries in the deck header. */
 const NAV: NavEntry[] = [
   { label: "Prediction", sub: "Open markets ›", title: "Open markets · create a market", href: "/open-markets?tab=prediction", sym: "/brand/sym-prediction.png", color: "#c6cbd6", border: "color-mix(in srgb, var(--tx,#f0f0f8) 14%, transparent)" },
-  { label: "Conviction", sub: "All markets ›", title: "All markets", href: "/open-markets?tab=conviction", sym: "/brand/sym-conviction.png", color: GD, border: "color-mix(in srgb, var(--gd,#ffd700) 30%, transparent)" },
+  { label: "Conviction", sub: "All markets ›", title: "All markets", href: "/open-markets?tab=conviction", sym: "/brand/sym-conviction.png", color: GD, border: "color-mix(in srgb, var(--gd,#d69d41) 30%, transparent)" },
   { label: "Affliction", sub: "MADHATs game ›", title: "MADHATs Gambit card game", href: "/preview#affliction", sym: "/brand/sym-affliction.png", color: "#b79cff", border: "rgba(126,91,239,.4)" },
   { label: "Octavian", sub: "Node mesh ›", title: "Octavian · self-sustaining mesh", href: "/octavian", orb: true, color: AC, border: "color-mix(in srgb, var(--ac,#00e5ff) 38%, transparent)" },
 ];
@@ -461,7 +461,7 @@ const SCANDAL_LANE2 = [
 const WATERLINE: [number, string][] = [
   [31, `color-mix(in srgb, ${GD} 78%, transparent)`],
   [24, "color-mix(in srgb, var(--c) 62%, transparent)"],
-  [18, "color-mix(in srgb, var(--a2,#ff007f) 75%, transparent)"],
+  [18, "color-mix(in srgb, var(--a2,#fc3437) 75%, transparent)"],
   [15, `color-mix(in srgb, ${AC} 70%, transparent)`],
   [12, `color-mix(in srgb, ${TX} 32%, transparent)`],
 ];
@@ -607,7 +607,7 @@ function PerpBookDialog({ deckId, onClose }: { deckId: string; onClose: () => vo
             </>
           ) : null}
           <Cell label="Leg" value={leg ? leg.slot : "—"} color={AC} />
-          <Cell label="Rolls in" value={leg ? leg.countdown : "—"} color={leg?.isTurningLeg ? "var(--a2,#ff007f)" : TX} />
+          <Cell label="Rolls in" value={leg ? leg.countdown : "—"} color={leg?.isTurningLeg ? "var(--a2,#fc3437)" : TX} />
         </div>
         <div style={{ fontSize: 6.5, letterSpacing: 1, color: "var(--mu,#6b7280)", textTransform: "uppercase", marginBottom: 10 }}>
           {LEG_STRUCTURE_LINE}
@@ -668,7 +668,7 @@ function PerpBookDialog({ deckId, onClose }: { deckId: string; onClose: () => vo
                   ) : <div style={{ height: 5 }} />}
                   <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                     <span style={{ flex: 1, textAlign: "center", borderRadius: 6, padding: "3px 0", fontSize: 8.5, fontWeight: 800, color: PO, background: "color-mix(in srgb, var(--po,#00ff88) 12%, transparent)" }}>LONG {m.longOdds}x</span>
-                    <span style={{ flex: 1, textAlign: "center", borderRadius: 6, padding: "3px 0", fontSize: 8.5, fontWeight: 800, color: "var(--a2,#ff007f)", background: "color-mix(in srgb, var(--a2,#ff007f) 12%, transparent)" }}>SHORT {m.shortOdds}x</span>
+                    <span style={{ flex: 1, textAlign: "center", borderRadius: 6, padding: "3px 0", fontSize: 8.5, fontWeight: 800, color: "var(--a2,#fc3437)", background: "color-mix(in srgb, var(--a2,#fc3437) 12%, transparent)" }}>SHORT {m.shortOdds}x</span>
                     <span style={{ flex: "none", fontSize: 7, letterSpacing: 0.8, color: "var(--mu,#6b7280)", textTransform: "uppercase" }}>{m.legDays}d leg · {m.horizonDays}d horizon</span>
                   </div>
                 </div>
@@ -676,7 +676,7 @@ function PerpBookDialog({ deckId, onClose }: { deckId: string; onClose: () => vo
             </div>
           </>
         ) : (
-          <div style={{ border: "1px solid color-mix(in srgb, var(--gd,#ffd700) 24%, transparent)", background: "color-mix(in srgb, var(--gd,#ffd700) 6%, transparent)", borderRadius: 10, padding: 12 }}>
+          <div style={{ border: "1px solid color-mix(in srgb, var(--gd,#d69d41) 24%, transparent)", background: "color-mix(in srgb, var(--gd,#d69d41) 6%, transparent)", borderRadius: 10, padding: 12 }}>
             <div style={{ fontSize: 8, fontWeight: 800, letterSpacing: 1.4, color: GD, textTransform: "uppercase", marginBottom: 6 }}>Signal-only</div>
             <p style={{ margin: 0, fontSize: 11, lineHeight: 1.6, color: "var(--mu,#6b7280)" }}>{book.note}</p>
           </div>
@@ -884,10 +884,10 @@ export default function PerpDials({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/brand/madhat-hat.png" alt="MAD HAT'r"
-            style={{ width: 46, height: 46, objectFit: "contain", filter: "drop-shadow(0 0 12px color-mix(in srgb, var(--a2,#ff007f) 45%, transparent))" }}
+            style={{ width: 46, height: 46, objectFit: "contain", filter: "drop-shadow(0 0 12px color-mix(in srgb, var(--a2,#fc3437) 45%, transparent))" }}
           />
           <span style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: 2.4, color: GD, textTransform: "uppercase", textShadow: "0 0 14px color-mix(in srgb, var(--gd,#ffd700) 35%, transparent)" }}>
+            <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: 2.4, color: GD, textTransform: "uppercase", textShadow: "0 0 14px color-mix(in srgb, var(--gd,#d69d41) 35%, transparent)" }}>
               MAD Gambit
             </span>
             <span style={{ fontSize: 8, letterSpacing: 1.4, color: "var(--mu,#6b7280)", textTransform: "uppercase" }}>
@@ -903,7 +903,7 @@ export default function PerpDials({
               style={{ display: "flex", alignItems: "center", gap: 7, padding: "6px 11px", border: `1px solid ${n.border}`, borderRadius: 10, background: "var(--pn,#0d1018)", cursor: "pointer", textDecoration: "none" }}
             >
               {n.orb ? (
-                <span style={{ display: "block", width: "var(--sym,26px)", height: "var(--sym,26px)", borderRadius: "50%", background: "radial-gradient(circle at 34% 30%, color-mix(in srgb, var(--ac,#00e5ff) 85%, transparent), transparent 62%), radial-gradient(circle at 70% 74%, color-mix(in srgb, var(--a2,#ff007f) 70%, transparent), transparent 60%)", border: "1px solid color-mix(in srgb, var(--ac,#00e5ff) 45%, transparent)", boxShadow: "0 0 12px color-mix(in srgb, var(--ac,#00e5ff) 35%, transparent)" }} />
+                <span style={{ display: "block", width: "var(--sym,26px)", height: "var(--sym,26px)", borderRadius: "50%", background: "radial-gradient(circle at 34% 30%, color-mix(in srgb, var(--ac,#00e5ff) 85%, transparent), transparent 62%), radial-gradient(circle at 70% 74%, color-mix(in srgb, var(--a2,#fc3437) 70%, transparent), transparent 60%)", border: "1px solid color-mix(in srgb, var(--ac,#00e5ff) 45%, transparent)", boxShadow: "0 0 12px color-mix(in srgb, var(--ac,#00e5ff) 35%, transparent)" }} />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={n.sym} alt="" style={{ width: "var(--sym,26px)", height: "var(--sym,26px)", objectFit: "contain" }} />
@@ -936,7 +936,7 @@ export default function PerpDials({
 
         <Slider label="SPD" value={tk} onChange={setTk} cfg={CONTROLS.tk} accent={AC} readout={`${tk}s`} />
         <Slider label="SYM" value={sym} onChange={setSym} cfg={CONTROLS.sym} accent={GD} readout={`${sym}px`} />
-        <Slider label="DIAL" value={dial} onChange={setDial} cfg={CONTROLS.dial} accent="var(--a2,#ff007f)" readout={`${dial}%`} />
+        <Slider label="DIAL" value={dial} onChange={setDial} cfg={CONTROLS.dial} accent="var(--a2,#fc3437)" readout={`${dial}%`} />
 
         <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{ whiteSpace: "nowrap", fontSize: 6.5, fontWeight: 800, letterSpacing: 1.2, color: "var(--mu,#6b7280)", textTransform: "uppercase" }}>Cols</span>
@@ -954,7 +954,7 @@ export default function PerpDials({
       </div>
 
       {/* Deck shell */}
-      <div style={{ background: "linear-gradient(180deg, var(--pn,#0d1018), var(--bg,#080a12))", border: "1px solid color-mix(in srgb, var(--tx,#f0f0f8) 8%, transparent)", borderRadius: 24, padding: "clamp(10px, 1.4vw, 16px)", display: "flex", flexDirection: "column", gap: 14, boxShadow: "0 0 0 1px color-mix(in srgb, var(--gd,#ffd700) 13%, transparent), 0 0 44px color-mix(in srgb, var(--ac,#00e5ff) 7%, transparent)" }}>
+      <div style={{ background: "linear-gradient(180deg, var(--pn,#0d1018), var(--bg,#080a12))", border: "1px solid color-mix(in srgb, var(--tx,#f0f0f8) 8%, transparent)", borderRadius: 24, padding: "clamp(10px, 1.4vw, 16px)", display: "flex", flexDirection: "column", gap: 14, boxShadow: "0 0 0 1px color-mix(in srgb, var(--gd,#d69d41) 13%, transparent), 0 0 44px color-mix(in srgb, var(--ac,#00e5ff) 7%, transparent)" }}>
       <div
         style={{
           display: "grid",
@@ -1015,8 +1015,8 @@ export default function PerpDials({
                     {card.kicker}
                   </div>
                 </div>
-                <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 7, fontWeight: 800, letterSpacing: 1, color: "var(--gd,#ffd700)", border: "1px solid color-mix(in srgb, var(--gd,#ffd700) 35%, transparent)", background: "color-mix(in srgb, var(--gd,#ffd700) 8%, transparent)", borderRadius: 6, padding: "3px 6px" }}>
-                  <i className="mg-pip" style={{ display: "block", width: 4, height: 4, borderRadius: "50%", background: "var(--gd,#ffd700)", animation: "mgPulse 1.6s ease-in-out infinite" }} />
+                <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 7, fontWeight: 800, letterSpacing: 1, color: "var(--gd,#d69d41)", border: "1px solid color-mix(in srgb, var(--gd,#d69d41) 35%, transparent)", background: "color-mix(in srgb, var(--gd,#d69d41) 8%, transparent)", borderRadius: 6, padding: "3px 6px" }}>
+                  <i className="mg-pip" style={{ display: "block", width: 4, height: 4, borderRadius: "50%", background: "var(--gd,#d69d41)", animation: "mgPulse 1.6s ease-in-out infinite" }} />
                   LIVE
                 </span>
               </div>
@@ -1238,7 +1238,7 @@ export default function PerpDials({
                     </span>
                   ))}
                 </span>
-                <a href={`/reports?perp=${fam}`} style={{ marginLeft: "auto", flex: "none", display: "inline-flex", alignItems: "center", minHeight: 28, fontSize: 8, fontWeight: 900, letterSpacing: 1, color: "var(--gd,#ffd700)", textTransform: "uppercase", textDecoration: "none" }}>
+                <a href={`/reports?perp=${fam}`} style={{ marginLeft: "auto", flex: "none", display: "inline-flex", alignItems: "center", minHeight: 28, fontSize: 8, fontWeight: 900, letterSpacing: 1, color: "var(--gd,#d69d41)", textTransform: "uppercase", textDecoration: "none" }}>
                   Report ›
                 </a>
                 <a href={`/open-markets?perp=${fam}`} style={{ flex: "none", display: "inline-flex", alignItems: "center", minHeight: 28, padding: "0 9px", borderRadius: 999, fontSize: 8, fontWeight: 900, letterSpacing: 1, color: "#1a1205", background: "var(--mg-gold-fill)", textTransform: "uppercase", textDecoration: "none" }}>
@@ -1269,7 +1269,7 @@ export default function PerpDials({
           Six instruments · one shell · every card carries its own symbol and its own live ticker
         </span>
         <span style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 7.5, fontWeight: 800, letterSpacing: 1, color: GD, textTransform: "uppercase", border: "1px solid color-mix(in srgb, var(--gd,#ffd700) 34%, transparent)", background: "color-mix(in srgb, var(--gd,#ffd700) 7%, transparent)", borderRadius: 99, padding: "4px 10px" }}>
+          <span style={{ fontSize: 7.5, fontWeight: 800, letterSpacing: 1, color: GD, textTransform: "uppercase", border: "1px solid color-mix(in srgb, var(--gd,#d69d41) 34%, transparent)", background: "color-mix(in srgb, var(--gd,#d69d41) 7%, transparent)", borderRadius: 99, padding: "4px 10px" }}>
             Platform fee 1.88%
           </span>
           <span style={{ fontSize: 7.5, fontWeight: 800, letterSpacing: 1, color: AC, textTransform: "uppercase", border: "1px solid color-mix(in srgb, var(--ac,#00e5ff) 34%, transparent)", background: "color-mix(in srgb, var(--ac,#00e5ff) 7%, transparent)", borderRadius: 99, padding: "4px 10px" }}>

@@ -6,6 +6,18 @@
  * change — the theme switch is purely additive. `gilded` is the alternate
  * Gilded Pop-Baroque look. Consumed via SkinProvider / useSkin().
  */
+/**
+ * Brand ramps shared by every surface (DOM, SVG and canvas can all read plain strings).
+ * Gold is the bronze-yellow sampled from the Royal Vein rings and the MADHAT neon;
+ * red is San Pellegrino #fc3437 with lighter/darker shades, the only red/pink in the app.
+ * Mirrors --gold-* / --red-* in app/tokens.css.
+ */
+export const BRAND = {
+  gold: { shadow: "#794816", deep: "#a86821", base: "#d69d41", hot: "#f6d378" },
+  red: { tint: "#feebeb", light2: "#fd9a9b", light: "#fd6769", base: "#fc3437", dark: "#d62c2f", deeper: "#b02427", deepest: "#711719" },
+  glow: { gold: "rgba(246,211,120,0.45)", red: "rgba(252,52,55,0.45)" },
+} as const;
+
 export type SkinName = "neonNoir" | "gilded";
 
 export interface Skin {
@@ -31,13 +43,13 @@ export const SKINS: Record<SkinName, Skin> = {
     bg: "#080a12",
     panel: "#0d1018",
     card: "#111520",
-    border: "rgba(255,215,0,0.12)",
+    border: "rgba(214,157,65,0.12)",
     text: "#f0f0f8",
-    muted: "#6b7280",
+    muted: "#8a93a3",
     accent: "#00e5ff",
     // MAD rossa — the brand tangerine orange-red (founder palette, 2026-10-26).
     accent2: "#f95639",
-    gold: "#ffd700",
+    gold: "#d69d41",
     positive: "#00ff88",
   },
   // Gilded Pop-Baroque — velvet + gold leaf.
@@ -47,12 +59,12 @@ export const SKINS: Record<SkinName, Skin> = {
     bg: "#140f0a",
     panel: "#211810",
     card: "#2b2013",
-    border: "rgba(255,215,0,0.14)",
+    border: "rgba(214,157,65,0.14)",
     text: "#f6efdf",
     muted: "#a4906a",
-    accent: "#ffd700",
-    accent2: "#b8860b",
-    gold: "#ffe27a",
+    accent: "#d69d41",
+    accent2: "#a86821",
+    gold: "#f6d378",
     positive: "#6fbf7f",
   },
 };

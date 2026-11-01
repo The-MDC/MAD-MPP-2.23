@@ -16,9 +16,9 @@ export function BrandLockup({ primary, width = 300, align = "center" }: { primar
     <svg viewBox="0 0 520 90" style={{ width, maxWidth: align === "center" ? "86%" : "100%", display: "block", margin: align === "center" ? "0 auto" : 0 }} aria-label="MAD Gambit">
       <defs>
         <linearGradient id="mg-gold-g" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#fffcf0" /><stop offset="25%" stopColor="#efc76d" />
-          <stop offset="50%" stopColor="#ab7b29" /><stop offset="75%" stopColor="#f7d983" />
-          <stop offset="100%" stopColor="#5c3c04" />
+          <stop offset="0%" stopColor="#f6d378" /><stop offset="25%" stopColor="#d69d41" />
+          <stop offset="50%" stopColor="#a86821" /><stop offset="75%" stopColor="#f6d378" />
+          <stop offset="100%" stopColor="#794816" />
         </linearGradient>
         <filter id="mg-g-glow"><feGaussianBlur stdDeviation="3" result="b" />
           <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
@@ -36,7 +36,7 @@ export function BrandLockup({ primary, width = 300, align = "center" }: { primar
 }
 
 export function Trinity() {
-  const p: [string, string][] = [["PREDICTION", "#fbbf24"], ["CONVICTION", "#ec4899"], ["AFFLICTION", "#c084fc"]];
+  const p: [string, string][] = [["PREDICTION", "#fbbf24"], ["CONVICTION", "#fc3437"], ["AFFLICTION", "#c084fc"]];
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, marginTop: 12, fontFamily: INSTRUMENT_FONT }}>
       {p.map(([l, c], i) => (

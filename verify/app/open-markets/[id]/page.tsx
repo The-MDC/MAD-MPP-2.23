@@ -67,7 +67,7 @@ export default function TradeDesk() {
   return (
     <OMShell title={m.perp ? "Perpetual desk" : m.cls === "prediction" ? "Prediction desk" : "Paseome desk"} back={{ href: "/open-markets", label: "Back to markets" }}>
       {created ? (
-        <div style={{ padding: "12px 14px", borderRadius: 16, background: "linear-gradient(90deg, rgba(255,215,0,.16), rgba(249,86,57,.12))", border: "1px solid rgba(255,215,0,.4)", fontSize: 13, fontWeight: 700 }}>
+        <div style={{ padding: "12px 14px", borderRadius: 16, background: "linear-gradient(90deg, rgba(214,157,65,.16), rgba(249,86,57,.12))", border: "1px solid rgba(214,157,65,.4)", fontSize: 13, fontWeight: 700 }}>
           ✨ Market minted. Take the first position — you earn your creator share on every trade.
         </div>
       ) : null}
@@ -114,8 +114,8 @@ export default function TradeDesk() {
               return (
                 <button key={o.id} type="button" onClick={() => { setSel(o.id); setFilled(null); setError(null); }} aria-pressed={on}
                   style={{ position: "relative", overflow: "hidden", display: "flex", alignItems: "center", gap: 12, minHeight: 60, padding: "10px 12px", borderRadius: 14, cursor: "pointer", textAlign: "left", fontFamily: "inherit", color: "#f6f1e3",
-                    background: on ? "rgba(255,215,0,.1)" : "#12131a", border: `1px solid ${on ? "rgba(255,215,0,.7)" : LINE}` }}>
-                  <span aria-hidden="true" style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${p[i] * 100}%`, background: on ? "rgba(255,215,0,.10)" : "rgba(249,86,57,.08)" }} />
+                    background: on ? "rgba(214,157,65,.1)" : "#12131a", border: `1px solid ${on ? "rgba(214,157,65,.7)" : LINE}` }}>
+                  <span aria-hidden="true" style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${p[i] * 100}%`, background: on ? "rgba(214,157,65,.10)" : "rgba(249,86,57,.08)" }} />
                   <span style={{ position: "relative", flex: "none", width: 28, height: 28, display: "grid", placeItems: "center", borderRadius: 9, background: on ? GOLD : "#1d1f28", color: on ? "#1a1205" : ROSSA, fontFamily: MONO, fontWeight: 900, fontSize: 12 }}>{i + 1}</span>
                   <span style={{ position: "relative", flex: 1, fontSize: 13.5, fontWeight: 700, lineHeight: 1.35 }}>{o.label}</span>
                   <span style={{ position: "relative", flex: "none", textAlign: "right" }}>
@@ -129,7 +129,7 @@ export default function TradeDesk() {
         )}
       </section>
 
-      <section className="mg-tile" data-explain="om-ticket" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 14, borderColor: "rgba(255,215,0,.32)" }}>
+      <section className="mg-tile" data-explain="om-ticket" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 14, borderColor: "rgba(214,157,65,.32)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
           <div className="mg-display" style={{ fontSize: 24 }}>Bet slip</div>
           <div style={{ fontSize: 11, color: MUTED }}>Balance <span style={{ fontFamily: MONO, color: GOLD }}>{madx(s.credits)}</span> $MADx</div>
@@ -158,7 +158,7 @@ export default function TradeDesk() {
           <Row k="Avg price" v={qt ? pct(qt.avgPrice, 1) : "—"} />
           <Row k="Price after your fill" v={qt ? `${pct(qt.priceBefore, 1)} → ${pct(qt.priceAfter, 1)}` : "—"} />
         </dl>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderRadius: 14, background: "rgba(255,215,0,.07)", border: "1px solid rgba(255,215,0,.25)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderRadius: 14, background: "rgba(214,157,65,.07)", border: "1px solid rgba(214,157,65,.25)" }}>
           <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: "#e9d9a6" }}>{m.side === "counterfactual" ? "Mark value if it holds" : "Potential payout"}</span>
           <span style={{ fontFamily: MONO, fontSize: 22, fontWeight: 800 }} className="mg-gold-text">{qt ? madx(qt.payout) : "0.00"}</span>
         </div>

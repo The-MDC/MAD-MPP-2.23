@@ -110,7 +110,7 @@ export const FAMILY_META: Record<PerpFamily6, {
   },
   zliar: {
     label: "Z-Liar Meter", accent: "--a2", kicker: "Narrative credibility",
-    sym: "/brand/card-zliar.png", symGlow: "rgba(255,0,127,.6)",
+    sym: "/brand/card-zliar.png", symGlow: "rgba(252,52,55,.6)",
   },
   gossip: {
     label: "Gossip-Cop Perp", accent: "--a2", kicker: "Long-arc claim contest",
@@ -122,7 +122,7 @@ export const FAMILY_META: Record<PerpFamily6, {
   },
   faces: {
     label: "Five Faces", accent: "--gd", kicker: "Permanent vs transitory mask",
-    sym: "/brand/card-faces.png", symGlow: "rgba(255,215,0,.6)",
+    sym: "/brand/card-faces.png", symGlow: "rgba(214,157,65,.6)",
   },
   zeitgeist: {
     label: "Zeitgeist", accent: "--po", kicker: "Succession slate and turning",

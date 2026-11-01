@@ -62,7 +62,7 @@ export default function ReportsPage() {
               ))}
             </div>
             {ex ? (
-              <div style={{ padding: "10px 12px", borderRadius: 12, background: "#050505", border: "1px solid rgba(255,215,0,.16)", fontFamily: MONO, fontSize: 12, lineHeight: 1.7, color: GOLD }}>
+              <div style={{ padding: "10px 12px", borderRadius: 12, background: "#050505", border: "1px solid rgba(214,157,65,.16)", fontFamily: MONO, fontSize: 12, lineHeight: 1.7, color: GOLD }}>
                 {ex.formula.map((f) => <div key={f}>{f}</div>)}
               </div>
             ) : null}

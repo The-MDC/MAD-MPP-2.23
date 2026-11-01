@@ -4,6 +4,7 @@ import "./globals.css";
 import { WorkspaceProvider } from "@/context/workspace-context";
 import { MppProvider } from "@/context/mpp-context";
 import { ThemeProvider } from "@/context/theme-context";
+import GlobalSkin from "@/components/global-skin";
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import Script from "next/script";
 import LunarVars from "@/components/lunar-vars";
@@ -51,6 +52,7 @@ export default function RootLayout({
       <body className="font-sans antialiased text-neutral-100 min-h-screen" style={{ backgroundColor: "var(--mg-bg, #030303)" }}>
         <LunarVars />
         <ThemeProvider>
+          <GlobalSkin>
           <WorkspaceProvider>
             <MppProvider>
               {/* DeviceFrame is global, here, for every route — which is what
@@ -80,6 +82,7 @@ export default function RootLayout({
               </HoldHintProvider>
             </MppProvider>
           </WorkspaceProvider>
+          </GlobalSkin>
         </ThemeProvider>
         <SpeedInsights />
         {/* Vercel Web Analytics — first-party script (equivalent to the

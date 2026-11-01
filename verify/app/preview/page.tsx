@@ -20,7 +20,7 @@
 import React, { useEffect, useState } from "react";
 import { Home, TrendingUp, Wallet, User, PlusSquare, PanelLeft, PanelRight, X, type LucideIcon } from "lucide-react";
 import ModuleShelf from "@/components/module-shelf";
-import { SkinProvider, useSkin } from "@/components/skin-provider";
+import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import CryptoTickerDual from "@/components/crypto-ticker-dual";
 import NewsTwoRow from "@/components/news-two-row";
@@ -252,7 +252,7 @@ function PreviewInner() {
         gap={14}
         radius={1.5}
         color="rgba(255,255,255,0.05)"
-        glowColor={`${skin.accent}cc`}
+        glowColor={skin.accent}
         speedMin={0.77}
         speedMax={1.67}
         speedScale={0.84}
@@ -352,10 +352,10 @@ function PreviewInner() {
         </nav>
 
         {/* Responsive shell: left + right rails on desktop (mockup sidebars), stacked on mobile */}
-        <div style={{ maxWidth: wide ? 1300 : 1040, margin: "0 auto", padding: "8px 12px 96px", display: "flex", gap: 16, alignItems: "flex-start" }}>
+        <div style={{ maxWidth: wide ? 1300 : 1040, margin: "0 auto", padding: "8px 16px 96px", display: "flex", gap: 20, alignItems: "flex-start" }}>
           {wide && leftOpen ? <CategoryRail /> : null}
 
-          <main style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+          <main style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 20 }}>
             {/* Worksheet C: the MAD Gambit hero lockup + tagline moved to the
                top-left header (see BrandMark). Worksheet E: the redundant
                "MARKETS · NYSE" panel was removed — the top CryptoTickerDual
@@ -435,7 +435,7 @@ function PreviewInner() {
                 Seiko clocks. The first — the split-flap chrono in
                 GambitInstrumentCluster — lives on at the foot of PerpDials
                 above, per founder direction. */}
-            <div id="mg-markets" style={{ display: "flex", flexDirection: "column", gap: 16, scrollMarginTop: 72 }}>
+            <div id="mg-markets" style={{ display: "flex", flexDirection: "column", gap: 20, scrollMarginTop: 72 }}>
               <TopMarketsRail />
               <MarketRails />
             </div>
@@ -595,14 +595,12 @@ function PreviewInner() {
 
 export default function PreviewPage() {
   return (
-    <SkinProvider>
-      <GameProvider>
+    <GameProvider>
         {/* GambitNodeProvider rides the existing GameProvider tree (S0.6) —
             any descendant converts a dead link with openNode('id'). */}
         <GambitNodeProvider>
           <PreviewInner />
         </GambitNodeProvider>
-      </GameProvider>
-    </SkinProvider>
+    </GameProvider>
   );
 }

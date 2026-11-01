@@ -25,7 +25,7 @@ export default function VrsToast({ onReserve }: { onReserve?: () => void }) {
       // JoyLayer intensity scales with the Fibonacci particle count (cap 1.4).
       celebrate({
         intensity: Math.min(1.4, c.particles / 70),
-        colors: c.goldWash ? ["#ffd700", "#ffe066", "#fffcf0"] : undefined,
+        colors: c.goldWash ? ["#d69d41", "#ffe066", "#f6d378"] : undefined,
       });
       setActive(c);
       if (timer.current) clearTimeout(timer.current);
@@ -43,11 +43,11 @@ export default function VrsToast({ onReserve }: { onReserve?: () => void }) {
     <>
       {/* streak-34 gold wash — a full-viewport breath, then gone */}
       {active.goldWash ? (
-        <div aria-hidden="true" style={{ position: "fixed", inset: 0, zIndex: 200 /* --z-joy */, pointerEvents: "none", background: "radial-gradient(ellipse at 50% 60%, rgba(255,215,0,0.22), transparent 70%)", animation: `mgGoldWash ${active.durationMs}ms var(--ease-settle) forwards` }} />
+        <div aria-hidden="true" style={{ position: "fixed", inset: 0, zIndex: 200 /* --z-joy */, pointerEvents: "none", background: "radial-gradient(ellipse at 50% 60%, rgba(214,157,65,0.22), transparent 70%)", animation: `mgGoldWash ${active.durationMs}ms var(--ease-settle) forwards` }} />
       ) : null}
       <div
         role="status"
-        style={{ position: "fixed", left: "50%", bottom: 84, transform: "translateX(-50%)", zIndex: 300 /* --z-toast */, display: "flex", alignItems: "center", gap: "var(--s2)", padding: "var(--s1) var(--s2)", borderRadius: "var(--radius)", background: "rgba(8,8,8,0.92)", border: `1px solid ${active.goldWash ? "var(--gold)" : "rgba(255,215,0,0.35)"}`, boxShadow: "var(--glow-gold)", animation: "mgToastIn var(--dur-enter) var(--ease-conviction)" }}
+        style={{ position: "fixed", left: "50%", bottom: 84, transform: "translateX(-50%)", zIndex: 300 /* --z-toast */, display: "flex", alignItems: "center", gap: "var(--s2)", padding: "var(--s1) var(--s2)", borderRadius: "var(--radius)", background: "rgba(8,8,8,0.92)", border: `1px solid ${active.goldWash ? "var(--gold)" : "rgba(214,157,65,0.35)"}`, boxShadow: "var(--glow-gold)", animation: "mgToastIn var(--dur-enter) var(--ease-conviction)" }}
       >
         <span className="font-stencil" style={{ fontSize: "var(--t-sub)", color: "var(--gold)", lineHeight: 1 }}>{active.streak}</span>
         <span style={{ fontSize: "var(--t-body)", color: "var(--paper)", maxWidth: 260 }}>{active.quip}</span>
