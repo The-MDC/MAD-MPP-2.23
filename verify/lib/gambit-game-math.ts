@@ -1415,7 +1415,7 @@ function lcg(seed: number): () => number {
 export function rollRarity(rand: number, guaranteeUncommonPlus = false): Rarity {
   const weights = RARITY_DROP_WEIGHTS;
   const floor = guaranteeUncommonPlus ? weights.Common : 0; // skip Common
-  let roll = Math.floor(rand * (1000 - floor)) + floor;
+  const roll = Math.floor(rand * (1000 - floor)) + floor;
   let cumulative = 0;
   const order: (keyof typeof weights)[] = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Golden Hand'];
   for (const rarity of order) {
