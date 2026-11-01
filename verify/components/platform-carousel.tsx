@@ -76,7 +76,7 @@ function pillars(m: Metrics | null): PillarCard[] {
   return [
     { id: "convictions", title: "CONVICTIONS", stat: live ? String(m.activeMarkets) : dash, statLabel: "OPEN MARKETS",      color: "#ffcf40", glyph: "\u2696" },
     { id: "predictions", title: "PREDICTIONS", stat: live ? String(m.openBets) : dash,      statLabel: "PENDING WAGERS",    color: "#00e5ff", glyph: "\u25CE" },
-    { id: "zliar",       title: "Z-LIAR METER", stat: live ? `${Math.round(m.chaos)}` : dash, statLabel: "CHAOS INDEX (24H)", color: "#ff007f", glyph: "\u26A0" },
+    { id: "zliar",       title: "Z-LIAR METER", stat: live ? `${Math.round(m.chaos)}` : dash, statLabel: "CHAOS INDEX (24H)", color: "#fc3437", glyph: "\u26A0" },
     { id: "cardgame",    title: "CARD GAME",    stat: DECK_SIZE, statLabel: "CANONICAL DECK SIZE", color: "#00ff88", glyph: "\u2660" },
   ];
 }
@@ -143,7 +143,7 @@ function GoldPillarTile({ pillar, uid, hint }: { pillar: PillarCard; uid: string
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
           <span style={{ fontSize: "18px", color: pillar.color }}>{pillar.glyph}</span>
           <span style={{
-            fontFamily: INSTRUMENT_FONT, fontSize: "7px", fontWeight: 800,
+            fontFamily: INSTRUMENT_FONT, fontSize: "9px", fontWeight: 800,
             color: pillar.color, letterSpacing: "1.5px",
           }}>
             {pillar.title}
@@ -157,7 +157,7 @@ function GoldPillarTile({ pillar, uid, hint }: { pillar: PillarCard; uid: string
           {pillar.stat}
         </div>
         <div style={{
-          fontFamily: INSTRUMENT_FONT, fontSize: "7px", color: INK.muted,
+          fontFamily: INSTRUMENT_FONT, fontSize: "9px", color: INK.muted,
           letterSpacing: "0.5px", marginTop: "4px",
         }}>
           {pillar.statLabel}

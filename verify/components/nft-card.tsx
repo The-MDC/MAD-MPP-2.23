@@ -5,7 +5,7 @@
  * ------------------------------------------------------------------
  * Card visual language ported faithfully from the live presentation deck
  * (the-mdc.github.io/MADHATs-Gambit-Presentation) SVG brand system:
- *   - neon-gold-chisel logo gradient  #fffcf0→#efc76d→#ab7b29→#f7d983→#5c3c04
+ *   - neon-gold-chisel logo gradient  #f6d378→#d69d41→#a86821→#f6d378→#794816
  *   - dual neon frame (cyan left / pink right) triple-stroke
  *   - neon glow filters (cyan/pink/yellow), backplate grid
  *   - top-hat mark + Conviction/Prediction/Affliction trinity language
@@ -82,14 +82,14 @@ export function NftCardView({
             <stop offset="0%" stopColor="#00f0ff" />
             <stop offset="25%" stopColor="#7cffc7" />
             <stop offset="50%" stopColor="#fbbf24" />
-            <stop offset="75%" stopColor="#ec4899" />
+            <stop offset="75%" stopColor="#fc3437" />
             <stop offset="100%" stopColor="#c98aff" />
           </linearGradient>
           {/* gold chisel from deck */}
           <linearGradient id={`gold-${uid}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#fffcf0" /><stop offset="25%" stopColor="#efc76d" />
-            <stop offset="50%" stopColor="#ab7b29" /><stop offset="75%" stopColor="#f7d983" />
-            <stop offset="100%" stopColor="#5c3c04" />
+            <stop offset="0%" stopColor="#f6d378" /><stop offset="25%" stopColor="#d69d41" />
+            <stop offset="50%" stopColor="#a86821" /><stop offset="75%" stopColor="#f6d378" />
+            <stop offset="100%" stopColor="#794816" />
           </linearGradient>
           <radialGradient id={`art-${uid}`} cx="50%" cy="42%" r="65%">
             <stop offset="0%" stopColor={accent} stopOpacity="0.42" />
@@ -160,7 +160,7 @@ export function NftCardView({
 
         {/* live stats row — 4 canonical stats (source: Card Game Logic Code Reference §2) */}
         <g fontFamily="ui-monospace, monospace">
-          <StatPill uid={uid} x={12}  label="VOLATILITY" value={`${card.volatility}%`} color="#f43f5e" />
+          <StatPill uid={uid} x={12}  label="VOLATILITY" value={`${card.volatility}%`} color="#fc3437" />
           <StatPill uid={uid} x={90}  label="CLOUT"      value={`${card.cloutPct}%`}  color={activeAccent} />
           <StatPill uid={uid} x={168} label="APY"        value={`${tier.stakingApy}%`} color="#7cffc7" />
           <StatPill uid={uid} x={246} label="EDGE"       value={`${(card.edgeMultiplier ?? 1.0).toFixed(2)}x`} color="#fbbf24" />

@@ -30,14 +30,14 @@ export interface AnalogDialProps {
 export const VERDICT_GRADIENT: DialGradientStop[] = [
   { offset: "0%",   color: "#7cffc7" },
   { offset: "38%",  color: "#fbbf24" },
-  { offset: "68%",  color: "#f43f5e" },
+  { offset: "68%",  color: "#fc3437" },
   { offset: "100%", color: "#ff00f0" },
 ];
 
 export const COGNITION_GRADIENT: DialGradientStop[] = [
   { offset: "0%",   color: "#22d3ee" },
   { offset: "50%",  color: "#fbbf24" },
-  { offset: "100%", color: "#ec4899" },
+  { offset: "100%", color: "#fc3437" },
 ];
 
 // Arc geometry — semicircle centre (140, 140) in viewBox "0 0 280 168"
@@ -50,7 +50,7 @@ export default function AnalogDial({
   label = "Score",
   unit = "ZL",
   subLabel = "",
-  accentColor = "#f43f5e",
+  accentColor = "#fc3437",
   dialId = "ad",
   className = "",
 }: AnalogDialProps) {
@@ -95,9 +95,9 @@ export default function AnalogDial({
 
           {/* needle gradient: hot-white tip → coral → deep red base */}
           <linearGradient id={`${p}-ndl`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#ffe3e8" />
-            <stop offset="45%"  stopColor="#ff5d76" />
-            <stop offset="100%" stopColor="#c81e3c" />
+            <stop offset="0%"   stopColor="#feebeb" />
+            <stop offset="45%"  stopColor="#fd6769" />
+            <stop offset="100%" stopColor="#b02427" />
           </linearGradient>
 
           {/* hub metallic sphere */}

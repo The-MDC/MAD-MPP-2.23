@@ -20,10 +20,10 @@ import {
 } from "@/lib/open-markets";
 
 export const INK = "#080808";
-export const GOLD = "#ffd700";
+export const GOLD = "#d69d41";
 export const ROSSA = "#f95639";
 export const MUTED = "#8e8a80";
-export const LINE = "rgba(255,215,0,.14)";
+export const LINE = "rgba(214,157,65,.14)";
 const MONO = "ui-monospace, 'JetBrains Mono', monospace";
 const SANS = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 
@@ -65,7 +65,7 @@ function ShellInner({ children, back, title }: { children: React.ReactNode; back
             {title ?? "Open Markets"}
           </div>
         </a>
-        <a href="/profile" className="mg-chip" style={{ height: 32, color: GOLD, borderColor: "rgba(255,215,0,.35)", textDecoration: "none" }} aria-label="Demo balance — open profile">
+        <a href="/profile" className="mg-chip" style={{ height: 32, color: GOLD, borderColor: "rgba(214,157,65,.35)", textDecoration: "none" }} aria-label="Demo balance — open profile">
           <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: 0 }}>{madx(s.credits)}</span>
           <span style={{ fontSize: 8.5, color: MUTED }}>$MADx</span>
         </a>

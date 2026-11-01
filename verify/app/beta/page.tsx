@@ -12,10 +12,10 @@
 import React, { useEffect, useState } from "react";
 import MadGambitConcierge from "@/components/mad-gambit-concierge";
 
-const GOLD = "#ffd700";
+const GOLD = "#d69d41";
 const ROSSA = "#f95639";
 const MUTED = "#a99f8a";
-const LINE = "rgba(255,215,0,.18)";
+const LINE = "rgba(214,157,65,.18)";
 
 type Role = "trader" | "creator" | "collector";
 const ROLES: { id: Role; label: string }[] = [
@@ -37,7 +37,7 @@ export default function BetaGate() {
   }, []);
 
   return (
-    <main style={{ minHeight: "100dvh", background: "radial-gradient(120% 70% at 50% -10%, rgba(255,215,0,.16), transparent 60%), radial-gradient(90% 60% at 100% 100%, rgba(249,86,57,.18), transparent 60%), #080808", color: "#f6f1e3", fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif", padding: "28px 20px 40px", display: "flex", justifyContent: "center" }}>
+    <main style={{ minHeight: "100dvh", background: "radial-gradient(120% 70% at 50% -10%, rgba(214,157,65,.16), transparent 60%), radial-gradient(90% 60% at 100% 100%, rgba(249,86,57,.18), transparent 60%), #080808", color: "#f6f1e3", fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif", padding: "28px 20px 40px", display: "flex", justifyContent: "center" }}>
       <div style={{ width: "100%", maxWidth: 420, display: "flex", flexDirection: "column", gap: 22 }}>
         <header style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, textAlign: "center" }}>
           {/* The official MAD Gambit neon lockup (square, founder-supplied 2026-10-27). */}
@@ -125,7 +125,7 @@ function SignupCard() {
           const on = r.id === role;
           return (
             <button key={r.id} type="button" role="radio" aria-checked={on} onClick={() => setRole(r.id)}
-              style={{ flex: 1, minHeight: 40, borderRadius: 12, cursor: "pointer", fontWeight: 800, fontSize: 13, border: `1px solid ${on ? "transparent" : LINE}`, background: on ? "var(--mg-gold-fill, #ffd700)" : "transparent", color: on ? "#1a1205" : "#d7d2c4" }}>
+              style={{ flex: 1, minHeight: 40, borderRadius: 12, cursor: "pointer", fontWeight: 800, fontSize: 13, border: `1px solid ${on ? "transparent" : LINE}`, background: on ? "var(--mg-gold-fill, #d69d41)" : "transparent", color: on ? "#1a1205" : "#d7d2c4" }}>
               {r.label}
             </button>
           );
@@ -166,7 +166,7 @@ function SigninCard({ next }: { next: string }) {
       <input type="text" required autoComplete="username" placeholder="Username" aria-label="Username" value={user} onChange={(e) => setUser(e.target.value)} style={field} />
       <input type="password" required autoComplete="current-password" placeholder="Password" aria-label="Password" value={pass} onChange={(e) => setPass(e.target.value)} style={field} />
       {error ? <div role="alert" style={{ fontSize: 12.5, color: "#ffb3a8" }}>{error}</div> : null}
-      <button type="submit" className="mg-btn-ghost" disabled={busy} style={{ width: "100%", minHeight: 48, fontSize: 14, borderColor: "rgba(255,215,0,.5)", color: GOLD }}>
+      <button type="submit" className="mg-btn-ghost" disabled={busy} style={{ width: "100%", minHeight: 48, fontSize: 14, borderColor: "rgba(214,157,65,.5)", color: GOLD }}>
         {busy ? "Checking…" : "Enter the floor ›"}
       </button>
     </form>

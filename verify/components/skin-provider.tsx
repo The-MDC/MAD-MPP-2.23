@@ -32,9 +32,12 @@ const STORAGE_KEY = "mg_skin";
 export function SkinProvider({
   children,
   value,
+  onChange,
 }: {
   children: React.ReactNode;
   value?: SkinName;
+  /** Controlled mode: forwarded instead of writing storage, so the host owns the change. */
+  onChange?: (n: SkinName) => void;
 }) {
   const controlled = value !== undefined;
   const [name, setName] = useState<SkinName>(DEFAULT_SKIN);
@@ -50,7 +53,7 @@ export function SkinProvider({
   }, [controlled]);
 
   const setSkin = (n: SkinName) => {
-    if (controlled) return; // host owns it; ignore child writes
+    if (controlled) { onChange?.(n); return; } // host owns it; forward the request, never write storage here
     setName(n);
     try {
       localStorage.setItem(STORAGE_KEY, n);

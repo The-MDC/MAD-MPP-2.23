@@ -22,7 +22,7 @@
 import React, { useEffect, useRef } from "react";
 import { INK } from "@/lib/gambit-design-tokens";
 
-const DEFAULT_COLORS = [INK.gold, INK.cyan, INK.pink, INK.green, "#fffcf0"];
+const DEFAULT_COLORS = [INK.gold, INK.cyan, INK.pink, INK.green, "#f6d378"];
 
 interface CelebrateDetail { x?: number; y?: number; intensity?: number; colors?: string[]; }
 

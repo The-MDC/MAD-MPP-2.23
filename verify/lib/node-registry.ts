@@ -187,7 +187,7 @@ export const NODE_REGISTRY: Record<NodeId, GambitNodeDef> = {
   "markets-all": {
     id: "markets-all",
     badge: "MARKETS",
-    accent: "var(--dopamine-peak, #ec4899)",
+    accent: "var(--dopamine-peak, #fc3437)",
     headline: "FIVE WAYS TO BE RIGHT",
     body: "Progression, Saga, Z-Liar, GossipCop and Perpetual markets — classified by a first-match cascade. Perps never close.",
     live: { kind: "chips", chips: ["PROGRESSION", "SAGA", "Z-LIAR", "GOSSIPCOP", "PERP ∞"] },
@@ -250,7 +250,7 @@ export const NODE_REGISTRY: Record<NodeId, GambitNodeDef> = {
   "gossip-cop": {
     id: "gossip-cop",
     badge: "SOON",
-    accent: "var(--dopamine-peak, #ec4899)",
+    accent: "var(--dopamine-peak, #fc3437)",
     headline: "GOSSIP-COP™",
     body: "Celebrity sagas as perpetual markets. Sagas write off — they never die. Kenny's fate is a tracked metric.",
     live: { kind: "strip", states: ["LIVE", "AFFLICTION", "GOLDEN_AURA", "KILLED_KENNY"], counter: { label: "KENNY DEATHS", value: 0 } },

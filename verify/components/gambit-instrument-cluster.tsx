@@ -100,7 +100,7 @@ export interface DialStat {
 const DEFAULT_PAIR1_PRESETS: DigitPairStat[] = [
   { label: "ACTIVE PREDICTIONS", value: "24", color: "#ffcf40" },
   { label: "WIN STREAK RECORD",  value: "12", color: "#00e5ff" },
-  { label: "CARDS OPENED TODAY", value: "41", color: "#ff007f" },
+  { label: "CARDS OPENED TODAY", value: "41", color: "#fc3437" },
 ];
 const DEFAULT_PAIR2_PRESETS: DigitPairStat[] = [
   { label: "COMMUNITY POOL %",   value: "88", color: "#00ff88" },
@@ -108,7 +108,7 @@ const DEFAULT_PAIR2_PRESETS: DigitPairStat[] = [
   { label: "TOURNAMENT ENTRIES", value: "56", color: "#00e5ff" },
 ];
 const DEFAULT_PAIR3_PRESETS: DigitPairStat[] = [
-  { label: "CHAOS INDEX",        value: "67", color: "#ff007f" },
+  { label: "CHAOS INDEX",        value: "67", color: "#fc3437" },
   { label: "APY BOOST %",        value: "48", color: "#00ff88" },
   { label: "SHIELD UTILIZATION", value: "31", color: "#ffcf40" },
 ];
@@ -137,7 +137,7 @@ export const DEFAULT_PAIR_PRESETS: DigitPairStat[][] = [
  */
 const DEFAULT_LEFT_DIAL_PRESETS: DialStat[] = [
   {
-    label: "BTC · MOMENTUM", value: 72, colorA: "#ffd700", colorB: "#ff9500",
+    label: "BTC · MOMENTUM", value: 72, colorA: "#d69d41", colorB: "#ff9500",
     crypto: {
       symbol: "BTC", price: "$69,420", change: "+4.2%", up: true,
       series: [0.42, 0.38, 0.47, 0.52, 0.49, 0.58, 0.63, 0.61, 0.70, 0.74, 0.71, 0.79],
@@ -171,7 +171,7 @@ const DEFAULT_RIGHT_DIAL_PRESETS: DialStat[] = [
     },
   },
   {
-    label: "DOGE · MOMENTUM", value: 63, colorA: "#ffd700", colorB: "#ffcf40",
+    label: "DOGE · MOMENTUM", value: 63, colorA: "#d69d41", colorB: "#ffcf40",
     crypto: {
       symbol: "DOGE", price: "$0.16", change: "+7.8%", up: true,
       series: [0.33, 0.41, 0.37, 0.48, 0.44, 0.56, 0.61, 0.55, 0.67, 0.64, 0.72, 0.69],
@@ -249,7 +249,7 @@ function DigitPairPod({
 
         {[[12, 12], [84, 12], [12, 60], [84, 60]].map(([cx, cy], i) => (
           <g key={i}>
-            <circle cx={cx} cy={cy} r="2" fill="#5c3c04" />
+            <circle cx={cx} cy={cy} r="2" fill="#794816" />
             <circle cx={cx - 0.5} cy={cy - 0.5} r="0.7" fill="rgba(255,255,255,0.7)" />
           </g>
         ))}
@@ -397,7 +397,7 @@ function AnalogGauge({
               {c.price}
             </text>
             <text x={CX} y={CY + 36} textAnchor="middle" fontSize="6" fontWeight="800"
-              fill={c.up ? "#00ff88" : "#ff4d6d"} fontFamily={INSTRUMENT_FONT}>
+              fill={c.up ? "#00ff88" : "#fd6769"} fontFamily={INSTRUMENT_FONT}>
               {c.change}
             </text>
           </>
@@ -465,7 +465,7 @@ export default function GambitInstrumentCluster({
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px", width: "100%" }}>
       <div style={{
         fontFamily: INSTRUMENT_FONT, fontSize: "8px", fontWeight: 800,
-        letterSpacing: "3px", color: "#ffd700", textAlign: "center",
+        letterSpacing: "3px", color: "#d69d41", textAlign: "center",
       }}>
         MAD GAMBIT INSTRUMENT CLUSTER
       </div>

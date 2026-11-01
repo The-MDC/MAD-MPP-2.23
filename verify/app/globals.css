@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "./tokens.css";
+@import "./brand-palette.css";
 
 /* ─────────────────────────────────────────────────────────────────────
    MAD GAMBIT — Dopamine Neuroscience Animation System v3
@@ -14,7 +15,7 @@
      applies a saved user-selected skin after hydration. */
   --mg-primary: #00f0ff;
   --mg-secondary: #7cffc7;
-  --mg-accent: #ec4899;
+  --mg-accent: #fc3437;
   --mg-bg: #01010a;
   --mg-panel: #03040e;
   --mg-border: #00f0ff33;
@@ -27,8 +28,8 @@
   /* Dopamine color ramp — temperature rises with excitement */
   --dopamine-calm:    #00f0ff;   /* blue-cyan — resting state */
   --dopamine-active:  #7cffc7;   /* green-cyan — engaged */
-  --dopamine-peak:    #ec4899;   /* pink — VRS near-miss band */
-  --dopamine-jackpot: #ffd700;   /* gold — Fibonacci jackpot hit */
+  --dopamine-peak:    #fc3437;   /* pink — VRS near-miss band */
+  --dopamine-jackpot: #d69d41;   /* gold — Fibonacci jackpot hit */
   --dopamine-chaos:   #ff00f0;   /* magenta — chaos max */
 
   /* Structural */
@@ -39,10 +40,10 @@
 
 /* ─── VRS JACKPOT — Fibonacci node [5,8,13,21,34] hit ─────────────── */
 @keyframes vrsBurst {
-  0%   { transform: scale(1);    opacity: 1; box-shadow: 0 0 0 0 rgba(255,215,0,0); }
-  30%  { transform: scale(1.04); opacity: 1; box-shadow: 0 0 60px 20px rgba(255,215,0,0.5); }
-  60%  { transform: scale(1.01); opacity: 1; box-shadow: 0 0 30px 8px rgba(255,215,0,0.25); }
-  100% { transform: scale(1);    opacity: 1; box-shadow: 0 0 0 0 rgba(255,215,0,0); }
+  0%   { transform: scale(1);    opacity: 1; box-shadow: 0 0 0 0 rgba(214,157,65,0); }
+  30%  { transform: scale(1.04); opacity: 1; box-shadow: 0 0 60px 20px rgba(214,157,65,0.5); }
+  60%  { transform: scale(1.01); opacity: 1; box-shadow: 0 0 30px 8px rgba(214,157,65,0.25); }
+  100% { transform: scale(1);    opacity: 1; box-shadow: 0 0 0 0 rgba(214,157,65,0); }
 }
 
 /* ─── NEAR-MISS SHAKE — 0.52–0.58 probability band ───────────────── */
@@ -164,7 +165,7 @@
     left: -100%;
     width: 300%;
     height: 300%;
-    background: linear-gradient(115deg, transparent 40%, rgba(255,215,0,0.05) 43%, rgba(255,239,150,0.5) 48%, rgba(255,215,0,0.05) 53%, transparent 56%);
+    background: linear-gradient(115deg, transparent 40%, rgba(214,157,65,0.05) 43%, rgba(255,239,150,0.5) 48%, rgba(214,157,65,0.05) 53%, transparent 56%);
     transform: rotate(-15deg);
     animation: gold-sheen-move 6s infinite ease-in-out;
     pointer-events: none;
@@ -174,15 +175,15 @@
 
 @utility gold-flakes {
   background-image:
-    radial-gradient(circle, rgba(255,215,0,0.45) 1.2px, transparent 1.2px),
+    radial-gradient(circle, rgba(214,157,65,0.45) 1.2px, transparent 1.2px),
     radial-gradient(circle, rgba(218,165,32,0.55) 1px, transparent 1px);
   background-size: 24px 24px, 40px 40px;
   background-position: 0 0, 12px 12px;
 }
 
 @utility border-glow-gold {
-  border: 1.15px solid rgba(255,215,0,0.85) !important;
-  box-shadow: 0 0 12px rgba(255,215,0,0.4), inset 0 0 6px rgba(255,215,0,0.15) !important;
+  border: 1.15px solid rgba(214,157,65,0.85) !important;
+  box-shadow: 0 0 12px rgba(214,157,65,0.4), inset 0 0 6px rgba(214,157,65,0.15) !important;
 }
 
 @utility border-glow-neon {
@@ -191,8 +192,8 @@
 }
 
 @utility border-glow-pink {
-  border: 1.15px solid rgba(255,0,127,0.85) !important;
-  box-shadow: 0 0 12px rgba(255,0,127,0.4), inset 0 0 6px rgba(255,0,127,0.15) !important;
+  border: 1.15px solid rgba(252,52,55,0.85) !important;
+  box-shadow: 0 0 12px rgba(252,52,55,0.4), inset 0 0 6px rgba(252,52,55,0.15) !important;
 }
 
 @keyframes gold-sheen-move {
@@ -439,12 +440,12 @@ body {
     /* A real "3D box": lift shadow, glass inner-highlight, a dark inset
        "floor" for depth, and a faint gold backing so the case itself feels
        lit even before the mesh renders. */
-    background: radial-gradient(120% 120% at 50% 20%, color-mix(in srgb, var(--gd, #ffd700) 5%, transparent), transparent 60%);
+    background: radial-gradient(120% 120% at 50% 20%, color-mix(in srgb, var(--gd, #d69d41) 5%, transparent), transparent 60%);
     box-shadow:
       0 24px 60px -20px rgba(0, 0, 0, 0.55),
       inset 0 1px 0 rgba(255, 255, 255, 0.08),
       inset 0 -18px 40px -20px rgba(0, 0, 0, 0.5),
-      inset 0 0 0 1px color-mix(in srgb, var(--gd, #ffd700) 18%, transparent);
+      inset 0 0 0 1px color-mix(in srgb, var(--gd, #d69d41) 18%, transparent);
   }
   .mg-ov-corner::before {
     /* Glass sheen overlay, painted above the canvas — sells the "display
@@ -563,7 +564,7 @@ body {
   box-shadow:
     0 40px 100px -20px rgba(0, 0, 0, 0.65),
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 0 0 1px color-mix(in srgb, var(--gd, #ffd700) 18%, transparent);
+    inset 0 0 0 1px color-mix(in srgb, var(--gd, #d69d41) 18%, transparent);
 }
 .mg-ov-popout-close {
   position: absolute;
@@ -577,9 +578,9 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 1px solid color-mix(in srgb, var(--gd, #ffd700) 40%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gd, #d69d41) 40%, transparent);
   background: color-mix(in srgb, #000 55%, transparent);
-  color: var(--gd, #ffd700);
+  color: var(--gd, #d69d41);
   font-size: 16px;
   line-height: 1;
 }
@@ -768,10 +769,10 @@ a:focus-visible,
   font-weight: 400 900; font-style: italic; font-display: swap;
 }
 :root {
-  --mg-gold: #ffd700;
-  --mg-gold-deep: #ab7b29;
-  --mg-gold-chisel: linear-gradient(135deg, #5c3c04 0%, #ab7b29 22%, #efc76d 48%, #fffcf0 56%, #efc76d 64%, #ab7b29 82%, #5c3c04 100%);
-  --mg-gold-fill: linear-gradient(180deg, #fff1a8 0%, #ffd700 38%, #d9a514 100%);
+  --mg-gold: #d69d41;
+  --mg-gold-deep: #a86821;
+  --mg-gold-chisel: linear-gradient(135deg, #794816 0%, #a86821 22%, #d69d41 48%, #f6d378 56%, #d69d41 64%, #a86821 82%, #794816 100%);
+  --mg-gold-fill: linear-gradient(180deg, #fff1a8 0%, #d69d41 38%, #d9a514 100%);
   --mg-rossa: #f95639;
   --mg-tangerine: #fa550d;
   --mg-rossa-hot: #fb292b;
@@ -800,19 +801,19 @@ a:focus-visible,
 .mg-btn-ghost {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   min-height: 40px; padding: 0 16px; border-radius: 999px; cursor: pointer; text-decoration: none;
-  background: rgba(255,255,255,.04); color: #f0f0f8; border: 1px solid rgba(255,215,0,.32); font-weight: 800; letter-spacing: .5px;
+  background: rgba(255,255,255,.04); color: #f0f0f8; border: 1px solid rgba(214,157,65,.32); font-weight: 800; letter-spacing: .5px;
   transition: background .16s var(--mg-ease), border-color .16s var(--mg-ease);
 }
-.mg-btn-ghost:hover { background: rgba(255,215,0,.08); border-color: rgba(255,215,0,.6); }
+.mg-btn-ghost:hover { background: rgba(214,157,65,.08); border-color: rgba(214,157,65,.6); }
 .mg-tile {
   position: relative; border-radius: 18px; background: linear-gradient(180deg, #14161f 0%, #0c0d13 100%);
-  border: 1px solid rgba(255,215,0,.16);
+  border: 1px solid rgba(214,157,65,.16);
   box-shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 14px 30px -18px rgba(0,0,0,.9);
   transition: transform .16s var(--mg-ease), box-shadow .16s var(--mg-ease), border-color .16s var(--mg-ease);
 }
 .mg-tile-hover:hover, .mg-tile-hover:focus-visible {
-  transform: translateY(-4px); border-color: rgba(255,215,0,.55);
-  box-shadow: 0 0 0 1px rgba(255,215,0,.25), 0 18px 36px -14px rgba(255,190,0,.35), 0 0 28px -6px rgba(249,86,57,.35);
+  transform: translateY(-4px); border-color: rgba(214,157,65,.55);
+  box-shadow: 0 0 0 1px rgba(214,157,65,.25), 0 18px 36px -14px rgba(255,190,0,.35), 0 0 28px -6px rgba(249,86,57,.35);
 }
 .mg-odds {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
@@ -820,7 +821,7 @@ a:focus-visible,
   background: #1a1c25; border: 1px solid rgba(255,255,255,.08); color: #f0f0f8;
   transition: background .14s var(--mg-ease), border-color .14s var(--mg-ease), transform .14s var(--mg-ease);
 }
-.mg-odds:hover { border-color: rgba(255,215,0,.55); background: #20222c; }
+.mg-odds:hover { border-color: rgba(214,157,65,.55); background: #20222c; }
 .mg-odds[aria-pressed="true"] { background: var(--mg-gold-fill); color: #1a1205; border-color: transparent; }
 .mg-chip {
   display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px; border-radius: 999px;
@@ -830,7 +831,7 @@ a:focus-visible,
 .mg-seam { position: relative; overflow: hidden; }
 .mg-seam::before {
   content: ""; position: absolute; inset: -40% -20% auto -20%; height: 120%;
-  background: radial-gradient(120% 90% at 50% 0%, rgba(255,215,0,.16) 0%, rgba(249,86,57,.08) 38%, transparent 70%);
+  background: radial-gradient(120% 90% at 50% 0%, rgba(214,157,65,.16) 0%, rgba(249,86,57,.08) 38%, transparent 70%);
   pointer-events: none;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -841,12 +842,12 @@ a:focus-visible,
 /* The stage + gold-chisel bezel, for every route on desktop and tablet. */
 @media (min-width: 768px) and (max-width: 1023px) {
   .mg-workbench { background: radial-gradient(1100px 760px at 50% 115%, #6b4a0e 0%, #2a1d07 38%, #0a0806 72%); }
-  .mg-device { box-shadow: 0 0 0 2px #ab7b29, 0 30px 60px -20px rgba(0,0,0,.85); }
+  .mg-device { box-shadow: 0 0 0 2px #a86821, 0 30px 60px -20px rgba(0,0,0,.85); }
 }
 @media (min-width: 1024px) {
   .mg-workbench {
     background:
-      radial-gradient(900px 620px at 50% 118%, rgba(255,215,0,.42) 0%, rgba(171,123,41,.24) 34%, transparent 66%),
+      radial-gradient(900px 620px at 50% 118%, rgba(214,157,65,.42) 0%, rgba(171,123,41,.24) 34%, transparent 66%),
       radial-gradient(700px 520px at 85% -10%, rgba(249,86,57,.16) 0%, transparent 60%),
       linear-gradient(180deg, #0b0a08 0%, #0d0b07 55%, #1c1406 100%);
   }
@@ -866,7 +867,7 @@ a:focus-visible,
 .mg-margin-explainer {
   position: fixed; z-index: 40; padding: 18px 18px 16px; border-radius: 20px;
   background: linear-gradient(180deg, rgba(22,18,10,.92) 0%, rgba(10,9,7,.94) 100%);
-  border: 1px solid rgba(255,215,0,.28);
+  border: 1px solid rgba(214,157,65,.28);
   box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 24px 60px -24px rgba(0,0,0,.9), 0 0 40px -18px rgba(255,200,40,.45);
   color: #efe9da; font-family: ui-monospace, "JetBrains Mono", monospace;
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
@@ -876,7 +877,7 @@ a:focus-visible,
 .mg-mx-tag { display: inline-block; font-size: 9px; font-weight: 900; letter-spacing: 1.6px; text-transform: uppercase; color: #1a1205; background: var(--mg-gold-fill); border-radius: 999px; padding: 3px 9px; }
 .mg-mx-kicker { margin-top: 12px; font-size: 10px; font-weight: 900; letter-spacing: 1.6px; text-transform: uppercase; color: var(--mg-rossa); }
 .mg-mx-title { margin-top: 4px; font-size: 30px; color: #fff3c4; }
-.mg-mx-formula { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: #050505; border: 1px solid rgba(255,215,0,.16); color: var(--mg-gold); font-size: 11.5px; line-height: 1.7; }
+.mg-mx-formula { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: #050505; border: 1px solid rgba(214,157,65,.16); color: var(--mg-gold); font-size: 11.5px; line-height: 1.7; }
 .mg-mx-body { margin: 12px 0 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 13px; line-height: 1.55; color: #d9d2c0; }
 .mg-mx-source { margin-top: 12px; font-size: 9.5px; letter-spacing: .4px; color: #8a7f66; }
 @media (max-width: 1023px) { .mg-margin-explainer { display: none; } }
@@ -911,7 +912,7 @@ a:focus-visible,
 }
 .mg-holo::after {
   content: ""; position: absolute; inset: -40%; pointer-events: none; mix-blend-mode: color-dodge; opacity: .45;
-  background: conic-gradient(from 0deg, #ff00f0, #00e5ff, #ffd700, #7cffc7, #f95639, #ff00f0);
+  background: conic-gradient(from 0deg, #ff00f0, #00e5ff, #d69d41, #7cffc7, #f95639, #ff00f0);
   animation: mg-holo 4s linear infinite;
 }
 @keyframes mg-holo { to { transform: rotate(360deg); } }
@@ -927,7 +928,7 @@ a:focus-visible,
 button:hover > .mg-mascot-fab-bob > .mg-mascot-fab,
 button:focus-visible > .mg-mascot-fab-bob > .mg-mascot-fab {
   transform: scale(1.07) rotate(-4deg);
-  filter: drop-shadow(0 10px 12px rgba(0,0,0,.7)) drop-shadow(0 0 16px rgba(255,215,0,.5));
+  filter: drop-shadow(0 10px 12px rgba(0,0,0,.7)) drop-shadow(0 0 16px rgba(214,157,65,.5));
 }
 @keyframes mg-mascot-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) { .mg-mascot-fab-bob { animation: none; } }
@@ -952,7 +953,7 @@ button:focus-visible > .mg-mascot-fab-bob > .mg-mascot-fab {
   padding: 18px 22px; border-radius: 14px; border: 1px solid rgba(249, 86, 57, 0.45);
   background: rgba(10, 10, 10, 0.85); color: #f5f5f5; font: 600 14px/1.35 ui-sans-serif, system-ui, sans-serif;
 }
-.mg-capture-veil-card strong { color: var(--mg-gold, #ffd700); letter-spacing: 0.04em; }
+.mg-capture-veil-card strong { color: var(--mg-gold, #d69d41); letter-spacing: 0.04em; }
 html.mg-guard body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 html.mg-guard :is(input, textarea, select, [contenteditable], .mg-selectable) {
   -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;

@@ -62,7 +62,7 @@ export default function GlobalError({
               fontSize: 30,
               fontWeight: 900,
               letterSpacing: "-0.02em",
-              color: "#ef4444",
+              color: "#fc3437",
             }}
           >
             TOTAL FAULT

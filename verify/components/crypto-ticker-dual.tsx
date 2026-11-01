@@ -509,16 +509,16 @@ export default function CryptoTickerDual() {
               </div>
               <div style={{ marginTop: 14, fontSize: 10, fontWeight: 900, letterSpacing: 1.2, textTransform: "uppercase", color: "#8e8a80" }}>{satire.satirical ? "On the wire" : "The headline"}</div>
               <div style={{ marginTop: 4, fontSize: 13, lineHeight: 1.4, color: "#cfc8b6" }}>{satire.value}</div>
-              <div style={{ marginTop: 12, padding: "14px 16px", borderRadius: 18, background: "linear-gradient(180deg, #1b1710, #0e0c09)", border: "1px solid rgba(255,215,0,.3)" }}>
-                <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.2, textTransform: "uppercase", color: "#ffd700" }}>The funny version</div>
+              <div style={{ marginTop: 12, padding: "14px 16px", borderRadius: 18, background: "linear-gradient(180deg, #1b1710, #0e0c09)", border: "1px solid rgba(214,157,65,.3)" }}>
+                <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.2, textTransform: "uppercase", color: "#d69d41" }}>The funny version</div>
                 <div style={{ marginTop: 6, fontSize: 18, fontWeight: 800, lineHeight: 1.35 }}>&ldquo;{take}&rdquo;</div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 14 }}>
-                <a href={`/open-markets/create?title=${encodeURIComponent(satire.value ?? "")}`} style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 46, borderRadius: 999, background: "var(--mg-gold-fill, #ffd700)", color: "#1a1205", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>Make it a market ›</a>
+                <a href={`/open-markets/create?title=${encodeURIComponent(satire.value ?? "")}`} style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 46, borderRadius: 999, background: "var(--mg-gold-fill, #d69d41)", color: "#1a1205", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>Make it a market ›</a>
                 {satire.url ? (
-                  <a href={satire.url} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 46, borderRadius: 999, border: "1px solid rgba(255,215,0,.4)", color: "#f6f1e3", fontWeight: 800, fontSize: 13, textDecoration: "none" }}>Read the original ›</a>
+                  <a href={satire.url} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 46, borderRadius: 999, border: "1px solid rgba(214,157,65,.4)", color: "#f6f1e3", fontWeight: 800, fontSize: 13, textDecoration: "none" }}>Read the original ›</a>
                 ) : (
-                  <button type="button" onClick={() => setSatire(null)} style={{ minHeight: 46, borderRadius: 999, border: "1px solid rgba(255,215,0,.4)", background: "transparent", color: "#f6f1e3", fontWeight: 800, fontSize: 13, cursor: "pointer" }}>Close</button>
+                  <button type="button" onClick={() => setSatire(null)} style={{ minHeight: 46, borderRadius: 999, border: "1px solid rgba(214,157,65,.4)", background: "transparent", color: "#f6f1e3", fontWeight: 800, fontSize: 13, cursor: "pointer" }}>Close</button>
                 )}
               </div>
               <div style={{ marginTop: 10, fontSize: 10.5, color: "#8e8a80", textAlign: "center" }}>Satire by MAD Gambit — the publisher did not write this line.</div>

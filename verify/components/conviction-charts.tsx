@@ -583,7 +583,7 @@ export function calculateSlippageCushion(
               }}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[11px] font-bold uppercase transition-all duration-300 cursor-pointer ${
                 theme === "neon"
-                  ? "bg-pink-500/15 border-pink-500 text-pink-400 shadow-[0_0_10px_rgba(236,72,153,0.25)] hover:bg-pink-500/25"
+                  ? "bg-pink-500/15 border-pink-500 text-pink-400 shadow-[0_0_10px_rgba(252,52,55,0.25)] hover:bg-pink-500/25"
                   : "bg-neutral-950 border-neutral-900 text-neutral-400 hover:text-white"
               }`}
             >
@@ -822,7 +822,7 @@ export function calculateSlippageCushion(
                                 <linearGradient id="phoneDialGrad" x1="0" y1="0" x2="1" y2="0">
                                   <stop offset="0%" stopColor="#22d3ee" />
                                   <stop offset="50%" stopColor="#fbbf24" />
-                                  <stop offset="100%" stopColor="#ec4899" />
+                                  <stop offset="100%" stopColor="#fc3437" />
                                 </linearGradient>
                               </defs>
                               
@@ -1046,7 +1046,7 @@ export function calculateSlippageCushion(
                                 });
 
                                 const pathD = `M ${points.join(" L ")}`;
-                                const strokeColor = activeGambit.id === "hyperion" ? "#22d3ee" : activeGambit.id === "chronos" ? "#fbbf24" : "#ec4899";
+                                const strokeColor = activeGambit.id === "hyperion" ? "#22d3ee" : activeGambit.id === "chronos" ? "#fbbf24" : "#fc3437";
                                 return <path d={pathD} fill="none" stroke={strokeColor} strokeWidth="2.5" />;
                               })()}
 
@@ -1099,7 +1099,7 @@ export function calculateSlippageCushion(
                                   isChosen 
                                     ? g.glowColor === "gold" ? "border-yellow-400 bg-yellow-500/5 shadow-[inset_0_0_8px_rgba(234,179,8,0.1)]"
                                       : g.glowColor === "neon" ? "border-cyan-400 bg-cyan-500/5 shadow-[inset_0_0_8px_rgba(34,211,238,0.1)]"
-                                      : "border-pink-500 bg-pink-500/5 shadow-[inset_0_0_8px_rgba(236,72,153,0.1)]"
+                                      : "border-pink-500 bg-pink-500/5 shadow-[inset_0_0_8px_rgba(252,52,55,0.1)]"
                                     : "border-neutral-900 bg-[#090909] hover:bg-neutral-900"
                                 }`}
                               >
@@ -1471,7 +1471,7 @@ export function calculateSlippageCushion(
                         name="Temporal Decay Factor" 
                         type="monotone" 
                         dataKey="Decay Ratio" 
-                        stroke={activeGambit.id === "hyperion" ? "#06b6d4" : activeGambit.id === "chronos" ? "#eab308" : "#ec4899"} 
+                        stroke={activeGambit.id === "hyperion" ? "#06b6d4" : activeGambit.id === "chronos" ? "#eab308" : "#fc3437"} 
                         strokeWidth={2} 
                         dot={false}
                         activeDot={{ r: 4 }}
@@ -1499,7 +1499,7 @@ export function calculateSlippageCushion(
             {/* PANEL 1: SYSTEM LOG TELEMETRY TERMINAL */}
             <div className={`p-5 rounded-2xl relative overflow-hidden flex flex-col justify-between transition-all duration-500 ${
               theme === "neon"
-                ? "bg-black border-2 border-pink-500 shadow-[0_0_12px_rgba(236,72,153,0.3)]"
+                ? "bg-black border-2 border-pink-500 shadow-[0_0_12px_rgba(252,52,55,0.3)]"
                 : "bg-gradient-to-b from-neutral-950 to-neutral-900 border-[1.15px] border-neutral-850"
             }`}>
               <div className="absolute inset-0 bg-[radial-gradient(#151515_1px,transparent_1px)] [background-size:12px_12px] opacity-30 pointer-events-none" />
@@ -1571,7 +1571,7 @@ export function calculateSlippageCushion(
             {/* PANEL 2: WORKSPACE ROADMAP GOALS MANAGER */}
             <div className={`p-5 rounded-2xl relative overflow-hidden flex flex-col justify-between transition-all duration-500 ${
               theme === "neon"
-                ? "bg-black border-2 border-pink-500 shadow-[0_0_12px_rgba(236,72,153,0.3)]"
+                ? "bg-black border-2 border-pink-500 shadow-[0_0_12px_rgba(252,52,55,0.3)]"
                 : "bg-gradient-to-b from-neutral-950 to-neutral-900 border-[1.15px] border-neutral-850"
             }`}>
               <div className="absolute inset-0 bg-[radial-gradient(#151515_1px,transparent_1px)] [background-size:12px_12px] opacity-30 pointer-events-none" />

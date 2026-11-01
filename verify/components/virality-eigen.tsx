@@ -41,7 +41,7 @@ export function ViralityBadge({ scenarioId, convictionAvg = 0.5, cardMultiplier 
     rho: 0.2,
   }, ageHours);
 
-  const color = idx >= 80 ? "#ffd700" : idx >= 60 ? "#ec4899" : idx >= 40 ? "#7cffc7" : "#00f0ff";
+  const color = idx >= 80 ? "#d69d41" : idx >= 60 ? "#fc3437" : idx >= 40 ? "#7cffc7" : "#00f0ff";
   const label = idx >= 80 ? "🔥 VIRAL" : idx >= 60 ? "📈 HOT" : idx >= 40 ? "⚡ ACTIVE" : "○ QUIET";
 
   return (

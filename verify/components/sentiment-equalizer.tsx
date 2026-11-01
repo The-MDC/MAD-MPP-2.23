@@ -23,7 +23,7 @@ function barHeight(i: number, t: number): number {
 }
 
 function barColor(i: number): string {
-  if (i > 10) return "rgba(236,72,153,.82)";
+  if (i > 10) return "rgba(252,52,55,.82)";
   if (i > 6)  return "rgba(250,204,21,.82)";
   return "rgba(6,182,212,.82)";
 }
@@ -89,7 +89,7 @@ export default function SentimentEqualizer({
       <div className="flex justify-between mt-2 font-mono text-[7px] uppercase tracking-widest text-neutral-700">
         <span style={{ color: "rgba(6,182,212,.6)" }}>Bullish</span>
         <span style={{ color: "rgba(250,204,21,.6)" }}>Neutral</span>
-        <span style={{ color: "rgba(236,72,153,.6)" }}>Bearish</span>
+        <span style={{ color: "rgba(252,52,55,.6)" }}>Bearish</span>
       </div>
     </div>
   );

@@ -41,7 +41,7 @@ function ProfileInner() {
       <section className="mg-tile mg-seam" data-explain="om-profile" style={{ padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/madhatr-logo.png" alt="" width={64} height={64} style={{ borderRadius: 18, border: "1px solid rgba(255,215,0,.35)", background: "#0b0b0e", objectFit: "cover" }} />
+          <img src="/brand/madhatr-logo.png" alt="" width={64} height={64} style={{ borderRadius: 18, border: "1px solid rgba(214,157,65,.35)", background: "#0b0b0e", objectFit: "cover" }} />
           <div style={{ minWidth: 0 }}>
             <Headline lead="Degen" punch="Profile" size={34} />
             <div style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>Demo floor · free-play $MADx held in this browser</div>

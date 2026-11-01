@@ -250,7 +250,7 @@ export function PredictionCircus({ activeDeck }: { activeDeck?: OVDeck }) {
       {isScanning ? (
         <div className="space-y-3 animate-pulse">
           {[1,2,3].map(i => (
-            <div key={i} className="h-36 rounded-xl border border-pink-500/20 bg-[#05070c]/90 p-4 shadow-[0_0_15px_rgba(236,72,153,0.1)]">
+            <div key={i} className="h-36 rounded-xl border border-pink-500/20 bg-[#05070c]/90 p-4 shadow-[0_0_15px_rgba(252,52,55,0.1)]">
               <div className="flex gap-3 mb-2">
                 <div className="w-8 h-8 rounded-full bg-pink-500/20" />
                 <div className="flex-1 space-y-2">
@@ -272,7 +272,7 @@ export function PredictionCircus({ activeDeck }: { activeDeck?: OVDeck }) {
           const deltaLimit = calculateDeltaLimit(deck.multiplier, sc.initialConviction ?? 1000);
 
           return (
-            <div key={sc.id} className={`rounded-xl border transition-all p-4 ${isFlashing ? result?.won ? "border-emerald-500/60 bg-emerald-500/5 shadow-[0_0_20px_rgba(16,185,129,0.2)]" : "border-rose-500/60 bg-rose-500/5 shadow-[0_0_20px_rgba(244,63,94,0.2)]" : "border-neutral-850 bg-[#05070c]/80 hover:border-neutral-700"}`}>
+            <div key={sc.id} className={`rounded-xl border transition-all p-4 ${isFlashing ? result?.won ? "border-emerald-500/60 bg-emerald-500/5 shadow-[0_0_20px_rgba(16,185,129,0.2)]" : "border-rose-500/60 bg-rose-500/5 shadow-[0_0_20px_rgba(252,52,55,0.2)]" : "border-neutral-850 bg-[#05070c]/80 hover:border-neutral-700"}`}>
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">{sc.emoji}</span>

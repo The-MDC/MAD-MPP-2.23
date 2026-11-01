@@ -41,6 +41,9 @@ function applyVars(t: SkinTokens) {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [skin, setSkinState] = useState<ThemeSkin>(DEFAULT);
+  // Persist only after the saved choice has been read. Without this the first persist effect
+  // writes DEFAULT over the saved skin (and StrictMode re-runs effects), so a reload loses it.
+  const hydrated = React.useRef(false);
 
   // hydrate persisted choice
   useEffect(() => {
@@ -52,6 +55,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // apply globally + persist on change
   useEffect(() => {
     applyVars(SKIN_TOKENS[skin]);
+    // First run is the pre-hydration default: apply it, but do not persist it over the saved choice.
+    if (!hydrated.current) { hydrated.current = true; return; }
     if (typeof window !== "undefined") window.localStorage.setItem(LS_KEY, skin);
   }, [skin]);
 

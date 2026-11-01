@@ -91,7 +91,7 @@ export default function NftSaga() {
         </header>
         <div className="flex flex-col sm:flex-row gap-2.5">
           {SAGA.episodes.map((e, i) => {
-            const c = e.status === "resolved" ? "#7cffc7" : e.status === "live" ? "#ec4899" : "#475569";
+            const c = e.status === "resolved" ? "#7cffc7" : e.status === "live" ? "#fc3437" : "#475569";
             return (
               <React.Fragment key={e.ep}>
                 <div className="flex-1 rounded-xl border px-3 py-2.5" style={{ borderColor: c + "44", background: "#03050880" }}>

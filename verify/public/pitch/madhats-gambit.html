@@ -13,18 +13,18 @@
 ═══════════════════════════════════════════════════ */
 :root {
   /* Brand Core */
-  --brand-gold:        #FFD700;
-  --brand-gold-dark:   #B8860B;
-  --brand-gold-glow:   rgba(255,215,0,.35);
-  --brand-crimson:     #DC143C;
+  --brand-gold:        #d69d41;
+  --brand-gold-dark:   #a86821;
+  --brand-gold-glow:   rgba(214,157,65,.35);
+  --brand-crimson:     #d62c2f;
   --brand-eggwhite:    #F5F0E8;
 
   /* Neon Palette */
   --neon-cyan:         #00D9FF;
   --neon-cyan-dim:     rgba(0,217,255,.15);
   --neon-cyan-glow:    rgba(0,217,255,.4);
-  --neon-magenta:      #FF2D78;
-  --neon-magenta-dim:  rgba(255,45,120,.15);
+  --neon-magenta:      #fc3437;
+  --neon-magenta-dim:  rgba(252,52,55,.15);
   --neon-purple:       #9D4EDD;
   --neon-purple-dim:   rgba(157,78,221,.15);
   --neon-purple-glow:  rgba(157,78,221,.45);
@@ -47,9 +47,9 @@
   --rarity-uncommon:   #4CAF50;
   --rarity-rare:       #2196F3;
   --rarity-epic:       #9C27B0;
-  --rarity-legendary:  #FFD700;
+  --rarity-legendary:  #d69d41;
   --rarity-golden:     #FF6B35;
-  --rarity-mythic:     #FF2D78;
+  --rarity-mythic:     #fc3437;
 
   /* Typography */
   --font-heading:      'Orbitron', monospace;
@@ -135,17 +135,17 @@ img { max-width: 100%; }
 .text-purple  { color: var(--neon-purple); }
 .text-green   { color: var(--neon-green); }
 
-.glow-gold    { text-shadow: 0 0 12px var(--brand-gold-glow), 0 0 28px rgba(255,215,0,.2); }
+.glow-gold    { text-shadow: 0 0 12px var(--brand-gold-glow), 0 0 28px rgba(214,157,65,.2); }
 .glow-cyan    { text-shadow: 0 0 12px var(--neon-cyan-glow), 0 0 28px rgba(0,217,255,.2); }
 .glow-purple  { text-shadow: 0 0 12px var(--neon-purple-glow); }
-.glow-magenta { text-shadow: 0 0 12px rgba(255,45,120,.5); }
+.glow-magenta { text-shadow: 0 0 12px rgba(252,52,55,.5); }
 
 .badge {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 2px 10px; border-radius: 100px; font-family: var(--font-mono);
   font-size: .68rem; font-weight: 600; letter-spacing: .06em;
 }
-.badge-gold   { background: rgba(255,215,0,.12); border: 1px solid rgba(255,215,0,.4); color: var(--brand-gold); }
+.badge-gold   { background: rgba(214,157,65,.12); border: 1px solid rgba(214,157,65,.4); color: var(--brand-gold); }
 .badge-cyan   { background: rgba(0,217,255,.1);  border: 1px solid rgba(0,217,255,.35); color: var(--neon-cyan); }
 .badge-purple { background: rgba(157,78,221,.1); border: 1px solid rgba(157,78,221,.35); color: var(--neon-purple); }
 .badge-red    { background: rgba(220,20,60,.12); border: 1px solid rgba(220,20,60,.4); color: #FF6B6B; }
@@ -199,7 +199,7 @@ img { max-width: 100%; }
 .ticker-item .label { color: var(--neon-cyan); font-weight: 700; }
 .ticker-item .up    { color: var(--neon-green); }
 .ticker-item .down  { color: var(--brand-crimson); }
-.ticker-sep { color: rgba(255,215,0,.3); margin: 0 4px; }
+.ticker-sep { color: rgba(214,157,65,.3); margin: 0 4px; }
 
 @keyframes tickerScroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
 
@@ -209,7 +209,7 @@ img { max-width: 100%; }
 nav {
   position: sticky; top: 0; z-index: 100;
   background: rgba(5,5,8,.92);
-  border-bottom: 1px solid rgba(255,215,0,.15);
+  border-bottom: 1px solid rgba(214,157,65,.15);
   backdrop-filter: blur(16px);
 }
 .nav-inner {
@@ -257,7 +257,7 @@ nav {
 /* Mobile dropdown */
 .nav-mobile-menu {
   display: none; position: absolute; top: 64px; left: 0; right: 0;
-  background: rgba(5,5,8,.97); border-bottom: 1px solid rgba(255,215,0,.15);
+  background: rgba(5,5,8,.97); border-bottom: 1px solid rgba(214,157,65,.15);
   backdrop-filter: blur(16px); z-index: 99;
   flex-direction: column; padding: 12px 0;
 }
@@ -286,7 +286,7 @@ nav {
 }
 .nav-doc-btn:hover { background: rgba(0,217,255,.15); border-color: rgba(0,217,255,.6); box-shadow: 0 0 12px rgba(0,217,255,.2); }
 
-  box-shadow: 0 0 20px rgba(255,215,0,.4);
+  box-shadow: 0 0 20px rgba(214,157,65,.4);
   transform: translateY(-1px);
 }
 
@@ -335,7 +335,7 @@ nav {
   letter-spacing: .08em; border: none; cursor: pointer;
   transition: all .25s; text-transform: uppercase; display: inline-block;
 }
-.btn-primary:hover { box-shadow: 0 0 32px rgba(255,215,0,.5); transform: translateY(-2px); }
+.btn-primary:hover { box-shadow: 0 0 32px rgba(214,157,65,.5); transform: translateY(-2px); }
 
 .btn-outline {
   font-family: var(--font-heading); font-size: .76rem; font-weight: 700;
@@ -352,14 +352,14 @@ nav {
 }
 .hero-stat {
   background: var(--bg-panel);
-  border: 1px solid rgba(255,215,0,.12);
+  border: 1px solid rgba(214,157,65,.12);
   border-radius: var(--radius-md); padding: var(--gap-md);
   text-align: center;
 }
 .hero-stat-val {
   font-family: var(--font-heading); font-size: 1.45rem; font-weight: 900;
   color: var(--brand-gold); display: block; margin-bottom: 4px;
-  text-shadow: 0 0 16px rgba(255,215,0,.4);
+  text-shadow: 0 0 16px rgba(214,157,65,.4);
 }
 .hero-stat-label {
   font-family: var(--font-mono); font-size: .62rem; color: var(--text-muted);
@@ -399,7 +399,7 @@ nav {
   position: relative; z-index: 2;
 }
 .hero-emblem-icon {
-  font-size: 4rem; filter: drop-shadow(0 0 20px rgba(255,215,0,.6));
+  font-size: 4rem; filter: drop-shadow(0 0 20px rgba(214,157,65,.6));
 }
 .hero-emblem-text {
   font-family: var(--font-heading); font-size: .6rem; letter-spacing: .2em;
@@ -417,7 +417,7 @@ nav {
 ═══════════════════════════════════════════════════ */
 .metrics-strip {
   background: linear-gradient(135deg, rgba(0,0,0,.6), rgba(10,12,20,.8));
-  border-top: 1px solid rgba(255,215,0,.15);
+  border-top: 1px solid rgba(214,157,65,.15);
   border-bottom: 1px solid rgba(0,217,255,.15);
   padding: var(--gap-xl) 0;
   margin-bottom: var(--gap-2xl);
@@ -434,7 +434,7 @@ nav {
 .metric-val {
   font-family: var(--font-heading); font-size: 1.6rem; font-weight: 900;
   color: var(--brand-gold); display: block;
-  text-shadow: 0 0 16px rgba(255,215,0,.35);
+  text-shadow: 0 0 16px rgba(214,157,65,.35);
 }
 .metric-label {
   font-family: var(--font-mono); font-size: .62rem; color: var(--text-muted);
@@ -449,7 +449,7 @@ nav {
   max-width: 860px;
   margin: var(--gap-xl) auto var(--gap-2xl);
   padding: var(--gap-xl) var(--gap-xl);
-  background: linear-gradient(135deg, rgba(0,217,255,.04) 0%, rgba(157,78,221,.05) 50%, rgba(255,215,0,.03) 100%);
+  background: linear-gradient(135deg, rgba(0,217,255,.04) 0%, rgba(157,78,221,.05) 50%, rgba(214,157,65,.03) 100%);
   border: 1px solid rgba(0,217,255,.18);
   border-left: 3px solid var(--neon-cyan);
   border-radius: var(--radius-md);
@@ -540,7 +540,7 @@ nav {
 .cat-scandal { background: rgba(220,20,60,.15); color: #FF6B6B; border: 1px solid rgba(220,20,60,.3); }
 .cat-viral   { background: rgba(0,217,255,.1); color: var(--neon-cyan); border: 1px solid rgba(0,217,255,.25); }
 .cat-culture { background: rgba(157,78,221,.12); color: var(--neon-purple); border: 1px solid rgba(157,78,221,.3); }
-.cat-awards  { background: rgba(255,215,0,.12); color: var(--brand-gold); border: 1px solid rgba(255,215,0,.3); }
+.cat-awards  { background: rgba(214,157,65,.12); color: var(--brand-gold); border: 1px solid rgba(214,157,65,.3); }
 .cat-creator { background: rgba(57,255,20,.08); color: var(--neon-green); border: 1px solid rgba(57,255,20,.25); }
 
 .market-status { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: .62rem; color: var(--neon-green); }
@@ -750,20 +750,20 @@ nav {
   background: linear-gradient(155deg, #1a1300 0%, #2a1e00 40%, #1a1000 100%);
 }
 .card-legendary .card-frame {
-  border-color: rgba(255,215,0,.7);
-  box-shadow: 0 0 28px rgba(255,215,0,.4), inset 0 0 24px rgba(255,215,0,.1);
+  border-color: rgba(214,157,65,.7);
+  box-shadow: 0 0 28px rgba(214,157,65,.4), inset 0 0 24px rgba(214,157,65,.1);
 }
 .card-legendary .card-foil {
-  background: linear-gradient(135deg, rgba(255,215,0,.15) 0%, rgba(255,140,0,.1) 50%, transparent 100%);
+  background: linear-gradient(135deg, rgba(214,157,65,.15) 0%, rgba(255,140,0,.1) 50%, transparent 100%);
 }
 .card-legendary .card-rarity-badge {
-  background: rgba(255,215,0,.18); color: var(--brand-gold); border: 1px solid rgba(255,215,0,.5);
+  background: rgba(214,157,65,.18); color: var(--brand-gold); border: 1px solid rgba(214,157,65,.5);
 }
 .card-legendary .card-power { color: var(--brand-gold); }
-.card-legendary .card-name { color: var(--brand-gold); text-shadow: 0 0 10px rgba(255,215,0,.5); }
+.card-legendary .card-name { color: var(--brand-gold); text-shadow: 0 0 10px rgba(214,157,65,.5); }
 .card-legendary .card-art-glow { background: radial-gradient(#FFD70070, transparent); }
 .card-legendary:hover {
-  box-shadow: 0 20px 70px rgba(255,215,0,.45), 0 0 0 1px rgba(255,215,0,.5);
+  box-shadow: 0 20px 70px rgba(214,157,65,.45), 0 0 0 1px rgba(214,157,65,.5);
 }
 .card-legendary .card-art-emoji { animation: legendaryPulse 3s ease-in-out infinite; }
 @keyframes legendaryPulse {
@@ -803,36 +803,36 @@ nav {
   background: linear-gradient(155deg, #1a0010 0%, #300020 40%, #1a0015 100%);
 }
 .card-mythic .card-frame {
-  border-color: #FF2D78;
-  box-shadow: 0 0 36px rgba(255,45,120,.55), inset 0 0 32px rgba(255,45,120,.1);
+  border-color: #fc3437;
+  box-shadow: 0 0 36px rgba(252,52,55,.55), inset 0 0 32px rgba(252,52,55,.1);
 }
 .card-mythic .card-foil {
   background: linear-gradient(
     135deg,
-    rgba(255,45,120,.2) 0%,
+    rgba(252,52,55,.2) 0%,
     rgba(157,78,221,.15) 50%,
     transparent 100%
   );
 }
 .card-mythic .card-rarity-badge {
-  background: rgba(255,45,120,.18); color: var(--neon-magenta);
-  border: 1px solid rgba(255,45,120,.5);
+  background: rgba(252,52,55,.18); color: var(--neon-magenta);
+  border: 1px solid rgba(252,52,55,.5);
 }
 .card-mythic .card-power { color: var(--neon-magenta); }
 .card-mythic .card-name {
   color: var(--neon-magenta);
-  text-shadow: 0 0 14px rgba(255,45,120,.7), 0 0 28px rgba(255,45,120,.3);
+  text-shadow: 0 0 14px rgba(252,52,55,.7), 0 0 28px rgba(252,52,55,.3);
 }
 .card-mythic .card-art-glow { background: radial-gradient(#FF2D7880, transparent); }
 .card-mythic:hover {
-  box-shadow: 0 20px 80px rgba(255,45,120,.5), 0 0 0 1px rgba(255,45,120,.6);
+  box-shadow: 0 20px 80px rgba(252,52,55,.5), 0 0 0 1px rgba(252,52,55,.6);
 }
 .card-mythic .card-art-emoji {
   animation: mythicGlow 2s ease-in-out infinite;
 }
 @keyframes mythicGlow {
-  0%,100% { filter: drop-shadow(0 0 10px #FF2D78) drop-shadow(0 0 25px #9D4EDD); }
-  50% { filter: drop-shadow(0 0 20px #FF2D78) drop-shadow(0 0 50px #FF2D78); }
+  0%,100% { filter: drop-shadow(0 0 10px #fc3437) drop-shadow(0 0 25px #9D4EDD); }
+  50% { filter: drop-shadow(0 0 20px #fc3437) drop-shadow(0 0 50px #fc3437); }
 }
 
 /* Rarity row labels */
@@ -1010,8 +1010,8 @@ nav {
 .utility-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: var(--gap-md); }
 .utility-pill {
   font-family: var(--font-mono); font-size: .65rem; letter-spacing: .06em;
-  background: rgba(255,215,0,.08); border: 1px solid rgba(255,215,0,.2);
-  color: rgba(255,215,0,.8); padding: 4px 12px; border-radius: 100px;
+  background: rgba(214,157,65,.08); border: 1px solid rgba(214,157,65,.2);
+  color: rgba(214,157,65,.8); padding: 4px 12px; border-radius: 100px;
 }
 
 /* Deflation items */
@@ -1048,10 +1048,10 @@ nav {
 .tier-silver .tier-name { color: #C0C0C0; }
 .tier-silver .tier-apy { color: #C0C0C0; }
 
-.tier-gold { border-color: rgba(255,215,0,.3); }
-.tier-gold:hover { border-color: rgba(255,215,0,.6); box-shadow: 0 8px 24px rgba(255,215,0,.15); }
+.tier-gold { border-color: rgba(214,157,65,.3); }
+.tier-gold:hover { border-color: rgba(214,157,65,.6); box-shadow: 0 8px 24px rgba(214,157,65,.15); }
 .tier-gold .tier-name { color: var(--brand-gold); }
-.tier-gold .tier-apy { color: var(--brand-gold); text-shadow: 0 0 8px rgba(255,215,0,.4); }
+.tier-gold .tier-apy { color: var(--brand-gold); text-shadow: 0 0 8px rgba(214,157,65,.4); }
 
 .tier-diamond { border-color: rgba(0,217,255,.3); }
 .tier-diamond:hover { border-color: rgba(0,217,255,.6); box-shadow: 0 8px 24px rgba(0,217,255,.15); }
@@ -1064,14 +1064,14 @@ nav {
 .tier-obsidian .tier-apy { color: var(--neon-purple); text-shadow: 0 0 8px rgba(157,78,221,.5); }
 
 .tier-mad {
-  border-color: rgba(255,45,120,.4);
-  background: linear-gradient(160deg, rgba(255,45,120,.07), rgba(157,78,221,.07));
+  border-color: rgba(252,52,55,.4);
+  background: linear-gradient(160deg, rgba(252,52,55,.07), rgba(157,78,221,.07));
 }
-.tier-mad:hover { border-color: rgba(255,45,120,.7); box-shadow: 0 8px 32px rgba(255,45,120,.22); }
+.tier-mad:hover { border-color: rgba(252,52,55,.7); box-shadow: 0 8px 32px rgba(252,52,55,.22); }
 .tier-mad .tier-name { color: var(--neon-magenta); }
 .tier-mad .tier-apy {
   color: var(--neon-magenta);
-  text-shadow: 0 0 12px rgba(255,45,120,.6), 0 0 24px rgba(255,45,120,.3);
+  text-shadow: 0 0 12px rgba(252,52,55,.6), 0 0 24px rgba(252,52,55,.3);
   animation: madGlow 2s ease-in-out infinite;
 }
 @keyframes madGlow { 0%,100%{opacity:1} 50%{opacity:.75} }
@@ -1142,7 +1142,7 @@ nav {
   font-size: 1rem;
 }
 .rm-dot-active   { background: rgba(0,217,255,.2); border: 2px solid var(--neon-cyan); box-shadow: 0 0 14px var(--neon-cyan-glow); }
-.rm-dot-upcoming { background: rgba(255,215,0,.1); border: 2px solid rgba(255,215,0,.4); }
+.rm-dot-upcoming { background: rgba(214,157,65,.1); border: 2px solid rgba(214,157,65,.4); }
 .rm-dot-future   { background: rgba(255,255,255,.04); border: 2px dashed rgba(255,255,255,.15); }
 
 .rm-content {}
@@ -1171,7 +1171,7 @@ nav {
 .comp-table th:first-child { text-align: left; }
 .comp-table td { padding: 12px 16px; font-size: .88rem; border-bottom: 1px solid rgba(255,255,255,.04); text-align: center; }
 .comp-table td:first-child { text-align: left; font-weight: 600; color: var(--text-primary); }
-.comp-table .mad-row td { background: rgba(255,215,0,.04); }
+.comp-table .mad-row td { background: rgba(214,157,65,.04); }
 .comp-table .mad-row td:first-child { color: var(--brand-gold); font-family: var(--font-heading); }
 .check { color: var(--neon-green); }
 .cross { color: rgba(255,255,255,.2); }
@@ -1184,19 +1184,19 @@ nav {
 .invest-left {}
 .invest-ask {
   background: var(--bg-panel);
-  border: 1px solid rgba(255,215,0,.2);
+  border: 1px solid rgba(214,157,65,.2);
   border-radius: var(--radius-md); padding: var(--gap-xl);
   position: relative; overflow: hidden;
 }
 .invest-ask::before {
   content: '';
   position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 50% -20%, rgba(255,215,0,.1), transparent 70%);
+  background: radial-gradient(ellipse at 50% -20%, rgba(214,157,65,.1), transparent 70%);
 }
 .invest-ask-amount {
   font-family: var(--font-heading); font-size: 3rem; font-weight: 900;
   color: var(--brand-gold);
-  text-shadow: 0 0 30px rgba(255,215,0,.4);
+  text-shadow: 0 0 30px rgba(214,157,65,.4);
   display: block; margin-bottom: var(--gap-sm); position: relative;
 }
 .invest-terms { display: flex; flex-direction: column; gap: var(--gap-sm); margin-top: var(--gap-md); }
@@ -1220,7 +1220,7 @@ nav {
 ═══════════════════════════════════════════════════ */
 footer {
   background: rgba(0,0,0,.6);
-  border-top: 1px solid rgba(255,215,0,.1);
+  border-top: 1px solid rgba(214,157,65,.1);
   padding: var(--gap-xl) 0;
 }
 .footer-inner {
@@ -1254,7 +1254,7 @@ footer {
   display: flex; align-items: center; justify-content: center;
   font-size: 1rem; cursor: pointer; transition: all .2s;
 }
-.footer-social:hover { background: rgba(255,215,0,.12); border-color: rgba(255,215,0,.3); }
+.footer-social:hover { background: rgba(214,157,65,.12); border-color: rgba(214,157,65,.3); }
 
 /* ═══════════════════════════════════════════════════
    ANIMATIONS & SCROLL
@@ -1274,7 +1274,7 @@ footer {
 ═══════════════════════════════════════════════════ */
 .divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,215,0,.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(214,157,65,.2), transparent);
   margin: 0 var(--gap-lg);
 }
 
@@ -1311,22 +1311,22 @@ footer {
 .doc-modal.open { display:flex; }
 .doc-modal.visible { opacity:1; }
 .doc-modal-inner { display:flex; width:100%; height:100%; flex-direction:column; max-width:1100px; margin:0 auto; padding:0 var(--gap-lg); }
-.doc-modal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 0 12px; border-bottom:1px solid rgba(255,215,0,.15); flex-shrink:0; }
+.doc-modal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 0 12px; border-bottom:1px solid rgba(214,157,65,.15); flex-shrink:0; }
 .doc-modal-title { font-family:var(--font-heading); font-size:.88rem; font-weight:700; color:var(--brand-gold); letter-spacing:.06em; }
 .doc-modal-close { width:36px; height:36px; border-radius:50%; border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.06); color:var(--text-primary); font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s; }
 .doc-modal-close:hover { background:rgba(220,20,60,.2); border-color:rgba(220,20,60,.4); }
 .doc-modal-body { flex:1; overflow-y:auto; padding:var(--gap-lg) 0 var(--gap-xl); }
 .doc-modal-body::-webkit-scrollbar { width:4px; }
-.doc-modal-body::-webkit-scrollbar-thumb { background:rgba(255,215,0,.3); border-radius:2px; }
+.doc-modal-body::-webkit-scrollbar-thumb { background:rgba(214,157,65,.3); border-radius:2px; }
 
 /* Whitepaper Modal Layout */
 #wpModal .doc-modal-body { display:flex; gap:var(--gap-xl); }
 .wp-toc { width:190px; flex-shrink:0; position:sticky; top:0; height:fit-content; max-height:calc(100vh - 120px); overflow-y:auto; }
 .wp-toc::-webkit-scrollbar { width:3px; }
-.wp-toc::-webkit-scrollbar-thumb { background:rgba(255,215,0,.2); }
+.wp-toc::-webkit-scrollbar-thumb { background:rgba(214,157,65,.2); }
 .wp-toc-title { font-family:var(--font-mono); font-size:.6rem; color:var(--text-muted); letter-spacing:.1em; text-transform:uppercase; margin-bottom:var(--gap-sm); }
 .wp-toc-item { display:block; padding:5px 8px; border-radius:4px; font-size:.72rem; color:var(--text-secondary); cursor:pointer; transition:all .15s; border-left:2px solid transparent; margin-bottom:2px; font-family:var(--font-body); }
-.wp-toc-item:hover,.wp-toc-item.active { color:var(--brand-gold); border-left-color:var(--brand-gold); background:rgba(255,215,0,.06); }
+.wp-toc-item:hover,.wp-toc-item.active { color:var(--brand-gold); border-left-color:var(--brand-gold); background:rgba(214,157,65,.06); }
 .wp-content { flex:1; min-width:0; }
 .wp-section { margin-bottom:var(--gap-2xl); scroll-margin-top:16px; }
 .wp-section-num { font-family:var(--font-mono); font-size:.6rem; color:var(--neon-cyan); letter-spacing:.12em; text-transform:uppercase; margin-bottom:6px; }
@@ -1334,7 +1334,7 @@ footer {
 .wp-section p { font-size:.88rem; color:var(--text-secondary); line-height:1.7; margin-bottom:.85rem; }
 .wp-section p strong { color:var(--text-primary); }
 .wp-table { width:100%; border-collapse:collapse; font-size:.77rem; margin:var(--gap-md) 0; }
-.wp-table th { background:rgba(255,215,0,.08); color:var(--brand-gold); font-family:var(--font-mono); font-size:.6rem; letter-spacing:.06em; padding:8px 10px; text-align:left; border-bottom:1px solid rgba(255,215,0,.2); }
+.wp-table th { background:rgba(214,157,65,.08); color:var(--brand-gold); font-family:var(--font-mono); font-size:.6rem; letter-spacing:.06em; padding:8px 10px; text-align:left; border-bottom:1px solid rgba(214,157,65,.2); }
 .wp-table td { padding:7px 10px; color:var(--text-secondary); border-bottom:1px solid rgba(255,255,255,.04); }
 .wp-table tr:hover td { background:rgba(255,255,255,.02); }
 .wp-table td.hl { color:var(--neon-cyan); font-weight:600; }
@@ -1345,8 +1345,8 @@ footer {
 /* Deck Modal Layout */
 #deckModal .doc-modal-inner { max-width:100%; padding:0 var(--gap-lg); }
 .deck-nav-bar { display:flex; align-items:center; justify-content:center; gap:var(--gap-lg); padding:10px 0 6px; flex-shrink:0; }
-.deck-nav-btn { width:36px; height:36px; border-radius:50%; border:1px solid rgba(255,215,0,.3); background:rgba(255,215,0,.08); color:var(--brand-gold); font-size:.9rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s; }
-.deck-nav-btn:hover { background:rgba(255,215,0,.2); }
+.deck-nav-btn { width:36px; height:36px; border-radius:50%; border:1px solid rgba(214,157,65,.3); background:rgba(214,157,65,.08); color:var(--brand-gold); font-size:.9rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+.deck-nav-btn:hover { background:rgba(214,157,65,.2); }
 .deck-nav-btn:disabled { opacity:.25; cursor:default; }
 .deck-counter { font-family:var(--font-mono); font-size:.72rem; color:var(--text-muted); min-width:55px; text-align:center; }
 .deck-dots { display:flex; gap:4px; align-items:center; flex-wrap:wrap; justify-content:center; max-width:300px; }
@@ -1356,9 +1356,9 @@ footer {
 .deck-slide { position:absolute; inset:0; display:flex; align-items:flex-start; justify-content:center; padding:var(--gap-md) 0; opacity:0; transform:translateX(40px); transition:opacity .3s,transform .3s; pointer-events:none; }
 .deck-slide.active { opacity:1; transform:translateX(0); pointer-events:all; }
 .deck-slide.prev { opacity:0; transform:translateX(-40px); }
-.deck-slide-inner { width:100%; max-width:860px; max-height:calc(100vh - 170px); overflow-y:auto; background:var(--bg-card); border:1px solid rgba(255,215,0,.12); border-radius:var(--radius-lg); padding:var(--gap-xl); }
+.deck-slide-inner { width:100%; max-width:860px; max-height:calc(100vh - 170px); overflow-y:auto; background:var(--bg-card); border:1px solid rgba(214,157,65,.12); border-radius:var(--radius-lg); padding:var(--gap-xl); }
 .deck-slide-inner::-webkit-scrollbar { width:3px; }
-.deck-slide-inner::-webkit-scrollbar-thumb { background:rgba(255,215,0,.2); }
+.deck-slide-inner::-webkit-scrollbar-thumb { background:rgba(214,157,65,.2); }
 .slide-tag { font-family:var(--font-mono); font-size:.6rem; color:var(--text-muted); letter-spacing:.12em; text-transform:uppercase; margin-bottom:8px; }
 .slide-h1 { font-family:var(--font-heading); font-size:1.5rem; font-weight:900; color:var(--text-primary); margin-bottom:var(--gap-md); line-height:1.2; }
 .slide-h1 .cy{color:var(--neon-cyan);} .slide-h1 .mg{color:var(--neon-magenta);} .slide-h1 .gd{color:var(--brand-gold);}
@@ -1383,8 +1383,8 @@ footer {
 .slide-pill-row { display:flex; flex-wrap:wrap; gap:6px; margin:var(--gap-sm) 0; }
 .slide-pill { padding:4px 10px; border-radius:20px; font-family:var(--font-mono); font-size:.62rem; letter-spacing:.04em; }
 .slide-pill.cy{background:rgba(0,217,255,.12);color:var(--neon-cyan);border:1px solid rgba(0,217,255,.25);}
-.slide-pill.mg{background:rgba(255,45,120,.12);color:var(--neon-magenta);border:1px solid rgba(255,45,120,.25);}
-.slide-pill.gd{background:rgba(255,215,0,.12);color:var(--brand-gold);border:1px solid rgba(255,215,0,.25);}
+.slide-pill.mg{background:rgba(252,52,55,.12);color:var(--neon-magenta);border:1px solid rgba(252,52,55,.25);}
+.slide-pill.gd{background:rgba(214,157,65,.12);color:var(--brand-gold);border:1px solid rgba(214,157,65,.25);}
 .slide-pill.gr{background:rgba(57,255,20,.1);color:var(--neon-green);border:1px solid rgba(57,255,20,.2);}
 .slide-check-list { list-style:none; display:flex; flex-direction:column; gap:5px; margin:var(--gap-sm) 0; }
 .slide-check-list li { font-size:.83rem; color:var(--text-secondary); display:flex; gap:8px; }
@@ -1422,13 +1422,13 @@ footer {
 #back-top {
   position: fixed; bottom: 24px; right: 24px; z-index: 500;
   width: 44px; height: 44px; border-radius: 50%;
-  background: rgba(16,18,28,.9); border: 1px solid rgba(255,215,0,.3);
+  background: rgba(16,18,28,.9); border: 1px solid rgba(214,157,65,.3);
   display: flex; align-items: center; justify-content: center;
   font-size: 1.1rem; cursor: pointer;
   opacity: 0; transform: translateY(10px); transition: all .3s;
   backdrop-filter: blur(8px);
 }
-#back-top:hover { background: rgba(255,215,0,.15); border-color: rgba(255,215,0,.6); box-shadow: 0 0 16px rgba(255,215,0,.3); }
+#back-top:hover { background: rgba(214,157,65,.15); border-color: rgba(214,157,65,.6); box-shadow: 0 0 16px rgba(214,157,65,.3); }
 #back-top.visible { opacity: 1; transform: translateY(0); }
 
 .odds-btn.selected-yes { background: rgba(57,255,20,.25) !important; border-color: rgba(57,255,20,.6) !important; box-shadow: 0 0 16px rgba(57,255,20,.25); }
@@ -1441,7 +1441,7 @@ footer {
 /* ── WP SECTION ── */
 .wp-section { padding: var(--gap-xl) 0; border-bottom: 1px solid rgba(255,255,255,.05); }
 .wp-section:last-child { border-bottom: none; }
-.wp-sec-num { font-family: var(--font-heading); font-size: 2.5rem; font-weight: 900; color: rgba(255,215,0,.12); line-height: 1; margin-bottom: -8px; }
+.wp-sec-num { font-family: var(--font-heading); font-size: 2.5rem; font-weight: 900; color: rgba(214,157,65,.12); line-height: 1; margin-bottom: -8px; }
 .wp-sec-title { font-family: var(--font-heading); font-size: .95rem; font-weight: 700; color: var(--brand-gold); margin-bottom: var(--gap-md); letter-spacing: .04em; }
 .wp-sec-body { font-size: .83rem; color: var(--text-secondary); line-height: 1.7; }
 .wp-sec-body p { margin-bottom: var(--gap-sm); }
@@ -1720,7 +1720,7 @@ footer {
       <div class="mmap-legend-item"><div class="mmap-legend-dot" style="background:#4E9FFF"></div>Core Mechanics</div>
       <div class="mmap-legend-item"><div class="mmap-legend-dot" style="background:#00D9C8"></div>Social & Viral</div>
       <div class="mmap-legend-item"><div class="mmap-legend-dot" style="background:#FF9240"></div>Immersive Progression</div>
-      <div class="mmap-legend-item"><div class="mmap-legend-dot" style="background:#FFD700"></div>Tokenomics & Tech</div>
+      <div class="mmap-legend-item"><div class="mmap-legend-dot" style="background:#d69d41"></div>Tokenomics & Tech</div>
     </div>
 
     <div class="mindmap-wrap">
@@ -1747,7 +1747,7 @@ footer {
         <!-- Branch 4: Progression (bottom-right) -->
         <line class="mmap-connector" x1="550" y1="350" x2="790" y2="540" stroke="#FF9240" stroke-width="2" stroke-opacity="0.5"/>
         <!-- Branch 5: Tokenomics (bottom-left) -->
-        <line class="mmap-connector" x1="550" y1="350" x2="310" y2="540" stroke="#FFD700" stroke-width="2" stroke-opacity="0.5"/>
+        <line class="mmap-connector" x1="550" y1="350" x2="310" y2="540" stroke="#d69d41" stroke-width="2" stroke-opacity="0.5"/>
 
         <!-- ── LEAF CONNECTORS — Theme ── -->
         <line x1="310" y1="160" x2="130" y2="90"  stroke="#C850FF" stroke-width="1.2" stroke-opacity="0.35" stroke-dasharray="4,3"/>
@@ -1766,9 +1766,9 @@ footer {
         <line x1="790" y1="540" x2="975" y2="540" stroke="#FF9240" stroke-width="1.2" stroke-opacity="0.35" stroke-dasharray="4,3"/>
         <line x1="790" y1="540" x2="960" y2="615" stroke="#FF9240" stroke-width="1.2" stroke-opacity="0.35" stroke-dasharray="4,3"/>
         <!-- ── LEAF CONNECTORS — Tokenomics ── -->
-        <line x1="310" y1="540" x2="130" y2="465" stroke="#FFD700" stroke-width="1.2" stroke-opacity="0.35" stroke-dasharray="4,3"/>
-        <line x1="310" y1="540" x2="110" y2="540" stroke="#FFD700" stroke-width="1.2" stroke-opacity="0.35" stroke-dasharray="4,3"/>
-        <line x1="310" y1="540" x2="130" y2="615" stroke="#FFD700" stroke-width="1.2" stroke-opacity="0.35" stroke-dasharray="4,3"/>
+        <line x1="310" y1="540" x2="130" y2="465" stroke="#d69d41" stroke-width="1.2" stroke-opacity="0.35" stroke-dasharray="4,3"/>
+        <line x1="310" y1="540" x2="110" y2="540" stroke="#d69d41" stroke-width="1.2" stroke-opacity="0.35" stroke-dasharray="4,3"/>
+        <line x1="310" y1="540" x2="130" y2="615" stroke="#d69d41" stroke-width="1.2" stroke-opacity="0.35" stroke-dasharray="4,3"/>
 
         <!-- ══════════════════════════════════════
              BRANCH NODES (clickable)
@@ -1804,9 +1804,9 @@ footer {
 
         <!-- BRANCH 5: Tokenomics & Tech Stack -->
         <g class="mmap-branch-group" onclick="mmapToggle(this,'branch-5')" data-branch="branch-5">
-          <ellipse cx="310" cy="540" rx="68" ry="30" fill="rgba(255,215,0,.1)" stroke="#FFD700" stroke-width="1.5" class="mmap-node"/>
-          <text x="310" y="535" text-anchor="middle" font-family="Orbitron,monospace" font-size="8.5" fill="#FFD700" font-weight="700">Tokenomics</text>
-          <text x="310" y="548" text-anchor="middle" font-family="Orbitron,monospace" font-size="8.5" fill="#FFD700" font-weight="700">&amp; Tech Stack</text>
+          <ellipse cx="310" cy="540" rx="68" ry="30" fill="rgba(214,157,65,.1)" stroke="#d69d41" stroke-width="1.5" class="mmap-node"/>
+          <text x="310" y="535" text-anchor="middle" font-family="Orbitron,monospace" font-size="8.5" fill="#d69d41" font-weight="700">Tokenomics</text>
+          <text x="310" y="548" text-anchor="middle" font-family="Orbitron,monospace" font-size="8.5" fill="#d69d41" font-weight="700">&amp; Tech Stack</text>
         </g>
 
         <!-- ══════════════════════════════════════
@@ -1881,17 +1881,17 @@ footer {
 
         <!-- ── LEAF NODES — Tokenomics ── -->
         <g class="mmap-leaf branch-5" style="opacity:0;transition:opacity .4s;">
-          <rect x="0" y="448" width="216" height="28" rx="6" fill="rgba(255,215,0,.07)" stroke="rgba(255,215,0,.3)" stroke-width="1"/>
+          <rect x="0" y="448" width="216" height="28" rx="6" fill="rgba(214,157,65,.07)" stroke="rgba(214,157,65,.3)" stroke-width="1"/>
           <text x="10" y="461" font-family="Rajdhani,sans-serif" font-size="9.5" fill="rgba(245,240,232,.7)">888.9M $MADx · burns · staking</text>
           <text x="10" y="473" font-family="Rajdhani,sans-serif" font-size="9.5" fill="rgba(245,240,232,.7)">DAO governance on-chain</text>
         </g>
         <g class="mmap-leaf branch-5" style="opacity:0;transition:opacity .4s .05s;">
-          <rect x="0" y="523" width="202" height="28" rx="6" fill="rgba(255,215,0,.07)" stroke="rgba(255,215,0,.3)" stroke-width="1"/>
+          <rect x="0" y="523" width="202" height="28" rx="6" fill="rgba(214,157,65,.07)" stroke="rgba(214,157,65,.3)" stroke-width="1"/>
           <text x="10" y="536" font-family="Rajdhani,sans-serif" font-size="9.5" fill="rgba(245,240,232,.7)">EVM-native: Arbitrum Nova/One</text>
           <text x="10" y="548" font-family="Rajdhani,sans-serif" font-size="9.5" fill="rgba(245,240,232,.7)">Base L2 · HyperEVM</text>
         </g>
         <g class="mmap-leaf branch-5" style="opacity:0;transition:opacity .4s .1s;">
-          <rect x="0" y="598" width="218" height="28" rx="6" fill="rgba(255,215,0,.07)" stroke="rgba(255,215,0,.3)" stroke-width="1"/>
+          <rect x="0" y="598" width="218" height="28" rx="6" fill="rgba(214,157,65,.07)" stroke="rgba(214,157,65,.3)" stroke-width="1"/>
           <text x="10" y="611" font-family="Rajdhani,sans-serif" font-size="9.5" fill="rgba(245,240,232,.7)">DeFi: Uniswap + Aave + Lido yield</text>
           <text x="10" y="623" font-family="Rajdhani,sans-serif" font-size="9.5" fill="rgba(245,240,232,.7)">Q2 2026 TGE · Q4 2026 Mobile</text>
         </g>
@@ -1899,9 +1899,9 @@ footer {
         <!-- ══════════════════════════════════════
              CENTER NODE
         ══════════════════════════════════════ -->
-        <circle cx="550" cy="350" r="88" fill="url(#coreGrad)" stroke="#FFD700" stroke-width="2" filter="url(#glow-gold)" opacity="0.95"/>
+        <circle cx="550" cy="350" r="88" fill="url(#coreGrad)" stroke="#d69d41" stroke-width="2" filter="url(#glow-gold)" opacity="0.95"/>
         <circle cx="550" cy="350" r="80" fill="none" stroke="rgba(0,217,255,.25)" stroke-width="1" stroke-dasharray="8,4"/>
-        <text x="550" y="338" text-anchor="middle" font-family="Orbitron,monospace" font-size="10" fill="#FFD700" font-weight="900" filter="url(#glow-gold)">MAD GAMBIT</text>
+        <text x="550" y="338" text-anchor="middle" font-family="Orbitron,monospace" font-size="10" fill="#d69d41" font-weight="900" filter="url(#glow-gold)">MAD GAMBIT</text>
         <text x="550" y="353" text-anchor="middle" font-family="Rajdhani,sans-serif" font-size="9" fill="rgba(245,240,232,.65)">The Degenerate</text>
         <text x="550" y="366" text-anchor="middle" font-family="Rajdhani,sans-serif" font-size="9" fill="rgba(245,240,232,.65)">Prediction Circus</text>
         <text x="550" y="384" text-anchor="middle" font-family="Orbitron,monospace" font-size="7.5" fill="rgba(0,217,255,.7)">5 BRANCHES · CLICK TO EXPLORE</text>
@@ -1912,7 +1912,7 @@ footer {
 
     <!-- Info Panel (shown on branch click) -->
     <div id="mmapInfo" style="display:none;max-width:780px;margin:0 auto var(--gap-xl);padding:var(--gap-lg) var(--gap-xl);
-         background:rgba(12,14,22,.9);border:1px solid rgba(255,215,0,.2);border-radius:var(--radius-lg);
+         background:rgba(12,14,22,.9);border:1px solid rgba(214,157,65,.2);border-radius:var(--radius-lg);
          backdrop-filter:blur(12px);transition:all .3s;">
       <div id="mmapInfoTitle" style="font-family:var(--font-heading);font-size:.9rem;font-weight:700;margin-bottom:var(--gap-sm);"></div>
       <div id="mmapInfoBody" style="font-family:var(--font-mono);font-size:.72rem;color:var(--text-secondary);line-height:1.7;"></div>
@@ -2014,7 +2014,7 @@ footer {
         </div>
         <div class="market-question">Story Saga: "The Great Unraveling" — Season 1 Faction Champion?</div>
         <div class="market-odds">
-          <div class="odds-btn odds-yes" style="background:rgba(255,215,0,.1);border-color:rgba(255,215,0,.3)"><div class="odds-label" style="color:var(--brand-gold)">DISRUPTORS</div><div class="odds-val" style="color:var(--brand-gold)">1.9×</div></div>
+          <div class="odds-btn odds-yes" style="background:rgba(214,157,65,.1);border-color:rgba(214,157,65,.3)"><div class="odds-label" style="color:var(--brand-gold)">DISRUPTORS</div><div class="odds-val" style="color:var(--brand-gold)">1.9×</div></div>
           <div class="odds-btn odds-no" style="background:rgba(157,78,221,.1);border-color:rgba(157,78,221,.3)"><div class="odds-label" style="color:var(--neon-purple)">POLITICOS</div><div class="odds-val" style="color:var(--neon-purple)">2.2×</div></div>
         </div>
         <div class="market-footer">
@@ -2043,18 +2043,18 @@ footer {
       <div class="rarity-seg" style="width:25%;background:#4CAF50;" title="Uncommon 25%"></div>
       <div class="rarity-seg" style="width:10%;background:#2196F3;" title="Rare 10%"></div>
       <div class="rarity-seg" style="width:4%;background:#9C27B0;" title="Epic 4%"></div>
-      <div class="rarity-seg" style="width:.7%;background:#FFD700;" title="Legendary 1%"></div>
+      <div class="rarity-seg" style="width:.7%;background:#d69d41;" title="Legendary 1%"></div>
       <div class="rarity-seg" style="width:.2%;background:#FF6B35;" title="Golden Hand &lt;1%"></div>
-      <div class="rarity-seg" style="width:.1%;background:#FF2D78;" title="Mythic &lt;1%"></div>
+      <div class="rarity-seg" style="width:.1%;background:#fc3437;" title="Mythic &lt;1%"></div>
     </div>
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:var(--gap-xl);font-family:var(--font-mono);font-size:.62rem;">
       <span style="color:#8A9BB5">■ Common 60%</span>
       <span style="color:#4CAF50">■ Uncommon 25%</span>
       <span style="color:#2196F3">■ Rare 10%</span>
       <span style="color:#9C27B0">■ Epic 4%</span>
-      <span style="color:#FFD700">■ Legendary 1%</span>
+      <span style="color:#d69d41">■ Legendary 1%</span>
       <span style="color:#FF6B35">■ Golden Hand &lt;1%</span>
-      <span style="color:#FF2D78">■ Mythic &lt;1%</span>
+      <span style="color:#fc3437">■ Mythic &lt;1%</span>
     </div>
 
     <!-- TWO-ROW CARD GRID: Uncommon → Mythic -->
@@ -2454,7 +2454,7 @@ footer {
         <div class="oracle-title">Chainlink Feed</div>
         <div class="oracle-desc">Verifiable on-chain data — timestamps, tweet IDs, price feeds, public statements via API oracles. Snapshot at market creation for deletion protection. Machine-readable, objective resolution.</div>
       </div>
-      <div class="oracle-card animate-in d2" style="border-color:rgba(255,215,0,.2)">
+      <div class="oracle-card animate-in d2" style="border-color:rgba(214,157,65,.2)">
         <span class="oracle-num" style="color:var(--brand-gold)">LAYER 02 — SECONDARY</span>
         <span class="oracle-icon">📡</span>
         <div class="oracle-title">News API Aggregation</div>
@@ -2512,13 +2512,13 @@ footer {
             <circle cx="140" cy="140" r="100" fill="none" stroke="#9D4EDD" stroke-width="48"
               stroke-dasharray="94.25 534.07" stroke-dashoffset="-282.74" transform="rotate(-90 140 140)"/>
             <!-- Liquidity 15% -->
-            <circle cx="140" cy="140" r="100" fill="none" stroke="#FFD700" stroke-width="48"
+            <circle cx="140" cy="140" r="100" fill="none" stroke="#d69d41" stroke-width="48"
               stroke-dasharray="94.25 534.07" stroke-dashoffset="-377.0" transform="rotate(-90 140 140)"/>
             <!-- Team 15% -->
             <circle cx="140" cy="140" r="100" fill="none" stroke="#FF6B35" stroke-width="48"
               stroke-dasharray="94.25 534.07" stroke-dashoffset="-471.24" transform="rotate(-90 140 140)"/>
             <!-- Seed 10% -->
-            <circle cx="140" cy="140" r="100" fill="none" stroke="#FF2D78" stroke-width="48"
+            <circle cx="140" cy="140" r="100" fill="none" stroke="#fc3437" stroke-width="48"
               stroke-dasharray="62.83 565.49" stroke-dashoffset="-565.49" transform="rotate(-90 140 140)"/>
           </svg>
           <div class="donut-center">
@@ -2540,9 +2540,9 @@ footer {
             <div class="alloc-pct">15%</div>
           </div>
           <div class="alloc-item">
-            <div class="alloc-dot" style="background:#FFD700"></div>
+            <div class="alloc-dot" style="background:#d69d41"></div>
             <div class="alloc-label">Liquidity</div>
-            <div class="alloc-bar"><div class="alloc-bar-fill" style="width:15%;background:#FFD700"></div></div>
+            <div class="alloc-bar"><div class="alloc-bar-fill" style="width:15%;background:#d69d41"></div></div>
             <div class="alloc-pct">15%</div>
           </div>
           <div class="alloc-item">
@@ -2552,9 +2552,9 @@ footer {
             <div class="alloc-pct">15%</div>
           </div>
           <div class="alloc-item">
-            <div class="alloc-dot" style="background:#FF2D78"></div>
+            <div class="alloc-dot" style="background:#fc3437"></div>
             <div class="alloc-label">Seed &amp; Private</div>
-            <div class="alloc-bar"><div class="alloc-bar-fill" style="width:10%;background:#FF2D78"></div></div>
+            <div class="alloc-bar"><div class="alloc-bar-fill" style="width:10%;background:#fc3437"></div></div>
             <div class="alloc-pct">10%</div>
           </div>
         </div>
@@ -2682,7 +2682,7 @@ footer {
           <span>Breakeven:</span> Month 5–7 (base)
         </div>
       </div>
-      <div class="proj-card animate-in d2" style="border-color:rgba(255,215,0,.2)">
+      <div class="proj-card animate-in d2" style="border-color:rgba(214,157,65,.2)">
         <div class="proj-year">Year 2 (Mo 13–24)</div>
         <div class="proj-heading">$92.7M</div>
         <div class="proj-detail">
@@ -2957,7 +2957,7 @@ footer {
         <!-- Founder -->
         <div class="glass" style="padding:var(--gap-lg);margin-top:var(--gap-lg)">
           <div style="display:flex;align-items:center;gap:var(--gap-md)">
-            <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#FF8C00);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">🎩</div>
+            <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#d69d41,#FF8C00);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">🎩</div>
             <div>
               <div style="font-family:var(--font-heading);font-size:.88rem;font-weight:700;color:var(--text-primary)">Nicholas J. McLeod</div>
               <div style="font-family:var(--font-mono);font-size:.65rem;color:var(--neon-cyan)">Solo Founder · Mr. madDegen · 3× Operator</div>
@@ -3038,7 +3038,7 @@ footer {
     </div>
     <div class="doc-modal-body" id="wpBody">
       <!-- TOC sidebar -->
-      <div id="wpToc" style="width:180px;flex-shrink:0;border-right:1px solid rgba(255,215,0,.1);padding-right:var(--gap-lg);position:sticky;top:0;align-self:flex-start;max-height:calc(100vh - 130px);overflow-y:auto;">
+      <div id="wpToc" style="width:180px;flex-shrink:0;border-right:1px solid rgba(214,157,65,.1);padding-right:var(--gap-lg);position:sticky;top:0;align-self:flex-start;max-height:calc(100vh - 130px);overflow-y:auto;">
         <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--brand-gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:var(--gap-md);">TABLE OF CONTENTS</div>
         <a class="wp-toc-link" onclick="wpScrollTo('wp-01')">01. Introduction</a>
         <a class="wp-toc-link" onclick="wpScrollTo('wp-02')">02. Positioning & Moat</a>
@@ -3059,7 +3059,7 @@ footer {
       <div id="wpContent" style="flex:1;min-width:0;">
 
         <!-- COVER -->
-        <div style="text-align:center;padding:var(--gap-xl) 0 var(--gap-2xl);border-bottom:1px solid rgba(255,215,0,.15);margin-bottom:var(--gap-xl);">
+        <div style="text-align:center;padding:var(--gap-xl) 0 var(--gap-2xl);border-bottom:1px solid rgba(214,157,65,.15);margin-bottom:var(--gap-xl);">
           <div style="font-family:var(--font-heading);font-size:1.8rem;font-weight:900;color:var(--brand-gold);letter-spacing:.06em;margin-bottom:8px;">MΛDHAT'S GAMBIT</div>
           <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--neon-cyan);letter-spacing:.06em;margin-bottom:16px;">Economic Entertainment Engine & Satirical Prediction-Conviction Marketplace</div>
           <div style="font-family:var(--font-body);font-style:italic;font-size:.95rem;color:var(--text-secondary);margin-bottom:var(--gap-lg);">"Predict the Degeneracy. Get the Gossip. Hedge Your Bet."</div>
@@ -3230,7 +3230,7 @@ footer {
                 <tr><td>Common</td><td>8%</td><td>+2%</td><td class="accent">12%</td><td>$MADx (real yield)</td></tr>
                 <tr><td>Rare</td><td>20%</td><td>+5%</td><td class="accent">30%</td><td>$MADx (real yield)</td></tr>
                 <tr><td>Legendary</td><td>40%</td><td>+10%</td><td class="accent">60%</td><td>$MADx (real yield)</td></tr>
-                <tr style="background:rgba(255,215,0,.06)"><td class="accent">Golden Hand</td><td style="color:var(--brand-gold)">60%</td><td>+15%</td><td style="color:var(--brand-gold);font-weight:700">88%</td><td>$MADx + governance power</td></tr>
+                <tr style="background:rgba(214,157,65,.06)"><td class="accent">Golden Hand</td><td style="color:var(--brand-gold)">60%</td><td>+15%</td><td style="color:var(--brand-gold);font-weight:700">88%</td><td>$MADx + governance power</td></tr>
               </tbody>
             </table>
             <div style="font-family:var(--font-mono);font-size:.62rem;color:var(--text-muted);margin-top:6px;">APY = real yield only — no token inflation. Loyalty bonuses accrue for continuous stake duration. Reward formula: R_u = Y_pool × (Stake_u × M_nft) / Σ(Stake_j × M_j) where M_nft = 1.0 + (Clout/200). Max lock periods: 30/90/180 days → 1.0×/1.25×/1.5× multiplier.</div>
@@ -3288,9 +3288,9 @@ footer {
               <tbody>
                 <tr style="background:rgba(0,217,255,.06)"><td class="accent">Community Staking Rewards</td><td style="color:var(--neon-cyan);font-weight:700">28.8%</td><td>$44.5M / yr</td><td>Staker real yield, tournament prizes, leaderboard rewards, DAO treasury</td></tr>
                 <tr><td class="accent">Platform Operations</td><td>35%</td><td>$54.1M / yr</td><td>Dev, security, legal, server maintenance, audits</td></tr>
-                <tr style="background:rgba(255,45,120,.04)"><td class="accent">MAD Shield Pool</td><td style="color:var(--neon-magenta)">25%</td><td>$38.6M / yr</td><td>Funds the 28.8% loss-protection mechanism — Lido + Morpho yield on float</td></tr>
+                <tr style="background:rgba(252,52,55,.04)"><td class="accent">MAD Shield Pool</td><td style="color:var(--neon-magenta)">25%</td><td>$38.6M / yr</td><td>Funds the 28.8% loss-protection mechanism — Lido + Morpho yield on float</td></tr>
                 <tr><td class="accent">Token Burn / Buyback</td><td>10%</td><td>$15.5M / yr</td><td>Permanently removes $MADx from circulation — deflationary pressure</td></tr>
-                <tr style="background:rgba(255,215,0,.04)"><td class="accent">Reserve / Treasury</td><td style="color:var(--brand-gold)">1.2%</td><td>$1.9M / yr</td><td>Protocol reserve, audits, grants, emergency runway</td></tr>
+                <tr style="background:rgba(214,157,65,.04)"><td class="accent">Reserve / Treasury</td><td style="color:var(--brand-gold)">1.2%</td><td>$1.9M / yr</td><td>Protocol reserve, audits, grants, emergency runway</td></tr>
               </tbody>
             </table>
 
@@ -3430,7 +3430,7 @@ footer {
           <div class="wp-sec-title">Team & Partners</div>
           <div class="wp-sec-body">
             <div class="team-grid">
-              <div class="team-member"><div class="team-avatar" style="background:rgba(255,215,0,.15);color:var(--brand-gold);">NM</div><div><div class="team-name">Nicholas J. McLeod (Mr. madDegen)</div><div class="team-role">Founder & CEO</div><div class="team-bio">3× Founder · 16+ years in high-impact strategic alliances · 0-to-1 Startup Operator · Secured 60+ blockchain clients · $1M+ deal flow · Built 20,000+ member DAO · $1.1M e-commerce revenue exit · 5+ years Web3/AI/ML</div></div></div>
+              <div class="team-member"><div class="team-avatar" style="background:rgba(214,157,65,.15);color:var(--brand-gold);">NM</div><div><div class="team-name">Nicholas J. McLeod (Mr. madDegen)</div><div class="team-role">Founder & CEO</div><div class="team-bio">3× Founder · 16+ years in high-impact strategic alliances · 0-to-1 Startup Operator · Secured 60+ blockchain clients · $1M+ deal flow · Built 20,000+ member DAO · $1.1M e-commerce revenue exit · 5+ years Web3/AI/ML</div></div></div>
             </div>
             <div style="margin-top:var(--gap-md);font-family:var(--font-heading);font-size:.75rem;color:var(--brand-gold);margin-bottom:8px;">STRATEGIC PARTNERS</div>
             <table class="slide-table">
@@ -3525,11 +3525,11 @@ footer {
       <div class="deck-slide active" data-slide="0">
         <div class="deck-slide-inner">
           <div style="text-align:center;padding:var(--gap-xl) 0;">
-            <div style="font-family:var(--font-heading);font-size:2.4rem;font-weight:900;background:linear-gradient(135deg,#00D9FF,#FF2D78,#FFD700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px;">MAD Gambit</div>
+            <div style="font-family:var(--font-heading);font-size:2.4rem;font-weight:900;background:linear-gradient(135deg,#00D9FF,#fc3437,#d69d41);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px;">MAD Gambit</div>
             <div style="display:flex;justify-content:center;gap:32px;font-family:var(--font-mono);font-size:.72rem;margin:16px 0;">
               <span style="color:#00D9FF;">⊙ PREDICTION</span>
-              <span style="color:#FF2D78;">⚡ CONVICTION</span>
-              <span style="color:#FFD700;">💀 AFFLICTION</span>
+              <span style="color:#fc3437;">⚡ CONVICTION</span>
+              <span style="color:#d69d41;">💀 AFFLICTION</span>
             </div>
             <div style="border:1px solid rgba(0,217,255,.3);max-width:560px;margin:24px auto;padding:24px;border-radius:8px;background:rgba(0,217,255,.04);">
               <div style="font-family:var(--font-body);font-size:1rem;color:var(--text-secondary);line-height:1.7;">The entertainment-first prediction-conviction market — where satirical NFT cards, verifiable outcomes, and on-chain creator profit share create a closed-loop information economy.</div>
@@ -3547,7 +3547,7 @@ footer {
             <div style="font-family:var(--font-heading);font-size:1.1rem;font-weight:600;color:var(--text-primary);line-height:1.65;max-width:640px;margin:0 auto 20px;border-left:3px solid var(--neon-cyan);padding-left:16px;text-align:left;">
               "MADHAT's Gambit is the <span style="color:var(--neon-cyan);font-weight:700;">entertainment-first prediction-conviction market</span> in a <span style="font-weight:700;">Web2-smooth wrapper</span>, built for repeatable card-game conviction plays on <span style="color:var(--neon-magenta);font-weight:700;">viral media culture</span>."
             </div>
-            <div style="height:1px;background:linear-gradient(to right,transparent,rgba(255,215,0,.3),transparent);margin:16px auto;max-width:300px;"></div>
+            <div style="height:1px;background:linear-gradient(to right,transparent,rgba(214,157,65,.3),transparent);margin:16px auto;max-width:300px;"></div>
           </div>
           <div class="slide-stat-row" style="margin-bottom:var(--gap-md);">
             <div class="slide-stat"><span class="slide-stat-n" style="color:var(--neon-cyan);">$167B</span><span class="slide-stat-l">Total Addressable Market</span></div>
@@ -3560,7 +3560,7 @@ footer {
               <div style="font-family:var(--font-mono);font-size:.7rem;color:var(--neon-cyan);margin-bottom:6px;">THE PROBLEM</div>
               <div style="font-size:.82rem;color:var(--text-secondary);line-height:1.5;">Prediction markets are culturally irrelevant. Polymarket wins on price. MAD Gambit wins on entertainment — markets people <em>share</em>, <em>brag about</em>, and <em>return to daily</em>.</div>
             </div>
-            <div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);border-radius:8px;padding:12px;">
+            <div style="background:rgba(214,157,65,.06);border:1px solid rgba(214,157,65,.2);border-radius:8px;padding:12px;">
               <div style="font-family:var(--font-mono);font-size:.7rem;color:var(--brand-gold);margin-bottom:6px;">THE SOLUTION</div>
               <div style="font-size:.82rem;color:var(--text-secondary);line-height:1.5;">Pixar-quality satirical NFT cards + creator-made scandal markets + MAD Shield loss mitigation = the most emotionally sticky betting product ever built.</div>
             </div>
@@ -3587,7 +3587,7 @@ footer {
                 <div style="font-family:var(--font-heading);font-size:.75rem;color:var(--neon-cyan);margin-bottom:8px;">Technical Advisors</div>
                 <div style="font-size:.8rem;color:var(--text-secondary);line-height:1.8;">DeFi iBuilder — Core Dev & Advisor: Oracle design & security<br>Aave Protocol Contributor — DeFi mechanics & governance<br>SEI Foundation Ecosystem Lead — Blockchain infrastructure</div>
               </div>
-              <div style="padding:var(--gap-md);background:rgba(255,45,120,.04);border:1px solid rgba(255,45,120,.2);border-radius:var(--radius-md);">
+              <div style="padding:var(--gap-md);background:rgba(252,52,55,.04);border:1px solid rgba(252,52,55,.2);border-radius:var(--radius-md);">
                 <div style="font-family:var(--font-heading);font-size:.75rem;color:var(--neon-magenta);margin-bottom:8px;">The Competitive Moat</div>
                 <div style="font-size:.8rem;color:var(--text-secondary);">Our team uniquely combines <strong style="color:var(--brand-gold);">Web3 Tokenomics, AI-driven content generation, and viral consumer marketing</strong> — the three pillars required to execute this vision and achieve 90% investor readiness.</div>
               </div>
@@ -3621,7 +3621,7 @@ footer {
               <div class="slide-col" style="margin-top:8px;"><div class="slide-col-title" style="color:var(--brand-crimson);">Revenue Risk — Weak Retention</div><p style="font-size:.78rem;color:var(--text-secondary);">Low fees. Low ARPU. Vulnerable to whales/bots. Weak 18–34 retention so liquidity never compounds.</p><div style="font-family:var(--font-mono);font-size:.62rem;color:var(--brand-crimson);padding:6px;background:rgba(220,20,60,.08);border-radius:4px;margin-top:8px;">DATA: 60%+ Churn, &lt;$50 LTV · RETENTION: D30 &lt; 15%</div></div>
             </div>
             <div>
-              <div class="slide-col"><div class="slide-col-title" style="color:var(--neon-magenta);">Static Assets — Zero Utility</div><p style="font-size:.78rem;color:var(--text-secondary);">No NFTs. One-off bets. Assets disconnected from culture. Too sterile. Feels like work, not play.</p><div style="font-family:var(--font-mono);font-size:.62rem;color:var(--neon-magenta);padding:6px;background:rgba(255,45,120,.08);border-radius:4px;margin-top:8px;">DATA: 90% Vol is Politics/Crypto · DEMO: &lt;2% Female Participation</div></div>
+              <div class="slide-col"><div class="slide-col-title" style="color:var(--neon-magenta);">Static Assets — Zero Utility</div><p style="font-size:.78rem;color:var(--text-secondary);">No NFTs. One-off bets. Assets disconnected from culture. Too sterile. Feels like work, not play.</p><div style="font-family:var(--font-mono);font-size:.62rem;color:var(--neon-magenta);padding:6px;background:rgba(252,52,55,.08);border-radius:4px;margin-top:8px;">DATA: 90% Vol is Politics/Crypto · DEMO: &lt;2% Female Participation</div></div>
               <div class="slide-col" style="margin-top:8px;border:2px solid var(--brand-gold);"><div class="slide-col-title" style="color:var(--brand-gold);">The Untapped Opportunity</div><p style="font-size:.78rem;color:var(--text-secondary);">Entertainment Market + DeFi & Crypto + The Void: Celebrity Chaos = <strong style="color:var(--brand-gold);">MAD Gambit's territory</strong>.</p></div>
             </div>
           </div>
@@ -3638,12 +3638,12 @@ footer {
               <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-muted);margin-bottom:12px;">THE GAME</div>
               <div style="font-size:.78rem;color:var(--text-secondary);">Bet on high-velocity cultural events. Short timeframes, high dopamine. Not just boring elections.</div>
             </div>
-            <div style="padding:var(--gap-md);background:rgba(255,215,0,.04);border:2px solid rgba(255,215,0,.3);border-radius:var(--radius-md);text-align:center;">
+            <div style="padding:var(--gap-md);background:rgba(214,157,65,.04);border:2px solid rgba(214,157,65,.3);border-radius:var(--radius-md);text-align:center;">
               <div style="font-family:var(--font-heading);font-size:.9rem;color:var(--brand-gold);margin-bottom:6px;">CONVICTION</div>
               <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-muted);margin-bottom:12px;">THE STAKE</div>
               <div style="font-size:.78rem;color:var(--text-secondary);">Lock $MADx to back beliefs. High conviction unlocks higher tiers of insurance and yield.</div>
             </div>
-            <div style="padding:var(--gap-md);background:rgba(255,45,120,.04);border:1px solid rgba(255,45,120,.2);border-radius:var(--radius-md);text-align:center;">
+            <div style="padding:var(--gap-md);background:rgba(252,52,55,.04);border:1px solid rgba(252,52,55,.2);border-radius:var(--radius-md);text-align:center;">
               <div style="font-family:var(--font-heading);font-size:.9rem;color:var(--neon-magenta);margin-bottom:6px;">AFFLICTION</div>
               <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-muted);margin-bottom:12px;">THE HOOK</div>
               <div style="font-size:.78rem;color:var(--text-secondary);">Satirical content layer. We gamify chaos. "Schadenfreude as a Service." Losers become collectibles.</div>
@@ -3681,7 +3681,7 @@ footer {
           </div>
           <div class="slide-cols" style="margin-top:var(--gap-md);">
             <div style="padding:var(--gap-md);background:rgba(0,217,255,.04);border:1px solid rgba(0,217,255,.15);border-radius:var(--radius-sm);"><div style="font-family:var(--font-mono);font-size:.62rem;color:var(--neon-cyan);margin-bottom:6px;">WHY NOW?</div><div style="font-size:.75rem;color:var(--text-secondary);">2025–2026 Explosion: $37B+ monthly volume expected. CFTC clarity. Coinbase/Robinhood/Solana integrations. Category booming but boring — perfect disruption window.</div></div>
-            <div style="padding:var(--gap-md);background:rgba(255,215,0,.04);border:1px solid rgba(255,215,0,.15);border-radius:var(--radius-sm);"><div style="font-family:var(--font-mono);font-size:.62rem;color:var(--brand-gold);margin-bottom:6px;">YIELD BOND INSURANCE</div><div style="font-size:.78rem;color:var(--text-secondary);">Base Stake Yield: <span style="color:var(--neon-magenta);font-weight:700;">40%</span><br>VIP (Top 12%): <span style="color:var(--brand-gold);font-weight:700;">60%</span></div></div>
+            <div style="padding:var(--gap-md);background:rgba(214,157,65,.04);border:1px solid rgba(214,157,65,.15);border-radius:var(--radius-sm);"><div style="font-family:var(--font-mono);font-size:.62rem;color:var(--brand-gold);margin-bottom:6px;">YIELD BOND INSURANCE</div><div style="font-size:.78rem;color:var(--text-secondary);">Base Stake Yield: <span style="color:var(--neon-magenta);font-weight:700;">40%</span><br>VIP (Top 12%): <span style="color:var(--brand-gold);font-weight:700;">60%</span></div></div>
           </div>
         </div>
       </div>
@@ -3705,7 +3705,7 @@ footer {
             </div>
             <div style="text-align:center;margin-top:12px;font-style:italic;font-size:.72rem;color:var(--text-muted);">"Once the flywheel spins, the leader tends to take most of the category"</div>
           </div>
-          <div style="text-align:center;padding:var(--gap-md);background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.2);border-radius:var(--radius-md);">
+          <div style="text-align:center;padding:var(--gap-md);background:rgba(214,157,65,.05);border:1px solid rgba(214,157,65,.2);border-radius:var(--radius-md);">
             <div style="font-family:var(--font-heading);font-size:.72rem;color:var(--text-muted);letter-spacing:.06em;margin-bottom:4px;">YEAR 1 REVENUE PROJECTION</div>
             <div style="font-family:var(--font-heading);font-size:1.6rem;font-weight:900;color:var(--brand-gold);">$30.9M</div>
             <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-muted);">(Year 1 Gross Revenue — 1.88% × $10M–$125M/mo Volume Ramp)</div>
@@ -3731,7 +3731,7 @@ footer {
             <div class="slide-layer mg"><div class="slide-layer-title">3. Insatiable demand for public sentiment analysis</div><div class="slide-layer-body">Media companies, brands, and agencies will pay for real-time cultural conviction data. Our prediction markets become a B2B data product layer.</div></div>
             <div class="slide-layer gr"><div class="slide-layer-title">4. First-mover advantage closing fast</div><div class="slide-layer-body">Entertainment prediction is the last major untapped vertical. Window is open now. MAD Gambit is positioned to own it.</div></div>
           </div>
-          <div style="text-align:center;margin-top:var(--gap-md);padding:12px;background:rgba(255,215,0,.06);border-radius:var(--radius-sm);">
+          <div style="text-align:center;margin-top:var(--gap-md);padding:12px;background:rgba(214,157,65,.06);border-radius:var(--radius-sm);">
             <div style="font-family:var(--font-heading);font-size:.8rem;color:var(--brand-gold);">WHY NOW: THE LIQUIDITY BLACKHOLE DISGUISED AS A MEME</div>
           </div>
         </div>
@@ -3832,7 +3832,7 @@ footer {
             <div class="slide-layer mg"><div class="slide-layer-title">Phase 2 — Viral Loops</div><div class="slide-layer-body">Referral contests to earn Packs. "Predict to Earn" airdrop campaigns. Creator Kit program — a 28.8–40% lifetime share as the acquisition incentive.</div></div>
             <div class="slide-layer gd"><div class="slide-layer-title">Phase 3 — Mass Market</div><div class="slide-layer-body">Partner with non-crypto streamers/drama channels. Embed widgets on news sites. Mobile app launch Q4 2026. Cross-chain expansion.</div></div>
           </div>
-          <div style="margin-top:var(--gap-md);padding:12px;background:rgba(255,215,0,.05);border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:.65rem;color:var(--text-muted);text-align:center;">Marketing: 40% TikTok · 25% Twitter/X (Viral/Meme Strategy) · 20% KOL/Community · 15% Performance</div>
+          <div style="margin-top:var(--gap-md);padding:12px;background:rgba(214,157,65,.05);border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:.65rem;color:var(--text-muted);text-align:center;">Marketing: 40% TikTok · 25% Twitter/X (Viral/Meme Strategy) · 20% KOL/Community · 15% Performance</div>
         </div>
       </div>
 
@@ -3872,8 +3872,8 @@ footer {
       <div>
         <div class="footer-logo">
           <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-            <circle cx="20" cy="20" r="19" fill="rgba(0,0,0,.5)" stroke="rgba(255,215,0,.4)" stroke-width="1.5"/>
-            <text x="20" y="27" text-anchor="middle" font-size="18" fill="#FFD700">🎩</text>
+            <circle cx="20" cy="20" r="19" fill="rgba(0,0,0,.5)" stroke="rgba(214,157,65,.4)" stroke-width="1.5"/>
+            <text x="20" y="27" text-anchor="middle" font-size="18" fill="#d69d41">🎩</text>
           </svg>
           <div class="footer-logo-text">
             <span class="l1">MΛDHAT's GAMBIT</span>

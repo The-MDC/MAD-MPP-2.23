@@ -242,7 +242,7 @@ export default function DopamineCarouselStrip() {
               ≡
             </span>
             {c.kicker ? (
-              <div style={{ fontSize: 6.5, fontWeight: 800, letterSpacing: 1, color: skin.muted, textTransform: "uppercase", marginBottom: 3 }}>
+              <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1, color: skin.muted, textTransform: "uppercase", marginBottom: 3 }}>
                 {c.kicker}
               </div>
             ) : null}

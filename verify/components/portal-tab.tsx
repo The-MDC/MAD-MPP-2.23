@@ -29,7 +29,7 @@ const SLIDES: Slide[] = [
     title: "Deflationary Flywheel Moat",
     subtitle: "Fail-Yield Loop Architecture",
     icon: "🔥",
-    color: "#ec4899",
+    color: "#fc3437",
     bullets: [
       { label: "Furnace burn cap", value: "4.9% / epoch" },
       { label: "Evolution burns",   value: "100→1,000 cards" },
@@ -42,7 +42,7 @@ const SLIDES: Slide[] = [
     title: "Sustainable Conviction Shield",
     subtitle: "φ-Ratio Protective Limits",
     icon: "🛡",
-    color: "#ffd700",
+    color: "#d69d41",
     bullets: [
       { label: "Base recovery",  value: "28.8% of loss" },
       { label: "VIP recovery",   value: "60% of loss" },
