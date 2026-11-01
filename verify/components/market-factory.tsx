@@ -164,7 +164,7 @@ export default function MarketFactory() {
             <div className="font-black text-lg" style={{ color: INK.green }}>{pct(pYes)}</div>
             <div className="font-mono text-[9px] uppercase tracking-wide" style={{ color: INK.muted }}>YES</div>
           </div>
-          <div className="flex-1 rounded-lg py-2 text-center" style={{ background: "rgba(255,0,127,0.08)", border: `1px solid ${INK.pinkDim}` }}>
+          <div className="flex-1 rounded-lg py-2 text-center" style={{ background: "rgba(252,52,55,0.08)", border: `1px solid ${INK.pinkDim}` }}>
             <div className="font-black text-lg" style={{ color: INK.pink }}>{pct(pNo)}</div>
             <div className="font-mono text-[9px] uppercase tracking-wide" style={{ color: INK.muted }}>NO</div>
           </div>

@@ -48,8 +48,6 @@ import OVDeckSelector from "@/components/ov-deck-selector";
 // Ported from the /preview premiere theme.
 import MarketTypeCarousels from "@/components/market-type-carousels";
 import FeaturedMarketCards from "@/components/featured-market-cards";
-import { SkinProvider } from "@/components/skin-provider";
-import { THEME_SKIN_TO_SKIN_NAME } from "@/lib/skins";
 import NewsTwoRow from "@/components/news-two-row";
 import FacesWaterline from "@/components/faces-waterline";
 import ZeitgeistAlmanac from "@/components/zeitgeist-almanac";
@@ -152,16 +150,8 @@ function GambitInner() {
   }, [tab]);
 
   return (
-    // Controlled SkinProvider — the theming bridge for this route.
-    //
-    // This page themes through ThemeProvider/useTheme (3 ThemeSkins, stored
-    // under mad_theme_skin). Components ported from /preview theme through
-    // useSkin() (2 SkinNames, stored under mg_skin). Projecting the active
-    // ThemeSkin through THEME_SKIN_TO_SKIN_NAME and publishing it here is what
-    // makes every ported surface follow THIS page's existing skin menu.
-    // Controlled mode means the provider never writes mg_skin, so driving the
-    // menu here cannot clobber the skin /preview has saved.
-    <SkinProvider value={THEME_SKIN_TO_SKIN_NAME[skin]}>
+    // Theme comes from the global ThemeProvider + GlobalSkin (app/layout.tsx): one store, every route.
+
     <main className="min-h-screen text-neutral-100 relative overflow-hidden pb-16"
       style={{ background: tokens.bg }}>
 
@@ -169,7 +159,7 @@ function GambitInner() {
       <DottedGlowBackground
         gap={14} radius={1.5}
         color="rgba(255,255,255,0.05)"
-        glowColor={tokens.glow + "cc"}
+        glowColor={tokens.glow}
         speedMin={0.3 + chaosMeter * 0.007}
         speedMax={1.0 + chaosMeter * 0.01}
         speedScale={0.5 + chaosMeter * 0.005}
@@ -365,9 +355,8 @@ function GambitInner() {
             <MarketRails />
             {/* Ported from /preview so both themes carry the same market
                 surfaces. The dopamine strip is deliberately NOT ported here —
-                These need no local SkinProvider — the page-level controlled
-                one drives every useSkin() consumer from this route's own skin
-                menu. */}
+                These need no local provider — GlobalSkin (app/layout.tsx) drives
+                every useSkin() consumer from the one app-wide skin menu. */}
             <MarketTypeCarousels />
             <FeaturedMarketCards />
             <FacesWaterline />
@@ -453,7 +442,6 @@ function GambitInner() {
         />
       )}
     </main>
-    </SkinProvider>
   );
 }
 
@@ -462,9 +450,9 @@ function BrandLockup({ primary, accent }: { primary: string; accent: string }) {
     <svg viewBox="0 0 520 90" className="w-[300px] sm:w-[360px] mx-auto animate-dramatic">
       <defs>
         <linearGradient id="gold-g" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#fffcf0"/><stop offset="25%" stopColor="#efc76d"/>
-          <stop offset="50%" stopColor="#ab7b29"/><stop offset="75%" stopColor="#f7d983"/>
-          <stop offset="100%" stopColor="#5c3c04"/>
+          <stop offset="0%" stopColor="#f6d378"/><stop offset="25%" stopColor="#d69d41"/>
+          <stop offset="50%" stopColor="#a86821"/><stop offset="75%" stopColor="#f6d378"/>
+          <stop offset="100%" stopColor="#794816"/>
         </linearGradient>
         <filter id="g-glow"><feGaussianBlur stdDeviation="3" result="b"/>
           <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
@@ -482,7 +470,7 @@ function BrandLockup({ primary, accent }: { primary: string; accent: string }) {
 }
 
 function Trinity() {
-  const p = [["PREDICTION","#fbbf24"],["CONVICTION","#ec4899"],["AFFLICTION","#c084fc"]] as const;
+  const p = [["PREDICTION","#fbbf24"],["CONVICTION","#fc3437"],["AFFLICTION","#c084fc"]] as const;
   return (
     <div className="flex items-center justify-center gap-3 sm:gap-5 mt-4">
       {p.map(([l,c],i) => (

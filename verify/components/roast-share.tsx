@@ -29,7 +29,7 @@ interface RoastShareProps {
 
 const OUTCOME_COPY: Record<string, { badge: string; color: string; roastLine: string }> = {
   won:       { badge: "✓ CALLED IT",       color: "#7cffc7", roastLine: "The market bowed to my genius." },
-  lost:      { badge: "✗ REKT",            color: "#f43f5e", roastLine: "The market humbled me. Temporarily." },
+  lost:      { badge: "✗ REKT",            color: "#fc3437", roastLine: "The market humbled me. Temporarily." },
   "near-miss": { badge: "≈ ALMOST",        color: "#fbbf24", roastLine: "So close the oracle had to check twice." },
 };
 
@@ -121,7 +121,7 @@ export default function RoastShare({
     // Multiplier if won
     if (outcome === "won" && multiplier > 1) {
       ctx.font = "bold 44px monospace";
-      ctx.fillStyle = "#ffd700";
+      ctx.fillStyle = "#d69d41";
       ctx.fillText(`${multiplier.toFixed(1)}x`, 60, 450);
     }
 

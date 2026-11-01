@@ -309,7 +309,7 @@ function CreatorEarnings() {
       </div>
       <label style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 11, color: MUTED }}>
         <span style={{ display: "flex", justifyContent: "space-between" }}><span>Monthly volume on your market</span><b style={{ color: "#f6f1e3", fontFamily: "ui-monospace, monospace" }}>{usd(vol)}</b></span>
-        <input type="range" min={0} max={VOLUME_STEPS.length - 1} step={1} value={step} onChange={(e) => setStep(Number(e.target.value))} aria-label="Monthly volume" style={{ width: "100%", accentColor: "#ffd700" }} />
+        <input type="range" min={0} max={VOLUME_STEPS.length - 1} step={1} value={step} onChange={(e) => setStep(Number(e.target.value))} aria-label="Monthly volume" style={{ width: "100%", accentColor: "#d69d41" }} />
       </label>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, textAlign: "center" }}>
         <div><div style={{ fontSize: 9.5, color: MUTED, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase" }}>Fee · 1.88%</div><div style={{ fontFamily: "ui-monospace, monospace", fontSize: 15, fontWeight: 800 }}>{usd(fee)}</div></div>

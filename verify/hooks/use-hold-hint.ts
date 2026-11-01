@@ -44,7 +44,6 @@ const HOLD_DELAY_MS = 420;
 /** Movement (px) that reclassifies a press as a drag or a scroll. */
 const MOVE_CANCEL_PX = 8;
 
-let hintSeq = 0;
 
 export interface HoldHintTriggerProps {
   id?: string;
@@ -67,7 +66,9 @@ export function useHoldHint(spec: HoldHintSpec | null | undefined): HoldHintTrig
 
   // Stable per mount. useState's initializer rather than useRef so the id is
   // allocated exactly once even under StrictMode's double-invoked render.
-  const [id] = React.useState(() => `mg-hint-${++hintSeq}`);
+  // useId, not a module counter: a counter differs between the server render and the
+  // client one (mg-hint-1 vs mg-hint-23), which is a hydration mismatch on every page that uses a hint.
+  const id = `mg-hint-${React.useId().replace(/:/g, "")}`;
 
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const origin = React.useRef({ x: 0, y: 0 });

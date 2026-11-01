@@ -63,7 +63,7 @@ export const PERP_REPORTS: Record<string, PerpReport> = {
     kicker: "Read from the volatility book · epoch 137 · band QUIET",
     stats: [
       { k: "σ² ×10⁴", v: "44.9", c: "#8b93a7" },
-      { k: "Implied HOT", v: "34%", c: "#ffd700" },
+      { k: "Implied HOT", v: "34%", c: "#d69d41" },
       { k: "Leg depth", v: "$305K", c: "#00e5ff" },
       { k: "Flow 24h", v: "+$41K", c: "#00ff88" },
     ],
@@ -89,10 +89,10 @@ export const PERP_REPORTS: Record<string, PerpReport> = {
     title: "Z-Liar Meter",
     kicker: "Read from the audit book · verdict SERIAL EMBELLISHER",
     stats: [
-      { k: "Z-Liar", v: "77", c: "#f43f5e" },
-      { k: "Implied fail", v: "71%", c: "#ff007f" },
+      { k: "Z-Liar", v: "77", c: "#fc3437" },
+      { k: "Implied fail", v: "71%", c: "#fc3437" },
       { k: "Audits 24h", v: "312", c: "#00e5ff" },
-      { k: "Book skew", v: "3.1×", c: "#ffd700" },
+      { k: "Book skew", v: "3.1×", c: "#d69d41" },
     ],
     sections: [
       { label: "What the book prices", src: "information market", lines: [
@@ -116,10 +116,10 @@ export const PERP_REPORTS: Record<string, PerpReport> = {
     title: "Gossip-Cop Perp",
     kicker: "Read from the claim book · 12 live arcs · leg 2 of 6",
     stats: [
-      { k: "Perp %", v: "61", c: "#ff007f" },
+      { k: "Perp %", v: "61", c: "#fc3437" },
       { k: "Δ since roll", v: "+9", c: "#00ff88" },
       { k: "Leg depth", v: "$410K", c: "#00e5ff" },
-      { k: "Claim heat", v: "61", c: "#ffd700" },
+      { k: "Claim heat", v: "61", c: "#d69d41" },
     ],
     sections: [
       { label: "What the book prices", src: "information market", lines: [
@@ -146,7 +146,7 @@ export const PERP_REPORTS: Record<string, PerpReport> = {
       { k: "Persistence", v: "77", c: "#00e5ff" },
       { k: "Book depth", v: "$2.1M", c: "#00ff88" },
       { k: "Leaders ↑", v: "3 of 4", c: "#00ff88" },
-      { k: "Implied hold", v: "68%", c: "#ffd700" },
+      { k: "Implied hold", v: "68%", c: "#d69d41" },
     ],
     sections: [
       { label: "What the book prices", src: "information market", lines: [
@@ -170,8 +170,8 @@ export const PERP_REPORTS: Record<string, PerpReport> = {
     title: "Five Faces",
     kicker: "Read from the simplex book · crowned Saint · leg 3 of 6",
     stats: [
-      { k: "Divergence", v: "88", c: "#ffd700" },
-      { k: "Crown change", v: "27%", c: "#ff007f" },
+      { k: "Divergence", v: "88", c: "#d69d41" },
+      { k: "Crown change", v: "27%", c: "#fc3437" },
       { k: "Leg depth", v: "$1.2M", c: "#00e5ff" },
       { k: "τ perm", v: ".34", c: "#00e5ff" },
     ],
@@ -200,7 +200,7 @@ export const PERP_REPORTS: Record<string, PerpReport> = {
       { k: "Turning", v: "69", c: "#00ff88" },
       { k: "Survives reseed", v: "69%", c: "#00ff88" },
       { k: "Leg depth", v: "$880K", c: "#00e5ff" },
-      { k: "Carry-through", v: "61%", c: "#ffd700" },
+      { k: "Carry-through", v: "61%", c: "#d69d41" },
     ],
     sections: [
       { label: "What the book prices", src: "information market", lines: [

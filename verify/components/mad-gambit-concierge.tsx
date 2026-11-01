@@ -411,7 +411,7 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
                   flex: 1, padding: "6px 3px", borderRadius: "6px", cursor: "pointer",
                   fontFamily: INSTRUMENT_FONT, fontSize: "7px", fontWeight: 800, letterSpacing: "0.3px",
                   border: `1px solid ${tone === t ? INK.gold : "rgba(255,255,255,0.15)"}`,
-                  background: tone === t ? "rgba(255,215,0,0.15)" : "transparent",
+                  background: tone === t ? "rgba(214,157,65,0.15)" : "transparent",
                   color: tone === t ? INK.gold : "#8a8a95",
                 }}
               >
@@ -445,7 +445,7 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
                   <div style={{
                     maxWidth: "85%", padding: "9px 12px",
                     borderRadius: m.from === "user" ? "10px 0 10px 10px" : "0 10px 10px 10px",
-                    background: m.from === "user" ? "rgba(0,229,255,0.12)" : "rgba(255,215,0,0.08)",
+                    background: m.from === "user" ? "rgba(0,229,255,0.12)" : "rgba(214,157,65,0.08)",
                     border: `1px solid ${m.from === "user" ? INK.borderCyan : INK.borderGold}`,
                     fontFamily: INSTRUMENT_FONT, fontSize: "10px", lineHeight: 1.55,
                     color: m.from === "user" ? "#8fe8ff" : "#ffd98a",
@@ -460,7 +460,7 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
                         background: "transparent", border: `1px solid ${INK.borderGold}`,
                         borderRadius: "4px", padding: "2px 6px", cursor: "pointer",
                         fontFamily: INSTRUMENT_FONT, fontSize: "6.5px", fontWeight: 800,
-                        color: (m.regenCount ?? 0) >= 1 ? "#ff007f" : INK.gold, letterSpacing: "0.5px",
+                        color: (m.regenCount ?? 0) >= 1 ? "#fc3437" : INK.gold, letterSpacing: "0.5px",
                       }}
                     >
                       <RotateCw size={8} />
@@ -474,7 +474,7 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
               <div style={{ display: "flex", justifyContent: "flex-start" }}>
                 <div style={{
                   padding: "8px 11px", borderRadius: "0 10px 10px 10px",
-                  background: "rgba(255,215,0,0.06)", border: `1px solid ${INK.borderGold}`,
+                  background: "rgba(214,157,65,0.06)", border: `1px solid ${INK.borderGold}`,
                   fontFamily: INSTRUMENT_FONT, fontSize: "10px", color: "#ffd98a",
                 }}>
                   The MADHAT&apos;r is typing&hellip;
@@ -500,7 +500,7 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
               onClick={send}
               aria-label="Send message"
               style={{
-                background: "rgba(255,215,0,0.15)", border: `1px solid ${INK.borderGold}`,
+                background: "rgba(214,157,65,0.15)", border: `1px solid ${INK.borderGold}`,
                 borderRadius: "8px", padding: "0 12px", cursor: "pointer",
                 display: "flex", alignItems: "center", color: INK.gold,
               }}

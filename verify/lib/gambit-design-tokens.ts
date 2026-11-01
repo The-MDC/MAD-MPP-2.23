@@ -19,11 +19,11 @@
 
 /** Gold-chisel gradient stops — the ONE gold used everywhere in MAD Gambit. */
 export const GOLD_CHISEL_STOPS: [number, string][] = [
-  [0, "#fffcf0"],
-  [25, "#efc76d"],
-  [50, "#ab7b29"],
-  [75, "#f7d983"],
-  [100, "#5c3c04"],
+  [0, "#f6d378"],
+  [25, "#d69d41"],
+  [50, "#a86821"],
+  [75, "#f6d378"],
+  [100, "#794816"],
 ];
 
 /** Core instrument-panel palette — deep-space background, neon accents. */
@@ -32,19 +32,19 @@ export const INK = {
   bgPanel:    "#0d1018",
   bgCard:     "#111520",
   bgCardHov:  "#161c28",
-  gold:       "#ffd700",
-  goldDim:    "#b8860b",
+  gold:       "#d69d41",
+  goldDim:    "#a86821",
   goldLcd:    "#ffcf40",
   cyan:       "#00e5ff",
   cyanDim:    "#007a8a",
-  pink:       "#ff007f",
+  pink:       "#fc3437",
   pinkDim:    "#7a003c",
   green:      "#00ff88",
   greenDim:   "#008844",
   white:      "#f0f0f8",
   muted:      "#6b7280",
   border:     "rgba(255,255,255,0.06)",
-  borderGold: "rgba(255,215,0,0.3)",
+  borderGold: "rgba(214,157,65,0.3)",
   borderCyan: "rgba(0,229,255,0.25)",
   lcdOff:     "#241a0c",
 } as const;

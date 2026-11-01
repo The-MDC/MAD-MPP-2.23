@@ -16,7 +16,7 @@ import { PLATFORM, RARITY_ORDER, RARITY_TABLE, type Rarity } from "@/lib/gambit-
 import { madx } from "@/lib/open-markets";
 
 const MONO = "ui-monospace, 'JetBrains Mono', monospace";
-const LINE = "rgba(255,215,0,.16)";
+const LINE = "rgba(214,157,65,.16)";
 const MUTED = "#8e8a80";
 const PACK = PLATFORM.CARD_PACK_COST; // 4.88 $MADx
 const SIZE = PLATFORM.CARD_PACK_SIZE; // 5 cards
@@ -93,7 +93,7 @@ export default function AfflictionLobby() {
             </div>
           </div>
           <div style={{ marginTop: 12, height: 8, borderRadius: 999, background: "rgba(0,0,0,.45)", overflow: "hidden" }}>
-            <div style={{ width: `${Math.max(4, frac * 100)}%`, height: "100%", background: "linear-gradient(90deg, #f95639, #ffd700)", transition: "width .6s var(--mg-ease)" }} />
+            <div style={{ width: `${Math.max(4, frac * 100)}%`, height: "100%", background: "linear-gradient(90deg, #f95639, #d69d41)", transition: "width .6s var(--mg-ease)" }} />
           </div>
           <button type="button" className="mg-btn-gold" onClick={() => rip(1, price)} style={{ width: "100%", minHeight: 52, marginTop: 14, fontSize: 15 }}>
             Bid &amp; rip at {price.toFixed(2)} $MADx
@@ -105,20 +105,20 @@ export default function AfflictionLobby() {
       <section style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
         {[
           { n: 1, name: "Scandal Pack", tag: `${SIZE} cards`, glow: "#f95639" },
-          { n: 5, name: "Gossip Bundle", tag: `${5 * SIZE} cards`, glow: "#ec4899" },
-          { n: 10, name: "Golden Hunt", tag: `${10 * SIZE} cards`, glow: "#ffd700" },
+          { n: 5, name: "Gossip Bundle", tag: `${5 * SIZE} cards`, glow: "#fc3437" },
+          { n: 10, name: "Golden Hunt", tag: `${10 * SIZE} cards`, glow: "#d69d41" },
         ].map((p) => (
           <button key={p.n} type="button" onClick={() => rip(p.n, PACK)} className="mg-tile mg-tile-hover"
             style={{ padding: "14px 8px 12px", cursor: "pointer", color: "#f6f1e3", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-            <span aria-hidden="true" style={{ width: 46, height: 60, borderRadius: 10, background: `linear-gradient(160deg, ${p.glow} 0%, #1b0f05 70%)`, border: "1px solid rgba(255,215,0,.5)", boxShadow: `0 0 18px -4px ${p.glow}`, display: "grid", placeItems: "center", fontSize: 20 }}>🎩</span>
+            <span aria-hidden="true" style={{ width: 46, height: 60, borderRadius: 10, background: `linear-gradient(160deg, ${p.glow} 0%, #1b0f05 70%)`, border: "1px solid rgba(214,157,65,.5)", boxShadow: `0 0 18px -4px ${p.glow}`, display: "grid", placeItems: "center", fontSize: 20 }}>🎩</span>
             <span style={{ fontWeight: 900, fontSize: 12 }}>{p.name}</span>
             <span style={{ fontSize: 10, color: MUTED }}>{p.tag}</span>
-            <span style={{ fontFamily: MONO, fontWeight: 800, fontSize: 13, color: "#ffd700" }}>{madx(p.n * PACK)}</span>
+            <span style={{ fontFamily: MONO, fontWeight: 800, fontSize: 13, color: "#d69d41" }}>{madx(p.n * PACK)}</span>
           </button>
         ))}
       </section>
       <div style={{ marginTop: -8, fontSize: 10.5, color: MUTED, textAlign: "center" }}>{madx(PACK)} $MADx per pack · {SIZE} cards · slot 1 guaranteed Uncommon+ · packs roll dice, markets never do</div>
-      {err ? <div role="alert" style={{ fontSize: 12.5, color: "#ffb4ab", textAlign: "center" }}>{err} <a href="/profile" style={{ color: "#ffd700", fontWeight: 900 }}>Top up ›</a></div> : null}
+      {err ? <div role="alert" style={{ fontSize: 12.5, color: "#ffb4ab", textAlign: "center" }}>{err} <a href="/profile" style={{ color: "#d69d41", fontWeight: 900 }}>Top up ›</a></div> : null}
 
       {/* Reveal */}
       {reveal ? (
@@ -151,7 +151,7 @@ export default function AfflictionLobby() {
             {s.cards.slice(0, 16).map((c) => <CardFace key={c.id} c={c} small />)}
           </div>
         ) : <div style={{ fontSize: 12.5, color: MUTED }}>Empty — your first rip lands here.</div>}
-        <div style={{ fontSize: 11.5, color: MUTED }}>Balance <span style={{ fontFamily: MONO, color: "#ffd700" }}>{madx(s.credits)}</span> demo $MADx</div>
+        <div style={{ fontSize: 11.5, color: MUTED }}>Balance <span style={{ fontFamily: MONO, color: "#d69d41" }}>{madx(s.credits)}</span> demo $MADx</div>
       </section>
     </div>
   );

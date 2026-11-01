@@ -176,7 +176,7 @@ function TournamentCard({ tournament }: { tournament: typeof ACTIVE_TOURNAMENTS[
   const m = Math.floor((remaining % 3600000) / 60000);
   const s = Math.floor((remaining % 60000) / 1000);
   const countdown = `${h}h ${m}m ${s}s`;
-  const statusColor = tournament.status === "live" ? "#ec4899" : tournament.status === "upcoming" ? "#58a6ff" : "#475569";
+  const statusColor = tournament.status === "live" ? "#fc3437" : tournament.status === "upcoming" ? "#58a6ff" : "#475569";
   return (
     <div className="rounded-xl border px-4 py-3" style={{ borderColor: statusColor + "33", background: statusColor + "05" }}>
       <div className="flex items-start justify-between gap-3">

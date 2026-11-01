@@ -217,7 +217,7 @@ export default function PositionsDashboard() {
             <div key={pos.id}
               className={`rounded-xl border p-3.5 transition-all duration-500 ${
                 resolveState === "won" ? "animate-resolve-win border-emerald-500/60 bg-emerald-500/5 shadow-[0_0_15px_rgba(16,185,129,0.15)]" :
-                resolveState === "lost" ? "animate-resolve-loss border-rose-500/60 bg-rose-500/5 shadow-[0_0_15px_rgba(244,63,94,0.15)]" :
+                resolveState === "lost" ? "animate-resolve-loss border-rose-500/60 bg-rose-500/5 shadow-[0_0_15px_rgba(252,52,55,0.15)]" :
                 "border-neutral-850 bg-[#030508]"
               }`}
             >
@@ -251,7 +251,7 @@ export default function PositionsDashboard() {
                 <MiniStat
                   label="If LOSS"
                   value={projectedLoss.toFixed(0)}
-                  color={pos.shieldActive ? "#fbbf24" : "#f43f5e"}
+                  color={pos.shieldActive ? "#fbbf24" : "#fc3437"}
                   icon={<TrendingDown className="w-2.5 h-2.5" />}
                 />
                 {pos.shieldActive ? (

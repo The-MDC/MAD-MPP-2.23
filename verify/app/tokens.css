@@ -41,13 +41,30 @@
   --ink-2: #444141;
   --ink-3: #605d5d;
   --paper: #f3f2f2;
-  --blood-4: #7c1405;
-  --blood-3: #ae1800;
-  --blood-2: #dd2b0f;
-  --blood-1: #ec3013; /* the cross-property invariant */
-  --blood-tint-1: #ff9783;
-  --blood-tint-2: #ffe0d9;
-  --gold: #ffd700; /* conviction light — dark surfaces only */
+  /* ——— BRAND RED — San Pellegrino, sampled from product photography (2026-11-01).
+     ONE hue: lighter tints and darker shades of #fc3437 give variety without a second red or pink. ——— */
+  --red-100: #feebeb;
+  --red-200: #fd9a9b;
+  --red-300: #fd6769;
+  --red-500: #fc3437; /* the red — the cross-property invariant */
+  --red-600: #d62c2f;
+  --red-700: #b02427;
+  --red-900: #711719;
+  /* legacy names, kept so existing consumers resolve to the one red */
+  --blood-1: var(--red-500);
+  --blood-2: var(--red-500);
+  --blood-3: var(--red-700);
+  --blood-4: var(--red-900);
+  --blood-tint-1: var(--red-200);
+  --blood-tint-2: var(--red-100);
+
+  /* ——— BRAND GOLD — bronze-yellow of the Royal Vein rings + the neon MAD on the MADHAT, sampled 2026-11-01.
+     Four tonal stops; --gold-hot is the glow core, never a flat fill. ——— */
+  --gold-shadow: #794816;
+  --gold-deep: #a86821;
+  --gold: #d69d41; /* body gold — dark surfaces only */
+  --gold-hot: #f6d378;
+  --glow-gold-hot: 0 0 var(--s2) rgba(246, 211, 120, 0.45);
   --tier-bronze: #cd7f32;
   --tier-silver: #c0c0c0;
   --tier-diamond: #b9f2ff;
@@ -64,7 +81,7 @@
   --z-node: 100;
   --z-joy: 200;
   --z-toast: 300;
-  --glow-gold: 0 0 var(--s2) rgba(255, 215, 0, 0.14);
+  --glow-gold: 0 0 var(--s2) rgba(214,157,65, 0.14);
 
   /* ——— LUNAR — set at runtime by <LunarVars/> (D14 §9). Felt, never shown. */
   --lunar-warmth: 0; /* 0 new moon → 1 full moon */
