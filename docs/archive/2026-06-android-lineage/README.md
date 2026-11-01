@@ -1,0 +1,1 @@
+Docs recovered from `claude/clever-wright-u59drb` (June 2026), the standalone Android/Firebase lineage that predates this repo's history. The code from that branch lives on as `master-maths/`; these three documents existed nowhere else on `main`. The branch itself is preserved at tag `archive/claude/clever-wright-u59drb`.
