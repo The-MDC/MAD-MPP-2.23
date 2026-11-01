@@ -145,8 +145,9 @@ function ProfileInner() {
         <MadxWalletPanel />
       </section>
 
-      <nav aria-label="Account" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-        {[["Swap", "/swap"], ["Reports", "/reports"], ["Settings", "/settings"], ["Classic hub", "/mpp2.23"]].map(([l, h]) => (
+      <nav aria-label="Account" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+        {/* The Classic hub moved to the theme menu on the main hub. */}
+        {[["Swap", "/swap"], ["Reports", "/reports"], ["Settings", "/settings"]].map(([l, h]) => (
           <a key={h} href={h} className="mg-btn-ghost" style={{ fontSize: 13, border: `1px solid ${LINE}` }}>{l} ›</a>
         ))}
       </nav>

@@ -1,0 +1,97 @@
+/*
+ * Raised semi-gloss glass: one treatment for every button and clickable.
+ *
+ * Two parts, both drawn without touching the element's own background so they
+ * sit over any skin, gradient or art:
+ *   1. box-shadow  : a catch-light on the top edge, a soft specular band down
+ *                    the upper third, a darker lower edge, then a tight contact
+ *                    shadow and a short drop shadow. That is what lifts it.
+ *   2. ::after     : a gloss sheen over the top half, with a soft edge at the
+ *                    midline. That is what makes it read as glass.
+ *
+ * Only controls that carry visible chrome get it. A button that declares its own
+ * fill (inline background, a bg-* class, or one of the named button classes) is
+ * glassed; bare icon and text buttons stay flat, because a floating highlight
+ * over nothing reads as a smudge. Opt out with .mg-flat, opt in with .mg-glass.
+ *
+ * It lives in the components layer, so anything more specific wins: Tailwind
+ * utilities, the unlayered .mg-btn-gold, and any inline box-shadow (the glow
+ * buttons keep their glow).
+ */
+:root {
+  --glass-shine: rgba(255, 255, 255, 0.3);
+  --glass-shine-soft: rgba(255, 255, 255, 0.07);
+  --glass-raise:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    inset 0 12px 10px -9px rgba(255, 255, 255, 0.2),
+    inset 0 -9px 10px -7px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 1px 0 rgba(0, 0, 0, 0.55),
+    0 3px 7px -2px rgba(0, 0, 0, 0.6);
+  --glass-press:
+    inset 0 2px 5px rgba(0, 0, 0, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+@layer components {
+  :is(
+      button[style*="background"],
+      button[class*="bg-"],
+      [role="button"][style*="background"],
+      [role="button"][class*="bg-"],
+      .mg-btn-ghost,
+      .mg-chip,
+      .mg-odds,
+      .mg-glass
+    ):not(
+      .mg-flat,
+      .bg-transparent,
+      [aria-hidden="true"],
+      [style*="background: transparent"],
+      [style*="background-color: transparent"],
+      [style*="background: none"]
+    ) {
+    position: relative;
+    box-shadow: var(--glass-raise);
+    transition-property: box-shadow, filter, transform;
+    transition-duration: 0.14s;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background: linear-gradient(
+        180deg,
+        var(--glass-shine) 0%,
+        var(--glass-shine-soft) 47%,
+        rgba(255, 255, 255, 0) 52%,
+        rgba(0, 0, 0, 0.14) 100%
+      );
+      transition: opacity 0.14s;
+    }
+
+    &:hover::after {
+      --glass-shine: rgba(255, 255, 255, 0.4);
+    }
+
+    &:active {
+      box-shadow: var(--glass-press);
+    }
+
+    &:active::after {
+      opacity: 0.55;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @layer components {
+    .mg-glass,
+    .mg-glass::after {
+      transition: none;
+    }
+  }
+}
