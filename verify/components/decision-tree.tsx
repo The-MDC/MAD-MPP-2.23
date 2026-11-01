@@ -58,7 +58,7 @@ export default function BayesianDecisionTree({ nodes }: BayesianDecisionTreeProp
                   <motion.span 
                     key={node.newPosterior}
                     initial={{ scale: 1.5, color: "#fff" }}
-                    animate={{ scale: 1, color: isPositive ? "#34d399" : isNeutral ? "#9ca3af" : "#f87171" }}
+                    animate={{ scale: 1, color: isPositive ? "#34d399" : isNeutral ? "#9ca3af" : "#f85b5f" }}
                     transition={{ duration: 0.5 }}
                     className="text-lg drop-shadow-md"
                   >

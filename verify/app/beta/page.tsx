@@ -13,7 +13,7 @@ import React, { useEffect, useState } from "react";
 import MadGambitConcierge from "@/components/mad-gambit-concierge";
 
 const GOLD = "#d69d41";
-const ROSSA = "#f95639";
+const ROSSA = "#f5242a";
 const MUTED = "#a99f8a";
 const LINE = "rgba(214,157,65,.18)";
 
@@ -37,14 +37,14 @@ export default function BetaGate() {
   }, []);
 
   return (
-    <main style={{ minHeight: "100dvh", background: "radial-gradient(120% 70% at 50% -10%, rgba(214,157,65,.16), transparent 60%), radial-gradient(90% 60% at 100% 100%, rgba(249,86,57,.18), transparent 60%), #080808", color: "#f6f1e3", fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif", padding: "28px 20px 40px", display: "flex", justifyContent: "center" }}>
+    <main style={{ minHeight: "100dvh", background: "radial-gradient(120% 70% at 50% -10%, rgba(214,157,65,.16), transparent 60%), radial-gradient(90% 60% at 100% 100%, rgba(245,36,42,.18), transparent 60%), #080808", color: "#f6f1e3", fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif", padding: "28px 20px 40px", display: "flex", justifyContent: "center" }}>
       <div style={{ width: "100%", maxWidth: 420, display: "flex", flexDirection: "column", gap: 22 }}>
         <header style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, textAlign: "center" }}>
           {/* The official MAD Gambit neon lockup (square, founder-supplied 2026-10-27). */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/brand/mad-gambit-logo-square.webp" alt="MAD Gambit — Prediction · Conviction · Affliction" width={320} height={283}
             style={{ width: "min(320px, 82%)", height: "auto", filter: "drop-shadow(0 16px 28px rgba(0,0,0,.85))" }} />
-          <span className="mg-chip" style={{ color: ROSSA, borderColor: "rgba(249,86,57,.45)", background: "rgba(249,86,57,.08)" }}>● Private beta · invite waves</span>
+          <span className="mg-chip" style={{ color: ROSSA, borderColor: "rgba(245,36,42,.45)", background: "rgba(245,36,42,.08)" }}>● Private beta · invite waves</span>
           <h1 style={{ margin: 0, lineHeight: 1 }}>
             <span className="mg-display" style={{ display: "block", fontSize: 46 }}>Predict the scandal.</span>
             <span className="mg-display" style={{ fontSize: 46 }}><span className="mg-punch mg-gold-text">Own</span> the culture.</span>

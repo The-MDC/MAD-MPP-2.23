@@ -61,7 +61,7 @@ export default function AfflictionLobby() {
     <div data-explain="affliction" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/brand/madhatr-logo.png" alt="" width={56} height={56} style={{ borderRadius: 16, border: "1px solid rgba(249,86,57,.5)", boxShadow: "0 0 24px -6px rgba(249,86,57,.7)" }} />
+        <img src="/brand/madhatr-logo.png" alt="" width={56} height={56} style={{ borderRadius: 16, border: "1px solid rgba(245,36,42,.5)", boxShadow: "0 0 24px -6px rgba(245,36,42,.7)" }} />
         <div style={{ minWidth: 0 }}>
           <h2 style={{ margin: 0, lineHeight: .95 }}>
             <span className="mg-display" style={{ fontSize: 36, color: "#f6f1e3" }}>Rip the </span>
@@ -72,10 +72,10 @@ export default function AfflictionLobby() {
       </div>
 
       {/* Dutch auction drop */}
-      <section style={{ position: "relative", borderRadius: 22, padding: 2, background: "var(--mg-gold-chisel)", boxShadow: "0 18px 40px -18px rgba(255,190,0,.55)" }}>
-        <div style={{ borderRadius: 20, padding: 16, background: "radial-gradient(120% 90% at 0% 0%, rgba(249,86,57,.32) 0%, rgba(122,17,15,.22) 35%, #0b0907 75%)" }}>
+      <section style={{ position: "relative", borderRadius: 22, padding: 2, background: "var(--mg-gold-chisel)", boxShadow: "0 18px 40px -18px rgba(214,157,65,.55)" }}>
+        <div style={{ borderRadius: 20, padding: 16, background: "radial-gradient(120% 90% at 0% 0%, rgba(245,36,42,.32) 0%, rgba(122,17,15,.22) 35%, #0b0907 75%)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-            <span className="mg-chip" style={{ color: "#ffd3c4", borderColor: "rgba(249,86,57,.6)", background: "rgba(249,86,57,.16)" }}>● Demo drop · Dutch auction</span>
+            <span className="mg-chip" style={{ color: "#ffd3c4", borderColor: "rgba(245,36,42,.6)", background: "rgba(245,36,42,.16)" }}>● Demo drop · Dutch auction</span>
             <span style={{ fontSize: 10.5, color: "#e8d9b8", fontFamily: MONO }}>{left} packs left</span>
           </div>
           <div className="mg-display" style={{ marginTop: 10, fontSize: 30, color: "#fff4e8" }}>Scandal Pack · Leg Drop</div>
@@ -93,7 +93,7 @@ export default function AfflictionLobby() {
             </div>
           </div>
           <div style={{ marginTop: 12, height: 8, borderRadius: 999, background: "rgba(0,0,0,.45)", overflow: "hidden" }}>
-            <div style={{ width: `${Math.max(4, frac * 100)}%`, height: "100%", background: "linear-gradient(90deg, #f95639, #d69d41)", transition: "width .6s var(--mg-ease)" }} />
+            <div style={{ width: `${Math.max(4, frac * 100)}%`, height: "100%", background: "linear-gradient(90deg, #f5242a, #d69d41)", transition: "width .6s var(--mg-ease)" }} />
           </div>
           <button type="button" className="mg-btn-gold" onClick={() => rip(1, price)} style={{ width: "100%", minHeight: 52, marginTop: 14, fontSize: 15 }}>
             Bid &amp; rip at {price.toFixed(2)} $MADx
@@ -104,8 +104,8 @@ export default function AfflictionLobby() {
       {/* Pack shop */}
       <section style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
         {[
-          { n: 1, name: "Scandal Pack", tag: `${SIZE} cards`, glow: "#f95639" },
-          { n: 5, name: "Gossip Bundle", tag: `${5 * SIZE} cards`, glow: "#fc3437" },
+          { n: 1, name: "Scandal Pack", tag: `${SIZE} cards`, glow: "#f5242a" },
+          { n: 5, name: "Gossip Bundle", tag: `${5 * SIZE} cards`, glow: "#f5242a" },
           { n: 10, name: "Golden Hunt", tag: `${10 * SIZE} cards`, glow: "#d69d41" },
         ].map((p) => (
           <button key={p.n} type="button" onClick={() => rip(p.n, PACK)} className="mg-tile mg-tile-hover"

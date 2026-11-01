@@ -28,7 +28,7 @@ const CARD_POOL: SatiricalCard[] = [
   { id:"c1", name:"The Hallucinating LLM",    rarity:"Mythic",  fact:"Confidently outputs 2+2=5 with peer-reviewed mathematical proofs.", power:99, color:"#d69d41", emoji:"🤖" },
   { id:"c2", name:"The 3AM Liquidator",       rarity:"Exotic",  fact:"Nourished exclusively by margin-call tears and hot energy drinks.",  power:88, color:"#c084fc", emoji:"⚡" },
   { id:"c3", name:"Whampoa Twitter Hypebot", rarity:"Rare",    fact:"Fires 8,000 automated bullish remarks per minute about chaotic startups.", power:76, color:"#60a5fa", emoji:"📢" },
-  { id:"c4", name:"Founder&apos;s Golden Ticket", rarity:"Genesis", fact:"Allows access to the vault. Backed by nothing but infinite optimism.", power:100, color:"#f472b6", emoji:"🎟️" },
+  { id:"c4", name:"Founder&apos;s Golden Ticket", rarity:"Genesis", fact:"Allows access to the vault. Backed by nothing but infinite optimism.", power:100, color:"#f85b5f", emoji:"🎟️" },
   { id:"c5", name:"The Rogue Oracle Node",    rarity:"Mythic",  fact:"Pipes cultural chaos directly into predictive smart contracts.",     power:95, color:"#d69d41", emoji:"🔮" },
   { id:"c6", name:"Dutch Auction Sniper Bot", rarity:"Rare",    fact:"Patiently waits until price hits 10 $MADx to swipe packs instantly.", power:82, color:"#60a5fa", emoji:"🎯" },
   { id:"c7", name:"The Slideware Champion",   rarity:"Rare",    fact:"Guarantees 10x multiplier in pitch decks, 0.1x in production.",     power:68, color:"#938f99", emoji:"📊" },

@@ -91,8 +91,8 @@ const ZOOM_MAX = 4; // "zoomed in x4"
 // leans structural-cool, tier 2 is pigment-dominant.
 const TIER_PALETTES: readonly string[][] = [
   ["#E8B84B", "#2DD4A7", "#22D3EE", "#3B82F6", "#7C6CF0"], // idle — topaz, emerald, cyan, blue, blue-purple
-  ["#F5D033", "#4ADE80", "#22D3EE", "#FACC15", "#34D399"], // 2nd-3rd prod — yellow, green, blue
-  ["#FBBF24", "#FB923C", "#F97316", "#fc3437", "#FCD34D"], // 4th-5th prod — yellow, orange, a little red
+  ["#F5D033", "#4ADE80", "#22D3EE", "#f6d378", "#34D399"], // 2nd-3rd prod — yellow, green, blue
+  ["#FBBF24", "#FB923C", "#F97316", "#f5242a", "#FCD34D"], // 4th-5th prod — yellow, orange, a little red
 ];
 
 function tierValue(tiers: readonly [number, number, number], blend: number): number {

@@ -21,9 +21,9 @@ export type Faction =
   | "The Athletes" | "The Memes" | "The Villains" | "Classics & Influencers";
 
 export const FACTIONS: { name: Faction; accent: string; glyph: string }[] = [
-  { name: "Politicos",              accent: "#fc3437", glyph: "⚖"  },
+  { name: "Politicos",              accent: "#f5242a", glyph: "⚖"  },
   { name: "Disruptors",             accent: "#7cffc7", glyph: "⚡" },
-  { name: "Pop Icons",              accent: "#fc3437", glyph: "★"  },
+  { name: "Pop Icons",              accent: "#f5242a", glyph: "★"  },
   { name: "Screen Gods",            accent: "#c98aff", glyph: "🎬" },
   { name: "The Athletes",           accent: "#58a6ff", glyph: "🏆" },
   { name: "The Memes",              accent: "#d69d41", glyph: "😂" },

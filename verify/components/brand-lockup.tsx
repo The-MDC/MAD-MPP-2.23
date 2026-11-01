@@ -36,7 +36,7 @@ export function BrandLockup({ primary, width = 300, align = "center" }: { primar
 }
 
 export function Trinity() {
-  const p: [string, string][] = [["PREDICTION", "#fbbf24"], ["CONVICTION", "#fc3437"], ["AFFLICTION", "#c084fc"]];
+  const p: [string, string][] = [["PREDICTION", "#fbbf24"], ["CONVICTION", "#f5242a"], ["AFFLICTION", "#c084fc"]];
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, marginTop: 12, fontFamily: INSTRUMENT_FONT }}>
       {p.map(([l, c], i) => (

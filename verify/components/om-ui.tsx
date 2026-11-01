@@ -21,7 +21,7 @@ import {
 
 export const INK = "#080808";
 export const GOLD = "#d69d41";
-export const ROSSA = "#f95639";
+export const ROSSA = "#f5242a";
 export const MUTED = "#8e8a80";
 export const LINE = "rgba(214,157,65,.14)";
 const MONO = "ui-monospace, 'JetBrains Mono', monospace";
@@ -57,7 +57,7 @@ function ShellInner({ children, back, title }: { children: React.ReactNode; back
           </a>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src="/brand/madhatr-logo.png" alt="" width={36} height={36} style={{ objectFit: "contain", borderRadius: 10, filter: "drop-shadow(0 0 10px rgba(249,86,57,.45))" }} />
+          <img src="/brand/madhatr-logo.png" alt="" width={36} height={36} style={{ objectFit: "contain", borderRadius: 10, filter: "drop-shadow(0 0 10px rgba(245,36,42,.45))" }} />
         )}
         <a href="/preview" style={{ textDecoration: "none", minWidth: 0, flex: 1 }}>
           <div className="mg-display mg-gold-text" style={{ fontSize: 22, lineHeight: 1 }}>MAD Gambit</div>
@@ -85,7 +85,7 @@ function ShellInner({ children, back, title }: { children: React.ReactNode; back
             <a key={t.href} href={t.href} aria-current={on ? "page" : undefined}
               style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, minHeight: 44, justifyContent: "center", textDecoration: "none", fontSize: 10, fontWeight: 800, letterSpacing: .4, color: on ? GOLD : MUTED }}>
               {create ? (
-                <span style={{ display: "grid", placeItems: "center", width: 46, height: 46, marginTop: -18, borderRadius: 999, background: "var(--mg-gold-fill)", color: "#1a1205", boxShadow: "0 8px 20px -6px rgba(255,190,0,.7), 0 0 0 4px #080808" }}>{t.icon}</span>
+                <span style={{ display: "grid", placeItems: "center", width: 46, height: 46, marginTop: -18, borderRadius: 999, background: "var(--mg-gold-fill)", color: "#1a1205", boxShadow: "0 8px 20px -6px rgba(214,157,65,.7), 0 0 0 4px #080808" }}>{t.icon}</span>
               ) : t.icon}
               {t.label}
             </a>
@@ -198,7 +198,7 @@ export function MarketTile({ m }: { m: OMMarket }) {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           {m.outcomes.map((o, i) => (
             <a key={o.id} href={`${href}?o=${encodeURIComponent(o.id)}`} className="mg-odds" style={{ textDecoration: "none" }} aria-label={`${o.label} at ${pct(p[i])}`}>
-              <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: i === 0 ? "#7cffc7" : "#ff8f7a" }}>{o.label} · {pct(p[i])}</span>
+              <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: i === 0 ? "#7cffc7" : "#f85b5f" }}>{o.label} · {pct(p[i])}</span>
               <span style={{ fontFamily: MONO, fontSize: 15, fontWeight: 800 }}>{decimalOdds(p[i]).toFixed(2)}</span>
             </a>
           ))}

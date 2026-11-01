@@ -82,7 +82,7 @@ export function NftCardView({
             <stop offset="0%" stopColor="#00f0ff" />
             <stop offset="25%" stopColor="#7cffc7" />
             <stop offset="50%" stopColor="#fbbf24" />
-            <stop offset="75%" stopColor="#fc3437" />
+            <stop offset="75%" stopColor="#f5242a" />
             <stop offset="100%" stopColor="#c98aff" />
           </linearGradient>
           {/* gold chisel from deck */}
@@ -160,7 +160,7 @@ export function NftCardView({
 
         {/* live stats row — 4 canonical stats (source: Card Game Logic Code Reference §2) */}
         <g fontFamily="ui-monospace, monospace">
-          <StatPill uid={uid} x={12}  label="VOLATILITY" value={`${card.volatility}%`} color="#fc3437" />
+          <StatPill uid={uid} x={12}  label="VOLATILITY" value={`${card.volatility}%`} color="#f5242a" />
           <StatPill uid={uid} x={90}  label="CLOUT"      value={`${card.cloutPct}%`}  color={activeAccent} />
           <StatPill uid={uid} x={168} label="APY"        value={`${tier.stakingApy}%`} color="#7cffc7" />
           <StatPill uid={uid} x={246} label="EDGE"       value={`${(card.edgeMultiplier ?? 1.0).toFixed(2)}x`} color="#fbbf24" />

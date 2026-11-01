@@ -45,12 +45,12 @@ export default function SwapPage() {
     <OMShell title="Swap · Lend · P2P Escrow">
       <section className="mg-seam">
         <Headline lead="Move it" punch="Anywhere" size={44} sub="Any crypto into stables or $MADx on Arbitrum One. Lend against it. Trade any digital asset peer-to-peer in escrow." />
-        <div style={{ marginTop: 12 }}><span className="mg-chip" style={{ color: ROSSA, borderColor: "rgba(249,86,57,.5)" }}>Preview · on-chain wiring next</span></div>
+        <div style={{ marginTop: 12 }}><span className="mg-chip" style={{ color: ROSSA, borderColor: "rgba(245,36,42,.5)" }}>Preview · on-chain wiring next</span></div>
       </section>
       {twin ? (
         <section className="mg-tile" style={{ padding: 16, borderColor: "rgba(214,157,65,.45)", display: "flex", flexDirection: "column", gap: 8 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-            <span className="mg-chip" style={{ color: twin.kind === "synthetic" ? ROSSA : GOLD, borderColor: twin.kind === "synthetic" ? "rgba(249,86,57,.5)" : "rgba(214,157,65,.5)" }}>
+            <span className="mg-chip" style={{ color: twin.kind === "synthetic" ? ROSSA : GOLD, borderColor: twin.kind === "synthetic" ? "rgba(245,36,42,.5)" : "rgba(214,157,65,.5)" }}>
               {twin.kind === "tokenized" ? "Tokenized twin" : twin.kind === "native" ? "Native asset" : "Synthetic twin"}
             </span>
             <a href="/preview" style={{ fontSize: 11, color: MUTED, textDecoration: "none" }}>From the ticker ›</a>

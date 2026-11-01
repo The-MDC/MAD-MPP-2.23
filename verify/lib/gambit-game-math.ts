@@ -604,7 +604,7 @@ export const RARITY_TABLE: Record<Rarity, RarityTier> = {
   Uncommon:      { rarity: 'Uncommon',      powerScore: 256,    cloutMultiplier: 1.8,  stakingApy: 16, holographic: false, accent: '#7cffc7' },
   Rare:          { rarity: 'Rare',          powerScore: 488,    cloutMultiplier: 2.4,  stakingApy: 22, holographic: false, accent: '#58a6ff' },
   Epic:          { rarity: 'Epic',          powerScore: 1888,   cloutMultiplier: 3.2,  stakingApy: 31, holographic: false, accent: '#c98aff' },
-  Legendary:     { rarity: 'Legendary',     powerScore: 4888,   cloutMultiplier: 5.5,  stakingApy: 48, holographic: true,  accent: '#fc3437' },
+  Legendary:     { rarity: 'Legendary',     powerScore: 4888,   cloutMultiplier: 5.5,  stakingApy: 48, holographic: true,  accent: '#f5242a' },
   'Golden Hand': { rarity: 'Golden Hand',   powerScore: 7888,   cloutMultiplier: 8.8,  stakingApy: 68, holographic: true,  accent: '#d69d41' },
   Mythic:        { rarity: 'Mythic',        powerScore: 99999,  cloutMultiplier: 99.9, stakingApy: 88, holographic: true,  accent: '#ff00f0' },
 };
@@ -1139,7 +1139,7 @@ export const SKIN_TOKENS: Record<ThemeSkin, SkinTokens> = {
     accent: "#ff00f0",
     bg: "#030508",
     panel: "#05070c",
-    border: "#ffd70033",
+    border: "#d69d4133",
     glow: "#d69d41",
   },
   CyberOnyx: {
@@ -1147,7 +1147,7 @@ export const SKIN_TOKENS: Record<ThemeSkin, SkinTokens> = {
     label: "Cyber Onyx",
     primary: "#00f0ff",
     secondary: "#7cffc7",
-    accent: "#fc3437",
+    accent: "#f5242a",
     bg: "#01010a",
     panel: "#03040e",
     border: "#00f0ff33",

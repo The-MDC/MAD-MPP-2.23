@@ -79,13 +79,13 @@ export default function WorkbenchPage() {
       {/* Dynamic Cosmic Backdrops */}
       <div className={`absolute inset-0 pointer-events-none transition-all duration-700 ${
         theme === "neon"
-          ? "bg-[radial-gradient(circle_800px_at_100%_200px,rgba(252,52,55,0.12),transparent)]"
+          ? "bg-[radial-gradient(circle_800px_at_100%_200px,rgba(245,36,42,0.12),transparent)]"
           : "bg-[radial-gradient(circle_800px_at_100%_200px,rgba(0,163,255,0.08),transparent)]"
       }`} />
       <div className={`absolute inset-0 pointer-events-none transition-all duration-700 ${
         theme === "neon"
           ? "bg-[radial-gradient(circle_800px_at_0%_800px,rgba(0,242,254,0.12),transparent)]"
-          : "bg-[radial-gradient(circle_800px_at_0%_800px,rgba(252,52,55,0.06),transparent)]"
+          : "bg-[radial-gradient(circle_800px_at_0%_800px,rgba(245,36,42,0.06),transparent)]"
       }`} />
       <div className={`absolute top-1/3 left-1/4 w-[500px] h-[500px] rounded-full blur-[160px] pointer-events-none animate-pulse transition-all duration-700 ${
         theme === "neon" ? "bg-cyan-500/10" : "bg-yellow-400/5"
@@ -151,7 +151,7 @@ export default function WorkbenchPage() {
           <span className="text-neutral-800">•</span>
 
           <span className={`flex items-center gap-2 font-mono text-[10px] uppercase font-bold tracking-widest bg-neutral-950/40 px-3 py-1 rounded-full border shadow-sm transition-all duration-300 ${
-            theme === "neon" ? "border-pink-500/35 text-pink-400 bg-black/60 shadow-[0_0_8px_rgba(252,52,55,0.15)]" : "border-neutral-900/60 text-neutral-500"
+            theme === "neon" ? "border-pink-500/35 text-pink-400 bg-black/60 shadow-[0_0_8px_rgba(245,36,42,0.15)]" : "border-neutral-900/60 text-neutral-500"
           }`}>
             <Shield className={`w-3.5 h-3.5 ${theme === "neon" ? "text-pink-400" : "text-yellow-500/80"}`} />
             <span>Secure Client Workspace</span>

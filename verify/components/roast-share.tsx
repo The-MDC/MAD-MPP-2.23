@@ -29,7 +29,7 @@ interface RoastShareProps {
 
 const OUTCOME_COPY: Record<string, { badge: string; color: string; roastLine: string }> = {
   won:       { badge: "✓ CALLED IT",       color: "#7cffc7", roastLine: "The market bowed to my genius." },
-  lost:      { badge: "✗ REKT",            color: "#fc3437", roastLine: "The market humbled me. Temporarily." },
+  lost:      { badge: "✗ REKT",            color: "#f5242a", roastLine: "The market humbled me. Temporarily." },
   "near-miss": { badge: "≈ ALMOST",        color: "#fbbf24", roastLine: "So close the oracle had to check twice." },
 };
 

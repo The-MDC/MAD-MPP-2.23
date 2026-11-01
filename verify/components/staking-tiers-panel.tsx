@@ -43,7 +43,7 @@ export default function StakingTiersPanel() {
   }, [madCredits]);
 
   const TIER_COLORS = [
-    "#cd7f32", "#c0c0c0", "#d69d41", "#b9f2ff", "#b9f2ff", "#fc3437",
+    "#cd7f32", "#c0c0c0", "#d69d41", "#b9f2ff", "#b9f2ff", "#f5242a",
   ];
 
   return (
@@ -173,7 +173,7 @@ export default function StakingTiersPanel() {
           <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 420, borderRadius: 22, padding: 2, background: "var(--mg-gold-chisel)" }}>
             <div style={{ borderRadius: 20, padding: 18, background: "linear-gradient(180deg, #17130b, #0a0907)", color: "#f6f1e3" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.4, textTransform: "uppercase", color: "#f95639" }}>MAD Shield · stop loss</span>
+                <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.4, textTransform: "uppercase", color: "#f5242a" }}>MAD Shield · stop loss</span>
                 <button type="button" aria-label="Close" onClick={() => setShieldTier(null)} style={{ background: "none", border: "none", color: "#c9bfa9", cursor: "pointer", minWidth: 44, minHeight: 44, display: "grid", placeItems: "center" }}><X className="w-4 h-4" /></button>
               </div>
               <div className="mg-display" style={{ fontSize: 30, marginTop: 2 }}>{shieldTier.name} tier</div>

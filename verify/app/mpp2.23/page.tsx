@@ -470,7 +470,7 @@ function BrandLockup({ primary, accent }: { primary: string; accent: string }) {
 }
 
 function Trinity() {
-  const p = [["PREDICTION","#fbbf24"],["CONVICTION","#fc3437"],["AFFLICTION","#c084fc"]] as const;
+  const p = [["PREDICTION","#fbbf24"],["CONVICTION","#f5242a"],["AFFLICTION","#c084fc"]] as const;
   return (
     <div className="flex items-center justify-center gap-3 sm:gap-5 mt-4">
       {p.map(([l,c],i) => (

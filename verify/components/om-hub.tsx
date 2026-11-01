@@ -67,7 +67,7 @@ function TopCard({ m, rank }: { m: OMMarket; rank: number }) {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
           {m.outcomes.map((o, i) => (
             <a key={o.id} href={`${href}?o=${encodeURIComponent(o.id)}`} className="mg-odds" style={{ minHeight: 40, textDecoration: "none", flexDirection: "row", gap: 6 }}>
-              <span style={{ fontSize: 10, fontWeight: 900, color: i === 0 ? "#7cffc7" : "#ff8f7a" }}>{o.label.toUpperCase()}</span>
+              <span style={{ fontSize: 10, fontWeight: 900, color: i === 0 ? "#7cffc7" : "#f85b5f" }}>{o.label.toUpperCase()}</span>
               <span style={{ fontFamily: MONO, fontSize: 13, fontWeight: 800 }}>{pct(p[i])}</span>
               <span style={{ fontFamily: MONO, fontSize: 10, color: MUTED }}>{decimalOdds(p[i]).toFixed(2)}</span>
             </a>

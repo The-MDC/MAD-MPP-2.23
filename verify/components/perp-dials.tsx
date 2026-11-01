@@ -39,7 +39,7 @@ import {
 const PI = Math.PI;
 const TAU = 6.2832;
 
-const VERDICT_STOPS = ["#7cffc7", "#fbbf24", "#fc3437", "#ff00f0"];
+const VERDICT_STOPS = ["#7cffc7", "#fbbf24", "#f5242a", "#ff00f0"];
 const GOLD_CHISEL = ["#794816", "#a86821", "#d69d41", "#f6d378"];
 const FACES: [string, number][] = [
   ["Saint", 0.31], ["Rice", 0.24], ["Mega", 0.18], ["Narc", 0.15], ["Sell", 0.12],
@@ -92,10 +92,10 @@ function drawDialZliar(cv: HTMLCanvasElement, t: number) {
   bezel(ctx, cx, cy, 118 * k, PI, 2 * PI, 26 * k);
   track(ctx, cx, cy, 106 * k, PI, 2 * PI, 15 * k);
   arc(ctx, cx, cy, 106 * k, PI, PI + PI * (v / 100), 9 * k,
-    ramp(ctx, cx - 106 * k, cx + 106 * k, VERDICT_STOPS), "#fc3437");
+    ramp(ctx, cx - 106 * k, cx + 106 * k, VERDICT_STOPS), "#f5242a");
   ticks(ctx, cx, cy, PI, 2 * PI, 21, 100 * k, 92 * k, 86 * k);
-  needle(ctx, cx, cy, (v / 100) * PI - PI / 2, 96 * k, 3.5 * k, "#feebeb", "#fd6769", "#b02427", false);
-  hub(ctx, cx, cy, 14 * k, "#fc3437");
+  needle(ctx, cx, cy, (v / 100) * PI - PI / 2, 96 * k, 3.5 * k, "#fee9ea", "#f85b5f", "#ac191d", false);
+  hub(ctx, cx, cy, 14 * k, "#f5242a");
 }
 
 /** GOSSIP-COP — a full ring gauge: closed bezel, ring track, 36 ticks and a
@@ -209,7 +209,7 @@ function drawZliarTape(cv: HTMLCanvasElement, t: number) {
     ctx.beginPath(); ctx.moveTo(x, yb - 7); ctx.lineTo(x, yb + 7); ctx.stroke();
   }
   const mx = (v / 100) * w;
-  ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.6; ctx.shadowBlur = 12; ctx.shadowColor = "#fc3437";
+  ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.6; ctx.shadowBlur = 12; ctx.shadowColor = "#f5242a";
   ctx.beginPath(); ctx.moveTo(mx, yb - 11); ctx.lineTo(mx, yb + 11); ctx.stroke();
   ctx.fillStyle = "#fff";
   ctx.beginPath(); ctx.moveTo(mx, yb - 12); ctx.lineTo(mx - 4, yb - 18); ctx.lineTo(mx + 4, yb - 18);
@@ -388,9 +388,9 @@ const CARDS: CardDef[] = [
   },
   {
     id: "zliar", title: "Z-Liar Meter", kicker: "Narrative credibility · Sentinel",
-    accent: "--a2", sym: "/brand/card-zliar.png", symGlow: "rgba(252,52,55,.6)",
+    accent: "--a2", sym: "/brand/card-zliar.png", symGlow: "rgba(245,36,42,.6)",
     lcd: { label: "Z-Liar score", unit: "ZL" },
-    kpis: [["BS Index", "63%", "#fc3437"], ["GARCH σ²", "0.018", "#58a6ff"], ["Lunar tilt", "+1.7", "#c98aff"]],
+    kpis: [["BS Index", "63%", "#f5242a"], ["GARCH σ²", "0.018", "#58a6ff"], ["Lunar tilt", "+1.7", "#c98aff"]],
     plate: { label: "Verdict", value: "", sub: "5 bands" },
     caption: "Band spectrum · BS-index trace", right: "BS 63%",
     chips: ["BS-index", "Audit log", "Moon tilt"],
@@ -433,7 +433,7 @@ const CARDS: CardDef[] = [
   },
 ];
 
-const TAPE_COLOR: Record<TapeTone, string> = { po: PO, c: C, a2: "var(--a2,#fc3437)", gd: GD };
+const TAPE_COLOR: Record<TapeTone, string> = { po: PO, c: C, a2: "var(--a2,#f5242a)", gd: GD };
 
 interface NavEntry {
   label: string; sub: string; title: string; href: string;
@@ -461,7 +461,7 @@ const SCANDAL_LANE2 = [
 const WATERLINE: [number, string][] = [
   [31, `color-mix(in srgb, ${GD} 78%, transparent)`],
   [24, "color-mix(in srgb, var(--c) 62%, transparent)"],
-  [18, "color-mix(in srgb, var(--a2,#fc3437) 75%, transparent)"],
+  [18, "color-mix(in srgb, var(--a2,#f5242a) 75%, transparent)"],
   [15, `color-mix(in srgb, ${AC} 70%, transparent)`],
   [12, `color-mix(in srgb, ${TX} 32%, transparent)`],
 ];
@@ -607,7 +607,7 @@ function PerpBookDialog({ deckId, onClose }: { deckId: string; onClose: () => vo
             </>
           ) : null}
           <Cell label="Leg" value={leg ? leg.slot : "—"} color={AC} />
-          <Cell label="Rolls in" value={leg ? leg.countdown : "—"} color={leg?.isTurningLeg ? "var(--a2,#fc3437)" : TX} />
+          <Cell label="Rolls in" value={leg ? leg.countdown : "—"} color={leg?.isTurningLeg ? "var(--a2,#f5242a)" : TX} />
         </div>
         <div style={{ fontSize: 6.5, letterSpacing: 1, color: "var(--mu,#6b7280)", textTransform: "uppercase", marginBottom: 10 }}>
           {LEG_STRUCTURE_LINE}
@@ -668,7 +668,7 @@ function PerpBookDialog({ deckId, onClose }: { deckId: string; onClose: () => vo
                   ) : <div style={{ height: 5 }} />}
                   <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                     <span style={{ flex: 1, textAlign: "center", borderRadius: 6, padding: "3px 0", fontSize: 8.5, fontWeight: 800, color: PO, background: "color-mix(in srgb, var(--po,#00ff88) 12%, transparent)" }}>LONG {m.longOdds}x</span>
-                    <span style={{ flex: 1, textAlign: "center", borderRadius: 6, padding: "3px 0", fontSize: 8.5, fontWeight: 800, color: "var(--a2,#fc3437)", background: "color-mix(in srgb, var(--a2,#fc3437) 12%, transparent)" }}>SHORT {m.shortOdds}x</span>
+                    <span style={{ flex: 1, textAlign: "center", borderRadius: 6, padding: "3px 0", fontSize: 8.5, fontWeight: 800, color: "var(--a2,#f5242a)", background: "color-mix(in srgb, var(--a2,#f5242a) 12%, transparent)" }}>SHORT {m.shortOdds}x</span>
                     <span style={{ flex: "none", fontSize: 7, letterSpacing: 0.8, color: "var(--mu,#6b7280)", textTransform: "uppercase" }}>{m.legDays}d leg · {m.horizonDays}d horizon</span>
                   </div>
                 </div>
@@ -884,7 +884,7 @@ export default function PerpDials({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/brand/madhat-hat.png" alt="MAD HAT'r"
-            style={{ width: 46, height: 46, objectFit: "contain", filter: "drop-shadow(0 0 12px color-mix(in srgb, var(--a2,#fc3437) 45%, transparent))" }}
+            style={{ width: 46, height: 46, objectFit: "contain", filter: "drop-shadow(0 0 12px color-mix(in srgb, var(--a2,#f5242a) 45%, transparent))" }}
           />
           <span style={{ display: "flex", flexDirection: "column", gap: 3 }}>
             <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: 2.4, color: GD, textTransform: "uppercase", textShadow: "0 0 14px color-mix(in srgb, var(--gd,#d69d41) 35%, transparent)" }}>
@@ -903,7 +903,7 @@ export default function PerpDials({
               style={{ display: "flex", alignItems: "center", gap: 7, padding: "6px 11px", border: `1px solid ${n.border}`, borderRadius: 10, background: "var(--pn,#0d1018)", cursor: "pointer", textDecoration: "none" }}
             >
               {n.orb ? (
-                <span style={{ display: "block", width: "var(--sym,26px)", height: "var(--sym,26px)", borderRadius: "50%", background: "radial-gradient(circle at 34% 30%, color-mix(in srgb, var(--ac,#00e5ff) 85%, transparent), transparent 62%), radial-gradient(circle at 70% 74%, color-mix(in srgb, var(--a2,#fc3437) 70%, transparent), transparent 60%)", border: "1px solid color-mix(in srgb, var(--ac,#00e5ff) 45%, transparent)", boxShadow: "0 0 12px color-mix(in srgb, var(--ac,#00e5ff) 35%, transparent)" }} />
+                <span style={{ display: "block", width: "var(--sym,26px)", height: "var(--sym,26px)", borderRadius: "50%", background: "radial-gradient(circle at 34% 30%, color-mix(in srgb, var(--ac,#00e5ff) 85%, transparent), transparent 62%), radial-gradient(circle at 70% 74%, color-mix(in srgb, var(--a2,#f5242a) 70%, transparent), transparent 60%)", border: "1px solid color-mix(in srgb, var(--ac,#00e5ff) 45%, transparent)", boxShadow: "0 0 12px color-mix(in srgb, var(--ac,#00e5ff) 35%, transparent)" }} />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={n.sym} alt="" style={{ width: "var(--sym,26px)", height: "var(--sym,26px)", objectFit: "contain" }} />
@@ -936,7 +936,7 @@ export default function PerpDials({
 
         <Slider label="SPD" value={tk} onChange={setTk} cfg={CONTROLS.tk} accent={AC} readout={`${tk}s`} />
         <Slider label="SYM" value={sym} onChange={setSym} cfg={CONTROLS.sym} accent={GD} readout={`${sym}px`} />
-        <Slider label="DIAL" value={dial} onChange={setDial} cfg={CONTROLS.dial} accent="var(--a2,#fc3437)" readout={`${dial}%`} />
+        <Slider label="DIAL" value={dial} onChange={setDial} cfg={CONTROLS.dial} accent="var(--a2,#f5242a)" readout={`${dial}%`} />
 
         <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{ whiteSpace: "nowrap", fontSize: 6.5, fontWeight: 800, letterSpacing: 1.2, color: "var(--mu,#6b7280)", textTransform: "uppercase" }}>Cols</span>

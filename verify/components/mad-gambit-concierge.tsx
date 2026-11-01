@@ -460,7 +460,7 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
                         background: "transparent", border: `1px solid ${INK.borderGold}`,
                         borderRadius: "4px", padding: "2px 6px", cursor: "pointer",
                         fontFamily: INSTRUMENT_FONT, fontSize: "6.5px", fontWeight: 800,
-                        color: (m.regenCount ?? 0) >= 1 ? "#fc3437" : INK.gold, letterSpacing: "0.5px",
+                        color: (m.regenCount ?? 0) >= 1 ? "#f5242a" : INK.gold, letterSpacing: "0.5px",
                       }}
                     >
                       <RotateCw size={8} />

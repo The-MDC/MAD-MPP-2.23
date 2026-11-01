@@ -17,7 +17,7 @@
  *   Deep black bg:  #080a12
  *   Gold:           #d69d41
  *   Cyan:           #00e5ff
- *   Neon pink:      #fc3437
+ *   Neon pink:      #f5242a
  *   Green positive: #00ff88
  *   White text:     #f0f0f8
  *
@@ -227,7 +227,7 @@ function ChaosMeterGauge({ value }: { value: number }) {
       const grad = ctx.createLinearGradient(CX - R, CY, CX + R, CY);
       grad.addColorStop(0,    "#d69d41"); // gold
       grad.addColorStop(0.35, "#ff4500"); // neon orange
-      grad.addColorStop(0.65, "#fc3437"); // hot pink fuchsia
+      grad.addColorStop(0.65, "#f5242a"); // hot pink fuchsia
       grad.addColorStop(1,    "#8b00ff"); // bright purple
 
       const sweepAngle = needle * Math.PI; // 0 = flat left, π = flat right

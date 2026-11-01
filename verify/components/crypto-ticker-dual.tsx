@@ -498,12 +498,12 @@ export default function CryptoTickerDual() {
         <div role="dialog" aria-modal="true" aria-label="The funny version" onClick={() => setSatire(null)}
           style={{ position: "fixed", inset: 0, zIndex: 220, background: "rgba(0,0,0,.72)", display: "grid", placeItems: "center", padding: 16 }}>
           <div onClick={(e) => e.stopPropagation()} data-explain="om-lobby" style={{ width: "100%", maxWidth: 420, borderRadius: 22, padding: 2, background: "var(--mg-gold-chisel)" }}>
-            <div style={{ borderRadius: 20, padding: 18, background: "radial-gradient(120% 90% at 100% 0%, rgba(249,86,57,.28), #0b0907 70%)", color: "#f6f1e3", fontFamily: "system-ui, -apple-system, sans-serif" }}>
+            <div style={{ borderRadius: 20, padding: 18, background: "radial-gradient(120% 90% at 100% 0%, rgba(245,36,42,.28), #0b0907 70%)", color: "#f6f1e3", fontFamily: "system-ui, -apple-system, sans-serif" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/brand/madhatr-logo.png" alt="" width={44} height={44} style={{ borderRadius: 12 }} />
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.4, textTransform: "uppercase", color: "#f95639" }}>The MADHAT&apos;r reads it</div>
+                  <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.4, textTransform: "uppercase", color: "#f5242a" }}>The MADHAT&apos;r reads it</div>
                   <div style={{ fontSize: 11, color: "#a99f8a" }}>{satire.symbol} · satirical rewrite</div>
                 </div>
               </div>

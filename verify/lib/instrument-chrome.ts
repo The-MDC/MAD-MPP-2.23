@@ -46,7 +46,7 @@ export interface FitResult {
 export const CHROME = {
   bezel: ["#2a2f3d", "#0d1017", "#03040a"] as const,
   trackFill: "#0a0c12",
-  needle: { top: "#feebeb", mid: "#fd6769", base: "#b02427" },
+  needle: { top: "#fee9ea", mid: "#f85b5f", base: "#ac191d" },
   hub: ["#3a4152", "#14171f", "#05060b"] as const,
   tickMajor: { color: "#5b6472", width: 2 },
   tickMinor: { color: "#2b313d", width: 1.2 },
@@ -85,7 +85,7 @@ export function fitCanvas(cv: HTMLCanvasElement): FitResult | null {
     h: r.height,
     c: v("--c", "#00e5ff"),
     gd: v("--gd", "#d69d41"),
-    a2: v("--a2", "#fc3437"),
+    a2: v("--a2", "#f5242a"),
     ac: v("--ac", "#00e5ff"),
     po: v("--po", "#00ff88"),
     mu: v("--mu", "#6b7280"),
