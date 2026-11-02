@@ -156,7 +156,7 @@ Say:
 - Want the man himself? Join the beta. Creators get looked at first.
 
 Facts:
-- GitHub: MADdegen (personal); org The-MDC.
+- GitHub org: The-MDC.
 - Founder-stated (2026-10-27): has founded and exited a company before. Self-funded MAD Gambit to date.
 - Carlo Fernandez: COO, 12 years in Web3, creator acquisition and partnerships.
 - Zena Shah: CFO and Head of Economics, fee architecture, token economics, Shield solvency.
@@ -166,17 +166,24 @@ Facts:
 
 ## The MDC and the MADdegens
 
-Keywords: mdc, the mdc, maddegens, mad degens, degens, dao, maddao, community, history, origin, megalomaniac
+Keywords: mdc, the mdc, madforge, crowdfund, accelerator, north star, community rule, maddegens,
 
 Say:
 - The MADdegens, The MDC, are the crew this all came out of. A degen collective that wrote its first whitepaper in September 2024 and has been building ever since.
 - Started on Solana with 6,666 "Megalomaniac" NFTs, moved through CrossFi, and landed on EVM. Now it's Arbitrum.
 - The MADDAO is the governance side: quadratic voting, so a thousand small holders outweigh one whale.
+- The MDC calls itself a Blockchain-for-Good crowd community. The plan is a social crowdfund superDAO and Web3 accelerator called MADforge, built to back underdog creators and projects.
+- The MDC has one rule: common decency, respect and honesty toward your fellow degens. Hatred or harm to another member is a permanent ban. Beef goes in the Spicy channel.
+- The north star: an open, transparent, fair, decentralised and equitable Web3 for all.
+- In one line each: MAD Gambit is the product, the MDC is the community, the MADDAO is the governance layer, and the MADdegens are the people.
 
 Facts:
 - Founding MDC/MADdegens whitepaper dated 2024-09-30.
 - GitHub org: The-MDC (product repo The-MDC/MAD-MPP-2.23).
 - Original brand (November 2024): crimson, jet black, metallic gold.
+- MADforge is a plan the MDC is building toward. Never promise dates, launches or token sales for it.
+- Public links only: linktr.ee/MADdegens, X and Instagram @maddegens, LinkedIn company/maddegens.
+- MADDAO governance in the product: quadratic funding, stake-weighted voting with a cap, and futarchy-style pools (designed). The fee and the creator share are never on the ballot.
 
 ---
 
@@ -291,18 +298,18 @@ Say:
 
 Facts:
 - Price: pᵢ = e^(qᵢ/b) / Σ e^(qⱼ/b), b = 1,200 on the demo floor.
-- MADConv, live core: M = t^1.35 · c^0.75 · d^1.45 · ψ^1.15 × card multiplier × lunar multiplier. The full spec adds (1+π^0.9) · m_meme · satire · liar · garch_amp; those terms exist as separate meters and are not yet multiplied into the live score. Never call the full form live.
-- GARCH(1,1): σ² = 0.0001 + 0.05·ε² + 0.90·σ²(prev).
+- MADConv, live core: a product of time held, capital, depth and psychology, each raised to a fixed exponent that stays server-side, times a card multiplier and a lunar multiplier. The full spec adds more terms; those exist as separate meters and are not yet multiplied into the live score.
+- GARCH(1,1): today's volatility comes from yesterday's shock and yesterday's volatility, then is clamped to σ 0.09–0.68. The parameters stay server-side.
 - Half-Kelly sizing with a δ-limit cap.
-- Z-Liar BS index = 0.6·narrative variance + 0.4·(1 − source credibility) − 0.25·corroboration; plus a volatility term (≤ 20) and half the lunar tilt (≤ 7.5).
-- Scandal velocity emotion weights: shame 1.8, anger 1.4, disgust 1.3, fear 1.2, sadness 1.0, joy −0.5.
-- Perp trigger: P = 1 − e^(−0.25 · matches · themeWeight · (1 + velocity)).
+- Z-Liar BS index: a blend of narrative variance, source credibility and corroboration, plus a volatility term and a small lunar tilt. The weights stay server-side.
+- Scandal velocity weighs emotions: shame, anger and disgust count most, and joy counts against (a happy story is a bad perpetual). The exact weights stay server-side.
+- Perp trigger: P = 1 − e^(−k · matches · themeWeight · (1 + velocity)). The constant k stays server-side.
 - Lunar multiplier 1.00 (new moon) to 1.15 (full moon), thematic layer only, never fees, prices or the Shield.
 - Governance: quadratic funding raises (Σ√cᵢ)² in total; the match is that total minus what people gave. Voting power = √stake, capped at 240 votes, so no wallet outweighs a 100-$MADx holder by more than 24 to 1. The fee and creator share are never on the ballot.
 - Futarchy (designed): a proposal executes only above 80% pass probability sustained for 24 hours.
 - Bayesian layer: logit(p) moves by ln of each likelihood ratio; hybrid M' = M^0.85 · (1 + β·bayes); decision trees depth-bounded at 64; forecasts graded by Brier and log score. Live at POST /api/v1/bayesian/{update, tree, voi, score, garch}.
-- GARCH amplification = 1 + 0.8σ: 1.07× at σ 0.09, 1.54× at σ 0.68.
-- PvP: win chance = 0.5 + Δpower/25,000 + 0.06·Δstage + 0.15·Δwear, held to 0.12–0.88; Elo K = 32.
+- GARCH amplification lifts a market by up to about 1.5× at the top of the clamp and barely at all at the bottom.
+- PvP: win chance comes from the power, stage and wear differences, held inside a band so nobody is ever a lock; ratings are Elo-style.
 
 ---
 
