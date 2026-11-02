@@ -7,6 +7,7 @@
  */
 import React, { useCallback, useEffect, useState } from "react";
 import { useSkin } from "@/components/skin-provider";
+import TabStrip from "@/components/tab-strip";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 
 // Imported, never redeclared — see market-type-carousels.tsx for why.
@@ -132,21 +133,18 @@ export default function MarketsForTodayPanel() {
       </div>
 
       {/* Type filter chips */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 12 }}>
-        {chips.map((c) => {
-          const active = filter === c;
-          const count = c === "all" ? data?.proposals.length ?? 0 : data?.byType?.[c] ?? 0;
-          const color = c === "all" ? skin.text : typeColor(c);
-          return (
-            <button
-              key={c}
-              onClick={() => setFilter(c)}
-              style={{ padding: "4px 9px", borderRadius: 999, cursor: "pointer", fontSize: 8, fontWeight: 900, letterSpacing: 0.5, textTransform: "uppercase", color: active ? skin.text : skin.muted, background: active ? `${color}22` : skin.card, border: `1px solid ${active ? color : skin.border}`, fontFamily: INSTRUMENT_FONT }}
-            >
-              {c === "all" ? "All" : TYPE_LABEL[c]} {count}
-            </button>
-          );
-        })}
+      <div style={{ marginBottom: 12 }}>
+        <TabStrip<MarketType | "all">
+          label="Filter markets by type"
+          size="sm"
+          value={filter}
+          onChange={setFilter}
+          items={chips.map((c) => ({
+            id: c,
+            label: c === "all" ? "All" : TYPE_LABEL[c],
+            badge: c === "all" ? data?.proposals.length ?? 0 : data?.byType?.[c] ?? 0,
+          }))}
+        />
       </div>
 
       {data === null && <div style={{ fontSize: 9, color: skin.muted }}>Loading…</div>}

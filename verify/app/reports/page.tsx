@@ -8,6 +8,7 @@
 import React, { useEffect, useState } from "react";
 import { OMShell, Headline, SectionTitle, GOLD, MUTED, LINE } from "@/components/om-ui";
 import AnalyticsDashboard from "@/components/analytics-dashboard";
+import TabStrip from "@/components/tab-strip";
 import DopamineMetricsCarousel from "@/components/dopamine-metrics-carousel";
 import { PERP_REPORTS } from "@/lib/perp-reports";
 import { explainerFor } from "@/lib/explainers";
@@ -36,15 +37,12 @@ export default function ReportsPage() {
         <Headline lead="The" punch="Reports" size={44} sub="Every reading is drawn from the market's own book — the information market, not commentary." />
       </section>
 
-      <div style={{ display: "flex", gap: 8, overflowX: "auto", margin: "0 -16px", padding: "2px 16px 4px", scrollbarWidth: "none" }}>
-        <button type="button" onClick={() => pick(null)} className="mg-chip" style={{ flex: "none", height: 34, cursor: "pointer", color: perp ? "#d7d2c4" : "#1a1205", background: perp ? "rgba(255,255,255,.04)" : "var(--mg-gold-fill)" }}>Platform</button>
-        {PERPS.map((p) => (
-          <button key={p} type="button" onClick={() => pick(p)} className="mg-chip"
-            style={{ flex: "none", height: 34, cursor: "pointer", color: perp === p ? "#1a1205" : "#d7d2c4", background: perp === p ? "var(--mg-gold-fill)" : "rgba(255,255,255,.04)", borderColor: LINE }}>
-            {PERP_LABEL[p]}
-          </button>
-        ))}
-      </div>
+      <TabStrip<OMPerp | "platform">
+        label="Report"
+        value={perp ?? "platform"}
+        items={[{ id: "platform", label: "Platform" }, ...PERPS.map((p) => ({ id: p, label: PERP_LABEL[p] }))]}
+        onChange={(id) => pick(id === "platform" ? null : id)}
+      />
 
       {perp && report ? (
         <>

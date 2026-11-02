@@ -62,15 +62,6 @@ const FEATURED_MARKETS = FEATURED_DEMO_MARKETS.map((m) => ({
   hot: m.hot ?? false,
 }));
 
-/* ── DOPAMINE CAROUSEL TILES config ─────────────────────────── */
-type TileId = "bets" | "streak" | "chaos" | "gainers";
-const TILE_LABELS: { id: TileId; label: string; icon: string }[] = [
-  { id: "bets",    label: "ACTIVE BETS",  icon: "=" },
-  { id: "streak",  label: "DEGEN STREAK", icon: "⚡" },
-  { id: "chaos",   label: "CHAOS METER",  icon: "≈" },
-  { id: "gainers", label: "TOP GAINERS",  icon: "=" },
-];
-
 /* NOTE: The flat-text SeikoClock component was removed here. It rendered
  * HH:MM:SS as glowing monospace text — no gold case, no real digit
  * segments, and it showed clock time instead of platform KPIs. Replaced
@@ -177,178 +168,6 @@ function TickerBar() {
           100% { transform: translateX(-50%); }
         }
       `}</style>
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════════════════
- * SUB-COMPONENT: Chaos Meter Radial Gauge
- * Port of ChaosMeter.kt:
- *   190dp canvas, 14px stroke arc, gold→orange→fuchsia→purple gradient
- *   Inner labels: CHAOS / METER / σ=0.xxx
- *   Spinning needle from ChaosMeter.kt drawArc + rotate call
- * ══════════════════════════════════════════════════════════════ */
-function ChaosMeterGauge({ value }: { value: number }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animRef = useRef<number>(undefined);
-  const currentRef = useRef(0);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const SIZE = canvas.width;
-    const CX = SIZE / 2;
-    const CY = SIZE / 2;
-    const R = SIZE * 0.4;
-    const SW = SIZE * 0.07; // stroke width = 14px equivalent
-
-    const target = Math.min(1, Math.max(0, value / 100));
-    let needle = currentRef.current;
-
-    const draw = () => {
-      // Ease toward target
-      needle += (target - needle) * 0.04;
-      currentRef.current = needle;
-
-      ctx.clearRect(0, 0, SIZE, SIZE);
-
-      // Track: inactive arc (bottom half semi-circle, 180° sweep)
-      ctx.beginPath();
-      ctx.arc(CX, CY, R, Math.PI, 2 * Math.PI);
-      ctx.strokeStyle = "rgba(255,255,255,0.07)";
-      ctx.lineWidth = SW;
-      ctx.lineCap = "round";
-      ctx.stroke();
-
-      // Active arc — gold→orange→fuchsia→purple gradient
-      const grad = ctx.createLinearGradient(CX - R, CY, CX + R, CY);
-      grad.addColorStop(0,    "#d69d41"); // gold
-      grad.addColorStop(0.35, "#ff4500"); // neon orange
-      grad.addColorStop(0.65, "#f5242a"); // hot pink fuchsia
-      grad.addColorStop(1,    "#8b00ff"); // bright purple
-
-      const sweepAngle = needle * Math.PI; // 0 = flat left, π = flat right
-      ctx.beginPath();
-      ctx.arc(CX, CY, R, Math.PI, Math.PI + sweepAngle);
-      ctx.strokeStyle = grad;
-      ctx.lineWidth = SW;
-      ctx.lineCap = "round";
-      ctx.stroke();
-
-      // Needle — thin line from center to arc edge
-      const needleAngle = Math.PI + sweepAngle;
-      const nx = CX + Math.cos(needleAngle) * (R - SW / 2);
-      const ny = CY + Math.sin(needleAngle) * (R - SW / 2);
-      ctx.beginPath();
-      ctx.moveTo(CX, CY);
-      ctx.lineTo(nx, ny);
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 2;
-      ctx.lineCap = "round";
-      ctx.stroke();
-
-      // Center dot
-      ctx.beginPath();
-      ctx.arc(CX, CY, SW * 0.4, 0, 2 * Math.PI);
-      ctx.fillStyle = "#ffffff";
-      ctx.fill();
-
-      if (Math.abs(needle - target) > 0.001) {
-        animRef.current = requestAnimationFrame(draw);
-      }
-    };
-
-    animRef.current = requestAnimationFrame(draw);
-    return () => { if (animRef.current) cancelAnimationFrame(animRef.current); };
-  }, [value]);
-
-  const sigma = (value / 100 * 0.45 + 0.02).toFixed(3);
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px", flex: 1 }}>
-      <div style={{ position: "relative", width: "100%", maxWidth: "120px" }}>
-        <canvas
-          ref={canvasRef}
-          width={200}
-          height={110}
-          style={{ width: "100%", height: "auto", display: "block" }}
-          aria-label={`Chaos meter at ${value}%`}
-        />
-        {/* Inner label stack — centered in the semi-circle */}
-        <div style={{
-          position: "absolute",
-          top: "28%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          textAlign: "center",
-          pointerEvents: "none",
-        }}>
-          <div style={{ fontFamily: "ui-monospace, monospace", fontSize: "11px", fontWeight: 900, color: T.white, letterSpacing: "1.5px" }}>CHAOS</div>
-          <div style={{ fontFamily: "ui-monospace, monospace", fontSize: "11px", fontWeight: 900, color: T.white, letterSpacing: "1.5px" }}>METER</div>
-          <div style={{ fontFamily: "ui-monospace, monospace", fontSize: "9px", color: T.pink, fontWeight: 700, marginTop: "2px" }}>σ = {sigma}</div>
-        </div>
-      </div>
-      <div style={{ fontFamily: "ui-monospace, monospace", fontSize: "20px", fontWeight: 900, color: T.pink, textShadow: `0 0 12px ${T.pink}80` }}>
-        {Math.round(value)}%
-      </div>
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════════════════
- * SUB-COMPONENT: Dopamine Carousel Tile
- * Exact from image: dark card, label header, content area
- * ══════════════════════════════════════════════════════════════ */
-function CarouselTile({ tile, children, accentColor = T.cyan }: {
-  tile: { id: TileId; label: string; icon: string };
-  children: React.ReactNode;
-  accentColor?: string;
-}) {
-  return (
-    <div
-      style={{
-        flex: "1 1 0",
-        minWidth: "140px",
-        background: T.bgCard,
-        border: `1px solid ${T.border}`,
-        borderRadius: "12px",
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        transition: "border-color 0.2s, box-shadow 0.2s",
-      }}
-      onMouseEnter={e => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = accentColor + "40";
-        (e.currentTarget as HTMLDivElement).style.boxShadow = `0 0 16px ${accentColor}20`;
-      }}
-      onMouseLeave={e => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = T.border;
-        (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
-      }}
-    >
-      {/* Tile header */}
-      <div style={{
-        padding: "6px 10px",
-        background: `linear-gradient(to right, ${accentColor}15, transparent)`,
-        borderBottom: `1px solid ${T.border}`,
-        display: "flex",
-        alignItems: "center",
-        gap: "4px",
-      }}>
-        <span style={{ fontFamily: "ui-monospace, monospace", fontSize: "10px", fontWeight: 900, color: accentColor }}>
-          {tile.icon}
-        </span>
-        <span style={{ fontFamily: "ui-monospace, monospace", fontSize: "9px", fontWeight: 800, color: accentColor, letterSpacing: "1px" }}>
-          {tile.label}
-        </span>
-      </div>
-      {/* Tile content */}
-      <div style={{ padding: "10px", flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        {children}
-      </div>
     </div>
   );
 }
@@ -505,18 +324,25 @@ function MarketCard({ market, onBet }: {
 /* ══════════════════════════════════════════════════════════════
  * MAIN COMPONENT: SeikoDopamineHub
  * ══════════════════════════════════════════════════════════════ */
-export default function SeikoDopamineHub() {
-  const { madCredits, positions, streak, chaosMeter } = useGame();
+export default function SeikoDopamineHub({
+  uid = "floor-hero",
+  showTicker = true,
+  showFeatured = true,
+  showUnpacked = true,
+}: {
+  /** Distinguishes the cluster's element ids when a page mounts more than one. */
+  uid?: string;
+  /** The crypto price strip across the top. /preview already opens with the dual
+   *  ticker, so it hides this copy; /mpp2.23 has no other, so it keeps it. */
+  showTicker?: boolean;
+  /** The two-up demo market cards. /preview has the full FeaturedMarketCards. */
+  showFeatured?: boolean;
+  /** The unpacked-cards row. /preview mounts the full carousel in the game block. */
+  showUnpacked?: boolean;
+}) {
+  const { madCredits } = useGame();
 
-  const activeBets = positions.filter(p => !p.resolved).length;
   const stakingTier = getStakingTier(madCredits);
-
-  // Top gainers — mock data reflecting leaderboard concept
-  const gainers = [
-    { handle: "UserA", pct: 50 },
-    { handle: "UserB", pct: 30 },
-    { handle: "UserC", pct: 18 },
-  ];
 
   const handleBet = useCallback((id: string, side: "YES" | "NO") => {
     // In prod: call openPosition(). Here: flash feedback only.
@@ -535,153 +361,70 @@ export default function SeikoDopamineHub() {
       className="animate-dramatic"
     >
       {/* ── 1. SCROLLING TICKER BAR ────────────────────────── */}
-      <TickerBar />
+      {showTicker ? <TickerBar /> : null}
 
       {/* ── 1b. MARKET-ENERGY EQUALIZER — sits below the golden ticker ── */}
       <EqualizerStrip />
 
-      {/* ── 2. HEADER ROW: title ──
-          The split-flap chrono used to sit loose here, with the instrument
-          cluster below it rendering an EMPTY centre. That was one instrument
-          torn in half: the clock is designed to be the cluster's centre slot,
-          flanked by the two dials. It has been moved into that slot in 2b
-          below — moved, not dropped. */}
-      <div style={{ padding: "14px 20px 4px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
-        <div>
-          <div style={{
-            fontFamily: "ui-monospace, monospace",
-            fontSize: "9px",
-            fontWeight: 700,
-            letterSpacing: "3px",
-            color: T.gold,
-            textTransform: "uppercase",
-            marginBottom: "3px",
-          }}>
-            CUSTOMIZABLE MARKET CAROUSEL
-          </div>
-          <div style={{
-            fontFamily: "ui-monospace, monospace",
-            fontSize: "8px",
-            color: T.muted,
-            letterSpacing: "1px",
-          }}>
-            MAD GAMBIT · PLATFORM {PLATFORM.FEE_BPS / 100}% FEE
-          </div>
-        </div>
-      </div>
-
-      {/* ── 2b. GAMBIT INSTRUMENT CLUSTER v2 — the canonical benchmark hero ──
+      {/* ── 2. INSTRUMENT CLUSTER — dials flank the chrono, which is the
+          cluster's centre slot. The hub used to stack its own two-line title
+          above the cluster's two-line title; the cluster now carries the only
+          two lines, so the dials sit directly under the equalizer. The chrono
+          `fit`s the row, so its case runs to the section's padding.
           3 independently customizable 2-digit KPI pods + 2 independently
           customizable analog dials, all center-aligned, gold-cased.
           Tap any dot beneath a pod/dial to swap what it shows.
           See gambit-instrument-cluster.tsx for the full rationale. */}
-      <div style={{ padding: "6px 16px 16px", borderBottom: `1px solid ${T.border}` }}>
+      <div style={{ padding: "8px 16px 16px", borderBottom: `1px solid ${T.border}` }}>
         <GambitInstrumentCluster
-          uid="floor-hero"
-          centerSlot={<SeikoFlipClock label="MAD·STATE · TAP A DOT TO PIN" scale={1.2} />}
+          uid={uid}
+          eyebrow="MAD GAMBIT · CUSTOMIZABLE MARKET CAROUSEL"
+          caption={<>{PLATFORM.FEE_BPS / 100}% FEE &middot; SPLIT-FLAP CHRONO &middot; 2 DIALS &middot; TAP A DOT TO SWAP</>}
+          centerSlot={<SeikoFlipClock label="MAD·STATE · TAP A DOT TO PIN" scale={1.2} fit />}
         />
       </div>
 
-      {/* ── 2c. PLATFORM PILLAR CAROUSEL — right-to-left continuous scroll ──
-          Convictions / Predictions / Z-Liar Meter / Card-game. */}
-      <div style={{ borderBottom: `1px solid ${T.border}` }}>
+      {/* ── 3. PLATFORM STAT CARDS — right-to-left continuous scroll ──
+          Convictions / Predictions / Z-Liar / Card game, then the player's own
+          Active Bets / Degen Streak / Chaos Meter / Ladder. The second four
+          were a separate strip of tiles here; they are now cards in this one. */}
+      <div style={{ borderBottom: showFeatured || showUnpacked ? `1px solid ${T.border}` : "none" }}>
         <PlatformCarousel />
       </div>
 
-      {/* ── 3. CAROUSEL TILES ROW ────────────────────────── */}
-      <div style={{
-        display: "flex",
-
-        gap: "8px",
-        padding: "12px 16px",
-        overflowX: "auto",
-        scrollbarWidth: "none",
-        borderBottom: `1px solid ${T.border}`,
-      }}>
-        {/* ACTIVE BETS */}
-        <CarouselTile tile={TILE_LABELS[0]} accentColor={T.cyan}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "32px", fontWeight: 900, color: T.cyan, textShadow: `0 0 16px ${T.cyan}80`, lineHeight: 1 }}>
-              {activeBets}
-            </div>
-            <div style={{ fontSize: "9px", color: T.muted, letterSpacing: "1px", marginTop: "3px" }}>LIVE</div>
+      {/* ── 4. FEATURED MARKET CARDS ─────────────────────── */}
+      {showFeatured ? (
+        <div style={{ padding: "12px 16px 16px" }}>
+          <div style={{
+            fontFamily: "ui-monospace, monospace",
+            fontSize: "9px",
+            fontWeight: 800,
+            color: T.gold,
+            letterSpacing: "2px",
+            marginBottom: "10px",
+          }}>
+            FEATURED MARKET CARDS
           </div>
-        </CarouselTile>
 
-        {/* DEGEN STREAK */}
-        <CarouselTile tile={TILE_LABELS[1]} accentColor={T.gold}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{
-              fontSize: "28px",
-              fontWeight: 900,
-              color: T.gold,
-              lineHeight: 1,
-              textShadow: streak >= 7 ? `0 0 20px ${T.gold}` : undefined,
-            }}
-              className={streak >= 7 ? "animate-streak-fire" : ""}
-            >
-              {streak}
-            </div>
-            <div style={{ fontSize: "9px", letterSpacing: "1px", marginTop: "2px", color: streak >= 5 ? T.gold : T.muted }}>
-              {streak >= 7 ? "🔥 SAVAGE!" : streak >= 5 ? "STREAK!" : "DAY STREAK"}
-            </div>
-            {streak >= 3 && (
-              <div style={{ fontSize: "9px", color: T.goldDim, marginTop: "2px" }}>
-                +{streak >= 7 ? "2.4x" : streak >= 5 ? "1.8x" : "1.3x"}
-              </div>
-            )}
-          </div>
-        </CarouselTile>
-
-        {/* CHAOS METER — radial gauge (faithful ChaosMeter.kt port) */}
-        <CarouselTile tile={TILE_LABELS[2]} accentColor={T.pink}>
-          <ChaosMeterGauge value={chaosMeter} />
-        </CarouselTile>
-
-        {/* TOP GAINERS */}
-        <CarouselTile tile={TILE_LABELS[3]} accentColor={T.green}>
-          <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "4px" }}>
-            {gainers.map((g, i) => (
-              <div key={g.handle} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: "9px", color: T.muted }}>
-                  {i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"} {g.handle}
-                </span>
-                <span style={{ fontSize: "10px", fontWeight: 900, color: T.green }}>+{g.pct}%</span>
-              </div>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+            gap: "10px",
+            paddingBottom: "4px",
+          }}>
+            {FEATURED_MARKETS.map(m => (
+              <MarketCard key={m.id} market={m} onBet={handleBet} />
             ))}
           </div>
-        </CarouselTile>
-      </div>
-
-      {/* ── 4. FEATURED MARKET CARDS ─────────────────────── */}
-      <div style={{ padding: "12px 16px 16px" }}>
-        <div style={{
-          fontFamily: "ui-monospace, monospace",
-          fontSize: "9px",
-          fontWeight: 800,
-          color: T.gold,
-          letterSpacing: "2px",
-          marginBottom: "10px",
-        }}>
-          FEATURED MARKET CARDS
         </div>
-
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-          gap: "10px",
-          paddingBottom: "4px",
-        }}>
-          {FEATURED_MARKETS.map(m => (
-            <MarketCard key={m.id} market={m} onBet={handleBet} />
-          ))}
-        </div>
-      </div>
+      ) : null}
 
       {/* ── 4b. UNPACKED CARDS CAROUSEL — auto-scroll, pause on hover ──── */}
-      <div style={{ padding: "8px 16px 4px", borderTop: `1px solid ${T.border}` }}>
-        <UnpackedCardsCarousel count={8} />
-      </div>
+      {showUnpacked ? (
+        <div style={{ padding: "8px 16px 4px", borderTop: `1px solid ${T.border}` }}>
+          <UnpackedCardsCarousel count={8} />
+        </div>
+      ) : null}
 
       {/* MADHAT'r concierge moved to page root — see app/gambit/page.tsx.
           It's a position:fixed floating widget now, not an embedded panel,

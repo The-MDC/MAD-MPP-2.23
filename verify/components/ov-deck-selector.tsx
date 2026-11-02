@@ -9,23 +9,21 @@
  */
 
 import React, { useState } from "react";
-import { OVDeck, OV_DECKS, calculateDeltaLimit } from "@/lib/gambit-game-math";
-import { ChevronDown, Zap, Shield, TrendingUp } from "lucide-react";
+import { OVDeck, OV_DECKS } from "@/lib/gambit-game-math";
+import { ChevronDown } from "lucide-react";
 
 interface OVDeckSelectorProps {
   selectedDeck: OVDeck;
   onSelect: (deck: OVDeck) => void;
-  convictionStake?: number; // used to show live δ-limit preview
+  /** Kept for callers; the δ-limit it fed now reads in the Kaito feed. */
+  convictionStake?: number;
 }
 
 export default function OVDeckSelector({
   selectedDeck,
   onSelect,
-  convictionStake = 500,
 }: OVDeckSelectorProps) {
   const [open, setOpen] = useState(false);
-
-  const deltaLimit = calculateDeltaLimit(selectedDeck.multiplier, convictionStake);
 
   return (
     <div className="relative w-full">
@@ -79,21 +77,9 @@ export default function OVDeckSelector({
         </div>
       )}
 
-      {/* Live stats strip */}
-      <div className="grid grid-cols-4 gap-1.5 mt-2">
-        <StatPill icon={<Zap className="w-3 h-3" />} label="MULTIPLIER" value={`${selectedDeck.multiplier}x`} color="#7cffc7" />
-        <StatPill icon={<Shield className="w-3 h-3" />} label="MIN THRESHOLD" value={selectedDeck.minThreshold.toString()} color="#58a6ff" />
-        <StatPill icon={<TrendingUp className="w-3 h-3" />} label="SHIELD APY" value={`${selectedDeck.yieldApy}%`} color="#fbbf24" />
-        <StatPill icon={null} label="δ-LIMIT" value={`${deltaLimit.toFixed(0)}δ`} color="#c98aff" />
-      </div>
-
-      {/* Reserve pool */}
-      <div className="mt-2 rounded-lg border border-neutral-850 bg-[#030508] px-3 py-2 flex items-center justify-between">
-        <span className="font-mono text-[9px] uppercase tracking-widest text-neutral-600">Shield Reserve Pool</span>
-        <span className="font-mono text-[10px] font-black text-emerald-400">
-          ${(selectedDeck.reservePool / 1_000_000).toFixed(1)}M USD
-        </span>
-      </div>
+      {/* The live stats (multiplier, min threshold, shield APY, δ-limit and the
+          shield reserve pool) moved into the Kaito feed, which flips through them
+          every 3.5 s and reads this same deck. */}
     </div>
   );
 }
@@ -103,19 +89,5 @@ function Stat({ label, value, color }: { label: string; value: string; color: st
     <span className="font-mono text-[8px]" style={{ color }}>
       <span className="text-neutral-600">{label} </span>{value}
     </span>
-  );
-}
-
-function StatPill({
-  icon, label, value, color,
-}: { icon: React.ReactNode; label: string; value: string; color: string }) {
-  return (
-    <div className="rounded-lg border border-neutral-850 bg-[#030508] px-2 py-1.5 text-center">
-      <div className="flex items-center justify-center gap-1 mb-0.5" style={{ color }}>
-        {icon}
-        <span className="font-mono text-[7.5px] uppercase tracking-wider text-neutral-600">{label}</span>
-      </div>
-      <p className="font-mono text-xs font-black" style={{ color }}>{value}</p>
-    </div>
   );
 }

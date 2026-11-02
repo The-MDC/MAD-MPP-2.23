@@ -1,111 +1,129 @@
 "use client";
 
 /**
- * MΛĐ Gambit — Kaito Dynamic Ticker
+ * MΛĐ Gambit — Kaito Feed
  * ------------------------------------------------------------------
- * Ported from MainActivity.kt GlobalSkinsAndKaitoHUD.
- * Shows $MADx / $ETH / $SOL / $PEPE.
+ * Ported from MainActivity.kt GlobalSkinsAndKaitoHUD, and no longer a price tape.
  *
- * ── This tape is simulated, and now says so ──────────────────────────
- * It previously read "KAITO LIVE FEED" beside a pulsing green dot, over four
- * hardcoded prices jittered by Math.random() every three seconds. It renders on
- * /preview and /mpp2.23 — both shipped — so a visitor was shown "$ETH 3,140 ▼
- * 2.15%" under a live indicator, and every part of that except the ticker
- * symbol was invented on the spot.
+ * ── From a simulated tape to a stats feed ────────────────────────────
+ * This strip used to read "KAITO FEED · SIMULATED" over four invented prices
+ * ($MADx, $ETH, $SOL, $PEPE) drifting around fixed baselines — no oracle was
+ * ever connected. The label was honest by then, but a price is the number a
+ * user is likeliest to act on and least able to sanity-check, so the tape is
+ * gone rather than merely labelled. No crypto ticker of any kind remains here;
+ * the page's dual ticker above carries the market wire.
  *
- * A price is the one number a user is most likely to act on and least able to
- * sanity-check, so the "PLACEHOLDER: wire to real oracle" comment that used to
- * sit up here was load-bearing documentation for a claim the interface was
- * making out loud to end users. A comment cannot carry that.
- *
- * The tape stays — it is part of the instrument language — but the LIVE claim
- * and the green pulse are gone, and the label says SIMULATED. Wiring it for
- * real is a product decision, not a code cleanup: it needs a chosen provider
- * (Chainlink feeds via the existing viem client, or the Kaito API), a key, and
- * that provider's origin added to `connect-src` in next.config.ts, which is
- * currently Report-Only and would otherwise fail silently at first and loudly
- * on promotion. Until those three exist, honest beats fabricated.
+ * In its place one cell flips, bottom-up, every 3.5 seconds through:
+ *   · the active O-V deck's multiplier, minimum threshold, shield APY, δ-limit
+ *     and shield reserve pool (these used to sit under the deck selector), then
+ *   · the platform's mood and counters — crowd mood, chaos meter, open markets,
+ *     pending wagers, your streak, your open bets, deck size, fee.
+ * The counters that need the database appear only when it answered; nothing is
+ * shown as a zero it does not know.
  */
 
 import React, { useState, useEffect } from "react";
 import { Radio } from "lucide-react";
 import HoldHint from "@/components/hold-hint";
+import usePlatformMetrics, { isLiveMetrics } from "@/hooks/use-platform-metrics";
 
-// SIMULATED price data — see the header. Prod wires to Chainlink / Kaito.
-const BASE_PRICES: { symbol: string; price: number; change: number }[] = [
-  { symbol: "$MADx", price: 2.48,    change: 18.42 },
-  { symbol: "$ETH",  price: 3140,    change: -2.15 },
-  { symbol: "$SOL",  price: 164.50,  change: 12.18 },
-  { symbol: "$PEPE", price: 0.00015, change: 42.50 },
-];
+/** How long each stat holds before the next flips up. */
+const FLIP_MS = 3500;
 
-function fmtPrice(p: number): string {
-  if (p < 0.001) return p.toFixed(5);
-  if (p < 1) return p.toFixed(4);
-  if (p < 100) return p.toFixed(2);
-  return p.toLocaleString(undefined, { maximumFractionDigits: 0 });
+interface FeedStat {
+  label: string;
+  value: string;
+  /** Tailwind-free colour so it works on every skin. */
+  color: string;
 }
 
-export function KaitoPriceTicker() {
-  const [prices, setPrices] = useState(BASE_PRICES);
+function crowdMood(chaos: number): string {
+  if (chaos >= 80) return "FRENZIED";
+  if (chaos >= 60) return "HEATED";
+  if (chaos >= 35) return "SIMMERING";
+  return "CALM";
+}
 
-  // Micro price movements, mean-reverting toward BASE_PRICES rather than a free
-  // random walk. The old form added an unbounded increment to `change` every
-  // three seconds forever, so a tab left open drifted to absurd percentages —
-  // a simulated tape should at least stay in the range a real one would.
-  //
-  // Runs only in the effect, never during render, so the server and the first
-  // client paint agree on BASE_PRICES and there is no hydration mismatch.
+export function KaitoPriceTicker({ deck, stake = 500 }: { deck?: OVDeck; stake?: number }) {
+  const active = deck ?? OV_DECKS[0];
+  const { chaosMeter, streak, positions } = useGame();
+  const metrics = usePlatformMetrics();
+  const [i, setI] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  const live = isLiveMetrics(metrics);
+  const stats: FeedStat[] = [
+    { label: "MULTIPLIER", value: `${active.multiplier}x`, color: "#7cffc7" },
+    { label: "MIN THRESHOLD", value: String(active.minThreshold), color: "#58a6ff" },
+    { label: "SHIELD APY", value: `${active.yieldApy}%`, color: "#fbbf24" },
+    { label: "δ-LIMIT", value: `${calculateDeltaLimit(active.multiplier, stake).toFixed(0)}δ`, color: "#c98aff" },
+    { label: "SHIELD RESERVE", value: `$${(active.reservePool / 1_000_000).toFixed(1)}M`, color: "#34d399" },
+    { label: "CROWD MOOD", value: crowdMood(chaosMeter), color: "#ff6b9d" },
+    { label: "CHAOS METER", value: `${Math.round(chaosMeter)} / 100`, color: "#f5242a" },
+    ...(live
+      ? [
+          { label: "OPEN MARKETS", value: String(metrics.activeMarkets), color: "#ffcf40" },
+          { label: "PENDING WAGERS", value: String(metrics.openBets), color: "#00e5ff" },
+          { label: "SCANDAL SENTIMENT", value: `${Math.round(metrics.chaos)} / 100 · ${crowdMood(metrics.chaos)}`, color: "#ff8a5c" },
+        ]
+      : []),
+    { label: "YOUR STREAK", value: `${streak} DAY${streak === 1 ? "" : "S"}`, color: "#ffcf40" },
+    { label: "YOUR OPEN BETS", value: String(positions.filter((p) => !p.resolved).length), color: "#00e5ff" },
+    { label: "DECK SIZE", value: "992 CARDS", color: "#00ff88" },
+    { label: "PLATFORM FEE", value: "1.88%", color: "#d69d41" },
+  ];
+
+  // One cadence for the whole feed. Runs only in the effect, never during
+  // render, so the server and the first client paint agree (stat 0, no flip).
   useEffect(() => {
-    const t = setInterval(() => {
-      setPrices((p) =>
-        p.map((item, i) => {
-          const base = BASE_PRICES[i];
-          const pull = (b: number, v: number) => v + (b - v) * 0.06;
-          return {
-            ...item,
-            price: pull(base.price, item.price) * (1 + (Math.random() - 0.499) * 0.002),
-            change: pull(base.change, item.change) + (Math.random() - 0.5) * 0.1,
-          };
-        })
-      );
-    }, 3000);
+    if (paused) return;
+    const t = setInterval(() => setI((n) => n + 1), FLIP_MS);
     return () => clearInterval(t);
-  }, []);
+  }, [paused]);
+
+  const at = i % stats.length;
+  const cur = stats[at];
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-neutral-850 bg-[#05070c] w-full">
+    <div
+      className="flex items-center gap-2 px-4 py-2 rounded-xl border border-neutral-850 bg-[#05070c] w-full"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+    >
       <HoldHint
         hint={{
-          title: "Kaito tape",
-          kind: "sample",
-          body: "Simulated, not a market feed. Four seeded prices drifting around fixed baselines — no oracle is connected. Wiring it needs a provider (Chainlink via viem, or the Kaito API), a key, and that origin added to connect-src.",
+          title: "Kaito feed",
+          kind: "measured",
+          body: "One stat at a time, flipping every 3.5 seconds: the active O-V deck's multiplier, minimum threshold, shield APY, δ-limit and reserve pool, then crowd mood, chaos, open markets, pending wagers, your streak and bets, deck size and fee. There are no prices here — the old simulated crypto tape was removed. Counters that need the database only appear when it answered. Hover or focus pauses it.",
         }}
       >
       <div className="flex items-center gap-1.5 shrink-0" tabIndex={0}>
-        {/* The pulsing green dot is gone with the word LIVE. A "live" indicator
-            over invented numbers is the part a user reads fastest and trusts
-            most. Amber, static — a status light for a bench rig. */}
         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500" />
         <Radio className="w-3 h-3 text-yellow-400" />
         <span className="font-mono text-[8px] uppercase tracking-widest text-yellow-400 font-bold">
-          KAITO FEED · SIMULATED
+          KAITO FEED
         </span>
       </div>
       </HoldHint>
-      <div className="flex items-center gap-4 overflow-x-auto flex-1 scrollbar-none">
-        {prices.map(({ symbol, price, change }) => {
-          const up = change >= 0;
-          return (
-            <div key={symbol} className="flex items-center gap-1.5 shrink-0">
-              <span className="font-mono text-[9px] text-neutral-500 font-bold">{symbol}</span>
-              <span className="font-mono text-[10px] font-black text-neutral-200">{fmtPrice(price)}</span>
-              <span className={`font-mono text-[8px] font-bold ${up ? "text-emerald-400" : "text-rose-400"}`}>
-                {up ? "▲" : "▼"} {Math.abs(change).toFixed(2)}%
-              </span>
-            </div>
-          );
-        })}
+
+      {/* The flipping cell. Keyed on the stat so each change replays the flip;
+          overflow is clipped so the rising value never spills into the label. */}
+      <div
+        className="flex-1 min-w-0 flex items-center justify-end gap-2 overflow-hidden"
+        style={{ minHeight: 26 }}
+        aria-live="off"
+      >
+        <div key={`${at}-${cur.label}`} className="mg-kf-flip flex items-baseline gap-1.5 min-w-0 justify-end">
+          <span className="font-mono text-[8px] text-neutral-500 font-bold tracking-wider whitespace-nowrap">{cur.label}</span>
+          <span className="font-mono text-[13px] font-black whitespace-nowrap" style={{ color: cur.color, textShadow: `0 0 10px ${cur.color}55` }}>
+            {cur.value}
+          </span>
+        </div>
+        <span className="font-mono text-[7px] text-neutral-600 shrink-0 tabular-nums" aria-hidden="true">
+          {String(at + 1).padStart(2, "0")}/{String(stats.length).padStart(2, "0")}
+        </span>
       </div>
     </div>
   );
