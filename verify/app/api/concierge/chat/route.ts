@@ -7,7 +7,7 @@ import { nimChat, nimEnabled } from "@/lib/nim-chat";
 import { isSensitiveQuery, looksLikeLeak, SENSITIVE_REPLY } from "@/lib/madhatr-guard";
 import { MADHATR_SYSTEM_INSTRUCTION } from "@/lib/madhatr-persona";
 import {
-    greetingReply, isGreeting, knowledgePrompt, loadKnowledge, normalizeHistory,
+    greetingReply, isGreeting, knowledgePromptFor, loadKnowledge, normalizeHistory, pickWelcome,
     PAY_GRADE_MARKER, payGradeReply, retrieve, wantsOpinionOrAdvice,
 } from "@/lib/madhatr-knowledge";
 
@@ -56,6 +56,12 @@ export async function POST(req: NextRequest) {
         const turns = normalizeHistory(history);
         const kb = loadKnowledge();
 
+        // A brand-new visitor opening the chat: one humorous welcome from the knowledge file. No model, no cost.
+        if (body.welcome === true) {
+            const line = pickWelcome(kb);
+            return NextResponse.json(line ? { reply: line, quipSource: "welcome" } : { reply: "" });
+        }
+
         // Anything asking for a secret, an internal, a private figure or a private person gets the normal
         // pay-grade line from CODE — before retrieval and before any model sees the question.
         if (isSensitiveQuery(text)) {
@@ -80,7 +86,7 @@ export async function POST(req: NextRequest) {
 
         const toneLine = TONE_DIRECTIVES[tone] || TONE_DIRECTIVES["Satirical"];
         const riskLine = getRiskDirective(risk);
-        const directive = `${GEMINI_SYSTEM_INSTRUCTION}\n\n${toneLine}\n${riskLine}\n\n${knowledgePrompt(kb)}`;
+        const directive = `${GEMINI_SYSTEM_INSTRUCTION}\n\n${toneLine}\n${riskLine}\n\n${knowledgePromptFor(kb, text, turns)}`;
 
         let inputText = text;
         if (regen_count >= 1) {

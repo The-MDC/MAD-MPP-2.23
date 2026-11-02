@@ -142,6 +142,23 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
   const [risk, setRisk] = useState(0.75);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // First time the panel opens on this device: swap the stock hello for one of the humorous welcomes from the
+  // knowledge file. Remembered per device; storage can be blocked, so every touch is guarded.
+  useEffect(() => {
+    if (!open) return;
+    try {
+      if (localStorage.getItem("mg_welcomed") === "1") return;
+      localStorage.setItem("mg_welcomed", "1");
+    } catch { /* storage blocked: still welcome them once per page load */ }
+    fetch("/api/concierge/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ welcome: true }) })
+      .then((r) => r.json())
+      .then((j: { reply?: string }) => {
+        const line = typeof j.reply === "string" ? j.reply.trim() : "";
+        if (line) setMessages((m) => (m.length === 1 && m[0].id === "seed" ? [{ ...SEED_MESSAGE, text: line }] : m));
+      })
+      .catch(() => { /* keep the stock hello */ });
+  }, [open]);
+
   /* ── Draggable floating widget ──────────────────────────────────────
      Push the bubble anywhere on screen. Positions are kept relative to the
      offsetParent — which inside the device frame is .mg-device, not the

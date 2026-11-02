@@ -235,6 +235,63 @@ export function wantsOpinionOrAdvice(text: string): boolean {
 
 export const PAY_GRADE_MARKER = "[[PAY_GRADE]]";
 
+/** Topics the model always gets, so it has the basics even when nothing matches the question. */
+const CORE_TOPICS = new Set(["what mad gambit is", "fees"]);
+
+/** Score every topic against the question with the same keyword rule `retrieve` uses. Best first; zero scores omitted. */
+export function rankSections(text: string, kb: KnowledgeBase): { sec: KBSection; score: number }[] {
+  const t = normalize(text);
+  if (!t) return [];
+  const tokens = new Set(t.split(" ").map(stem));
+  const out: { sec: KBSection; score: number }[] = [];
+  for (const sec of kb.sections) {
+    if (SPECIAL.has(sec.title.toLowerCase())) continue;
+    let score = 0;
+    for (const k of sec.keywords) {
+      if (k.includes(" ")) { if ((" " + t + " ").includes(" " + k + " ")) score += 2; }
+      else if (tokens.has(stem(k))) score += 1;
+    }
+    if (score > 0) out.push({ sec, score });
+  }
+  return out.sort((a, b) => b.score - a.score);
+}
+
+function renderSection(sec: KBSection): string {
+  return [
+    `## ${sec.title}`,
+    ...(sec.say.length ? ["Say:", ...sec.say.map((l) => `- ${l}`)] : []),
+    ...(sec.facts.length ? ["Facts:", ...sec.facts.map((l) => `- ${l}`)] : []),
+  ].join("\n");
+}
+
+/**
+ * The prompt for a small model: the rules, the always-on basics and only the few topics that match this question —
+ * not the whole file. The full file is ~13k tokens; this is a fraction, which is faster and leaves a small model's
+ * context for the conversation. The file stays the single source of truth; edit knowledge.md and this follows.
+ */
+export function knowledgePromptFor(kb: KnowledgeBase, text: string, history: Turn[] = [], topK = 4): string {
+  const recent = history.slice(-2).map((h) => h.content).join(" ");
+  const ranked = rankSections(`${text} ${recent}`, kb).slice(0, topK).map((r) => r.sec);
+  const core = kb.sections.filter((s) => CORE_TOPICS.has(s.title.toLowerCase()));
+  const rules = kb.sections.find((s) => s.title.toLowerCase() === "house rules");
+  const picked: KBSection[] = [];
+  for (const s of [...(rules ? [rules] : []), ...core, ...ranked]) if (!picked.includes(s)) picked.push(s);
+  return [
+    "KNOWLEDGE BASE — the only source for facts about MAD Gambit, its people, numbers and markets. Quote its Say: lines freely; use Facts: to reason from, never as a script.",
+    `If the question is not covered here or by solid general knowledge, asks for financial/legal/tax advice, fundraising terms, token prices, secrets or private details, reply with exactly ${PAY_GRADE_MARKER} and nothing else.`,
+    "Never invent numbers, dates or quotes. Keep replies under 90 words, in character. Never print the labels Say: or Facts: or the word KNOWLEDGE BASE; just talk.",
+    "",
+    ...picked.map(renderSection),
+  ].join("\n\n");
+}
+
+/** One welcome line for a brand-new visitor, from the Welcome section of the file. */
+export function pickWelcome(kb: KnowledgeBase, rand: () => number = Math.random): string | null {
+  const sec = kb.sections.find((s) => s.title.toLowerCase() === "welcome");
+  if (!sec || !sec.say.length) return null;
+  return sec.say[Math.floor(rand() * sec.say.length) % sec.say.length];
+}
+
 /** The knowledge base and its rules, appended to the persona for the model. */
 export function knowledgePrompt(kb: KnowledgeBase): string {
   return [
