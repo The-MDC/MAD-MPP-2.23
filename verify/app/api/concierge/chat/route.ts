@@ -3,9 +3,11 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
 import { enforceRateLimit } from "@/lib/rate-limit";
+import { nimChat, nimEnabled } from "@/lib/nim-chat";
+import { isSensitiveQuery, looksLikeLeak, SENSITIVE_REPLY } from "@/lib/madhatr-guard";
 import { MADHATR_SYSTEM_INSTRUCTION } from "@/lib/madhatr-persona";
 import {
-    greetingReply, isGreeting, knowledgePrompt, loadKnowledge, normalizeHistory,
+    greetingReply, isGreeting, knowledgePromptFor, loadKnowledge, normalizeHistory, pickWelcome,
     PAY_GRADE_MARKER, payGradeReply, retrieve, wantsOpinionOrAdvice,
 } from "@/lib/madhatr-knowledge";
 
@@ -54,13 +56,25 @@ export async function POST(req: NextRequest) {
         const turns = normalizeHistory(history);
         const kb = loadKnowledge();
 
+        // A brand-new visitor opening the chat: one humorous welcome from the knowledge file. No model, no cost.
+        if (body.welcome === true) {
+            const line = pickWelcome(kb);
+            return NextResponse.json(line ? { reply: line, quipSource: "welcome" } : { reply: "" });
+        }
+
+        // Anything asking for a secret, an internal, a private figure or a private person gets the normal
+        // pay-grade line from CODE — before retrieval and before any model sees the question.
+        if (isSensitiveQuery(text)) {
+            return NextResponse.json({ reply: SENSITIVE_REPLY, quipSource: "sensitive" });
+        }
+
         // A plain hello is copied straight back; every 5th one gets a brush-off.
         if (isGreeting(text, kb)) {
             return NextResponse.json({ reply: greetingReply(text, turns, kb), quipSource: "greeting" });
         }
 
-        if (!text || !process.env.GOOGLE_API_KEY) {
-            // No model key on this deployment: answer from the knowledge base,
+        if (!text || (!nimEnabled() && !process.env.GOOGLE_API_KEY)) {
+            // No model key on this deployment (neither NVIDIA NIM nor Gemini): answer from the knowledge base,
             // and walk the pay-grade ladder when it has nothing to say.
             const hit = text && !wantsOpinionOrAdvice(text) ? retrieve(text, turns, kb) : null;
             return NextResponse.json(
@@ -70,36 +84,44 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const llm = new ChatGoogleGenerativeAI({
-            model: "gemini-flash-latest",
-            maxOutputTokens: 300,
-            temperature: 0.85,
-        });
-
         const toneLine = TONE_DIRECTIVES[tone] || TONE_DIRECTIVES["Satirical"];
         const riskLine = getRiskDirective(risk);
-        const directive = `${GEMINI_SYSTEM_INSTRUCTION}\n\n${toneLine}\n${riskLine}\n\n${knowledgePrompt(kb)}`;
-
-        const prompt = ChatPromptTemplate.fromMessages([
-            new SystemMessage(directive),
-            new MessagesPlaceholder("history"),
-            new HumanMessage("{input}"),
-        ]);
-
-        const lcHistory = turns.slice(-10).map((turn) =>
-            turn.role === "user" ? new HumanMessage(turn.content) : new AIMessage(turn.content)
-        );
+        const directive = `${GEMINI_SYSTEM_INSTRUCTION}\n\n${toneLine}\n${riskLine}\n\n${knowledgePromptFor(kb, text, turns)}`;
 
         let inputText = text;
         if (regen_count >= 1) {
             inputText = `${text}\n\n[The user asked you to regenerate this response — ${regen_count} time(s). Escalate your intensity. Be sharper, funnier, more unhinged than your first take.]`;
         }
 
-        const chain = prompt.pipe(llm);
-        const result = await chain.invoke({ history: lcHistory, input: inputText });
-        const reply = typeof result.content === "string" ? result.content.trim() : "";
+        // Provider order: NVIDIA NIM (when NIM_API_KEY + NIM_MODEL are set), then Gemini, then — below — the
+        // knowledge file. nimChat never throws, so an NIM outage just drops through to the next one.
+        let reply = nimEnabled()
+            ? (await nimChat({ system: directive, history: turns.slice(-10), input: inputText })) ?? ""
+            : "";
 
-        // The model signals "not in my file" with a marker; the ladder decides the words.
+        if (!reply && process.env.GOOGLE_API_KEY) {
+            const llm = new ChatGoogleGenerativeAI({
+                model: "gemini-flash-latest",
+                maxOutputTokens: 300,
+                temperature: 0.85,
+            });
+            const prompt = ChatPromptTemplate.fromMessages([
+                new SystemMessage(directive),
+                new MessagesPlaceholder("history"),
+                new HumanMessage("{input}"),
+            ]);
+            const lcHistory = turns.slice(-10).map((turn) =>
+                turn.role === "user" ? new HumanMessage(turn.content) : new AIMessage(turn.content)
+            );
+            const result = await prompt.pipe(llm).invoke({ history: lcHistory, input: inputText });
+            reply = typeof result.content === "string" ? result.content.trim() : "";
+        }
+
+        // The model signals "not in my file" with a marker; the ladder decides the words. A reply that looks
+        // like it contains a secret is never sent.
+        if (reply && looksLikeLeak(reply)) {
+            return NextResponse.json({ reply: SENSITIVE_REPLY, quipSource: "sensitive" });
+        }
         if (!reply || reply.includes(PAY_GRADE_MARKER)) {
             return NextResponse.json({ reply: payGradeReply(turns, kb), quipSource: "pay-grade" });
         }

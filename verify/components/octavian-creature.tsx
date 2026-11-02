@@ -46,6 +46,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useSkin } from "@/components/skin-provider";
+import OctavianVoice from "@/components/octavian-voice";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import { NODE_REGISTRY, NODE_IDS } from "@/lib/node-registry";
 import { fitCanvas, fibonacciSphere, runInstrumentLoop, type P3 } from "@/lib/instrument-chrome";
@@ -450,6 +451,32 @@ function OctavianCanvasPanel({
       ctx.fillRect(0, 0, w, h);
       ctx.globalAlpha = 1;
 
+      // The body. The lights live inside a glassy orb with a rim in the mood colour (calm blue, ruffled gold,
+      // annoyed red), so the swarm reads as one creature rather than a loose scatter. It breathes slowly, and a
+      // faster, shallower flutter comes in as it gets agitated. Reduced motion holds it still.
+      const tint = creatureColor(3, ir.tierBlend);
+      const agitation = ir.tierBlend / 2;
+      const breath = still ? 1 : 1 + 0.014 * Math.sin(t * 0.0016) + 0.012 * agitation * Math.sin(t * 0.009);
+      const Rb = R * breath;
+      const body = ctx.createRadialGradient(w / 2 - Rb * 0.28, h / 2 - Rb * 0.34, Rb * 0.05, w / 2, h / 2, Rb * 1.04);
+      body.addColorStop(0, "rgba(255,255,255,0.11)");
+      body.addColorStop(0.55, "rgba(255,255,255,0.025)");
+      body.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = body;
+      ctx.beginPath();
+      ctx.arc(w / 2, h / 2, Rb * 1.04, 0, TAU);
+      ctx.fill();
+      ctx.strokeStyle = tint;
+      ctx.globalAlpha = 0.2 + 0.14 * agitation;
+      ctx.lineWidth = 1.2 * scale;
+      ctx.shadowBlur = 10 * scale;
+      ctx.shadowColor = tint;
+      ctx.beginPath();
+      ctx.arc(w / 2, h / 2, Rb, 0, TAU);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+
       edges
         .map((e) => ({ e, z: (pts[e[0]].z + pts[e[1]].z) / 2 }))
         .sort((a, b) => b.z - a.z)
@@ -458,11 +485,11 @@ function OctavianCanvasPanel({
           const pa = pts[a];
           const pb = pts[b];
           const depth = Math.max(0.08, Math.min(1, (pa.k + pb.k) * 1.1));
-          ctx.strokeStyle = skin.accent;
-          ctx.globalAlpha = 0.16 * depth;
+          ctx.strokeStyle = creatureColor(a, ir.tierBlend);
+          ctx.globalAlpha = (0.18 + 0.1 * agitation) * depth;
           ctx.lineWidth = 0.9 * scale;
           ctx.shadowBlur = 3 * scale;
-          ctx.shadowColor = skin.accent;
+          ctx.shadowColor = creatureColor(a, ir.tierBlend);
           ctx.beginPath();
           ctx.moveTo(pa.x, pa.y);
           ctx.lineTo(pb.x, pb.y);
@@ -473,9 +500,10 @@ function OctavianCanvasPanel({
           const px = pa.x + (pb.x - pa.x) * u;
           const py = pa.y + (pb.y - pa.y) * u;
           ctx.globalAlpha = 0.8 * depth;
-          ctx.fillStyle = skin.gold;
+          const pulseCol = ir.tierBlend > 0.6 ? tint : skin.gold;
+          ctx.fillStyle = pulseCol;
           ctx.shadowBlur = 9 * scale;
-          ctx.shadowColor = skin.gold;
+          ctx.shadowColor = pulseCol;
           ctx.beginPath();
           ctx.arc(px, py, (1.3 * depth + 0.5) * scale, 0, TAU);
           ctx.fill();
@@ -734,6 +762,7 @@ export default function OctavianCreature({ variant }: OctavianCreatureProps) {
         onPopOut={() => setPoppedOut(true)}
         onDismiss={() => setDismissed(true)}
       />
+      <OctavianVoice />
       {poppedOut && (
         <div className="mg-ov-popout-backdrop" onClick={() => setPoppedOut(false)}>
           <div className="mg-ov-popout-panel" onClick={(e) => e.stopPropagation()}>
