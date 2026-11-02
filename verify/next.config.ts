@@ -25,17 +25,15 @@ const nextConfig = (phase: string): NextConfig => {
     },
     distDir: isDev ? ".next-dev" : ".next",
     typescript: { ignoreBuildErrors: false },
-    // Legacy uppercase bookmark → canonical lowercase route. Handled here rather
-    // than as an app/MPP2.23 route so it can't collide (case-only) with
-    // app/mpp2.23 under tsc's TS1149 casing rule. Source matching is
-    // case-sensitive, so only the uppercase path is redirected.
+    // ONE hub. The earlier 7-tab theme at /mpp2.23 (and /gambit before it) was merged into /preview, which now carries
+    // every tab, so the old paths are permanent redirects. Config redirects preserve the query string, so a deep link
+    // like /gambit?tab=saga or /mpp2.23?tab=casino lands on /preview?tab=saga|casino. Source matching is
+    // case-sensitive, so the uppercase bookmark gets its own entry.
     async redirects() {
       return [
-        { source: "/MPP2.23", destination: "/mpp2.23", permanent: true },
-        // /gambit was retired when the earlier hub theme moved to /mpp2.23.
-        // Config redirects preserve the query string, so existing deep links
-        // like /gambit?tab=floor resolve to /mpp2.23?tab=floor.
-        { source: "/gambit", destination: "/mpp2.23", permanent: true },
+        { source: "/mpp2.23", destination: "/preview", permanent: true },
+        { source: "/MPP2.23", destination: "/preview", permanent: true },
+        { source: "/gambit", destination: "/preview", permanent: true },
       ];
     },
     async headers() {

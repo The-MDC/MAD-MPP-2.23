@@ -47,6 +47,7 @@ import { KaitoPriceTicker, PredictionCircus } from "@/components/kaito-and-circu
 // second clock the founder rejected.
 import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
 import PlatformTabs from "@/components/platform-tabs";
+import ScandalVelocityMeter from "@/components/scandal-velocity-meter";
 import SignInNudge from "@/components/sign-in-nudge";
 import UnpackedCardsCarousel from "@/components/unpacked-cards-carousel";
 import HoldHint from "@/components/hold-hint";
@@ -524,6 +525,10 @@ function PreviewInner() {
                 <DopamineEngine />
               </div>
             </div>
+
+            {/* Merged in from the retired /mpp2.23 hub: the GARCH-tinted scandal-velocity meter. Everything else that hub
+                carried (Market Factory, swap desk, lobby) already lives in the module shelf below. */}
+            <ScandalVelocityMeter />
 
             {/* One carousel per market class (Progression · Saga · Z-Liar · Perp · GossipCop) */}
             <MarketTypeCarousels />
