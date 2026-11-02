@@ -35,10 +35,16 @@ describe("platform feature registry — both-theme parity guarantee", () => {
   // Both entry points render from PLATFORM_FEATURES, so parity holds by
   // construction — these assertions fail CI if either stops consuming it (e.g.
   // someone hardcodes a tab list again), which is exactly the drift we prevent.
-  it("the alternative hub theme (/mpp2.23) drives its tab bar from the registry", () => {
-    const hub = read("app/mpp2.23/page.tsx");
-    expect(hub).toMatch(/from "@\/lib\/platform-features"/);
-    expect(hub).toMatch(/PLATFORM_FEATURES\.map/);
+  it("the one hub (/preview) drives its seven-tab bar from the registry", () => {
+    const tabs = read("components/platform-tabs.tsx");
+    expect(tabs).toMatch(/from "@\/lib\/platform-features"/);
+    expect(tabs).toMatch(/PLATFORM_FEATURES\.map/);
+    expect(read("app/preview/page.tsx")).toMatch(/PlatformTabs/);
+  });
+
+  it("the retired hub route is gone and redirects to the one hub", () => {
+    expect(() => read("app/mpp2.23/page.tsx")).toThrow();
+    expect(read("next.config.ts")).toMatch(/source: "\/mpp2\.23", destination: "\/preview"/);
   });
 
   it("the premiere theme (/preview) surfaces the registry via PlatformExplorer", () => {

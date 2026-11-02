@@ -22,8 +22,8 @@ export default function PlatformExplorer() {
         <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 2, color: skin.gold, textTransform: "uppercase" }}>
           Enter the Platform
         </div>
-        <a href="/mpp2.23" style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: skin.accent, textDecoration: "none" }}>
-          Open /mpp2.23 →
+        <a href="/preview" style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: skin.accent, textDecoration: "none" }}>
+          Open the hub →
         </a>
       </div>
       <div style={{ fontSize: 8, color: skin.muted, margin: "0 0 12px 2px" }}>
@@ -33,7 +33,7 @@ export default function PlatformExplorer() {
         {PLATFORM_FEATURES.map((t) => (
           <a
             key={t.key}
-            href={`/mpp2.23?tab=${t.key}`}
+            href={`/preview?tab=${t.key}`}
             style={{ display: "block", textDecoration: "none", background: skin.card, border: `1px solid ${t.gated ? `${skin.gold}88` : skin.border}`, borderRadius: 12, padding: "12px 14px" }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>

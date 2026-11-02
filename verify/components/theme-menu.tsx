@@ -1,31 +1,24 @@
 "use client";
 
 /**
- * The hub's theme button, now a three-way menu: Gilded, Neon Noir and Classic.
- *
- * Gilded and Neon Noir are skins of the premiere hub, so choosing one just
- * switches the app-wide skin (GlobalSkin forwards it to ThemeProvider, the one
- * store). Classic is the earlier 7-tab device hub at /mpp2.23, which used to be
- * reachable only from a link on the profile page; it is a layout rather than a
- * palette, so choosing it opens that hub and it carries the active skin with it.
+ * The hub's theme button: Gilded or Neon Noir. Both are skins of the one hub, so choosing one just switches the
+ * app-wide skin (GlobalSkin forwards it to ThemeProvider, the one store). The earlier "Classic" 7-tab hub was merged
+ * into this one, so it is no longer a separate choice.
  */
 import React, { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import type { SkinName } from "@/lib/skins";
 
-type ThemeChoice = SkinName | "classic";
+type ThemeChoice = SkinName;
 
 const OPTIONS: { id: ThemeChoice; glyph: string; label: string; note: string }[] = [
   { id: "gilded", glyph: "◑", label: "Gilded", note: "Pop-Baroque, velvet and gold leaf" },
   { id: "neonNoir", glyph: "◐", label: "Neon Noir", note: "Tabloid ink, cyan and rossa" },
-  { id: "classic", glyph: "▣", label: "Classic", note: "The 7-tab phone hub" },
 ];
 
 export default function ThemeMenu() {
   const { skin, name, setSkin } = useSkin();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const current = OPTIONS.find((o) => o.id === name) ?? OPTIONS[1];
@@ -49,8 +42,7 @@ export default function ThemeMenu() {
 
   const choose = (id: ThemeChoice) => {
     setOpen(false);
-    if (id === "classic") router.push("/mpp2.23");
-    else setSkin(id);
+    setSkin(id);
   };
 
   return (
@@ -60,7 +52,7 @@ export default function ThemeMenu() {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        title="Choose a theme: Gilded, Neon Noir or Classic"
+        title="Choose a theme: Gilded or Neon Noir"
         className="mg-tap"
         style={{
           fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase",
