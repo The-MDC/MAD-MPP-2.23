@@ -62,6 +62,7 @@ import PerpDials from "@/components/perp-dials";
 import MadGambitConcierge from "@/components/mad-gambit-concierge";
 import { EigenTrustWidget } from "@/components/virality-eigen";
 import AuthModal from "@/components/auth-modal";
+import SignInNudge from "@/components/sign-in-nudge";
 
 // Tab panels
 import NftSaga from "@/components/nft-saga";
@@ -85,6 +86,7 @@ import {
   OVDeck, OV_DECKS, SKIN_TOKENS, SkinTokens,
 } from "@/lib/gambit-game-math";
 import { PLATFORM_FEATURES, PLATFORM_TAB_KEYS, type PlatformTabKey } from "@/lib/platform-features";
+import { DECISION_NODES } from "@/lib/decision-demo-nodes";
 import {
   Palette, Sparkles, User, Wallet, LogOut
 } from "lucide-react";
@@ -92,15 +94,8 @@ import { signInWithEthereum, signOut } from "@/lib/siwe-client";
 
 type Tab = PlatformTabKey;
 
-// Demo Bayesian evidence chain for the Logic tab's decision tree (thematic).
-const DECISION_NODES = [
-  { evidence: "Scandal velocity σ² spike (GARCH)", oldPrior: 0.42, newPosterior: 0.61, shift: 0.19, action: "WEAK_BUY" as const },
-  { evidence: "Z-Liar sentiment flips truth→liar",  oldPrior: 0.61, newPosterior: 0.38, shift: -0.23, action: "WEAK_SELL" as const },
-  { evidence: "Whale conviction stake detected",     oldPrior: 0.38, newPosterior: 0.72, shift: 0.34, action: "STRONG_BUY" as const },
-  { evidence: "RSS wire corroboration (7 feeds)",    oldPrior: 0.72, newPosterior: 0.78, shift: 0.06, action: "HOLD" as const },
-  { evidence: "Oracle cascade divergence",           oldPrior: 0.78, newPosterior: 0.55, shift: -0.23, action: "STRONG_SELL" as const },
-];
-
+// The Logic tab's demo evidence chain now lives in lib/decision-demo-nodes so the
+// premiere hub's Logic tab shows the same one.
 
 /** 0x1234…abcd — an address is not an email, and the header used to print a
  *  fabricated one. Truncated because the full 42 chars breaks the nav row. */
@@ -243,7 +238,7 @@ function GambitInner() {
         <MainNav active={tab} onSelect={setTab} hasGoldenHand={hasGoldenHand} />
 
         {/* KAITO TICKER */}
-        <div className="mb-2"><KaitoPriceTicker /></div>
+        <div className="mb-2"><KaitoPriceTicker deck={activeDeck} /></div>
 
         {/* RSS WIRE */}
         {/* ONE ticker, not two. Both LiveTicker and CryptoTickerDual are
@@ -439,6 +434,9 @@ function GambitInner() {
           Fixed bottom-right, real top-hat logo, GEMINI.md persona. */}
       <MadGambitConcierge />
       
+      {/* Not signed in = not earning. Every 165 s a small banner says so. */}
+      <SignInNudge signedIn={socialAuth.isAuthenticated} dialogOpen={showAuthModal} onOpen={() => setShowAuthModal(true)} bottom={72} />
+
       {/* ── GLOBAL MODALS ── */}
       {showAuthModal && (
         <AuthModal 

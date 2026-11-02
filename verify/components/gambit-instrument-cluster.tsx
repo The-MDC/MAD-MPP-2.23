@@ -289,6 +289,19 @@ function DigitPairPod({
   );
 }
 
+/**
+ * Dial geometry. The svg keeps its 108-unit viewBox; the dial grows by drawing
+ * that box 36% larger (108 → 147px). The bezel went the other way: 8 units →
+ * 5.6 (−30%) measured on screen, which in viewBox units at this scale is
+ * 5.6 / 1.36 = 4.1, kept on the original outer edge (r 52) by moving the ring's
+ * centre line in by half the difference. The face inside it is therefore wider,
+ * and FACE_SCALE spends that room on the instrument itself.
+ */
+const DIAL_PX = 147;
+const BEZEL_W = 4.1;
+const BEZEL_R = 52 - BEZEL_W / 2;
+const FACE_SCALE = 1.12;
+
 function AnalogGauge({
   presets, idx, onSelect, uid,
 }: {
@@ -332,7 +345,7 @@ function AnalogGauge({
   return (
     <div onClick={tap} title="Double-tap to cycle" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "5px", cursor: "pointer" }}>
       <svg
-        width={108} height={108} viewBox="0 0 108 108" role="img"
+        width={DIAL_PX} height={DIAL_PX} viewBox="0 0 108 108" role="img"
         aria-label={
           c
             ? `${c.symbol} ${c.price}, ${c.change}, ${stat.label} at ${Math.round(stat.value)}%`
@@ -349,10 +362,14 @@ function AnalogGauge({
           </linearGradient>
         </defs>
 
-        <circle cx={CX} cy={CY} r={R} fill="none" stroke={`url(#gauge-gold-${uid})`} strokeWidth="8" />
-        <circle cx={CX} cy={CY} r={R - 5.5} fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
-        <circle cx={CX} cy={CY} r={R - 9} fill="#0a0a12" />
+        {/* Bezel: 30% thinner than the original 8-unit ring, on the same outer
+            edge, so the face gains the difference. The face then carries the
+            instrument at FACE_SCALE so the dial reads bigger, not just emptier. */}
+        <circle cx={CX} cy={CY} r={BEZEL_R} fill="none" stroke={`url(#gauge-gold-${uid})`} strokeWidth={BEZEL_W} />
+        <circle cx={CX} cy={CY} r={BEZEL_R - BEZEL_W / 2 - 1.1} fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="0.8" />
+        <circle cx={CX} cy={CY} r={BEZEL_R - BEZEL_W / 2 - 2.2} fill="#0a0a12" />
 
+        <g transform={`translate(${CX} ${CY}) scale(${FACE_SCALE}) translate(${-CX} ${-CY})`}>
         {ticks.map((t, i) => (
           <line key={i} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} stroke="rgba(255,255,255,0.25)" strokeWidth="1" />
         ))}
@@ -406,6 +423,7 @@ function AnalogGauge({
             {Math.round(stat.value)}%
           </text>
         )}
+        </g>
       </svg>
 
       <div style={{
@@ -444,6 +462,10 @@ export interface GambitInstrumentClusterProps {
   /** Optional center replacement — when set, renders INSTEAD of the 3 KPI pods
    *  between the two dials (e.g. the split-flap chrono on the hub). */
   centerSlot?: React.ReactNode;
+  /** Line one of the two-line heading. */
+  eyebrow?: React.ReactNode;
+  /** Line two; defaults to what the cluster is made of. */
+  caption?: React.ReactNode;
 }
 
 export default function GambitInstrumentCluster({
@@ -454,6 +476,8 @@ export default function GambitInstrumentCluster({
   rightDialPresets = DEFAULT_RIGHT_DIAL_PRESETS,
   uid = "hero",
   centerSlot,
+  eyebrow = "MAD GAMBIT INSTRUMENT CLUSTER",
+  caption,
 }: GambitInstrumentClusterProps) {
   const [p1, setP1] = useState(0);
   const [p2, setP2] = useState(0);
@@ -463,19 +487,22 @@ export default function GambitInstrumentCluster({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px", width: "100%" }}>
+      {/* Two lines, no more. The cluster, its section and the hub above it each
+          used to add their own title and strapline — four lines of small print
+          between the equalizer and the dials. */}
       <div style={{
         fontFamily: INSTRUMENT_FONT, fontSize: "8px", fontWeight: 800,
-        letterSpacing: "3px", color: "#d69d41", textAlign: "center",
+        letterSpacing: "2px", color: "#d69d41", textAlign: "center", lineHeight: 1.2,
       }}>
-        MAD GAMBIT INSTRUMENT CLUSTER
+        {eyebrow}
       </div>
       <div style={{
         fontFamily: INSTRUMENT_FONT, fontSize: "7px", color: "#6b7280",
-        letterSpacing: "1px", textAlign: "center",
+        letterSpacing: "0.8px", textAlign: "center", lineHeight: 1.2, marginTop: -6,
       }}>
-        {centerSlot
+        {caption ?? (centerSlot
           ? <>SPLIT-FLAP CHRONO &middot; 2 CUSTOMIZABLE DIALS &middot; TAP ANY DOT TO SWAP</>
-          : <>3 INDEPENDENT KPI PODS &middot; 2 CUSTOMIZABLE DIALS &middot; TAP ANY DOT TO SWAP</>}
+          : <>3 INDEPENDENT KPI PODS &middot; 2 CUSTOMIZABLE DIALS &middot; TAP ANY DOT TO SWAP</>)}
       </div>
 
       {/* Dial · centre · dial.
@@ -494,7 +521,7 @@ export default function GambitInstrumentCluster({
 
         <div className="mg-cluster-c">
           {centerSlot ? (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>{centerSlot}</div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>{centerSlot}</div>
           ) : (
             <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
               <DigitPairPod presets={pair1Presets} idx={p1} onSelect={setP1} uid={`${uid}-p1`} />

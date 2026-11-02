@@ -620,11 +620,15 @@ body {
 }
 /* Wide enough for dial + chrono + dial on one line: chrono returns to the
    middle and the right dial moves back to its right. 560px is the measured
-   fit — two 108px dials, the 1.2x chrono, and the two 16px gaps. */
-@container (min-width: 560px) {
-  .mg-cluster-c { order: 2; flex-basis: auto; }
+   fit — two 147px dials (enlarged 36%), a chrono of at least ~300px, and the
+   two 16px gaps. The chrono fits itself to the space it is given (see the
+   `fit` prop on SeikoFlipClock), so in the narrow layout it spans the full
+   row and in the wide one it takes whatever the dials leave. */
+@container (min-width: 660px) {
+  .mg-cluster-c { order: 2; flex: 1 1 0; min-width: 0; }
   .mg-cluster-r { order: 3; }
 }
+.mg-cluster-c { min-width: 0; }
 
 /* ─────────────────────────────────────────────────────────────────────
    TACTILE POLISH — app-wide spring press on every button/CTA.
@@ -836,6 +840,45 @@ button.mg-tile::after, a.mg-tile::after { background: linear-gradient(180deg, rg
   font-size: 10px; font-weight: 900; letter-spacing: .8px; text-transform: uppercase;
   background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); color: #c9ccd6;
 }
+/* Kaito feed: each stat rises from below and flips flat, the way a split-flap
+   leaf settles. Keyed per stat in KaitoPriceTicker, so every change replays it. */
+.mg-kf-flip { animation: mgKfFlip .5s cubic-bezier(.2,.8,.2,1) both; transform-origin: 50% 100%; }
+@keyframes mgKfFlip {
+  from { opacity: 0; transform: perspective(260px) translateY(70%) rotateX(-78deg); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .mg-kf-flip { animation: none; } }
+
+/* TabStrip — one recessed rail, the chosen tab raised in gold glass. */
+.mg-tabs {
+  display: flex; gap: 3px; padding: 3px; overflow-x: auto; scrollbar-width: none; max-width: 100%;
+  border-radius: 14px; background: rgba(0,0,0,.34); border: 1px solid rgba(214,157,65,.22);
+  box-shadow: inset 0 2px 5px rgba(0,0,0,.55), 0 1px 0 rgba(255,255,255,.04);
+  scroll-snap-type: x proximity;
+}
+.mg-tabs::-webkit-scrollbar { display: none; }
+.mg-tab {
+  flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  scroll-snap-align: center; cursor: pointer; white-space: nowrap; font-family: inherit;
+  border: 1px solid transparent; border-radius: 11px; background: transparent; color: #c9ccd6;
+  font-weight: 900; text-transform: uppercase; transition: color .14s var(--mg-ease), background .14s var(--mg-ease);
+}
+.mg-tabs-md .mg-tab { height: 32px; padding: 0 12px; font-size: 10.5px; letter-spacing: .6px; }
+.mg-tabs-sm .mg-tab { height: 28px; padding: 0 9px; font-size: 9.5px; letter-spacing: .5px; }
+.mg-tabs-fill .mg-tab { flex: 1 1 0; min-width: 0; }
+.mg-tab:hover:not(:disabled) { color: #fff; background: rgba(255,255,255,.06); }
+.mg-tab:focus-visible { outline: 2px solid #f6d378; outline-offset: -2px; }
+.mg-tab:disabled { opacity: .4; cursor: not-allowed; }
+.mg-tab-on, .mg-tab-on:hover:not(:disabled) {
+  color: #1a1205; background: var(--mg-gold-fill); border-color: rgba(246,211,120,.6);
+  text-shadow: 0 1px 0 rgba(255,255,255,.35);
+}
+.mg-tab-icon { display: inline-flex; }
+.mg-tab-badge {
+  font-size: .85em; font-weight: 800; padding: 0 5px; border-radius: 999px; line-height: 1.5;
+  background: rgba(255,255,255,.1); color: inherit; opacity: .85;
+}
+.mg-tab-on .mg-tab-badge { background: rgba(26,18,5,.18); }
 .mg-seam { position: relative; overflow: hidden; }
 .mg-seam::before {
   content: ""; position: absolute; inset: -40% -20% auto -20%; height: 120%;

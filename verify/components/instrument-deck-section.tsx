@@ -47,29 +47,13 @@ export default function InstrumentDeckSection({
         fontFamily: INSTRUMENT_FONT,
       }}
     >
-      <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 6 }}>
-        <h3
-          style={{
-            fontSize: 10, fontWeight: 900, letterSpacing: 1.4,
-            textTransform: "uppercase", color: skin.gold, margin: 0,
-          }}
-        >
-          Instrument deck
-        </h3>
-        <span style={{ fontSize: 7, letterSpacing: 1, textTransform: "uppercase", color: skin.muted }}>
-          Two dials · split-flap chrono · tap a dot to pin
-        </span>
-      </div>
-
-      {/* Horizontal scroll is the deliberate fallback: the cluster is a fixed,
-          centred row, so a narrow phone scrolls it rather than wrapping the
-          dials under the chrono and breaking the instrument's symmetry. */}
-      <div style={{ overflowX: "auto" }}>
-        <GambitInstrumentCluster
-          uid={uid}
-          centerSlot={<SeikoFlipClock label="MAD·STATE · TAP A DOT TO PIN" scale={1.2} />}
-        />
-      </div>
+      {/* The section's own title and strapline are gone: the cluster carries the
+          two lines of heading, so there are two lines of small print above the
+          dials, not four. */}
+      <GambitInstrumentCluster
+        uid={uid}
+        centerSlot={<SeikoFlipClock label="MAD·STATE · TAP A DOT TO PIN" scale={1.2} fit />}
+      />
     </section>
   );
 }

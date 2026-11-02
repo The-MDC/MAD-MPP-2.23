@@ -13,6 +13,7 @@ import React, { useEffect, useState } from "react";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import MetricPopover from "@/components/metric-popover";
+import TabStrip, { type TabItem } from "@/components/tab-strip";
 import { HEAT_EXPLAINER, type HeatSignals } from "@/lib/heat-score";
 
 type Kind =
@@ -41,6 +42,11 @@ const LABEL: Record<Kind, string> = {
   crypto: "Crypto & Finance", tabloid: "Tabloids & Gossip",
   zliar: "Z-Liar", gossipcop: "GossipCop",
 };
+
+/** The wire's filter tabs: All, then the six feeds and the two perps, in the order the left rail lists them. */
+const NEWS_TABS: TabItem<Kind | "all">[] = (
+  ["all", "entertainment", "tabloid", "zliar", "gossipcop", "headlines", "sports", "viraltech", "crypto"] as (Kind | "all")[]
+).map((k) => ({ id: k, label: k === "all" ? "All" : LABEL[k] }));
 
 /**
  * Every headline on this wire names the instrument it trades as. Row one
@@ -304,17 +310,17 @@ export default function NewsTwoRow() {
       </div>
       {/* Inline filter — the left rail that drives mg:category is hidden on
           phones, so the wire carries its own chips. Same event, same state. */}
-      <div role="tablist" aria-label="Filter the news wire" style={{ display: "flex", gap: 6, overflowX: "auto", margin: "0 0 10px", paddingBottom: 2, scrollbarWidth: "none" }}>
-        {([null, "entertainment", "tabloid", "zliar", "gossipcop", "headlines", "sports", "viraltech", "crypto"] as (Kind | null)[]).map((k) => {
-          const on = active === k;
-          return (
-            <button key={k ?? "all"} type="button" role="tab" aria-selected={on}
-              onClick={() => { setActive(k); window.dispatchEvent(new CustomEvent("mg:category", { detail: k })); }}
-              className="mg-chip" style={{ flex: "none", height: 30, cursor: "pointer", color: on ? "#1a1205" : "#d7d2c4", background: on ? "var(--mg-gold-fill)" : "rgba(255,255,255,.04)" }}>
-              {k ? LABEL[k] : "All"}
-            </button>
-          );
-        })}
+      <div style={{ margin: "0 0 10px" }}>
+        <TabStrip<Kind | "all">
+          label="Filter the news wire"
+          value={active ?? "all"}
+          items={NEWS_TABS}
+          onChange={(id) => {
+            const k = id === "all" ? null : id;
+            setActive(k);
+            window.dispatchEvent(new CustomEvent("mg:category", { detail: k }));
+          }}
+        />
       </div>
       {cards === null ? (
         <div style={{ fontSize: 9, color: skin.muted, padding: "18px 2px" }}>Loading the scandal wire…</div>

@@ -12,6 +12,7 @@
  */
 import React, { useState } from "react";
 import OMCarousel from "@/components/om-carousel";
+import TabStrip from "@/components/tab-strip";
 import { Headline, MarketTile, SectionTitle, Stat, GOLD, ROSSA, MUTED, LINE } from "@/components/om-ui";
 import { useOpenMarkets } from "@/lib/open-markets-store";
 import { compact, decimalOdds, pct, prices, PERP_LABEL, type OMMarket, type OMPerp } from "@/lib/open-markets";
@@ -22,17 +23,7 @@ const MONO = "ui-monospace, 'JetBrains Mono', monospace";
 
 function Chips<T extends string>({ value, options, onChange, label }: { value: T; options: { id: T; label: string }[]; onChange: (v: T) => void; label: string }) {
   return (
-    <div role="tablist" aria-label={label} style={{ display: "flex", gap: 6, overflowX: "auto", margin: "0 -16px", padding: "0 16px 2px", scrollbarWidth: "none" }}>
-      {options.map((o) => {
-        const on = o.id === value;
-        return (
-          <button key={o.id} type="button" role="tab" aria-selected={on} onClick={() => onChange(o.id)} className="mg-chip"
-            style={{ flex: "none", height: 32, cursor: "pointer", color: on ? "#1a1205" : "#d7d2c4", background: on ? "var(--mg-gold-fill)" : "rgba(255,255,255,.04)", borderColor: on ? "transparent" : LINE }}>
-            {o.label}
-          </button>
-        );
-      })}
-    </div>
+    <TabStrip<T> label={label} value={value} items={options} onChange={onChange} />
   );
 }
 

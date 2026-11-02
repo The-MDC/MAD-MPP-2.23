@@ -45,12 +45,13 @@ import { KaitoPriceTicker, PredictionCircus } from "@/components/kaito-and-circu
 // took the platform pillars and the unpacked-cards row with it. Mounted
 // directly here instead, which restores them without resurrecting the
 // second clock the founder rejected.
-import PlatformCarousel from "@/components/platform-carousel";
+import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
+import PlatformTabs from "@/components/platform-tabs";
+import SignInNudge from "@/components/sign-in-nudge";
 import UnpackedCardsCarousel from "@/components/unpacked-cards-carousel";
 import HoldHint from "@/components/hold-hint";
 import type { HoldHintSpec } from "@/lib/hold-hint-context";
 import GambitCardsAuctionSection from "@/components/gambit-cards-auction-section";
-import InstrumentDeckSection from "@/components/instrument-deck-section";
 import OctavianCreature from "@/components/octavian-creature";
 import { AutoShowcaseBadge } from "@/components/carousel";
 import MarketTypeCarousels from "@/components/market-type-carousels";
@@ -142,15 +143,6 @@ function tap(e: React.MouseEvent, intensity = 0.5) {
 // to a strip of this page. The in-page section ids it targeted are retained —
 // /markets#prediction and friends still rely on anchor scrolling, just the
 // browser's own rather than a hand-rolled helper.
-
-function Chip({ label, filled, onClick }: { label: string; filled?: boolean; onClick?: (e: React.MouseEvent) => void }) {
-  const { skin } = useSkin();
-  return (
-    <button type="button" onClick={onClick} className="mg-tap mg-glass" style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "6px 11px", borderRadius: 8, color: filled ? skin.bg : skin.text, background: filled ? skin.gold : skin.card, border: `1px solid ${filled ? skin.gold : skin.border}`, whiteSpace: "nowrap", fontFamily: INSTRUMENT_FONT, cursor: "pointer" }}>
-      {label}
-    </button>
-  );
-}
 
 function SectionHeading({ children, color }: { children: React.ReactNode; color?: string }) {
   const { skin } = useSkin();
@@ -304,9 +296,31 @@ function PreviewInner() {
               had six controls fighting for space and wrapped mid-word. */}
           <div style={{ display: "flex", alignItems: "center", gap: 6, flex: "none" }}>
             <ThemeMenu />
-            <Chip label="Login" onClick={() => setAuthOpen(true)} />
-            {/* §5 matrix: Sign Up summons the beta-gate node (Login stays real). */}
-            <Chip label="Sign Up" filled onClick={(e) => { tap(e, 0.7); openNode("beta-gate"); }} />
+            {/* ONE button for both. Login and Sign Up were two chips; signing in
+                with a wallet creates the account the first time, so they were one
+                action wearing two labels. It is the most prominent control in the
+                header — a larger gold key — and the beta-gate that Sign Up used
+                to open is one tap inside the dialog ("Reserve a beta spot").
+                Signed in, it becomes the way into the account console. */}
+            {socialAuth.isAuthenticated ? (
+              <button
+                type="button"
+                onClick={(e) => { tap(e, 0.5); setRightOpen(true); }}
+                className="mg-tap mg-glass"
+                style={{ padding: "8px 14px", borderRadius: 10, cursor: "pointer", whiteSpace: "nowrap", fontSize: 11, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: skin.text, background: skin.card, border: `1px solid ${skin.gold}66`, fontFamily: INSTRUMENT_FONT }}
+              >
+                Account
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={(e) => { tap(e, 0.7); setAuthOpen(true); }}
+                className="mg-tap mg-glass"
+                style={{ padding: "9px 15px", borderRadius: 10, cursor: "pointer", whiteSpace: "nowrap", fontSize: 11.5, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: "#1a1205", background: "var(--mg-gold-fill)", border: "1px solid rgba(246,211,120,.7)", boxShadow: "0 0 18px -4px rgba(214,157,65,.7)", fontFamily: INSTRUMENT_FONT }}
+              >
+                Login / Sign Up
+              </button>
+            )}
           </div>
         </header>
 
@@ -363,7 +377,13 @@ function PreviewInner() {
             {/* KAITO live feed — the token strip from /mpp2.23. It leads
                 because it is the fastest-moving thing on the page and reads as
                 the room's pulse; below the News Flow it would be buried. */}
-            <KaitoPriceTicker />
+            <KaitoPriceTicker deck={activeDeck} />
+
+            {/* The seven platform tabs — The Floor · NFT Saga · Arena · Packs ·
+                Portal · Casino · Logic — as a tab bar on the hub itself. Pick
+                one and its features open here; The Floor goes to the market
+                floor below. */}
+            <PlatformTabs activeDeck={activeDeck} />
 
             {/* Above the fold: the five busiest books with one-tap Yes/No —
                 what prediction-market visitors look for first. */}
@@ -382,7 +402,12 @@ function PreviewInner() {
                 into a container of their own, directly above the carousel.
                 Below six market cards they read as a footnote to those cards;
                 they are in fact a platform-state instrument, so they lead. */}
-            <InstrumentDeckSection uid="preview-instrument" />
+            {/* The market carousel hub from /mpp2.23: live equalizer, two dials
+                with the split-flap chrono between them, and the platform stat
+                cards. The page already opens with the dual ticker, the full
+                Featured Market Cards and the full Unpacked carousel, so the
+                hub's own copies of those three are off here. */}
+            <SeikoDopamineHub uid="preview-instrument" showTicker={false} showFeatured={false} showUnpacked={false} />
 
             {/* THE MADHATs GAMBIT CARD GAME + HUB — lifted from the foot of the
                 page to sit directly under the two dials. It is the platform's hook
@@ -439,10 +464,6 @@ function PreviewInner() {
               <UnpackedCardsCarousel />
             </div>
 
-            {/* The four pillars explain the platform; they follow the live
-                surfaces (markets, wire, dials) rather than leading them. */}
-            <PlatformCarousel />
-
             <div>
               <SectionHeading>
                 Customizable Dopamine Carousel
@@ -476,7 +497,7 @@ function PreviewInner() {
             </div>
 
             {/* showInstrument={false}: the deck's cluster+chrono now lives in
-                InstrumentDeckSection above. The deck keeps its six market
+                the market carousel hub above. The deck keeps its six market
                 cards. */}
             <PerpDials showInstrument={false} />
 
@@ -593,7 +614,13 @@ function PreviewInner() {
           page-level and persists across every tab. Fixed bottom-right, so it
           costs the hub no layout. */}
       <MadGambitConcierge />
-      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
+      <AuthModal
+        isOpen={authOpen}
+        onClose={() => setAuthOpen(false)}
+        onReserve={() => { setAuthOpen(false); openNode("beta-gate"); }}
+      />
+      {/* Not signed in = not earning. Every 165 s a small banner says so. */}
+      <SignInNudge signedIn={socialAuth.isAuthenticated} dialogOpen={authOpen} onOpen={() => setAuthOpen(true)} />
     </div>
   );
 }

@@ -9,6 +9,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { OMShell, Headline, MarketTile, SectionTitle, Stat, GOLD, ROSSA, MUTED, LINE } from "@/components/om-ui";
 import OMCarousel from "@/components/om-carousel";
+import TabStrip from "@/components/tab-strip";
 import { useOpenMarkets } from "@/lib/open-markets-store";
 import { compact, isPerp, PERP_LABEL, PERPS, prices, type OMMarket, type OMPerp } from "@/lib/open-markets";
 
@@ -102,17 +103,7 @@ export default function OpenMarketsLobby() {
         <Stat k="Fee" v="1.88%" accent={ROSSA} />
       </div>
 
-      <div role="tablist" aria-label="Market class" style={{ display: "flex", gap: 8, overflowX: "auto", margin: "0 -16px", padding: "2px 16px 4px", scrollbarWidth: "none" }}>
-        {TABS.map((t) => {
-          const on = tab === t.id;
-          return (
-            <button key={t.id} type="button" role="tab" aria-selected={on} onClick={() => choose(t.id)}
-              className="mg-chip" style={{ flex: "none", height: 34, padding: "0 14px", cursor: "pointer", fontSize: 11, color: on ? "#1a1205" : "#d7d2c4", background: on ? "var(--mg-gold-fill)" : "rgba(255,255,255,.04)", borderColor: on ? "transparent" : LINE }}>
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
+      <TabStrip<Tab> label="Market class" value={tab} items={TABS} onChange={(id) => choose(id)} />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <label style={{ position: "relative", display: "block" }}>

@@ -10,6 +10,7 @@
  */
 import React, { useEffect, useState } from "react";
 import { useSkin } from "@/components/skin-provider";
+import TabStrip from "@/components/tab-strip";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 
 type NewsCategory = "headlines" | "entertainment" | "sports" | "viraltech" | "crypto" | "tabloid";
@@ -109,21 +110,18 @@ export default function NewsCarousel() {
       </div>
 
       {/* Category tabs */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
-        {TABS.map((t) => {
-          const active = cat === t.key;
-          const count = data?.byCategory?.[t.key]?.length ?? 0;
-          return (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => setCat(t.key)}
-              style={{ padding: "5px 10px", borderRadius: 999, cursor: "pointer", fontSize: 8.5, fontWeight: 900, letterSpacing: 0.5, textTransform: "uppercase", color: active ? skin.bg : skin.text, background: active ? skin.gold : skin.card, border: `1px solid ${active ? skin.gold : skin.border}`, fontFamily: INSTRUMENT_FONT }}
-            >
-              {t.emoji} {t.label} {count ? <span style={{ opacity: 0.7 }}>{count}</span> : null}
-            </button>
-          );
-        })}
+      <div style={{ marginBottom: 12 }}>
+        <TabStrip<NewsCategory>
+          label="News category"
+          size="sm"
+          value={cat}
+          onChange={setCat}
+          items={TABS.map((t) => ({
+            id: t.key,
+            label: `${t.emoji} ${t.label}`,
+            badge: data?.byCategory?.[t.key]?.length || undefined,
+          }))}
+        />
       </div>
 
       {/* Rotating slide */}

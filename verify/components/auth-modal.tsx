@@ -32,9 +32,12 @@ import { SIGN_IN_CHAIN_NAME } from "@/lib/chain";
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Shows a "Reserve a beta spot" link — the closed-beta gate the old separate
+   *  Sign Up button opened. Only hosts that mount the gate node pass it. */
+  onReserve?: () => void;
 }
 
-export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
+export default function AuthModal({ isOpen, onClose, onReserve }: AuthModalProps) {
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [walletPresent, setWalletPresent] = useState(true);
@@ -78,10 +81,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </button>
           
           <h2 className="font-mono text-xl font-black text-white uppercase tracking-wider mb-1">
-            Access Required
+            Login / Sign Up
           </h2>
           <p className="font-mono text-xs text-neutral-400">
-            Sign in to interact with markets and place stakes.
+            One step for both: signing in with your wallet creates your account the first time. Sign in to earn, place stakes and keep your streak.
           </p>
         </div>
 
@@ -100,6 +103,15 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <p className="font-mono text-[9px] text-neutral-500 text-center">
             Signs a message on {SIGN_IN_CHAIN_NAME}. Authorises no transaction and moves no funds.
           </p>
+          {onReserve ? (
+            <button
+              type="button"
+              onClick={onReserve}
+              className="w-full font-mono text-[10px] uppercase tracking-widest text-yellow-400 hover:text-yellow-300 underline decoration-dotted"
+            >
+              No wallet yet? Reserve a beta spot ›
+            </button>
+          ) : null}
 
           {error && (
             <p className="font-mono text-[9px] text-amber-400 font-bold text-center leading-relaxed">{error}</p>

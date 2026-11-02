@@ -35,6 +35,9 @@ const BASE_H = 47;
 const FLIP_MS = 500;
 /** How long a pair holds after the user pins a stat by tapping its dot. */
 const PIN_MS = 30000;
+/** Bounds on the fit scale: never shrunk past legibility, never blown up past a believable case. */
+const FIT_MIN = 0.7;
+const FIT_MAX = 1.5;
 
 const goldCss = `linear-gradient(160deg, ${GOLD_CHISEL_STOPS.map(([o, c]) => `${c} ${o}%`).join(", ")})`;
 /** Numerals are struck from the same chisel, top-lit — metal, not neon. */
@@ -327,14 +330,22 @@ export default function SeikoFlipClock({
   scale = 1,
   pairs = DEFAULT_PAIR_PRESETS,
   cycleMs = 5000,
+  fit = false,
 }: {
   label?: string;
   scale?: number;
   /** Three trackable-stat triplets, one per digit-pair. `null` → UTC clock. */
   pairs?: DigitPairStat[][] | null;
   cycleMs?: number;
+  /** Scale the whole chrono to the width its parent gives it, so it runs right
+   *  to the section's padding instead of sitting at a fixed size. */
+  fit?: boolean;
 }) {
   const [mounted, setMounted] = useState(false);
+  const outerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [fitK, setFitK] = useState(1);
+  const [fitH, setFitH] = useState<number | null>(null);
   const [time, setTime] = useState("00:00:00");
   const [sel, setSel] = useState<number[]>(() => (pairs ?? []).map(() => 0));
   // Pins are read inside the interval, so they must not restart it.
@@ -351,6 +362,28 @@ export default function SeikoFlipClock({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // fit: measure the chrono at its natural size and the room it has, then scale
+  // it to fill that room (bounded, so a very wide parent does not blow it up).
+  useEffect(() => {
+    if (!fit) return;
+    const outer = outerRef.current;
+    const inner = innerRef.current;
+    if (!outer || !inner) return;
+    const measure = () => {
+      const nat = inner.offsetWidth;
+      if (!nat) return;
+      const k = Math.round(Math.min(FIT_MAX, Math.max(FIT_MIN, outer.clientWidth / nat)) * 1000) / 1000;
+      setFitK(k);
+      setFitH(Math.round(inner.offsetHeight * k));
+    };
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(outer);
+    ro.observe(inner);
+    return () => ro.disconnect();
+  }, [fit]);
 
   // Clock mode only — no timer runs when the chrono is showing stats.
   useEffect(() => {
@@ -415,15 +448,16 @@ export default function SeikoFlipClock({
     });
   }
 
-  return (
+  const chrono = (
     <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
       {/* Gold case → recessed well → tiles. Three layers, because the case in
           the brief is a solid milled frame with the display sunk into it, not
           a gold rectangle with digits sitting on top of it. */}
       <div
         style={{
-          padding: Math.round(9 * scale),
-          borderRadius: Math.round(20 * scale),
+          // Case thickness: 20% under the original 9 units.
+          padding: Math.round(7.2 * scale),
+          borderRadius: Math.round(18 * scale),
           background: goldCss,
           boxShadow: [
             `0 0 26px ${INK.gold}33`,
@@ -481,6 +515,18 @@ export default function SeikoFlipClock({
         @keyframes mgLeafShadeIn  { 0% { opacity: 0; }   100% { opacity: 0.7; } }
         @keyframes mgLeafShadeOut { 0% { opacity: 0.7; } 100% { opacity: 0; } }
       `}</style>
+    </div>
+  );
+
+  if (!fit) return chrono;
+  return (
+    <div ref={outerRef} style={{ position: "relative", width: "100%", height: fitH ?? undefined, minHeight: fitH ? undefined : 90 }}>
+      <div
+        ref={innerRef}
+        style={{ position: "absolute", top: 0, left: "50%", width: "max-content", transformOrigin: "50% 0", transform: `translateX(-50%) scale(${fitK})` }}
+      >
+        {chrono}
+      </div>
     </div>
   );
 }
