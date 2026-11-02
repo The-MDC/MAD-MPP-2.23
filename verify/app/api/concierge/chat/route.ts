@@ -122,6 +122,12 @@ export async function POST(req: NextRequest) {
         if (reply && looksLikeLeak(reply)) {
             return NextResponse.json({ reply: SENSITIVE_REPLY, quipSource: "sensitive" });
         }
+        // No model answered at all (NIM down or empty, Gemini unset or failed): the knowledge file may still cover it,
+        // so answer from there before the ladder. A model that DID answer "not in my file" skips this and takes the ladder.
+        if (!reply) {
+            const hit = !wantsOpinionOrAdvice(text) ? retrieve(text, turns, kb) : null;
+            if (hit) return NextResponse.json({ reply: hit.reply, quipSource: "knowledge", topic: hit.topic });
+        }
         if (!reply || reply.includes(PAY_GRADE_MARKER)) {
             return NextResponse.json({ reply: payGradeReply(turns, kb), quipSource: "pay-grade" });
         }
