@@ -59,7 +59,8 @@ import { satireMetrics } from "@/lib/satire-metrics";
 import { satirizeHeadline, type NewsCategory } from "@/lib/satire-headline";
 import { ingestArticle } from "@/lib/article-ingest";
 import { parseWithRetry } from "@/lib/safe-json";
-import { localRoast, localSatireAvailable, localSatireConfig, fitRoast } from "@/lib/local-satire";
+import { localSatireConfig, fitRoast } from "@/lib/local-satire";
+import { modelRoast } from "@/lib/nim-satire";
 
 export const dynamic = "force-dynamic";
 
@@ -196,8 +197,9 @@ export async function GET() {
     // Stage 4a — the local model, first refusal. Free, private, and the
     // ingested article text never leaves the operator's machine.
     const localCfg = localSatireConfig();
-    if (localCfg.configured && (await localSatireAvailable())) {
-      const local = await localRoast(winner.title, category, article?.text ?? "");
+    const tier = await modelRoast(winner.title, category, article?.text ?? "");
+    if (tier) {
+      const local = tier.result;
       if (local.ok) {
         const localTake = fitRoast(local.value.satire_take);
         if (localTake) {
@@ -220,8 +222,8 @@ export async function GET() {
             satire_score: srcM.satireScore,
             output_satire_score: outM.satireScore,
             verdict: srcM.verdict,
-            engine: "ollama",
-            model: localCfg.model,
+            engine: tier.engine,
+            model: tier.model,
             repaired: local.repaired,
           });
         }

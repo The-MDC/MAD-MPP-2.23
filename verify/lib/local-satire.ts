@@ -154,6 +154,14 @@ function userPrompt(headline: string, category: NewsCategory, article: string, s
   return parts.filter(Boolean).join("\n");
 }
 
+/** The roast prompts, exposed so other model tiers (lib/nim-satire.ts) use the exact same voice and rules. */
+export function roastPrompts(headline: string, category: NewsCategory, article: string) {
+  return {
+    system: systemPrompt(),
+    user: (stiffen: boolean) => userPrompt(headline, category, article, stiffen),
+  };
+}
+
 /** Trim a model's line to the contract the UI renders against. */
 export function fitRoast(line: string): string {
   const clean = (line ?? "").replace(/\s+/g, " ").replace(/^["'`]+|["'`]+$/g, "").trim();

@@ -23,7 +23,8 @@ import { NextResponse } from "next/server";
 import { withRouteGuard } from "@/lib/with-route-guard";
 import { satirizeHeadline, type NewsCategory } from "@/lib/satire-headline";
 import { satireMetrics } from "@/lib/satire-metrics";
-import { localRoast, localSatireAvailable, localSatireConfig, fitRoast } from "@/lib/local-satire";
+import { fitRoast, localSatireConfig } from "@/lib/local-satire";
+import { modelRoast } from "@/lib/nim-satire";
 
 export const dynamic = "force-dynamic";
 
@@ -77,12 +78,13 @@ export const POST = withRouteGuard(
     const category: NewsCategory = isCategory(o.category) ? o.category : "headlines";
     const article = typeof o.article === "string" ? o.article : "";
 
-    const cfg = localSatireConfig();
     // Probe before calling. An unconfigured or unreachable Ollama would
     // otherwise cost every request the full generation timeout before it could
     // fall through; the probe caps that at ~1.5s.
-    if (cfg.configured && (await localSatireAvailable())) {
-      const roast = await localRoast(headline, category, article);
+    const cfg = localSatireConfig();
+    const tier = await modelRoast(headline, category, article);
+    if (tier) {
+      const roast = tier.result;
       if (roast.ok) {
         const take = fitRoast(roast.value.satire_take);
         if (take) {
@@ -96,8 +98,8 @@ export const POST = withRouteGuard(
             // than replacing it — the engine's numbers are reproducible.
             model_scandal_velocity: clamp100(roast.value.scandal_velocity),
             model_z_liar_index: clamp100(roast.value.z_liar_index),
-            engine: "ollama",
-            model: cfg.model,
+            engine: tier.engine,
+            model: tier.model,
           });
         }
       }
