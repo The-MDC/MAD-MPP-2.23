@@ -11,13 +11,51 @@
  *                      Platform Conviction → Affliction, each filterable.
  */
 import React, { useState } from "react";
+import dynamic from "next/dynamic";
 import OMCarousel from "@/components/om-carousel";
 import TabStrip from "@/components/tab-strip";
 import { Headline, MarketTile, SectionTitle, Stat, GOLD, ROSSA, MUTED, LINE } from "@/components/om-ui";
+import { useInView } from "@/hooks/use-in-view";
 import { useOpenMarkets } from "@/lib/open-markets-store";
 import { compact, decimalOdds, pct, prices, PERP_LABEL, type OMMarket, type OMPerp } from "@/lib/open-markets";
 
 const MONO = "ui-monospace, 'JetBrains Mono', monospace";
+
+/* The Paseome in 3D. WebGL, so it is code-split and client-only — and its chunk is
+   not even requested until the section is near the viewport (see PaseomeGraphSlot). */
+const GraphLoading = () => (
+  <div style={{ padding: "28px 4px", fontSize: 10, letterSpacing: 1, textTransform: "uppercase", color: MUTED, fontFamily: MONO }}>
+    Loading the Paseome graph…
+  </div>
+);
+const PaseomeGraph = dynamic(() => import("@/components/paseome-graph"), { ssr: false, loading: GraphLoading });
+
+/** A lazy chunk that fails to load (a dropped mobile connection) throws to the nearest
+    error boundary — which, left alone, is the whole hub segment. Contain it to this slot. */
+class GraphBoundary extends React.Component<{ children: React.ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  render() {
+    if (!this.state.failed) return this.props.children;
+    return (
+      <div role="status" style={{ padding: "16px 4px", fontSize: 11, lineHeight: 1.5, color: MUTED, fontFamily: MONO }}>
+        The 3D Paseome graph could not load.{" "}
+        <button type="button" onClick={() => window.location.reload()} style={{ color: GOLD, fontWeight: 900, background: "none", border: 0, cursor: "pointer", fontFamily: "inherit", fontSize: "inherit", padding: 0 }}>
+          Reload ›
+        </button>
+      </div>
+    );
+  }
+}
+
+function PaseomeGraphSlot() {
+  const { ref, seen } = useInView<HTMLDivElement>("320px");
+  return (
+    <div ref={ref} style={{ minHeight: 380 }}>
+      <GraphBoundary>{seen ? <PaseomeGraph /> : <GraphLoading />}</GraphBoundary>
+    </div>
+  );
+}
 
 /* ── Filter chips ────────────────────────────────────────────────────────── */
 
@@ -154,6 +192,7 @@ export default function OpenMarketsHub() {
             </SectionTitle>
             <div style={{ marginTop: -6, fontSize: 11, color: "#ffb39f", fontWeight: 800, letterSpacing: .6, textTransform: "uppercase" }}>The Paseome · Foresight ↔ Hindsight</div>
             <OMCarousel label="Certain-UnCertainty markets" cardWidth={260}>{certain.map((m) => <MarketTile key={m.id} m={m} />)}</OMCarousel>
+            <PaseomeGraphSlot />
           </section>
         ) : null}
         {PLATFORM_CONVICTION.filter((p) => convF === "all" || convF === p).map((p) => <PerpRow key={p} p={p} items={byPerp(p)} />)}
