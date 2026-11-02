@@ -4,6 +4,8 @@ import { isAuthResponse, requireMadxRouteAuth } from "@/lib/madx-route-auth";
 import { placeBet, listBetsByWallet, type Bet, type BetSide } from "@/lib/markets";
 import { hasDatabaseUrl } from "@/lib/database-url";
 import { checkTrade, tradeRefusal } from "@/lib/trade-guard";
+import { flagAccount } from "@/lib/account-flags";
+import { poolQ } from "@/lib/admin-reports";
 
 interface BetBody {
   marketId?: unknown;
@@ -79,7 +81,10 @@ export async function POST(req: Request) {
 
   // Anti-bot / anti-quant: per-wallet velocity, spacing, side-flip and size limits (lib/trade-guard.ts).
   const verdict = checkTrade(wallet, marketId, side, amount);
-  if (!verdict.ok) return tradeRefusal(verdict);
+  if (!verdict.ok) {
+    if (hasDatabaseUrl() && verdict.reason !== "too-fast") void flagAccount(poolQ(getDbPool()), { wallet }, `trade guard: ${verdict.reason}`, verdict.reason === "flip" || verdict.reason === "metronome" ? "high" : "medium", "trade-guard");
+    return tradeRefusal(verdict);
+  }
 
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: false, error: "bets need DATABASE_URL" }, { status: 503 });

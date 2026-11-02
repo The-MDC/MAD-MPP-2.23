@@ -24,6 +24,18 @@ export async function sendReport(opts: {
   env?: Record<string, string | undefined>;
   fetchImpl?: typeof fetch;
 }): Promise<MailStatus> {
+  return sendMail({ ...opts, to: undefined });
+}
+
+/** Any transactional email (verification codes, reports). `to` defaults to the owner. Plain text only. */
+export async function sendMail(opts: {
+  to?: string;
+  subject: string;
+  text: string;
+  attachment?: { filename: string; content: Uint8Array; type: string };
+  env?: Record<string, string | undefined>;
+  fetchImpl?: typeof fetch;
+}): Promise<MailStatus> {
   const cfg = mailConfig(opts.env);
   if (!cfg) return "not-configured";
   try {
@@ -31,7 +43,7 @@ export async function sendReport(opts: {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${cfg.key}` },
       body: JSON.stringify({
-        from: cfg.from, to: [cfg.to], subject: opts.subject, text: opts.text,
+        from: cfg.from, to: [opts.to ?? cfg.to], subject: opts.subject, text: opts.text,
         ...(opts.attachment ? { attachments: [{ filename: opts.attachment.filename, content: Buffer.from(opts.attachment.content).toString("base64") }] } : {}),
       }),
       signal: AbortSignal.timeout(15_000),

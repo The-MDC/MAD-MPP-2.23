@@ -128,3 +128,61 @@ export function KnowledgePanel() {
     </div>
   );
 }
+
+/* ── file attach (members with a profile at least 90% complete) ───────── */
+
+export interface AttachedFile { id: string; name: string; notes: string[] }
+interface UploadInfo { uploadAllowed: boolean; completion: number; missing: string[]; maxBytes: number; directMaxBytes: number; blob: boolean; prefix: string }
+
+export function useUploadInfo(open: boolean): UploadInfo | null {
+  const [info, setInfo] = useState<UploadInfo | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    let alive = true;
+    fetch("/api/v1/chat/files", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).then((d) => { if (alive && d?.success) setInfo(d); }).catch(() => {});
+    return () => { alive = false; };
+  }, [open]);
+  return info;
+}
+
+const ACCEPT = ".md,.markdown,.txt,.pdf,text/markdown,text/plain,application/pdf";
+const OK_EXT = /\.(md|markdown|txt|pdf)$/i;
+
+/** Pick, pre-check, upload and scan one file. The server's two scanning layers decide; this only saves a wasted trip. */
+export function AttachButton({ info, onAttached, onStatus }: { info: UploadInfo; onAttached: (f: AttachedFile) => void; onStatus: (s: string) => void }) {
+  const [busy, setBusy] = useState(false);
+  const pick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!OK_EXT.test(file.name)) { onStatus("Only Markdown, text and PDF files."); return; }
+    if (file.size > info.maxBytes) { onStatus("That file is over 25 MB."); return; }
+    if (file.size > info.directMaxBytes && !info.blob) { onStatus("Files over 4 MB need secure storage, which isn't switched on yet."); return; }
+    setBusy(true); onStatus(`Scanning ${file.name}…`);
+    try {
+      let res: Response;
+      if (file.size > info.directMaxBytes) {
+        const { upload } = await import("@vercel/blob/client");
+        const safe = file.name.replace(/[^\w.-]/g, "_").slice(-80);
+        const blob = await upload(`${info.prefix}${safe}`, file, { access: "private", handleUploadUrl: "/api/v1/chat/files/upload-token", contentType: file.type || undefined });
+        res = await fetch("/api/v1/chat/files", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ blobUrl: blob.url, pathname: blob.pathname, name: file.name, type: file.type }) });
+      } else {
+        const form = new FormData();
+        form.append("file", file);
+        res = await fetch("/api/v1/chat/files", { method: "POST", body: form });
+      }
+      const d = await res.json().catch(() => ({}));
+      if (res.ok && d.file) {
+        onAttached({ id: d.file.id, name: d.file.name, notes: d.file.notes ?? [] });
+        onStatus(`Read "${d.file.name}" safely${d.file.notes?.length ? ` (${d.file.notes.slice(0, 2).join("; ")})` : ""}. Ask me about it.`);
+      } else onStatus(d.error || "That file couldn't be read.");
+    } catch { onStatus("The upload didn't go through. Try again."); }
+    setBusy(false);
+  };
+  return (
+    <label title="Attach a Markdown, text or PDF file (up to 25 MB)" aria-label="Attach a file" style={{ display: "flex", alignItems: "center", cursor: busy ? "wait" : "pointer", color: INK.gold, padding: "0 6px", border: `1px solid ${INK.borderGold}`, borderRadius: "8px", fontFamily: INSTRUMENT_FONT, fontSize: "12px" }}>
+      {busy ? "…" : "📎"}
+      <input type="file" accept={ACCEPT} onChange={pick} disabled={busy} style={{ display: "none" }} />
+    </label>
+  );
+}
