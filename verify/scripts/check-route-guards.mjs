@@ -51,6 +51,8 @@ const MUTATING_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
 const AUTH_CALLS = [
   "requireMadxRouteAuth(",
   "requireBearerSecret(",
+  // Admin suite: verifies the signed admin session cookie and the role permission (lib/admin-guard.ts).
+  "requireAdmin(",
   "getSessionFromRequest(",
   'mode: "session"',
   'mode: "bearer"',

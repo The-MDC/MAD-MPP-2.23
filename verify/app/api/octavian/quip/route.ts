@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { nimChat, nimEnabled } from "@/lib/nim-chat";
+import { gateAgent } from "@/lib/agent-gate";
 import { cannedQuip, fitQuip, quipPrompt, TEMPERS, type Temper } from "@/lib/octavian-voice";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +22,10 @@ export async function POST(req: NextRequest) {
     if (typeof body.node === "string" && /^[\w .&+\-']{1,40}$/.test(body.node)) node = body.node;
   } catch { /* an empty or malformed body is just a calm creature */ }
 
-  if (nimEnabled()) {
+  // Defense: lockdown or "defended" (or a throttled/cross-origin client) gets the written bank, never the model.
+  const gate = await gateAgent(req, "");
+  const modelOk = gate.level === "normal" && !gate.crossOrigin && (gate.screen?.allow ?? true);
+  if (modelOk && nimEnabled()) {
     const { system, input } = quipPrompt(temper, node);
     const raw = await nimChat({ system, input, maxTokens: 60, temperature: 0.95 });
     const line = fitQuip(raw);

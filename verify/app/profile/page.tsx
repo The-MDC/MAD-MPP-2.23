@@ -7,6 +7,7 @@
 import React from "react";
 import { OMShell, Headline, SectionTitle, Stat, GOLD, ROSSA, MUTED, LINE } from "@/components/om-ui";
 import MadxWalletPanel from "@/components/madx-wallet-panel";
+import PersonalAssistantCard from "@/components/personal-assistant-card";
 import { resetDemo, sellPosition, topUp, useOpenMarkets } from "@/lib/open-markets-store";
 import { convictionHeld, madx, pct, prices, sellQuote } from "@/lib/open-markets";
 
@@ -65,6 +66,8 @@ function ProfileInner() {
         <Stat k="Staked" v={madx(staked)} />
         <Stat k="P&L" v={`${pnl >= 0 ? "+" : ""}${madx(pnl)}`} accent={pnl >= 0 ? "#7cffc7" : "#f85b5f"} />
       </div>
+
+      <PersonalAssistantCard />
 
       <section id="positions" style={{ display: "flex", flexDirection: "column", gap: 10, scrollMarginTop: 80 }}>
         <SectionTitle explain="om-profile" right={<a href="/open-markets" style={{ color: GOLD, fontSize: 12, fontWeight: 900, textDecoration: "none" }}>Find markets ›</a>}>My bets</SectionTitle>

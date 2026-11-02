@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { BETA_COOKIE, BETA_TTL_SECONDS, guestValid, loadGuests, passUser } from "@/lib/beta-gate";
+import { ADMIN_COOKIE, sessionSecret, verifySession } from "@/lib/admin-auth";
 import { ALWAYS_OPEN, CAPTURE_COOKIE, VIEWER_COOKIE, captureAllowed, classifyUserAgent, isProbePath } from "@/lib/bot-guard";
 
 /**
@@ -64,6 +65,15 @@ const PUBLIC_PATHS = new Set([
   "/icon.png",
   "/apple-icon.png",
   "/robots.txt",
+  // Beta and first-line support for people without a pass yet: the signup-shield challenge, invite redemption,
+  // open-beta admission, tickets, ticket status and the known-issues list. Each guards itself.
+  "/api/v1/beta/challenge",
+  "/api/v1/beta/redeem",
+  "/api/v1/beta/join",
+  "/api/v1/support/tickets",
+  "/api/v1/support/known-issues",
+  // The admin suite authenticates itself (lib/admin-guard.ts); its sign-in page must be reachable without a beta pass.
+  "/admin",
   "/sitemap.xml",
   // CSP violation reports are sent by the browser out-of-band, not by page
   // code — the Reporting API may deliver a batch minutes later, from no page
@@ -86,7 +96,7 @@ const PUBLIC_PATHS = new Set([
 ]);
 
 /** Public brand assets the /beta page renders (logo, mascot, self-hosted fonts). */
-const PUBLIC_PREFIXES = ["/brand/", "/fonts/", "/_vercel/"];
+const PUBLIC_PREFIXES = ["/brand/", "/fonts/", "/_vercel/", "/admin/", "/api/admin/"];
 
 // Cron routes verify their own `Authorization: Bearer` secret (lib/bearer-secret.ts),
 // and Vercel Cron sends exactly that header — not Basic auth. Without this
@@ -95,6 +105,10 @@ const PUBLIC_PREFIXES = ["/brand/", "/fonts/", "/_vercel/"];
 // header is present; the route still rejects wrong/missing secrets itself.
 const BEARER_PATHS = new Set([
   "/api/v1/cron/rollup",
+  "/api/v1/cron/tickers",
+  "/api/v1/cron/insights",
+  "/api/v1/cron/weekly-report",
+  "/api/v1/cron/memory",
   "/api/v1/perps/roll",
   "/api/v1/registrar/lapse",
   "/api/v1/ingest/gdelt",
@@ -183,6 +197,13 @@ export async function proxy(req: NextRequest) {
   if (PUBLIC_PATHS.has(path) || PUBLIC_PREFIXES.some((p) => path.startsWith(p))) {
     return pass(req, user);
   }
+
+  // General availability: the beta is over and the gate opens (operator setting, BETA_PHASE=ga).
+  if (process.env.BETA_PHASE?.trim().toLowerCase() === "ga") return pass(req, user);
+
+  // A signed-in admin (HMAC session cookie) may use the whole app, so /dashboard and the APIs behind it load for them
+  // without a separate beta pass. The cookie is verified here; the admin routes and /dashboard re-check it themselves.
+  if (verifySession(req.cookies.get(ADMIN_COOKIE)?.value, sessionSecret())) return NextResponse.next();
 
   // No credentials configured → refuse everything, and say why. Falling back
   // to a built-in pair is what this change exists to remove; a distinct body

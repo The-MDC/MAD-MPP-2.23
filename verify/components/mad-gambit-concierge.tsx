@@ -34,6 +34,9 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { KnowledgePanel, SupportPanel, THREAT_STYLE, useSignupComplete, useThreatColour } from "@/components/concierge-support";
+import { SKILL_CHIPS } from "@/lib/concierge-skill-chips";
+import { emptyRapport, noteVisit, sanitizeRapport, updateRapport, type Rapport } from "@/lib/concierge-personality";
 import { GOLD_CHISEL_STOPS, INSTRUMENT_FONT, INK } from "@/lib/gambit-design-tokens";
 import { Send, X, RotateCw } from "lucide-react";
 
@@ -133,6 +136,12 @@ function riskLabel(v: number): string {
 
 const BACKEND_URL = "";
 
+const RAPPORT_KEY = "mg_rapport";
+function loadRapport(): Rapport {
+  return sanitizeRapport(JSON.parse(localStorage.getItem(RAPPORT_KEY) || "null")) ?? emptyRapport();
+}
+function saveRapport(r: Rapport) { localStorage.setItem(RAPPORT_KEY, JSON.stringify(r)); }
+
 export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMsg[]>([SEED_MESSAGE]);
@@ -141,16 +150,32 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
   const [tone, setTone] = useState<Tone>("Satirical");
   const [risk, setRisk] = useState(0.75);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Security and anomaly monitor: green, yellow (automated scanning seen) or red (under attack).
+  const threat = useThreatColour();
+  const threatStyle = THREAT_STYLE[threat];
+  // Support and Knowledge base appear only once signup is complete (the endpoints check the same).
+  const signedUp = useSignupComplete(open);
+  const [view, setView] = useState<"chat" | "support" | "kb">("chat");
+  // Rapport: counts of turns, visits and topics, kept only on this device and sent with each message so the concierge
+  // can grow familiar. No message text is stored.
+  const rapportRef = useRef<Rapport>(emptyRapport());
+  useEffect(() => { try { rapportRef.current = loadRapport(); } catch { /* storage blocked */ } }, []);
 
   // First time the panel opens on this device: swap the stock hello for one of the humorous welcomes from the
   // knowledge file. Remembered per device; storage can be blocked, so every touch is guarded.
   useEffect(() => {
     if (!open) return;
+    let returning = false;
     try {
-      if (localStorage.getItem("mg_welcomed") === "1") return;
+      returning = localStorage.getItem("mg_welcomed") === "1";
       localStorage.setItem("mg_welcomed", "1");
+      const r = noteVisit(loadRapport());
+      saveRapport(r);
+      rapportRef.current = r;
     } catch { /* storage blocked: still welcome them once per page load */ }
-    fetch("/api/concierge/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ welcome: true }) })
+    // A returning visitor is only re-welcomed once there is a history to be familiar about (two or more visits).
+    if (returning && rapportRef.current.sessions < 2) return;
+    fetch("/api/concierge/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ welcome: true, rapport: rapportRef.current }) })
       .then((r) => r.json())
       .then((j: { reply?: string }) => {
         const line = typeof j.reply === "string" ? j.reply.trim() : "";
@@ -261,6 +286,9 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
     const text = input.trim();
     if (!text) return;
     setMessages(m => [...m, { id: `u_${Date.now()}`, from: "user", text }]);
+    const rapport = updateRapport(rapportRef.current, text);
+    rapportRef.current = rapport;
+    try { saveRapport(rapport); } catch { /* storage blocked */ }
     setInput("");
     setTyping(true);
     
@@ -273,6 +301,7 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
           history: messages,
           tone,
           risk,
+          rapport,
           regen_count: 0
         })
       });
@@ -311,6 +340,7 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
           history: messages.slice(0, msgIndex),
           tone,
           risk,
+          rapport: rapportRef.current,
           regen_count: nextCount
         })
       });
@@ -355,7 +385,7 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
             if (justDraggedRef.current) { justDraggedRef.current = false; return; }
             setOpen(true);
           }}
-          aria-label="Open MADHAT'r concierge"
+          aria-label={threat === "green" ? "Open MADHAT'r concierge" : `Open MADHAT'r concierge (security: ${threatStyle.label.toLowerCase()})`}
           style={{
             width: "64px", height: "70px", border: "none",
             cursor: "pointer", position: "relative", overflow: "visible",
@@ -368,14 +398,14 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
               silhouette is the shape. */}
           <span aria-hidden="true" className="mg-mascot-fab-bob">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/madhatr-bust.png" alt="" width={62} height={66} className="mg-mascot-fab" draggable={false} />
+            <img src="/brand/madhatr-bust.png" alt="" width={62} height={66} className="mg-mascot-fab" draggable={false} style={threat === "green" ? undefined : { filter: threatStyle.glow }} />
           </span>
           <div style={{
             position: "absolute", top: "4px", right: "2px",
             width: "12px", height: "12px", borderRadius: "50%",
-            background: "#00ff88", boxShadow: "0 0 8px #00ff88",
+            background: threatStyle.dot, boxShadow: `0 0 8px ${threatStyle.dot}`,
             border: "2px solid #080a12",
-          }} />
+          }} title={threat === "green" ? undefined : threatStyle.label} className={threat === "red" ? "animate-ping" : undefined} />
         </button>
       )}
 
@@ -405,7 +435,7 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
                   THE MADHAT&apos;R
                 </div>
                 <div style={{ fontFamily: INSTRUMENT_FONT, fontSize: "7px", color: "#4a3010" }}>
-                  MAD GAMBIT CONCIERGE &middot; LIVE
+                  MAD GAMBIT CONCIERGE &middot; <span style={{ color: threat === "green" ? "#4a3010" : threat === "yellow" ? "#7a5200" : "#a30d12", fontWeight: threat === "green" ? 400 : 900 }}>{threatStyle.label}</span>
                 </div>
               </div>
               <button
@@ -418,6 +448,21 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
             </div>
           </div>
 
+          {/* Member tools: only once signup is complete */}
+          {signedUp && (
+            <div role="tablist" aria-label="Concierge tools" style={{ background: "#0e0f16", padding: "8px 10px 0", display: "flex", gap: "5px" }}>
+              {([["chat", "CHAT"], ["support", "SUPPORT"], ["kb", "KNOWLEDGE BASE"]] as const).map(([v, l]) => (
+                <button key={v} role="tab" aria-selected={view === v} onClick={() => setView(v)}
+                  style={{ flex: 1, padding: "7px 3px", borderRadius: "6px", cursor: "pointer", fontFamily: INSTRUMENT_FONT, fontSize: "7px", fontWeight: 900, letterSpacing: "0.4px",
+                    border: `1px solid ${view === v ? INK.gold : "rgba(255,255,255,0.15)"}`, background: view === v ? "rgba(214,157,65,0.15)" : "transparent", color: view === v ? INK.gold : "#8a8a95" }}>
+                  {l}
+                </button>
+              ))}
+            </div>
+          )}
+          {signedUp && view === "support" && <SupportPanel />}
+          {signedUp && view === "kb" && <KnowledgePanel />}
+          {(!signedUp || view === "chat") && (<>
           {/* Tone selector */}
           <div style={{ background: "#0e0f16", padding: "8px 10px", display: "flex", gap: "5px" }}>
             {(["Satirical", "Controversial", "Analytical"] as Tone[]).map(t => (
@@ -500,6 +545,17 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
             )}
           </div>
 
+          {signedUp && (
+            <div aria-label="Quick skills" style={{ display: "flex", gap: "4px", flexWrap: "wrap", padding: "6px 10px 0" }}>
+              {SKILL_CHIPS.map((c) => (
+                <button key={c} type="button" onClick={() => setInput(c)}
+                  style={{ fontFamily: INSTRUMENT_FONT, fontSize: "7px", fontWeight: 800, color: INK.gold, background: "transparent", border: `1px solid ${INK.borderGold}`, borderRadius: "10px", padding: "3px 7px", cursor: "pointer" }}>
+                  {c}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Input row */}
           <div style={{ display: "flex", gap: "6px", padding: "10px", borderTop: `1px solid ${INK.border}` }}>
             <input
@@ -525,6 +581,7 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
               <Send size={13} />
             </button>
           </div>
+          </>)}
         </div>
       )}
     </div>
