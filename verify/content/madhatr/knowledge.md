@@ -166,7 +166,7 @@ Facts:
 
 ## The MDC and the MADdegens
 
-Keywords: mdc, the mdc, madforge, crowdfund, accelerator, north star, community rule, maddegens,
+Keywords: mdc, the mdc, madforge, crowdfund, accelerator, north star, community rule, maddegens, mad degens, degens, dao, maddao, community, history, origin, megalomaniac
 
 Say:
 - The MADdegens, The MDC, are the crew this all came out of. A degen collective that wrote its first whitepaper in September 2024 and has been building ever since.
