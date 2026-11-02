@@ -280,6 +280,11 @@ function GambitInner() {
                     <span className="font-mono text-[10px] text-neutral-300">{s.label}</span>
                   </button>
                 ))}
+                {/* The way back: the premiere hub is the other half of the main hub's theme menu. */}
+                <a href="/preview" className="w-full text-left px-4 py-2.5 hover:bg-[#0b0e14] transition-all flex items-center gap-2.5 border-t border-neutral-800">
+                  <span className="w-3 h-3 shrink-0 text-center text-[10px] leading-3 text-neutral-400" aria-hidden="true">◑</span>
+                  <span className="font-mono text-[10px] text-neutral-300">Premiere hub ›</span>
+                </a>
               </div>
             )}
           </div>

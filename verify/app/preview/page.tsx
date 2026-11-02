@@ -10,17 +10,18 @@
  * Route map (both themes retained, no duplication):
  *   /         → redirect → /preview   (premiere theme, this file)
  *   /preview  → premiere theme
- *   /mpp2.23  → alternative earlier hub theme (the 7-tab platform)
+ *   /mpp2.23  → the "Classic" hub theme (7-tab platform), a third option in the theme menu
  *   /gambit   → redirect → /mpp2.23   (retired route, query preserved)
  *
  * The two skins ARE the mockup's two looks (Gilded Pop-Baroque ⇄ Neon Noir
- * Tabloid) — toggle top-right. Imagery/ticker/odds are branded beta
+ * Tabloid) — theme menu top-left (Gilded / Neon Noir / Classic). Imagery/ticker/odds are branded beta
  * placeholders; flip-clock, carousel, parallax and themes are live.
  */
 import React, { useEffect, useState } from "react";
 import { Home, TrendingUp, Wallet, User, PlusSquare, PanelLeft, PanelRight, X, type LucideIcon } from "lucide-react";
 import ModuleShelf from "@/components/module-shelf";
 import { useSkin } from "@/components/skin-provider";
+import ThemeMenu from "@/components/theme-menu";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import CryptoTickerDual from "@/components/crypto-ticker-dual";
 import NewsTwoRow from "@/components/news-two-row";
@@ -106,10 +107,10 @@ import { GambitNodeProvider, useGambitNode } from "@/components/gambit-node";
  * Its "everything of this kind" is the deck — all 992 cards.
  */
 const DESKS: { label: string; sub: string; href: string }[] = [
-  { label: "Prediction", sub: "Open markets", href: "/open-markets?tab=prediction" },
-  { label: "Conviction", sub: "Open markets", href: "/open-markets?tab=conviction" },
-  { label: "Affliction", sub: "All cards", href: "#affliction" },
-  { label: "Octavian", sub: "Node mesh", href: "/octavian" },
+  { label: "Prediction", sub: "Markets", href: "/open-markets?tab=prediction" },
+  { label: "Conviction", sub: "Markets", href: "/open-markets?tab=conviction" },
+  { label: "Affliction", sub: "Cards", href: "#affliction" },
+  { label: "Octavian", sub: "Mesh", href: "/octavian" },
 ];
 
 /** What each desk button explains on hover / press-and-hold. */
@@ -145,7 +146,7 @@ function tap(e: React.MouseEvent, intensity = 0.5) {
 function Chip({ label, filled, onClick }: { label: string; filled?: boolean; onClick?: (e: React.MouseEvent) => void }) {
   const { skin } = useSkin();
   return (
-    <button type="button" onClick={onClick} className="mg-tap" style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "6px 11px", borderRadius: 8, color: filled ? skin.bg : skin.text, background: filled ? skin.gold : "transparent", border: `1px solid ${filled ? skin.gold : skin.border}`, whiteSpace: "nowrap", fontFamily: INSTRUMENT_FONT, cursor: "pointer" }}>
+    <button type="button" onClick={onClick} className="mg-tap mg-glass" style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "6px 11px", borderRadius: 8, color: filled ? skin.bg : skin.text, background: filled ? skin.gold : skin.card, border: `1px solid ${filled ? skin.gold : skin.border}`, whiteSpace: "nowrap", fontFamily: INSTRUMENT_FONT, cursor: "pointer" }}>
       {label}
     </button>
   );
@@ -195,7 +196,7 @@ function BottomNav({ onProfile }: { onProfile: () => void }) {
 }
 
 function PreviewInner() {
-  const { skin, name, toggle } = useSkin();
+  const { skin } = useSkin();
   const { socialAuth } = useGame();
   const { openNode } = useGambitNode();
   const [sy, setSy] = useState(0);
@@ -302,9 +303,7 @@ function PreviewInner() {
           {/* Theme + auth, moved off the logo row. At 393px the old single row
               had six controls fighting for space and wrapped mid-word. */}
           <div style={{ display: "flex", alignItems: "center", gap: 6, flex: "none" }}>
-            <button type="button" onClick={toggle} style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", padding: "6px 11px", borderRadius: 8, cursor: "pointer", color: skin.text, background: skin.card, border: `1px solid ${skin.accent}66`, whiteSpace: "nowrap", fontFamily: INSTRUMENT_FONT }} title="Toggle Gilded Pop-Baroque ⇄ Neon Noir Tabloid">
-              {name === "gilded" ? "◑ Gilded" : "◐ Neon Noir"}
-            </button>
+            <ThemeMenu />
             <Chip label="Login" onClick={() => setAuthOpen(true)} />
             {/* §5 matrix: Sign Up summons the beta-gate node (Login stays real). */}
             <Chip label="Sign Up" filled onClick={(e) => { tap(e, 0.7); openNode("beta-gate"); }} />
@@ -314,18 +313,17 @@ function PreviewInner() {
         {/* The four desks, as a scrollable rail under the header. Each names
             the surface it opens rather than being a bare label, so the row
             reads as a destination list instead of four nouns. */}
-        {/* CENTRED, EQUAL-WIDTH. Previously `flex: 0 0 auto` inside an
-            overflow-x rail, so each button sized to its own label — four
-            different widths, left-packed against the edge. Now the row is
-            centred and each desk takes `flex: 1 1 0` off a shared basis, so
-            all four are identical in width regardless of label length and the
-            group sits centred under the header. maxWidth keeps them from
-            stretching absurdly wide on desktop. */}
+        {/* ONE ROW, FOUR EQUAL KEYS. A four-column grid rather than a flex rail:
+            each desk gets exactly a quarter of the row (minmax(0,1fr) lets a
+            long label shrink instead of pushing its neighbours), so Prediction,
+            Conviction, Affliction and Octavian sit snug together at every width
+            and the sub-labels are short enough never to truncate. Each is a raised
+            glass key (see app/glass.css). */}
         <nav
           aria-label="Platform desks"
           style={{
-            display: "flex", gap: 8, padding: "0 14px 10px",
-            maxWidth: 720, margin: "0 auto", justifyContent: "center",
+            display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 6,
+            padding: "0 14px 10px", maxWidth: 720, margin: "0 auto",
           }}
         >
           {DESKS.map((d) => (
@@ -333,17 +331,18 @@ function PreviewInner() {
             <a
               href={d.href}
               onClick={(e) => tap(e, 0.5)}
+              className="mg-tap mg-glass"
               style={{
-                flex: "1 1 0", minWidth: 0, textAlign: "center", cursor: "pointer",
-                padding: "7px 11px", borderRadius: 10, textDecoration: "none",
-                background: skin.card, border: `1px solid ${skin.border}`,
+                minWidth: 0, textAlign: "center", cursor: "pointer",
+                padding: "7px 2px 6px", borderRadius: 10, textDecoration: "none",
+                background: skin.card, border: `1px solid ${skin.gold}40`,
                 fontFamily: INSTRUMENT_FONT,
               }}
             >
-              <span style={{ display: "block", fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: skin.gold }}>
+              <span style={{ display: "block", fontSize: 9.5, fontWeight: 900, letterSpacing: 0.5, textTransform: "uppercase", color: skin.gold, whiteSpace: "nowrap" }}>
                 {d.label}
               </span>
-              <span style={{ display: "block", marginTop: 2, fontSize: 8, color: skin.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <span style={{ display: "block", marginTop: 2, fontSize: 9, color: skin.muted, whiteSpace: "nowrap" }}>
                 {d.sub} ›
               </span>
             </a>
@@ -384,6 +383,61 @@ function PreviewInner() {
                 Below six market cards they read as a footnote to those cards;
                 they are in fact a platform-state instrument, so they lead. */}
             <InstrumentDeckSection uid="preview-instrument" />
+
+            {/* THE MADHATs GAMBIT CARD GAME + HUB — lifted from the foot of the
+                page to sit directly under the two dials. It is the platform's hook
+                (packs, the deck, the Dutch auction, Conviction + Prediction), so it
+                leads rather than waiting past the market floor. Same blocks, same
+                ids: #affliction (the Affliction desk button and perp-dials link) and
+                #mg-unpacked still resolve, now near the top. */}
+            {/* DUAL FEATURE SECTION — the two halves of the game economy, side
+                by side on desktop and stacked on mobile.
+
+                Left: Conviction + Prediction, where a position is taken.
+                Right: the MADHATs Gambit deck on an auto-advancing carousel
+                with the Dutch auction directly beneath it in the same shell —
+                what you can own, and what it costs right now.
+
+                They are paired rather than scattered because they are one loop:
+                you form a conviction, you buy the cards that back it, the
+                auction sets the price. Apart, they read as three unrelated
+                features. */}
+            {/* id="affliction", not the orphaned "mg-game" it replaced: nothing
+                linked to mg-game, while perp-dials.tsx has always linked to
+                /preview#affliction — an anchor that did not exist, so that tile
+                dropped visitors at the top of the page. Same block, the name the
+                rest of the app was already using. */}
+            <div
+              id="affliction"
+              data-explain="affliction"
+              style={{
+                display: "grid",
+                gridTemplateColumns: wide ? "1fr 1fr" : "1fr",
+                gap: 16,
+                alignItems: "start",
+                scrollMarginTop: 72,
+              }}
+            >
+              <div style={{ gridColumn: "1 / -1" }}>
+                <AfflictionLobby />
+              </div>
+              <PredictionCircus activeDeck={activeDeck} />
+              <GambitCardsAuctionSection />
+            </div>
+
+            {/* RECENTLY UNPACKED — the MADHATs Gambit deck as actually rolled.
+                Restored from SeikoDopamineHub alongside the pillars above.
+
+                It sits directly under the game block on purpose: the block
+                above is what you can buy and what it costs, this is what came
+                out. Cards are generated by openCardPack() from
+                lib/gambit-game-math — the SAME deterministic weighted-rarity
+                function the real pack-open route runs, not a decorative
+                sample — so the rarity mix on display is the true drop
+                distribution rather than a designer's guess at one. */}
+            <div id="mg-unpacked" style={{ scrollMarginTop: 72 }}>
+              <UnpackedCardsCarousel />
+            </div>
 
             {/* The four pillars explain the platform; they follow the live
                 surfaces (markets, wire, dials) rather than leading them. */}
@@ -466,55 +520,6 @@ function PreviewInner() {
             </div>
             <div id="mg-epiphanies" data-explain="perp-epiphany" style={{ scrollMarginTop: 72 }}>
               <EpiphanyCatalog />
-            </div>
-
-            {/* DUAL FEATURE SECTION — the two halves of the game economy, side
-                by side on desktop and stacked on mobile.
-
-                Left: Conviction + Prediction, where a position is taken.
-                Right: the MADHATs Gambit deck on an auto-advancing carousel
-                with the Dutch auction directly beneath it in the same shell —
-                what you can own, and what it costs right now.
-
-                They are paired rather than scattered because they are one loop:
-                you form a conviction, you buy the cards that back it, the
-                auction sets the price. Apart, they read as three unrelated
-                features. */}
-            {/* id="affliction", not the orphaned "mg-game" it replaced: nothing
-                linked to mg-game, while perp-dials.tsx has always linked to
-                /preview#affliction — an anchor that did not exist, so that tile
-                dropped visitors at the top of the page. Same block, the name the
-                rest of the app was already using. */}
-            <div
-              id="affliction"
-              data-explain="affliction"
-              style={{
-                display: "grid",
-                gridTemplateColumns: wide ? "1fr 1fr" : "1fr",
-                gap: 16,
-                alignItems: "start",
-                scrollMarginTop: 72,
-              }}
-            >
-              <div style={{ gridColumn: "1 / -1" }}>
-                <AfflictionLobby />
-              </div>
-              <PredictionCircus activeDeck={activeDeck} />
-              <GambitCardsAuctionSection />
-            </div>
-
-            {/* RECENTLY UNPACKED — the MADHATs Gambit deck as actually rolled.
-                Restored from SeikoDopamineHub alongside the pillars above.
-
-                It sits directly under the game block on purpose: the block
-                above is what you can buy and what it costs, this is what came
-                out. Cards are generated by openCardPack() from
-                lib/gambit-game-math — the SAME deterministic weighted-rarity
-                function the real pack-open route runs, not a decorative
-                sample — so the rarity mix on display is the true drop
-                distribution rather than a designer's guess at one. */}
-            <div id="mg-unpacked" style={{ scrollMarginTop: 72 }}>
-              <UnpackedCardsCarousel />
             </div>
 
             <div id="mg-featured">
