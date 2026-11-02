@@ -11,6 +11,8 @@
  */
 import React, { useEffect, useState } from "react";
 import MadGambitConcierge from "@/components/mad-gambit-concierge";
+import BetaExtras from "@/components/beta-extras";
+import { HONEYPOT_STYLE, solveSignupChallenge } from "@/lib/signup-shield-client";
 
 const GOLD = "#d69d41";
 const ROSSA = "#f5242a";
@@ -72,6 +74,7 @@ export default function BetaGate() {
         </div>
 
         <SigninCard next={next} />
+        <BetaExtras next={next} />
 
         {/* The MADHAT'r Concierge: answers questions about the beta for visitors who are not in yet. */}
         <MadGambitConcierge uid="beta" />
@@ -86,6 +89,7 @@ export default function BetaGate() {
 }
 
 function SignupCard() {
+  const [trap, setTrap] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<Role>("trader");
   const [handle, setHandle] = useState("");
@@ -97,7 +101,10 @@ function SignupCard() {
     setError(null);
     setState("busy");
     try {
-      const r = await fetch("/api/v1/beta/signup", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email, role, handle }) });
+      // Signup shield: a short proof of work and a hidden honeypot field (lib/signup-shield.ts).
+      const challenge = await solveSignupChallenge();
+      if (!challenge) { setError("Couldn't reach the server — try again in a minute."); setState("idle"); return; }
+      const r = await fetch("/api/v1/beta/signup", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email, role, handle, website: trap, challenge }) });
       const d = (await r.json().catch(() => ({}))) as { success?: boolean; error?: string };
       if (r.ok && d.success) setState("done");
       else { setError(d.error ?? "Something went wrong — try again."); setState("idle"); }
@@ -120,6 +127,7 @@ function SignupCard() {
     <form onSubmit={submit} className="mg-tile" style={{ padding: 18, display: "flex", flexDirection: "column", gap: 12 }} aria-label="Request beta access">
       <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.4, textTransform: "uppercase", color: GOLD }}>Request beta access</div>
       <input type="email" required autoComplete="email" placeholder="you@email.com" aria-label="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={field} />
+      <div aria-hidden="true" style={HONEYPOT_STYLE}><label>Website<input tabIndex={-1} autoComplete="off" name="website" value={trap} onChange={(e) => setTrap(e.target.value)} /></label></div>
       <div role="radiogroup" aria-label="I'm here as a" style={{ display: "flex", gap: 6 }}>
         {ROLES.map((r) => {
           const on = r.id === role;

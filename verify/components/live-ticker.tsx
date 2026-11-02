@@ -19,6 +19,8 @@ import { motion, useAnimationFrame, useMotionValue } from "framer-motion";
 import { INK } from "@/lib/gambit-design-tokens";
 import { PLATFORM } from "@/lib/gambit-game-math";
 import { AutoShowcaseBadge } from "@/components/carousel";
+import { useTickerFeed } from "@/lib/use-ticker-feed";
+import type { TickerMarket } from "@/lib/ticker-feed";
 
 /* ── modes ─────────────────────────────────────────────────────── */
 type Mode = "markets" | "satire" | "stats";
@@ -136,13 +138,20 @@ export default function LiveTicker() {
   const [crypto, setCrypto] = useState<Tick[]>(CRYPTO_SEED);
   const [commodities, setCommodities] = useState<Tick[]>(COMMODITY_SEED);
   const [metrics, setMetrics] = useState<TickerMetrics | null>(null);
-  const stats = statsRows(metrics);
+  // The MoE-curated analytics + markets snapshot, polled once a minute. When live it supersedes the 30s metrics read
+  // for the headline numbers, and its markets lead the first strip.
+  const feedSnap = useTickerFeed();
+  const feedLive = feedSnap?.source === "live";
+  const shown: TickerMetrics | null = feedSnap && feedLive
+    ? { activeMarkets: feedSnap.markets.filter((m) => m.kind === "binary").length, openBets: feedSnap.analytics.openBets, volume24h: feedSnap.analytics.volume24h, chaos: feedSnap.analytics.heat, events24h: feedSnap.analytics.events24h, source: "live" }
+    : metrics;
+  const stats = statsRows(shown);
 
   /** Per-mode provenance. The three modes have genuinely different backing. */
   const sourceBadge: { label: string; tone: string } =
     mode === "stats"
-      ? metrics
-        ? metrics.source === "live"
+      ? shown
+        ? shown.source === "live"
           ? { label: "live", tone: INK.green }
           : { label: "demo", tone: INK.muted }
         : { label: "loading", tone: INK.muted }
@@ -150,7 +159,9 @@ export default function LiveTicker() {
         ? status === "live"
           ? { label: "live", tone: INK.green }
           : { label: "offline", tone: INK.muted }
-        : { label: "simulated", tone: INK.gold };
+        : feedLive && (feedSnap?.markets.length ?? 0) > 0
+          ? { label: "live markets", tone: INK.green }
+          : { label: "simulated", tone: INK.gold };
 
   // restore persisted mode + reduced-motion preference
   useEffect(() => {
@@ -309,6 +320,7 @@ export default function LiveTicker() {
       {mode === "markets" && (
         <>
           <TickerRow reduced={reduced} speed={32} direction={-1} icon={<LineChart className="w-4 h-4" style={{ color: INK.green }} />}>
+            {(feedSnap?.markets ?? []).map((m) => <LiveMarketPill key={m.kind + m.id} m={m} />)}
             {crypto.map((t, i) => <MarketPill key={i} t={t} />)}
           </TickerRow>
           <TickerRow reduced={reduced} speed={42} direction={1} icon={<BarChart3 className="w-4 h-4" style={{ color: INK.cyan }} />}>
@@ -346,6 +358,7 @@ export default function LiveTicker() {
             {stats.primary.map(([k, v, c], i) => <StatPill key={i} k={k} v={v} c={c} />)}
           </TickerRow>
           <TickerRow reduced={reduced} speed={38} direction={1} icon={<LineChart className="w-4 h-4" style={{ color: INK.gold }} />}>
+            {feedSnap && feedSnap.captionBy === "moe" && <StatPill k="MoE WIRE" v={feedSnap.caption} c={INK.pink} />}
             {stats.secondary.map(([k, v, c], i) => <StatPill key={i} k={k} v={v} c={c} />)}
           </TickerRow>
         </>
@@ -363,6 +376,19 @@ function MarketPill({ t }: { t: Tick }) {
       <span className="font-mono text-[11px] font-bold uppercase tracking-wider" style={{ color: INK.white }}>{t.sym}</span>
       <span className="font-mono text-[12px] tabular-nums" style={{ color: INK.white }}>${fmtPrice(t.price)}{t.unit || ""}</span>
       <span className="font-mono text-[10px] font-bold tabular-nums" style={{ color: col, textShadow: `0 0 8px ${col}66` }}>{up ? "▲" : "▼"} {Math.abs(t.change).toFixed(1)}%</span>
+      <span style={{ color: INK.muted }} className="mx-1">·</span>
+    </span>
+  );
+}
+function LiveMarketPill({ m }: { m: TickerMarket }) {
+  const col = m.kind === "perp" ? INK.cyan : m.yesPct >= 50 ? INK.green : INK.pink;
+  const title = m.title.length > 38 ? m.title.slice(0, 37) + "…" : m.title;
+  return (
+    <span className="inline-flex items-center gap-2 px-5">
+      <span className="font-mono text-[9px] font-bold uppercase tracking-widest" style={{ color: INK.gold }}>{m.kind === "perp" ? "PERP" : "LIVE"}</span>
+      <span className="font-sans text-[12px] font-medium" style={{ color: INK.white }}>{title}</span>
+      {m.kind === "binary" && <span className="font-mono text-[12px] font-bold tabular-nums" style={{ color: col, textShadow: `0 0 8px ${col}66` }}>YES {m.yesPct}%</span>}
+      <span className="font-mono text-[10px] tabular-nums" style={{ color: INK.muted }}>{compact(m.volume)} $MADx</span>
       <span style={{ color: INK.muted }} className="mx-1">·</span>
     </span>
   );

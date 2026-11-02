@@ -91,7 +91,11 @@ export async function passUser(value: string | undefined, guests: Record<string,
     return null;
   }
   // A guest removed from env loses access at the next request, not at expiry.
-  return Object.prototype.hasOwnProperty.call(guests, user) ? user : null;
+  if (Object.prototype.hasOwnProperty.call(guests, user)) return user;
+  // Invite-code and open-beta passes (lib/support/beta.ts) are not env guests: the HMAC above proves we issued them.
+  // BETA_INVITES_DISABLED=1 revokes every one of them at once.
+  if (/^(invite|open):[\w-]{1,24}$/.test(user) && process.env.BETA_INVITES_DISABLED !== "1") return user;
+  return null;
 }
 
 /**

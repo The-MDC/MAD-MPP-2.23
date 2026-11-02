@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { hasDatabaseUrl } from "@/lib/database-url";
+import { FAKE_SUCCESS, guardPublicForm } from "@/lib/support/form-guard";
 import { enforceRateLimit } from "@/lib/rate-limit";
+import { canonicalEmail, isDisposableEmail } from "@/lib/signup-shield";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +38,10 @@ export async function POST(req: Request) {
   let handle: string | null = null;
   try {
     const body = (await req.json()) as { email?: unknown; role?: unknown; handle?: unknown };
+    // Signup shield: rate limit, same-origin, client score, honeypot (quiet fake success) and proof of work.
+    const g = await guardPublicForm(req, body);
+    if (g.kind === "deny") return g.response;
+    if (g.kind === "honeypot") return FAKE_SUCCESS();
     email = typeof body.email === "string" ? body.email.trim().slice(0, 254) : "";
     if (typeof body.role === "string" && (ROLES as readonly string[]).includes(body.role)) role = body.role as Role;
     if (typeof body.handle === "string" && body.handle.trim()) handle = body.handle.trim().slice(0, 64);
@@ -45,6 +51,11 @@ export async function POST(req: Request) {
   if (!EMAIL.test(email)) {
     return NextResponse.json({ success: false, error: "That email doesn't look right." }, { status: 400 });
   }
+  if (isDisposableEmail(email)) {
+    return NextResponse.json({ success: false, error: "Please use a permanent email address." }, { status: 400 });
+  }
+  // One inbox, one place on the list: Gmail dots and +tags collapse to the same address.
+  email = canonicalEmail(email);
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: false, error: "Signups are paused for a moment — try again shortly." }, { status: 503 });
   }

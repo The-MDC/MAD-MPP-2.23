@@ -10,6 +10,7 @@ import ReflexionVisualizer from "@/components/reflexion-visualizer";
 import MadxWalletPanel from "@/components/madx-wallet-panel";
 import MarketsForTodayPanel from "@/components/markets-for-today-panel";
 import DashboardShell from "@/components/dashboard-shell";
+import { requireAdminPage } from "@/lib/admin-page";
 
 export const metadata = {
   title: "MAD Gambit — Dashboard",
@@ -21,7 +22,11 @@ export const metadata = {
  * Data Platform (V1) alongside the 5-stream revenue engine (Phase 4).
  * Additive route — does not touch the /gambit layout.
  */
-export default function DashboardPage() {
+export const dynamic = "force-dynamic";
+
+/** Admin-only: signed-in administrators (lib/admin-auth.ts); everyone else is sent to /admin/sign-in. */
+export default async function DashboardPage() {
+  await requireAdminPage("/dashboard", "reports:read");
   return (
     <DashboardShell>
       <DopamineMetricsCarousel />

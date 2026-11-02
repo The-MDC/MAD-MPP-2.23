@@ -3,6 +3,7 @@ import { getDbPool } from "@/lib/db";
 import { isAuthResponse, requireMadxRouteAuth } from "@/lib/madx-route-auth";
 import { placeBet, listBetsByWallet, type Bet, type BetSide } from "@/lib/markets";
 import { hasDatabaseUrl } from "@/lib/database-url";
+import { checkTrade, tradeRefusal } from "@/lib/trade-guard";
 
 interface BetBody {
   marketId?: unknown;
@@ -75,6 +76,10 @@ export async function POST(req: Request) {
   if (!side) return NextResponse.json({ success: false, error: "side must be YES or NO" }, { status: 400 });
   if (!Number.isFinite(amount) || amount <= 0)
     return NextResponse.json({ success: false, error: "amount must be positive" }, { status: 400 });
+
+  // Anti-bot / anti-quant: per-wallet velocity, spacing, side-flip and size limits (lib/trade-guard.ts).
+  const verdict = checkTrade(wallet, marketId, side, amount);
+  if (!verdict.ok) return tradeRefusal(verdict);
 
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: false, error: "bets need DATABASE_URL" }, { status: 503 });

@@ -64,6 +64,9 @@ Facts:
 - Never use the platform's old project name. It is MAD Gambit.
 - Never quote traction or fundraising figures (sign-ups, alpha results, raise size, use of funds). Those are the founder's to share.
 - Never describe the reward rhythm as anything but game-economy engagement.
+- Teaching: most people are new to this. Explain in plain words first, with an everyday comparison, in one or two sentences; offer the formula only if they want it. Never quote a coefficient this file says stays server-side.
+- History, the moon and market lore are context, never signals to trade on. Say so when it matters.
+- Support: safety first. If someone shares a password, key or seed phrase, tell them to stop and to secure their wallet before anything else.
 
 ---
 
@@ -89,12 +92,14 @@ Facts:
 
 ## Private beta and access
 
-Keywords: beta, invite, waitlist, wait list, sign up, signup, join, access, get in, creator sign-in, login, log in, password
+Keywords: beta, invite, waitlist, wait list, sign up, signup, join, access, get in, creator sign-in, login, log in, password, invite code, open beta, closed beta, redeem
 
 Say:
 - Velvet rope, kid. Drop your email in "Join the private beta". Invites go out in waves, creators first.
 - Already holding a pass? Use Creator Sign-in, right below the signup. One sign-in keeps you on the floor for a week.
 - Inside, everything runs on free-play $MADx. Bet, cash out, rip packs, build markets. Nobody's real money is on the table.
+- Got an invite code? Redeem it on the beta page, right under the sign-in. Codes look like MAD-XXXX-XXXX.
+- First a closed beta, invite-only, in waves. Then an extended open beta where anyone can walk in while spots last. The beta page always says which one we're in.
 
 ---
 
@@ -659,6 +664,329 @@ Say:
 
 Facts:
 - Public-safe substance of those documents is in this file. Deliberately not included: fundraising terms, use of proceeds, partner or grant narratives, diligence questions, the security and oracle risk register, and proprietary maths values.
+
+---
+
+## Learning the maths here
+
+Keywords: explain simply, in plain english, plain english, layman, laymans terms, layman's terms, eli5, explain like, teach me, i'm new, im new, new to this, beginner, for dummies, the maths, the math, how does the maths work, maths 101, math 101, what maths, which maths, concepts
+
+Say:
+- Pull up a stool. The whole platform runs on about thirteen ideas, and every one of them has a plain-English version. Ask me about any of them and I'll give you the bar-napkin version first, then the formula if you want it.
+- The big ones: odds and probability, the market maker that sets prices, conviction, volatility, evidence and updating, bet sizing, the liar meter, perpetual markets and their moon-based legs, the Shield, the fee, staking, cards, voting, and how stories catch fire and fade.
+- Start anywhere. "What's a market maker?", "why do prices move when I buy?", "what's volatility?", "what's a perp?", "why the moon?" all work.
+
+Facts:
+- The canonical maths is one library (verify/lib/gambit-game-math.ts) and the master reference, Part VI §1–§13: constants, conviction and continuous markets, the Paseome, the liar meter and scandal signal, the Bayesian layer, the Shield, the fee waterfall, staking, the card economy, governance, the behavioural layer, tournaments and PvP, and the thematic and temporal layer.
+- Teaching order that works for newcomers: probability → the market maker → why prices move → volatility → conviction → perps and legs → Shield and fees.
+- Some coefficients are proprietary and stay server-side. The concierge explains the shape of every equation, never the secret numbers.
+
+---
+
+## Probability, odds and implied probability
+
+Keywords: implied probability, decimal odds, what are odds, how do odds work, odds mean, probability mean, percent chance, what does 62% mean, overround, vig, juice, de-vig, devig, fair odds, coin flip, 50/50
+
+Say:
+- A price is a probability. If YES costs 62 cents on the dollar, the room thinks there's about a 62% chance it happens.
+- Decimal odds are the same thing upside down: roughly 1 divided by the probability. 50% is 2.0, 25% is 4.0. Here the 1.88% fee is folded in, so 62% shows as about 1.58.
+- Bookmakers hide a margin, the "vig", by making all the probabilities add up past 100%. Here they add up to exactly 100% and the only cost is the flat 1.88%.
+- A probability isn't a promise. 70% things fail three times out of ten. That's not the market being wrong; that's what 70% means.
+
+Facts:
+- Displayed decimal odds = 1 / (p × 1.0188).
+- De-vig (removing a bookmaker margin): divide each implied probability by their sum, so they total 1. The platform's own prices already sum to 1 (see the market maker).
+- Calibration: across many forecasts, things priced at 70% should happen about 70% of the time. Measured with the Brier score (see Bayesian updating).
+
+---
+
+## The market maker: LMSR and DL-LMSR
+
+Keywords: market maker, automated market maker, amm, lmsr, dl-lmsr, logarithmic market scoring rule, market scoring rule, cost function, liquidity parameter, why did the price move, price moved, slippage, price impact, who is on the other side, counterparty, hanson, worst-case loss
+
+Say:
+- There's no bookie and no order book waiting for a stranger to take your bet. A formula is always on the other side, so you can always trade.
+- Think of a see-saw: every share of YES you buy pushes YES up and everything else down, and all the prices always add up to 100%.
+- Big buys move the price more than small ones. That's price impact, or slippage, and the quote shows it before you confirm.
+- The house's worst possible loss is fixed before the first trade. That's the "certain" in Certain-UnCertainty.
+- It was invented for prediction markets by economist Robin Hanson around 2003. We use a dynamic version where liquidity deepens as volume grows.
+
+Facts:
+- Cost function C(q) = b · ln Σ e^(qᵢ/b). Price pᵢ = e^(qᵢ/b) / Σ e^(qⱼ/b). You pay C(after) − C(before).
+- b is the liquidity: bigger b, smaller price moves per share. Demo floor b = 1,200 $MADx. DL-LMSR scales b up with cumulative volume, gently (a logarithm of volume), so a busy market gets deeper over time.
+- The maker's worst-case loss is b · ln n for n outcomes: 1,318 / 1,664 / 1,931 $MADx for 3 / 4 / 5 outcomes at b = 1,200.
+- Computed with the log-sum-exp trick (subtract the largest q first) so huge books never overflow.
+- Sources: Hanson, "Combinatorial Information Market Design" (2003) and "Logarithmic Market Scoring Rules" (2007); Othman et al. on liquidity-sensitive LMSR (2013).
+
+---
+
+## Conviction: MADConv explained
+
+Keywords: madconv, conviction score, conviction maths, conviction math, what is conviction, how is conviction measured, belief strength, time held, depth, psychology term, sigmoid, diminishing returns
+
+Say:
+- A price tells you what the room thinks. Conviction tells you how hard and how long they believe it.
+- Four things build it: how long you've held, how much you put in, how deep your position runs, and how you behave under pressure. Time and depth count the most.
+- Money alone can't buy it. A whale who arrived yesterday scores lower than a regular who's held through three news cycles.
+- Everything is soft-capped on an S-curve, so nobody can max it out by brute force.
+
+Facts:
+- Live core: MADConv = t^a · c^b · d^c · ψ^d × card multiplier × lunar multiplier. The exponents are fixed constants kept server-side; time and depth carry the largest.
+- A sigmoid bound L / (1 + e^(−k(x − mid))) keeps depth safe for on-chain fixed-point maths and gives diminishing returns.
+- The full specification adds meme, satire, liar and volatility terms; those exist as separate meters and are not yet multiplied into the live score.
+- Conviction grows with time held and decays when attention fades (temporal and stochastic decay in the behavioural layer).
+
+---
+
+## Volatility and GARCH
+
+Keywords: what is volatility, volatility mean, volatile, volatility clustering, garch model, arch model, egarch, cgarch, sigma, standard deviation, turbulence, calm market, choppy, bollerslev, engle, leverage effect
+
+Say:
+- Volatility is how hard a price is swinging, not which way. A calm market drifts; a volatile one lurches.
+- Volatility clusters: wild days tend to follow wild days, calm follows calm. GARCH is the classic way to model that, and it won Robert Engle a Nobel prize.
+- Here volatility amplifies a story's market by up to about one and a half times, then hits a hard ceiling. It can turn the heat up; it can't blow the place up.
+- Bad news tends to rattle markets more than good news of the same size. We use an asymmetric version for that.
+
+Facts:
+- GARCH(1,1): σ²ₜ = ω + α·ε²ₜ₋₁ + β·σ²ₜ₋₁ — today's variance from a floor, yesterday's shock and yesterday's variance. Parameters stay server-side.
+- Clamped to σ 0.09–0.68. Amplification = 1 + 0.8σ, so at most about 1.54×.
+- Asymmetric variants: EGARCH (Nelson, 1991) lets bad shocks count more; component GARCH (Engle & Lee, 1999) splits a permanent trend from a transitory wobble. The Paseome's counterfactual print is permanent minus transitory.
+- History: ARCH by Robert Engle (1982; Nobel 2003), generalised to GARCH by Tim Bollerslev (1986).
+
+---
+
+## Evidence and updating: the Bayesian layer
+
+Keywords: bayes, bayes theorem, bayesian updating, update my belief, new evidence, likelihood ratio, log odds, log-odds, prior, posterior, value of information, should i wait, brier score, log score, calibration, calibrated, superforecaster
+
+Say:
+- Bayes in one line: start with what you believed, then move it by exactly as much as the new evidence deserves. Not more because it's loud, not less because you don't like it.
+- Strong evidence moves you a lot; weak or repeated evidence barely moves you. The engine does that maths so you don't have to.
+- Sometimes the smartest move is to wait for the next piece of news. The engine can estimate what that next piece is worth.
+- Forecasters here get graded on calibration: if your 70% calls come true about 70% of the time, you're good, whatever happened on any single one.
+
+Facts:
+- Log-odds form: logit(p_new) = logit(p_old) + ln(likelihood ratio), applied evidence by evidence.
+- Hybrid with conviction: M′ = M^0.85 · (1 + β·bayes). Decision trees are depth-bounded at 64. Value of information (VOI) estimates the worth of waiting.
+- Scoring: Brier score (Glenn Brier, 1950: mean squared error of probabilities, lower is better) and log score (I. J. Good, 1952). Superforecasting research (Tetlock & Gardner, 2015) shows calibration is a trainable skill.
+- Live at POST /api/v1/bayesian/{update, tree, voi, score, garch}.
+
+---
+
+## Bet sizing: Kelly and the δ-limit
+
+Keywords: kelly criterion, half kelly, half-kelly, how much to bet, position size, position sizing, bankroll, bankroll management, risk of ruin, delta limit, δ-limit, overbetting, all in
+
+Say:
+- Kelly is the classic answer to "how much should I put on this?": bet in proportion to your edge, never your hope. No edge, no bet.
+- Full Kelly is a rollercoaster, so we default to half of it. You give up a little growth and lose a lot of the stomach-drops.
+- The δ-limit is a cap on top, so one position can't swallow your whole stack.
+- I'll explain the maths all day. Whether you should bet is above my pay grade.
+
+Facts:
+- f* = (p·(b+1) − 1) / b for net decimal odds b and win probability p; the platform uses scale 0.5 (half-Kelly).
+- Kelly maximises long-run growth of the bankroll; betting more than full Kelly lowers growth and raises ruin risk.
+- History: John L. Kelly Jr., Bell Labs (1956); popularised for gambling and markets by Edward O. Thorp.
+
+---
+
+## The liar meter and scandal maths
+
+Keywords: liar meter maths, z-liar maths, bs index, credibility score, how is the liar score calculated, scandal velocity maths, emotion weights, gdelt, sentiment, vader, corroboration, source credibility, perp trigger
+
+Say:
+- The Z-Liar Meter scores a statement, never the person. It blends how much the story keeps changing, how credible the sources are, and whether anyone independent backs it up.
+- It lands in one of five bands, from Straight Shooter to Total Fabrication.
+- Scandal velocity measures how fast a story spreads and what it makes people feel. Shame, anger and disgust keep a story alive; joy kills it.
+- When enough signals line up that a story won't die, it gets a perpetual market. Eight matching signals put that at about 86.5%, twelve at 95%.
+
+Facts:
+- BS index = 100 × (weighted narrative variance + weighted lack of source credibility − weighted corroboration), plus a capped volatility term and a small lunar tilt, clamped 0–100. Weights stay server-side.
+- Scandal velocity = Σ emotion weight × emotion intensity, from GDELT news signals; negative emotions weigh most, joy subtracts.
+- Perp trigger: P = 1 − e^(−k · matches · themeWeight · (1 + velocity)), bounded 0–1.
+- Sentiment is a lexicon scorer in the VADER family (Hutto & Gilbert, 2014), deliberately simple and auditable. News signals come from the GDELT Project, a global open database of news events.
+
+---
+
+## Perpetual markets, explained from scratch
+
+Keywords: how do perps work, what is a perp, what is a perpetual, perpetual futures, perpetual swap, perpetual market explained, funding rate, mark price, index price, basis, open interest, leverage, liquidation, liquidated, short squeeze, long squeeze, cascade, shiller, bitmex
+
+Say:
+- In crypto, a "perp" is a futures contract with no expiry date. Traders use leverage, pay or earn a funding rate every few hours to keep the price near the real thing, and get liquidated if it moves too far against them.
+- Ours borrow the "never expires" idea and drop the dangerous parts: no leverage, no funding rate, no margin calls, no liquidations. You hold conviction on a story that refuses to die.
+- Instead of expiring, ours roll on a lunar grid: one leg is two moon cycles, 59.061 days. Six legs make a Turning, about a lunar year.
+- Crypto-perp jargon you'll hear: open interest is how much money is in open positions; a squeeze is when a crowd on one side is forced out all at once; a cascade is liquidations triggering more liquidations.
+
+Facts:
+- Origin: economist Robert Shiller proposed perpetual claims in 1993; BitMEX launched the first crypto perpetual swap (XBTUSD) in 2016. Funding is typically paid every 8 hours on most exchanges, hourly on some.
+- Deliberately absent here: funding rate, mark/index basis, margin and liquidation price (lib/perp-reports.ts). Perp `volume` is net open conviction and falls when someone redeems; binary-market volume is cumulative turnover. They are different numbers and are never added together.
+- Tradeable families today: Five Faces, Zeitgeist and Perpetual Epiphanies. Five Faces holds a five-way split that always sums to one, each face kept between 2% and 88%.
+
+---
+
+## The moon: lunar legs and the lunar layer
+
+Keywords: why the moon, lunar, moon, full moon, new moon, lunar cycle, synodic month, lunar year, turning, lunar calendar, moon phase, moon and markets, lunar effect, lunar multiplier, 59.061, 29.53
+
+Say:
+- A moon cycle, new moon to new moon, is 29.53 days. A leg here is exactly two of them, 59.061 days, and six legs make a Turning, about a lunar year of 354 days.
+- Why the moon? Stories run on human rhythms, and the moon is the oldest clock we have. It gives every perpetual the same shared calendar.
+- The moon is theme, not maths that moves money. It nudges conviction from 1.00 at new moon to 1.15 at full moon. It never touches fees, prices or the Shield.
+- Some academic studies found stock returns a little lower around full moons, a few percent a year in some samples. It's small, debated and nothing to trade on. Fun at the bar, not a strategy.
+
+Facts:
+- Synodic month 29.530589 days (LUNAR_CYCLE_MS = 2,551,442,877 ms). Leg = 2 synodic months = 59.061 days. Turning = 6 legs ≈ 354.37 days, which drifts about 11 days a year against the solar calendar; the platform reports that drift rather than hiding it.
+- Lunar multiplier 1.00–1.15, thematic layer only. Phase is computed from a fixed reference epoch.
+- Research: Dichev & Janes, "Lunar Cycle Effects in Stock Returns" (2003); Yuan, Zheng & Zhu, "Are Investors Moonstruck?" (Journal of Empirical Finance, 2006) across dozens of countries. Effects are small and inconsistent across periods.
+- History: lunar and lunisolar calendars run the Islamic, Hebrew and Chinese years to this day; Babylonian astronomers tracked the cycle precisely thousands of years ago.
+
+---
+
+## Signals, events and how markets move
+
+Keywords: market signals, trading signals, what moves markets, why do markets move, events and markets, news and prices, buy the rumor, buy the rumour, sell the news, efficient market, momentum, mean reversion, event study, price discovery, wisdom of crowds, signal vs noise
+
+Say:
+- Markets move on surprise, not news. If everyone expected it, it's already in the price. That's why "buy the rumour, sell the news" is a thing.
+- Two forces fight forever: momentum (what's moving keeps moving for a while) and mean reversion (stretched things snap back). Neither wins every time.
+- Prediction markets are price discovery for events: thousands of people with money on the line, each adding a little of what they know.
+- The signals worth watching here: how close a market is to 50/50, how fast conviction is building, volatility bands, and whether the liar meter is climbing.
+
+Facts:
+- Efficient-market hypothesis: Eugene Fama (1970). Event studies measure how prices react around a dated event. Prediction-market accuracy history: the Iowa Electronic Markets (since 1988) often beat polls on elections.
+- Platform signals: conviction-weighted probability, belief persistence, claim credibility, story lifespan, scenario maps, calibration rankings, cohort risk appetite, the uncertainty map (books near 50/50, the Knife Edge sort) and a narrative-turbulence index from GARCH bands.
+- High-level history of event shocks (context, not advice): Black Monday (19 October 1987), the 2008 financial crisis, the Flash Crash (6 May 2010), the March 2020 pandemic crash, the GameStop short squeeze (January 2021), the FTX collapse (November 2022). Common thread: crowded positions plus a surprise.
+
+---
+
+## The fee waterfall, worked
+
+Keywords: fee waterfall, where does the fee go, fee split, how is the fee split, who gets the fee, creator cut maths, community cut, protocol cut, worked example fee, per 10000
+
+Say:
+- The 1.88% is cut in two stages. First the market's creator takes their rung, only on markets they made. Then the community gets 28.8% of what's left, and the protocol keeps the rest.
+- On 10,000 $MADx traded, the fee is 188. On a creator's market at the 28.8% rung: creator 54.14, community 38.55, protocol 95.31.
+- On a platform-made market there's no creator cut: community 54.14, protocol 133.86.
+
+Facts:
+- grossFee = volume × 1.88%; creatorCut = grossFee × rung (creator-made markets only); platformNet = grossFee − creatorCut; communityCut = platformNet × 28.8%; protocolCut = the rest.
+- Per 10,000 at the 40% rung: creator 75.20, community 32.49, protocol 80.31.
+- The creator rung and the community 28.8% are non-additive by design: one is a share of gross, the other of the platform's net.
+
+---
+
+## Shield, staking and card maths, worked
+
+Keywords: shield maths, shield math, premium formula, recovery scale, golden ratio, phi, staking maths, apy formula, clout boost, card maths, rarity odds, drop rates, wear, durability, evolution odds, dutch auction, pack price
+
+Say:
+- Shield: your premium scales with your stake, your odds of winning and how volatile the market is, kept between 2% and 4%. Lose, and you get back 28.8% to 40%, capped by your staking tier.
+- Staking: four tiers, all eights. Clout from your cards can lift your rate up to double, so MAD Tier's 38.8% can reach 77.6%. Earned, never promised.
+- Cards: 992 in the deck, 8 factions, 7 rarities. Rarer cards drop less often, wear more slowly, and every use wears a card a little until you evolve or retire it.
+
+Facts:
+- Shield premium = stake × P(win) × √volatility × 0.35, clamped to 2–4% of stake. Recovery 28.8% standard, rising with the premium tier to a 40% ceiling; tier caps Bronze 28.8 / Silver 32.8 / Gold 36.8 / MAD Tier 40.0. A golden-ratio (φ ≈ 1.618) weighting appears in the Shield ratio.
+- Effective APY = tier APY × (1 + clout/200), clout 0–200.
+- Deck 992 cards, 8 factions, 7 rarities, seed 8888; packs cost 4.88 $MADx for 5 cards, slot one guaranteed uncommon or better. Some pack prices follow a Dutch auction: the price starts high and falls until someone buys.
+
+---
+
+## Voting and funding maths
+
+Keywords: quadratic funding, quadratic voting, square root voting, voting power maths, why square root, futarchy, governance maths, matching pool, sybil
+
+Say:
+- Voting power is the square root of what you stake, capped. Ten times the stake buys about three times the votes, so whales can't simply buy the outcome.
+- Quadratic funding rewards how many people back something, not just how much money: a hundred people giving a little beats one person giving a lot.
+- Futarchy is "vote on values, bet on beliefs": a proposal passes if the market thinks it'll work. Here it's designed, not live.
+
+Facts:
+- Voting power = min(√stake, 240), so no wallet outweighs a 100-$MADx holder by more than 24 to 1. The fee and creator share are never on the ballot.
+- Quadratic funding: total = (Σ√cᵢ)²; the match is that total minus what people gave. Source: Buterin, Hitzig & Weyl, "A Flexible Design for Funding Public Goods" (2018).
+- Futarchy: Robin Hanson (2000). The designed rule (execute above 80% pass probability sustained 24 hours) is not enforced in code yet.
+
+---
+
+## Ratings, trust and fair play maths
+
+Keywords: elo, elo rating, mmr, matchmaking, rating maths, win probability pvp, eigentrust, trust score, reputation score, softmax, fair matchmaking
+
+Say:
+- PvP ratings work like chess ratings: beat someone rated above you and you climb a lot; beat someone below you and you barely move.
+- Nobody is ever a lock. Win chances are held inside a band, so an underdog always has a real shot.
+- Trust scores work like a reputation web: being vouched for by trusted people counts more than being vouched for by many strangers.
+
+Facts:
+- Elo-style update with K = 32 (Arpad Elo; adopted by the US Chess Federation in 1960 and FIDE in 1970). Victory probability comes from power, stage and wear differences, bounded inside a band.
+- EigenTrust (Kamvar, Schlosser & Garcia-Molina, 2003) computes global trust from local engagements, like PageRank for reputation.
+- Softmax turns raw scores into shares that sum to one, with a temperature that sets how winner-takes-all it is.
+
+---
+
+## How stories catch fire and fade
+
+Keywords: virality, viral, go viral, attention decay, half-life, half life, news cycle, why do stories die, story lifespan, meme maths, mci, minimum counterintuitive, bass diffusion, contagion
+
+Say:
+- Stories spread like a cold: fast at first, then slower as everyone who'll catch it has caught it.
+- Attention has a half-life measured in hours. Unless something recharges it (a new twist, a meme, a bigger lie), a story fades on its own.
+- The best memes break exactly one expectation. Break none and it's boring; break three and nobody gets it.
+
+Facts:
+- Virality index grows with average conviction and card amplification, discrete approximations of dI/dt = β·E(t)·(M − I(t))·(1 + η·Conv̄(t)), a logistic diffusion in the family of the Bass model (1969).
+- Attention decay: exponential, weighted by age; at the default rate the half-life is about 8.7 hours.
+- Meme fitness (MCI): optimum at exactly one violated expectation; the meme multiplier is bounded so memes never outweigh time held or capital.
+
+---
+
+## The behavioural layer
+
+Keywords: behavioural, behavioral, loss aversion, prospect theory, why losses hurt, streaks, streak, rewards rhythm, fibonacci rewards, engagement maths, tilt, chasing losses
+
+Say:
+- Losses hurt about twice as much as equal wins feel good. That's loss aversion, one of the best-replicated findings in behavioural economics. Knowing it helps you not chase losses.
+- Streaks and milestone rewards are part of the game economy: show up, play, earn.
+- If you ever feel like you're chasing, step away. The floor will still be here. That's not a pay-grade thing, that's a friend thing.
+
+Facts:
+- Loss-aversion weight 2.5 in the engine; Kahneman & Tversky's prospect theory (1979) and later estimates (Tversky & Kahneman, 1992) put the ratio around 2 to 2.25.
+- Milestone triggers follow Fibonacci counts (5, 8, 13, 21, 34). Framed strictly as game-economy engagement.
+
+---
+
+## Market phenomena glossary
+
+Keywords: whale, wash trading, spoofing, front running, front-running, mev, pump and dump, rug pull, liquidity, thin market, order book depth, spread, bid ask, market depth, flash crash, fomo, fud, capitulation, dead cat bounce
+
+Say:
+- Whale: someone big enough to move a market alone. Here, conviction rewards time and depth, so size alone doesn't win.
+- Wash trading is trading with yourself to fake volume; spoofing is placing orders you never mean to fill. Both are blocked or flagged here, and trading too fast or flipping sides gets you a cool-off.
+- Thin market: little money in it, so one trade moves the price a lot. Deep market: the opposite.
+- FOMO is fear of missing out; FUD is fear, uncertainty and doubt; capitulation is the crowd giving up all at once; a dead-cat bounce is a brief recovery inside a fall.
+
+Facts:
+- Platform defenses against manipulation: per-wallet velocity and spacing limits, side-flip (wash/spoof) detection, metronome (bot cadence) detection, order-size caps and cool-offs (lib/trade-guard.ts).
+- MEV (maximal extractable value) and front-running are on-chain ordering games; the beta floor's free-play book is server-priced, so neither applies there.
+- A flash crash is a very fast, very deep fall and rebound, like 6 May 2010.
+
+---
+
+## Support and help
+
+Keywords: support, help desk, contact support, open a ticket, ticket, report a bug, bug report, something's broken, it's broken, problem, issue, complaint, talk to a human, speak to a person, refund request, account help, cant log in, can't log in, locked out
+
+Say:
+- I'm first-line support. Tell me what happened in plain words and I'll either fix it with you or open a ticket for the team, and give you a number and a code to check on it.
+- Urgent things jump the line: a hacked account, a missing balance, or anyone asking for your password or seed phrase.
+- Nobody from MAD Gambit will ever ask for your password, private key or seed phrase. If you've shared one anywhere, treat that wallet as compromised and move your funds.
+- Once you've finished signing up, the Support and Knowledge base buttons in my chat panel are all yours.
+
+Facts:
+- Triage: P1 urgent (security, compromise, leaked secrets), P2 high (access, wallet, balance, abuse), P3 normal (bugs, disputes, account requests), P4 low (feedback, how-to).
+- Tickets are redacted before they are stored: no emails, card numbers, keys or seed phrases. A ticket's status code is stored only as a hash.
+- Known issues are published on the beta page; the concierge mentions them before filing a duplicate.
 
 ---
 
