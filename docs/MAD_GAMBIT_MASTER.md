@@ -411,7 +411,10 @@ all ran locally against the real lockfile. Egress policy varies by session, so t
 - **Session close-outs live at `docs/THREAD_CLOSEOUT.md`** — one file, overwritten each time.
   Read it at the start of a session for where the last one stopped; write it at the end via the
   `close-thread` skill (fail-safe instructions in `CLAUDE.md`). Durable content still belongs
-  here in MASTER, not there.
+  here in MASTER, not there. **Sessions that close in parallel share that one file** — the second
+  to close carries the first's open items forward into it. On 2026-10-23 two threads each wrote a
+  close-out (the second as a topic-suffixed sibling, `THREAD_CLOSEOUT_<topic>.md`); folding the two
+  back into one, and correcting what had gone stale in each, is the work a sibling file costs.
 - **`master-maths/` is the second client, not an abandoned experiment.** Three independent lines of
   evidence: `verify/lib/gambit-game-math.ts` *names its own origin in its header* as a port of v1.7
   Kotlin `GambitMath.kt` (`com.example.math`) — both carry `calculateConviction`,
