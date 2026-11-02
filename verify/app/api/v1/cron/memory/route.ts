@@ -6,6 +6,7 @@ import { hasDatabaseUrl } from "@/lib/database-url";
 import { purgeUserMemory } from "@/lib/concierge-memory";
 import { purgeExpiredFiles } from "@/lib/file-shield/store";
 import { del, list } from "@vercel/blob";
+import { privateBlobToken } from "@/lib/private-blob";
 
 /**
  * GET /api/v1/cron/memory — daily: dump user memory past 48 hours (counts logged). Bearer CRON_SECRET.
@@ -21,11 +22,12 @@ export async function GET(req: Request) {
     const files = await purgeExpiredFiles(q);
     // Anything still in the upload quarantine after an hour was never scanned (an abandoned upload): remove it.
     let quarantine = 0;
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const token = privateBlobToken();
+    if (token) {
       try {
-        const { blobs } = await list({ prefix: "chat-quarantine/", limit: 1000 });
+        const { blobs } = await list({ prefix: "chat-quarantine/", limit: 1000, token });
         const stale = blobs.filter((b) => Date.now() - new Date(b.uploadedAt).getTime() > 3600_000).map((b) => b.url);
-        if (stale.length) await del(stale);
+        if (stale.length) await del(stale, { token });
         quarantine = stale.length;
       } catch { quarantine = -1; }
     }

@@ -13,6 +13,7 @@ import { profileStatus } from "@/lib/support/eligibility";
 import { MAX_FILE_BYTES } from "@/lib/file-shield/gate";
 import { externalScannerFromEnv, scanUpload } from "@/lib/file-shield/scan";
 import { deleteFile, getFile, listFiles, loadBlocklist, recordScan, saveFile } from "@/lib/file-shield/store";
+import { privateBlobConfigured, privateBlobToken } from "@/lib/private-blob";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -20,7 +21,7 @@ export const maxDuration = 60;
 const noStore = { "cache-control": "no-store" };
 /** Vercel caps a request body near 4.5 MB, so larger files go browser → private Blob quarantine → here by reference. */
 const DIRECT_MAX_BYTES = 4 * 1024 * 1024;
-const blobConfigured = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+const blobConfigured = () => privateBlobConfigured();
 const BLOB_HOST = /^[a-z0-9]+\.private\.blob\.vercel-storage\.com$/;
 
 async function owner(req: Request) {
@@ -106,7 +107,7 @@ export async function POST(req: Request) {
       }
       name = typeof body.name === "string" ? body.name : blobPathname.split("/").pop() ?? "file";
       declaredType = typeof body.type === "string" ? body.type : null;
-      const got = await get(url.toString(), { access: "private" });
+      const got = await get(url.toString(), { access: "private", token: privateBlobToken()! });
       if (!got) return NextResponse.json({ success: false, error: "The upload wasn't found. Try again." }, { status: 404 });
       const buf = new Uint8Array(await new Response(got.stream).arrayBuffer());
       if (buf.length > MAX_FILE_BYTES) bytes = buf.subarray(0, MAX_FILE_BYTES + 1); else bytes = buf;
@@ -115,7 +116,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error: "That upload couldn't be read." }, { status: 400 });
   } finally {
     // the original never stays in storage, whatever happens next
-    if (blobPathname && blobConfigured()) { try { await del(blobPathname); } catch { /* the daily sweep removes stragglers */ } }
+    if (blobPathname && blobConfigured()) { try { await del(blobPathname, { token: privateBlobToken()! }); } catch { /* the daily sweep removes stragglers */ } }
   }
 
   const q = dbQuery();

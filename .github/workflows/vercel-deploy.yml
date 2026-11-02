@@ -1,0 +1,106 @@
+# Vercel deploys from GitHub Actions — the "full-featured pipeline" from Vercel's Azure Pipelines guide
+# (vercel.com/docs/git/vercel-for-azure-pipelines), on GitHub.
+#
+# Why this exists: Vercel's Hobby plan cannot connect a project to a repository owned by a GitHub ORGANIZATION
+# (vercel.com/docs/limits, "Connecting a project to a Git repository"), so the Git integration cannot deploy this repo.
+# A pipeline that builds with the Vercel CLI and deploys the prebuilt output does the same job on Hobby, and this repo is
+# public, so the Actions minutes are free.
+#
+#   pull request to main  → preview deployment, URL commented on the PR
+#   push to main          → preview deployment of main (a staging URL); production only if VERCEL_AUTO_PRODUCTION=true
+#   manual run            → preview, or production when "production" is ticked
+#
+# Production stays a deliberate act by default (MASTER PART 0 §3, "Promote main to production").
+#
+# Setup (once): repository VARIABLES  VERCEL_ORG_ID, VERCEL_PROJECT_ID  and SECRET  VERCEL_TOKEN (a Vercel access
+# token scoped to the MAD-MPP team). Without them every run skips cleanly with a notice.
+# Note: NEXT_PUBLIC_* variables are inlined at build time, so they must not be "sensitive" in Vercel or a CI build
+# will inline them empty.
+name: Vercel deploy
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ["verify/**", ".github/workflows/vercel-deploy.yml"]
+  push:
+    branches: [main]
+    paths: ["verify/**"]
+  workflow_dispatch:
+    inputs:
+      production:
+        description: "Deploy to production"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: vercel-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    # Pull requests from forks never receive secrets; skip them rather than fail.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - name: Check configuration
+        id: cfg
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Vercel deploy skipped: set the VERCEL_TOKEN secret and the VERCEL_ORG_ID / VERCEL_PROJECT_ID variables."
+            exit 0
+          fi
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+          PROD=false
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.production }}" = "true" ]; then PROD=true; fi
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ vars.VERCEL_AUTO_PRODUCTION }}" = "true" ]; then PROD=true; fi
+          echo "production=$PROD" >> "$GITHUB_OUTPUT"
+          if [ "$PROD" = "true" ]; then echo "environment=production" >> "$GITHUB_OUTPUT"; else echo "environment=preview" >> "$GITHUB_OUTPUT"; fi
+
+      - uses: actions/checkout@v4
+        if: steps.cfg.outputs.enabled == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.cfg.outputs.enabled == 'true'
+        with:
+          node-version: 24
+
+      - name: Install the Vercel CLI
+        if: steps.cfg.outputs.enabled == 'true'
+        run: npm install --global vercel@65
+
+      - name: Pull project settings and environment
+        if: steps.cfg.outputs.enabled == 'true'
+        run: vercel pull --yes --environment=${{ steps.cfg.outputs.environment }} --token="$VERCEL_TOKEN"
+
+      - name: Build
+        if: steps.cfg.outputs.enabled == 'true'
+        run: vercel build ${{ steps.cfg.outputs.production == 'true' && '--prod' || '' }} --token="$VERCEL_TOKEN"
+
+      - name: Deploy the prebuilt output
+        id: deploy
+        if: steps.cfg.outputs.enabled == 'true'
+        run: |
+          URL=$(vercel deploy --prebuilt ${{ steps.cfg.outputs.production == 'true' && '--prod' || '' }} --token="$VERCEL_TOKEN")
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "### Vercel ${{ steps.cfg.outputs.environment }} deployment" >> "$GITHUB_STEP_SUMMARY"
+          echo "$URL" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comment the preview URL on the pull request
+        if: steps.cfg.outputs.enabled == 'true' && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          URL: ${{ steps.deploy.outputs.url }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          BODY="Preview deployment for $(git rev-parse --short HEAD): $URL"
+          gh pr comment "$PR" --edit-last --body "$BODY" || gh pr comment "$PR" --body "$BODY"

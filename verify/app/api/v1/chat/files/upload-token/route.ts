@@ -6,6 +6,8 @@ import { enforceRateLimit } from "@/lib/rate-limit";
 import { memorySubject } from "@/lib/concierge-memory";
 import { profileStatus } from "@/lib/support/eligibility";
 import { MAX_FILE_BYTES } from "@/lib/file-shield/gate";
+import { blobDailyUploadCap, privateBlobToken } from "@/lib/private-blob";
+import { dbQuery } from "@/lib/admin-guard";
 
 export const runtime = "nodejs";
 
@@ -21,7 +23,13 @@ export async function POST(req: Request) {
   const session = getSessionFromRequest(req);
   if (!session) return NextResponse.json({ error: "Sign in with your wallet first." }, { status: 401 });
   if (!sameOrigin(req)) return NextResponse.json({ error: "forbidden" }, { status: 403 });
-  if (!process.env.BLOB_READ_WRITE_TOKEN) return NextResponse.json({ error: "Secure storage isn't switched on." }, { status: 503 });
+  const token = privateBlobToken();
+  if (!token) return NextResponse.json({ error: "Secure storage isn't switched on." }, { status: 503 });
+  // Free-tier guard: a daily ceiling on large uploads keeps Blob operations inside the monthly allowance.
+  try {
+    const today = await dbQuery()(`SELECT count(*)::int AS n FROM chat_file_scans WHERE created_at > date_trunc('day', now()) AND bytes > 4194304`);
+    if (Number(today[0]?.n ?? 0) >= blobDailyUploadCap()) return NextResponse.json({ error: "Large-file uploads are at today's limit. Try again tomorrow, or attach a file under 4 MB." }, { status: 429 });
+  } catch { /* no table yet: the per-IP limit still applies */ }
   const st = await profileStatus(req);
   if (!st.uploadAllowed) return NextResponse.json({ error: "Uploads open once your profile is at least 90% complete." }, { status: 403 });
 
@@ -30,6 +38,7 @@ export async function POST(req: Request) {
   try { body = (await req.json()) as HandleUploadBody; } catch { return NextResponse.json({ error: "Invalid request." }, { status: 400 }); }
   try {
     const out = await handleUpload({
+      token,
       body,
       request: req,
       onBeforeGenerateToken: async (pathname) => {

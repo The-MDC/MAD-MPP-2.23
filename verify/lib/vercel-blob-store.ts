@@ -1,4 +1,5 @@
 import { del, get, put } from "@vercel/blob";
+import { privateBlobToken } from "@/lib/private-blob";
 import type { ObjectStore } from "@/lib/portrait-vault";
 
 /**
@@ -10,7 +11,8 @@ import type { ObjectStore } from "@/lib/portrait-vault";
  * store: ciphertext must never be served from a public URL.
  */
 export function isBlobConfigured(): boolean {
-  return Boolean(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN);
+  // Private store only (PRIVATE_BLOB_READ_WRITE_TOKEN): the project's BLOB_READ_WRITE_TOKEN store is public.
+  return privateBlobToken() !== null;
 }
 
 function assertBlobCredentials(): void {
@@ -27,18 +29,19 @@ export function createVercelBlobObjectStore(): ObjectStore {
     async put(key, body) {
       const blob = await put(key, body, {
         access: "private",
+        token: privateBlobToken()!,
         addRandomSuffix: true,
         contentType: "application/octet-stream",
       });
       return blob.url;
     },
     async get(pointer) {
-      const result = await get(pointer, { access: "private" });
+      const result = await get(pointer, { access: "private", token: privateBlobToken()! });
       if (!result) return null;
       return Buffer.from(await new Response(result.stream).arrayBuffer());
     },
     async delete(pointer) {
-      await del(pointer);
+      await del(pointer, { token: privateBlobToken()! });
     },
   };
 }
