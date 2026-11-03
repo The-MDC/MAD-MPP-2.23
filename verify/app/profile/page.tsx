@@ -8,6 +8,7 @@ import React from "react";
 import { OMShell, Headline, SectionTitle, Stat, GOLD, ROSSA, MUTED, LINE } from "@/components/om-ui";
 import MadxWalletPanel from "@/components/madx-wallet-panel";
 import PersonalAssistantCard from "@/components/personal-assistant-card";
+import ProfileCompletionCard from "@/components/profile-completion-card";
 import { resetDemo, sellPosition, topUp, useOpenMarkets } from "@/lib/open-markets-store";
 import { convictionHeld, madx, pct, prices, sellQuote } from "@/lib/open-markets";
 
@@ -67,6 +68,7 @@ function ProfileInner() {
         <Stat k="P&L" v={`${pnl >= 0 ? "+" : ""}${madx(pnl)}`} accent={pnl >= 0 ? "#7cffc7" : "#f85b5f"} />
       </div>
 
+      <ProfileCompletionCard />
       <PersonalAssistantCard />
 
       <section id="positions" style={{ display: "flex", flexDirection: "column", gap: 10, scrollMarginTop: 80 }}>

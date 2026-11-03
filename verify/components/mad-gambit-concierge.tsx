@@ -34,7 +34,7 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { KnowledgePanel, SupportPanel, THREAT_STYLE, useSignupComplete, useThreatColour } from "@/components/concierge-support";
+import { AttachButton, KnowledgePanel, SupportPanel, THREAT_STYLE, useSignupComplete, useThreatColour, useUploadInfo, type AttachedFile } from "@/components/concierge-support";
 import { SKILL_CHIPS } from "@/lib/concierge-skill-chips";
 import { emptyRapport, noteVisit, sanitizeRapport, updateRapport, type Rapport } from "@/lib/concierge-personality";
 import { GOLD_CHISEL_STOPS, INSTRUMENT_FONT, INK } from "@/lib/gambit-design-tokens";
@@ -156,6 +156,10 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
   // Support and Knowledge base appear only once signup is complete (the endpoints check the same).
   const signedUp = useSignupComplete(open);
   const [view, setView] = useState<"chat" | "support" | "kb">("chat");
+  // File upload: members with signup complete and a profile at least 90% done (checked again on the server).
+  const uploadInfo = useUploadInfo(open && signedUp);
+  const [attached, setAttached] = useState<AttachedFile | null>(null);
+  const fileNote = useCallback((text: string) => setMessages((m) => [...m, { id: `f_${Date.now()}`, from: "madhatr", text, regenCount: 0 }]), []);
   // Rapport: counts of turns, visits and topics, kept only on this device and sent with each message so the concierge
   // can grow familiar. No message text is stored.
   const rapportRef = useRef<Rapport>(emptyRapport());
@@ -302,6 +306,7 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
           tone,
           risk,
           rapport,
+          fileId: attached?.id,
           regen_count: 0
         })
       });
@@ -321,7 +326,7 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
         text: "The network is acting up, kid. Give it a minute.", regenCount: 0,
       }]);
     }
-  }, [input, tone, risk, messages]);
+  }, [input, tone, risk, messages, attached]);
 
   const regenerate = useCallback(async (msgId: string, originalUserText: string) => {
     const msgIndex = messages.findIndex(x => x.id === msgId);
@@ -556,8 +561,21 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
             </div>
           )}
 
+          {attached && (
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 10px 0", fontFamily: INSTRUMENT_FONT, fontSize: "8px", color: INK.gold }}>
+              <span>📄 {attached.name}</span>
+              <button type="button" onClick={() => setAttached(null)} aria-label="Detach file" style={{ background: "transparent", border: "none", color: "#8a8a95", cursor: "pointer", fontSize: "9px" }}>✕</button>
+            </div>
+          )}
+          {signedUp && uploadInfo && !uploadInfo.uploadAllowed && (
+            <div style={{ padding: "6px 10px 0", fontFamily: INSTRUMENT_FONT, fontSize: "7px", color: "#8a8a95" }}>
+              File upload unlocks at 90% profile completion (you&apos;re at {uploadInfo.completion}%). Missing: {uploadInfo.missing.join(", ")}.
+            </div>
+          )}
+
           {/* Input row */}
           <div style={{ display: "flex", gap: "6px", padding: "10px", borderTop: `1px solid ${INK.border}` }}>
+            {uploadInfo?.uploadAllowed && <AttachButton info={uploadInfo} onAttached={setAttached} onStatus={fileNote} />}
             <input
               value={input}
               onChange={e => setInput(e.target.value)}

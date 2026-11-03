@@ -58,12 +58,20 @@ export function getDbPool() {
     // Deliberately NOT `rejectUnauthorized: false` (as some Neon quickstarts
     // suggest) — Neon presents valid publicly-trusted certs, so verification
     // costs nothing and disabling it is the exact weakening warned about above.
+    //
+    // SUPABASE: its Postgres certificates are signed by Supabase's own root CA, not a public one, so verification
+    // needs that CA. Put the PEM from the Supabase dashboard (Database settings, SSL certificate) in DATABASE_CA_CERT
+    // and verification stays ON. Never "fix" a Supabase TLS error with rejectUnauthorized: false.
+    // Serverless sizing: on Vercel each function instance holds its own pool, so keep it small (DB_POOL_MAX, default
+    // 5) and point DATABASE_URL at the transaction pooler (Supabase: port 6543) to stay inside free-tier connection caps.
+    const ca = process.env.DATABASE_CA_CERT?.replace(/\\n/g, "\n").trim();
+    const max = Math.max(1, Math.min(20, Number(process.env.DB_POOL_MAX) || 5));
     pool = new Pool({
       connectionString,
-      max: 10, // Neon pooled connection cap
+      max,
       idleTimeoutMillis: 30_000,
       connectionTimeoutMillis: 10_000,
-      ssl: { rejectUnauthorized: true },
+      ssl: ca ? { rejectUnauthorized: true, ca } : { rejectUnauthorized: true },
     });
 
     // A background error on an idle client (e.g. Neon closing an idle

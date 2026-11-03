@@ -6,6 +6,8 @@ import { getSessionFromRequest } from "@/lib/session";
 import { ensureBook, fill, type FillFailure } from "@/lib/market-book";
 import { getPauseState } from "@/lib/registrar-queue";
 import { checkTrade, tradeRefusal } from "@/lib/trade-guard";
+import { flagAccount } from "@/lib/account-flags";
+import { poolQ } from "@/lib/admin-reports";
 
 /**
  * POST /api/v1/markets/<id>/swap  { outcome | outcomeIndex, amount }
@@ -74,7 +76,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   // Anti-bot / anti-quant: per-wallet velocity, spacing, side-flip and size limits (lib/trade-guard.ts).
   const sideKey = String(body.outcome ?? body.outcomeIndex ?? "");
   const verdict = checkTrade(session.address, id, sideKey, amount);
-  if (!verdict.ok) return tradeRefusal(verdict);
+  if (!verdict.ok) {
+    if (hasDatabaseUrl() && verdict.reason !== "too-fast") void flagAccount(poolQ(getDbPool()), { wallet: session.address }, `trade guard: ${verdict.reason}`, verdict.reason === "flip" || verdict.reason === "metronome" ? "high" : "medium", "trade-guard");
+    return tradeRefusal(verdict);
+  }
 
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ success: false, error: "swaps need DATABASE_URL" }, { status: 503 });
