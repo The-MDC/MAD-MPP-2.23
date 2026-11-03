@@ -9,6 +9,8 @@ import { OMShell, Headline, SectionTitle, Stat, GOLD, ROSSA, MUTED, LINE } from 
 import MadxWalletPanel from "@/components/madx-wallet-panel";
 import PersonalAssistantCard from "@/components/personal-assistant-card";
 import ProfileCompletionCard from "@/components/profile-completion-card";
+import { TierBadge, TierLadder } from "@/components/brand-symbol";
+import { TIERS, tierFor } from "@/lib/brand-symbols";
 import { resetDemo, sellPosition, topUp, useOpenMarkets } from "@/lib/open-markets-store";
 import { convictionHeld, madx, pct, prices, sellQuote } from "@/lib/open-markets";
 
@@ -37,6 +39,10 @@ function ProfileInner() {
   const realised = s.closed.reduce((a, c) => a + (c.proceeds - c.stake), 0);
   const pnl = mark - staked + realised;
   const mine = s.markets.filter((m) => s.createdIds.indexOf(m.id) !== -1);
+  // The demo floor has no payouts, so no market can be "tractioned" yet (it needs total conviction ≥ b AND a payout).
+  // Tier is derived from the engine's CREATOR_LADDER, so the thresholds shown here are the payout thresholds.
+  const tier = tierFor({ tractionedMarkets: 0, followers: 0 });
+  const nextTier = TIERS[Math.min(TIERS.findIndex((t) => t.id === tier.id) + 1, TIERS.length - 1)];
 
   return (
     <>
@@ -59,6 +65,17 @@ function ProfileInner() {
             <button type="button" className="mg-btn-gold" onClick={() => topUp(500)} style={{ minHeight: 40, padding: "0 14px", fontSize: 12 }}>+500</button>
             <button type="button" className="mg-btn-ghost" onClick={() => { if (window.confirm("Reset the demo floor? Positions and created markets are cleared.")) resetDemo(); }} style={{ fontSize: 12 }}>Reset</button>
           </div>
+        </div>
+      </section>
+
+      <section aria-label="Your standing" className="mg-tile" style={{ padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+          <SectionTitle explain="om-profile">Your standing</SectionTitle>
+          <TierBadge tier={tier.id} />
+        </div>
+        <TierLadder current={tier.id} />
+        <div style={{ fontSize: 11, color: MUTED }}>
+          Next: <b style={{ color: "#f6f1e3" }}>{nextTier.name}</b> — {nextTier.how} Markets you create count once they reach 1,200 $MADx of conviction and pay out. Demo floor: {mine.length} created.
         </div>
       </section>
 

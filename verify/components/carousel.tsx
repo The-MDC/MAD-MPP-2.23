@@ -199,6 +199,7 @@ export default function Carousel({
     <div
       ref={ref}
       role="group"
+      tabIndex={0}
       aria-roledescription="carousel"
       aria-label={ariaLabel}
       {...handlers}

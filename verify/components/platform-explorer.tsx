@@ -13,6 +13,8 @@ import React from "react";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import { PLATFORM_FEATURES } from "@/lib/platform-features";
+import BrandSymbol from "@/components/brand-symbol";
+import { SECTION_SYMBOL } from "@/lib/brand-symbols";
 
 export default function PlatformExplorer() {
   const { skin } = useSkin();
@@ -38,6 +40,7 @@ export default function PlatformExplorer() {
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
               <t.Icon size={14} style={{ color: t.gated ? skin.gold : skin.accent, flex: "none" }} strokeWidth={2.25} />
+              <BrandSymbol id={SECTION_SYMBOL[t.key]} size={22} />
               <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.2, color: skin.text, textTransform: "uppercase" }}>{t.name}</span>
               {t.gated ? (
                 <span style={{ marginLeft: "auto", fontSize: 6.5, fontWeight: 900, letterSpacing: 0.5, textTransform: "uppercase", color: skin.gold, border: `1px solid ${skin.gold}66`, padding: "2px 6px", borderRadius: 5 }}>Gated</span>

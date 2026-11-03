@@ -25,6 +25,8 @@ import { useGame } from "@/context/game-context";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
 import { PLATFORM_FEATURES, PLATFORM_TAB_KEYS, type PlatformTabKey } from "@/lib/platform-features";
+import BrandSymbol from "@/components/brand-symbol";
+import { SECTION_SYMBOL } from "@/lib/brand-symbols";
 import { DECISION_NODES } from "@/lib/decision-demo-nodes";
 import type { OVDeck } from "@/lib/gambit-game-math";
 
@@ -81,7 +83,7 @@ export default function PlatformTabs({
     <section id="mg-platform-tabs" aria-label="Platform tabs" style={{ scrollMarginTop: 72, fontFamily: INSTRUMENT_FONT }}>
       <TabStrip<Tab>
         label="Platform"
-        panelId="mg-platform-panel"
+        panelId={tab !== "floor" ? "mg-platform-panel" : undefined}
         value={tab}
         onChange={choose}
         items={PLATFORM_FEATURES.map((f) => {
@@ -89,7 +91,12 @@ export default function PlatformTabs({
           return {
             id: f.key,
             label: locked ? `${f.name} 🔒` : f.name,
-            icon: <f.Icon size={13} strokeWidth={2.25} />,
+            icon: (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, opacity: locked ? 0.4 : 1 }}>
+                <f.Icon size={13} strokeWidth={2.25} />
+                <BrandSymbol id={SECTION_SYMBOL[f.key]} size={18} />
+              </span>
+            ),
           };
         })}
       />

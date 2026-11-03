@@ -48,6 +48,8 @@ import { KaitoPriceTicker, PredictionCircus } from "@/components/kaito-and-circu
 import SeikoDopamineHub from "@/components/seiko-dopamine-hub";
 import PlatformTabs from "@/components/platform-tabs";
 import ScandalVelocityMeter from "@/components/scandal-velocity-meter";
+import BrandSymbol from "@/components/brand-symbol";
+import { tierFor } from "@/lib/brand-symbols";
 import SignInNudge from "@/components/sign-in-nudge";
 import UnpackedCardsCarousel from "@/components/unpacked-cards-carousel";
 import HoldHint from "@/components/hold-hint";
@@ -190,7 +192,10 @@ function BottomNav({ onProfile }: { onProfile: () => void }) {
 
 function PreviewInner() {
   const { skin } = useSkin();
-  const { socialAuth } = useGame();
+  const { socialAuth, cards } = useGame();
+  // The header badge: the symbol of the tier you are on. Traction and seats come from the creator programme
+  // (not in the demo store yet), so this reads VIP for a Golden Hand / Mythic holder and User otherwise.
+  const tier = tierFor({ tractionedMarkets: 0, followers: 0, isVip: cards.some((c) => c.rarity === "Golden Hand" || c.rarity === "Mythic") });
   const { openNode } = useGambitNode();
   const [sy, setSy] = useState(0);
   const [reduce, setReduce] = useState(false);
@@ -310,7 +315,8 @@ function PreviewInner() {
                 className="mg-tap mg-glass"
                 style={{ padding: "8px 14px", borderRadius: 10, cursor: "pointer", whiteSpace: "nowrap", fontSize: 11, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: skin.text, background: skin.card, border: `1px solid ${skin.gold}66`, fontFamily: INSTRUMENT_FONT }}
               >
-                Account
+                <BrandSymbol id={tier.symbol} size={18} style={{ display: "inline-block", verticalAlign: "middle", marginRight: 6 }} />
+                <span style={{ verticalAlign: "middle" }}>Account</span>
               </button>
             ) : (
               <button
