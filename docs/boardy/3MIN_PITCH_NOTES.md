@@ -15,6 +15,8 @@
 
 ## 🚨 Live-surface state — read before you open anything (checked 2026-08-20 15:15 UTC)
 
+> **Superseded 2026-11-03.** The app lives at **madgambit.fun** (Vercel project `mad-mpp-2-23`, team MAD-MPP). The `mad-mpp-2-23-madgambit.vercel.app` rows below describe the retired `madgambit` team's deployment. Do not open or share that URL.
+
 | Surface | State | Do |
 |---|---|---|
 | `mad-mpp-2-23-madgambit.vercel.app` | **Behind Vercel SSO.** Anyone not on your Vercel team hits a login page. | Screen-share it — don't paste the link. Settings → Deployment Protection → Vercel Authentication → Disabled to fix. |
