@@ -27,9 +27,11 @@ export default function AdminSupport({ email, canUserLane, canDevLane, canBeta }
   const [beta, setBeta] = useState<Beta | null>(null);
   const [codes, setCodes] = useState<string>("");
   const [internal, setInternal] = useState("");
+  const [flags, setFlags] = useState<{ id: number; wallet: string | null; subject: string; reason: string; severity: string; source: string; hits: number; last_at: string }[]>([]);
 
   const load = useCallback(() => {
     if (canUserLane || canDevLane) fetch("/api/admin/support").then((r) => r.json()).then((d) => setTickets(d.tickets ?? [])).catch(() => {});
+    if (canDevLane) fetch("/api/admin/flags").then((r) => r.json()).then((d) => setFlags(d.flags ?? [])).catch(() => {});
     if (canBeta) fetch("/api/admin/beta").then((r) => r.json()).then((d) => d?.success && setBeta(d)).catch(() => {});
   }, [canUserLane, canDevLane, canBeta]);
   useEffect(() => { load(); }, [load]);
@@ -111,6 +113,25 @@ export default function AdminSupport({ email, canUserLane, canDevLane, canBeta }
                 <input aria-label="Internal issue" value={internal} onChange={(e) => setInternal(e.target.value)} placeholder="File an internal platform or ops issue" style={{ ...input, flex: "1 1 260px" }} />
                 <button type="submit" style={btn()}>File internal</button>
               </form>
+            )}
+          </section>
+        )}
+
+        {canDevLane && (
+          <section style={card} aria-label="Account flags">
+            <div style={label}>Passive account flags · {flags.length} open</div>
+            <p style={{ color: INK.muted, fontSize: 12, margin: "6px 0 10px" }}>Recorded by the defenses (uploads, the concierge, the trade guard). Users are not told and nothing is blocked by a flag.</p>
+            {flags.length === 0 ? <p style={{ color: INK.muted, fontSize: 13 }}>No open flags.</p> : (
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 6 }}>
+                {flags.map((f) => (
+                  <li key={f.id} style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", fontSize: 13, borderLeft: `3px solid ${f.severity === "high" ? INK.pink : f.severity === "medium" ? INK.goldLcd : INK.muted}`, paddingLeft: 8 }}>
+                    <strong>{f.reason}</strong>
+                    <span style={{ color: INK.muted }}>{f.source} · ×{f.hits} · {f.wallet ? `${f.wallet.slice(0, 6)}…${f.wallet.slice(-4)}` : f.subject.slice(0, 10)} · {new Date(f.last_at).toLocaleString()}</span>
+                    <button style={btn()} onClick={async () => { await fetch("/api/admin/flags", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: f.id, status: "reviewed" }) }); load(); }}>Reviewed</button>
+                    <button style={btn()} onClick={async () => { await fetch("/api/admin/flags", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: f.id, status: "dismissed" }) }); load(); }}>Dismiss</button>
+                  </li>
+                ))}
+              </ul>
             )}
           </section>
         )}
