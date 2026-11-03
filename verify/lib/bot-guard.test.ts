@@ -54,13 +54,13 @@ describe("classifyUserAgent", () => {
 
 describe("isProbePath", () => {
   it("flags what scanners ask for", () => {
-    for (const p of ["/.env", "/.git/config", "/wp-login.php", "/wp-admin/", "/phpmyadmin", "/admin", "/backup.zip", "/index.php", "/api/v1/x.bak", "/server-status", "/vendor/phpunit/src/Util/PHP/eval-stdin.php", "/a/../etc/passwd", "/%2E%2E/x"]) {
+    for (const p of ["/.env", "/.git/config", "/wp-login.php", "/wp-admin/", "/phpmyadmin", "/administrator", "/administrator/index.php", "/admin.php", "/backup.zip", "/index.php", "/api/v1/x.bak", "/server-status", "/vendor/phpunit/src/Util/PHP/eval-stdin.php", "/a/../etc/passwd", "/%2E%2E/x"]) {
       expect(isProbePath(p), p).toBe(true);
     }
   });
 
   it("leaves every real route and asset alone", () => {
-    for (const p of ["/", "/beta", "/preview", "/open-markets", "/open-markets/create", "/profile", "/mpp2.23", "/api/v1/beta/signin", "/api/concierge/chat", "/brand/madhatr-bust.png", "/cards/manifest.json", "/pitch/index.html", "/robots.txt", "/administration-guide-is-not-a-route-but-fine"]) {
+    for (const p of ["/", "/beta", "/preview", "/open-markets", "/open-markets/create", "/profile", "/mpp2.23", "/api/v1/beta/signin", "/api/concierge/chat", "/brand/madhatr-bust.png", "/cards/manifest.json", "/pitch/index.html", "/robots.txt", "/administration-guide-is-not-a-route-but-fine", "/admin", "/admin/sign-in", "/admin/admins", "/admin/support", "/api/admin/me"]) {
       expect(isProbePath(p), p).toBe(false);
     }
   });

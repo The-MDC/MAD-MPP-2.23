@@ -91,6 +91,7 @@ export function classifyUserAgent(ua: string | null | undefined): UAVerdict {
 /**
  * Paths only a scanner asks for. None of these are routes in this app, so a
  * flat 404 costs a real visitor nothing and tells a scanner nothing.
+ * Bare "admin" is not here: /admin is the admin suite, which guards itself (lib/admin-guard.ts).
  */
 const PROBE_WORDS = [
   "\\.env", "\\.git", "\\.svn", "\\.hg", "\\.bzr", "\\.aws", "\\.ssh", "\\.docker", "\\.npmrc",
@@ -99,7 +100,7 @@ const PROBE_WORDS = [
   "xmlrpc", "phpmyadmin", "pma", "myadmin", "adminer", "cgi-bin", "server-status", "server-info",
   "actuator", "vendor/phpunit", "telescope", "_profiler", "_ignition", "boaform", "hnap1", "owa",
   "ecp", "autodiscover", "solr", "jenkins", "manager/html", "druid", "nacos", "geoserver",
-  "remote/login", "admin", "administrator", "backup", "backups", "dump", "debug", "console",
+  "remote/login", "administrator", "backup", "backups", "dump", "debug", "console",
 ];
 const PROBE_PREFIX = new RegExp(`^/(?:${PROBE_WORDS.join("|")})(?:[/.?]|$)`, "i");
 

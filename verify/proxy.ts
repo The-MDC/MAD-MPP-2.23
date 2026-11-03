@@ -109,6 +109,8 @@ const BEARER_PATHS = new Set([
   "/api/v1/cron/insights",
   "/api/v1/cron/weekly-report",
   "/api/v1/cron/memory",
+  "/api/v1/cron/memory-weekly",
+  "/api/v1/cron/daily-log",
   "/api/v1/perps/roll",
   "/api/v1/registrar/lapse",
   "/api/v1/ingest/gdelt",
