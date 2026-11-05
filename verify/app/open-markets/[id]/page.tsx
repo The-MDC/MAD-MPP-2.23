@@ -10,7 +10,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { OMShell, ClassBadge, CrowdBar, Sparkline, Stat, SectionTitle, GOLD, ROSSA, MUTED, LINE } from "@/components/om-ui";
 import { celebrate } from "@/components/joy-layer";
+import PaseomeGraphSlot from "@/components/paseome-graph-lazy";
 import { getMarket, placeBet, sellPosition, useOpenMarkets } from "@/lib/open-markets-store";
+import { snapshotFromMarket } from "@/lib/paseome-graph";
 import {
   closesLabel, compact, decimalOdds, madx, maxMakerLoss, pct, prices, quote, sellQuote, type OMPosition,
 } from "@/lib/open-markets";
@@ -28,6 +30,7 @@ export default function TradeDesk() {
   const [error, setError] = useState<string | null>(null);
   const [filled, setFilled] = useState<OMPosition | null>(null);
   const [created, setCreated] = useState(false);
+  const [show3d, setShow3d] = useState(false);
 
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
@@ -36,6 +39,8 @@ export default function TradeDesk() {
   }, []);
 
   const p = useMemo(() => (m ? prices(m.outcomes, m.b) : []), [m]);
+  // A Paseome tree (not a binary, not a perpetual) can also be read as a 3D graph.
+  const tree = useMemo(() => (m ? snapshotFromMarket(m) : null), [m]);
   const idx = m ? Math.max(0, m.outcomes.findIndex((o) => o.id === sel)) : 0;
   const hasSel = !!m && m.outcomes.some((o) => o.id === sel);
   const qt = m && hasSel && stake > 0 ? quote(m, idx, stake) : null;
@@ -187,6 +192,20 @@ export default function TradeDesk() {
         {m.closesAt === null ? <div><b style={{ color: GOLD }}>Expiry:</b> none — {m.perp ? "rolls every 59.061-day leg" : "marked to the live book"}.</div> : null}
         <div><b style={{ color: GOLD }}>Fee:</b> 1.88% flat, taken from the stake · liquidity b = {m.b.toLocaleString()}.</div>
       </section>
+
+      {tree ? (
+        <section data-explain="om-conviction" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <SectionTitle right={<span style={{ fontSize: 11, color: MUTED }}>Orbit · tap a node</span>}>The tree in 3D</SectionTitle>
+          {show3d ? (
+            <>
+              <PaseomeGraphSlot snapshots={[tree]} variant="market" />
+              <button type="button" className="mg-btn-ghost" onClick={() => setShow3d(false)} style={{ minHeight: 44 }}>Hide the 3D tree</button>
+            </>
+          ) : (
+            <button type="button" className="mg-btn-ghost" onClick={() => setShow3d(true)} style={{ minHeight: 48 }}>Show the tree in 3D</button>
+          )}
+        </section>
+      ) : null}
 
       {mine.length ? (
         <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>

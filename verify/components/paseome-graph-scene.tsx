@@ -221,24 +221,32 @@ function CameraRig({
   // `dir` is only set by Reset: it also puts the viewing angle back, not just the framing.
   const goal = useRef({ target: new THREE.Vector3(), dist: fit, moving: false, dir: null as THREE.Vector3 | null });
   const placed = useRef(false);
-  const lastReset = useRef(resetKey);
+  const last = useRef({ focusId, fit, resetKey, reduced });
 
   useEffect(() => {
     const c = controls.current;
     if (!c) return;
+    // On a desk page the graph is redrawn whenever someone trades. That must not throw
+    // away the viewer's zoom and angle: act only on a real change of view, not of figures.
+    const prev = last.current;
+    const moved =
+      prev.focusId !== focusId || prev.resetKey !== resetKey || prev.reduced !== reduced ||
+      Math.abs(prev.fit - fit) > 0.03 * fit;
+    const resetting = prev.resetKey !== resetKey;
+    last.current = { focusId, fit, resetKey, reduced };
+    if (placed.current && !moved) return;
+
     const node = focusId ? graph.nodes.find((n) => n.id === focusId) : undefined;
-    const at = node ? node.position : ([0, 0, 0] as const);
+    const at = node ? node.position : graph.center;
     goal.current.target.set(at[0], at[1], at[2]);
     goal.current.dist = node ? Math.min(fit, Math.max(5.5, node.radius * 8)) : fit;
-    const resetting = lastReset.current !== resetKey;
-    lastReset.current = resetKey;
     goal.current.dir = resetting && !node ? HOME_DIR.clone() : null;
 
     if (!placed.current) {
-      // First fit: slightly above, looking at the origin.
+      // First fit: slightly above, looking at the middle of the graph.
       placed.current = true;
-      camera.position.copy(HOME_DIR).multiplyScalar(fit);
-      c.target.set(0, 0, 0);
+      c.target.copy(goal.current.target);
+      camera.position.copy(goal.current.target).addScaledVector(HOME_DIR, fit);
       c.update();
       invalidate();
       return;

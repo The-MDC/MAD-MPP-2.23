@@ -75,7 +75,11 @@ const FEATURED_MARKETS = FEATURED_DEMO_MARKETS.map((m) => ({
 /* Market-energy equalizer — audio-visualizer bars beneath the golden ticker. */
 function EqualizerStrip() {
   const BARS = 44;
-  const [heights, setHeights] = useState<number[]>(() => Array.from({ length: BARS }, () => 0.3 + Math.random() * 0.4));
+  // The first paint is a pure function of the bar index. It used to be Math.random(), so the server's
+  // heights never matched the client's and React logged a hydration mismatch on every load of the hub.
+  // (Rounded so two JS engines can't disagree in the last digit.) The motion starts after mount.
+  const [heights, setHeights] = useState<number[]>(() =>
+    Array.from({ length: BARS }, (_, i) => Math.round((0.3 + Math.abs(Math.sin(i * 1.7)) * 0.4) * 1e4) / 1e4));
   useEffect(() => {
     if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const id = setInterval(() => {

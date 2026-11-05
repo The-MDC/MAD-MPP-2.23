@@ -2,10 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   EM_DASH, ROOT_OFFSET,
   branchPosition, branchRadius, buildPaseomeGraph, fitDistance,
-  fmtCount, fmtFixed, fmtPct, parseFrontier,
+  fmtCount, fmtFixed, fmtPct, parseFrontier, snapshotFromMarket,
   type FrontierSnapshot, type GraphNode,
 } from "./paseome-graph";
 import { FRONTIER_MAX } from "./paseome";
+import { prices, seedMarkets, type OMMarket } from "./open-markets";
 
 /** A well-formed route response, built by hand so the parser is tested on its own. */
 function wire(over: Record<string, unknown> = {}, branches?: Record<string, unknown>[]) {
@@ -215,7 +216,7 @@ describe("buildPaseomeGraph", () => {
     for (const n of g.nodes) {
       for (let a = 0; a < 3; a++) {
         expect(Number.isFinite(n.position[a])).toBe(true);
-        expect(g.extent[a]).toBeGreaterThanOrEqual(Math.abs(n.position[a]) + n.radius - 1e-9);
+        expect(g.extent[a]).toBeGreaterThanOrEqual(Math.abs(n.position[a] - g.center[a]) + n.radius - 1e-9);
       }
     }
   });
@@ -301,5 +302,81 @@ describe("contract with GET /api/v1/paseome/frontier", () => {
     expect(g.sides).toEqual(["foresight", "hindsight"]);
     expect(g.withheld).toBe(0);
     expect(g.nodes.filter((n) => n.kind === "branch")).toHaveLength(snaps[0].branches.length + snaps[1].branches.length);
+  });
+});
+
+describe("graph centre", () => {
+  const f = snap();
+  const h = snap({ side: "hindsight", root: "r" });
+
+  it("a one-sided graph is framed on its own cluster, not on the empty hub side", () => {
+    const g = buildPaseomeGraph([f]);
+    expect(g.center[0]).toBeGreaterThan(ROOT_OFFSET / 2); // leans toward the forward cluster
+    const both = buildPaseomeGraph([f, h]);
+    expect(Math.abs(both.center[0])).toBeLessThan(0.5); // two sides balance around the hub
+    // the one-sided frame is tighter than the two-sided one
+    expect(g.extent[0]).toBeLessThan(both.extent[0]);
+  });
+
+  it("an empty graph centres on the origin with no extent", () => {
+    const g = buildPaseomeGraph([]);
+    expect(g.center).toEqual([0, 0, 0]);
+    expect(g.extent).toEqual([0, 0, 0]);
+  });
+});
+
+describe("snapshotFromMarket — a demo-floor market drawn as a frontier", () => {
+  const markets = seedMarkets(Date.UTC(2026, 10, 1));
+  const byId = (id: string) => markets.find((m) => m.id === id) as OMMarket;
+
+  it("turns a forward tree into a foresight frontier whose prices are the desk's own", () => {
+    const m = byId("plat-merger");
+    const s = snapshotFromMarket(m) as FrontierSnapshot;
+    expect(s.side).toBe("foresight");
+    expect(s.root).toBe(m.title);
+    expect(s.source).toBe("demo");
+    expect(s.untaken).toBe("refunded");
+    const p = prices(m.outcomes, m.b);
+    s.branches.forEach((b, i) => expect(b.price).toBeCloseTo(p[i], 12));
+    expect(s.branches.reduce((a, b) => a + (b.price as number), 0)).toBeCloseTo(1, 9);
+    expect(s.sum).toBeCloseTo(1, 9);
+    expect(s.knifeEdgeOrder).toHaveLength(m.outcomes.length);
+  });
+
+  it("turns a counterfactual tree into a hindsight frontier that carries its branches", () => {
+    const s = snapshotFromMarket(byId("plat-deal")) as FrontierSnapshot;
+    expect(s.side).toBe("hindsight");
+    expect(s.untaken).toBe("carried");
+    expect(s.rollsIn).toBeNull(); // never resolves
+    expect(s.branches.every((b) => b.irrealis === true)).toBe(true);
+  });
+
+  it("draws a real graph from every seeded Paseome tree, and nothing is withheld", () => {
+    const trees = markets.filter((m) => m.cls === "conviction" && !m.perp);
+    expect(trees.length).toBeGreaterThanOrEqual(6);
+    for (const m of trees) {
+      const s = snapshotFromMarket(m) as FrontierSnapshot;
+      const g = buildPaseomeGraph([s]);
+      expect(g.sides).toHaveLength(1);
+      expect(g.withheld).toBe(0);
+      expect(g.nodes.filter((n) => n.kind === "branch")).toHaveLength(m.outcomes.length);
+    }
+  });
+
+  it("moves when the book moves: a trade changes the price the graph shows", () => {
+    const m = byId("plat-merger");
+    const before = (snapshotFromMarket(m) as FrontierSnapshot).branches[3].price as number;
+    const traded: OMMarket = { ...m, outcomes: m.outcomes.map((o, i) => (i === 3 ? { ...o, q: o.q + 600 } : o)) };
+    const after = (snapshotFromMarket(traded) as FrontierSnapshot).branches[3].price as number;
+    expect(after).toBeGreaterThan(before);
+  });
+
+  it("is null for anything that is not a Paseome tree", () => {
+    expect(snapshotFromMarket(byId("seed-unprecedented"))).toBeNull(); // binary prediction
+    const perp = markets.find((m) => m.perp) as OMMarket;
+    expect(snapshotFromMarket(perp)).toBeNull(); // perpetual
+    const tree = byId("plat-merger");
+    expect(snapshotFromMarket({ ...tree, outcomes: tree.outcomes.slice(0, 2) })).toBeNull(); // below the frontier minimum
+    expect(snapshotFromMarket({ ...tree, side: undefined })).toBeNull();
   });
 });

@@ -69,7 +69,14 @@ function subscribeReducedMotion(notify: () => void) {
   return () => mq.removeEventListener("change", notify);
 }
 
-export default function PaseomeGraph() {
+export interface PaseomeGraphProps {
+  /** Draw these frontiers instead of fetching the route — a demo-floor market's own tree. */
+  snapshots?: FrontierSnapshot[];
+  /** "market" words the demo-floor copy; the default is the frontier route's. */
+  variant?: "frontier" | "market";
+}
+
+export default function PaseomeGraph({ snapshots, variant = "frontier" }: PaseomeGraphProps = {}) {
   const { skin } = useSkin();
   // The server snapshot is "reduced" so a first render, if it ever happens off the
   // client, is the still one.
@@ -77,7 +84,12 @@ export default function PaseomeGraph() {
   const webgl = useSyncExternalStore(noSubscription, readWebGL, () => null);
   const { ref: stageRef, seen, inView } = useInView<HTMLDivElement>("160px");
 
-  const [load, setLoad] = useState<Load>({ status: "loading" });
+  const [fetched, setFetched] = useState<Load>({ status: "loading" });
+  const supplied = snapshots !== undefined;
+  const load = useMemo<Load>(
+    () => (supplied ? { status: "ready", snaps: snapshots, missing: [] } : fetched),
+    [supplied, snapshots, fetched],
+  );
   const [revision, setRevision] = useState(0);
   const [focusId, setFocusId] = useState<string | null>(null);
   const [hoverId, setHoverId] = useState<string | null>(null);
@@ -96,6 +108,7 @@ export default function PaseomeGraph() {
 
   // One request per side, in parallel. Either side alone is enough to draw.
   useEffect(() => {
+    if (supplied) return;
     const ctl = new AbortController();
     Promise.allSettled(
       SIDES.map(async (side) => {
@@ -117,10 +130,10 @@ export default function PaseomeGraph() {
           reason = reason || (r.reason instanceof Error ? r.reason.message : "the request failed");
         }
       });
-      setLoad(snaps.length ? { status: "ready", snaps, missing } : { status: "unavailable", reason });
+      setFetched(snaps.length ? { status: "ready", snaps, missing } : { status: "unavailable", reason });
     });
     return () => ctl.abort();
-  }, [revision]);
+  }, [revision, supplied]);
 
   const graph = useMemo(() => (load.status === "ready" ? buildPaseomeGraph(load.snaps) : null), [load]);
   const byId = useMemo(() => new Map((graph?.nodes ?? []).map((n) => [n.id, n])), [graph]);
@@ -185,15 +198,16 @@ export default function PaseomeGraph() {
               color: live ? skin.positive : skin.gold, border: `1px solid ${live ? skin.positive : skin.gold}`,
             }}
           >
-            {live ? "● Live" : "Demo data"}
+            {live ? "● Live" : variant === "market" ? "Demo floor" : "Demo data"}
           </span>
         ) : null}
       </header>
 
       {graph && graph.nodes.length > 0 && !live ? (
         <p style={{ margin: 0, fontSize: 10.5, lineHeight: 1.5, color: skin.muted }}>
-          Demo data, real maths: the branch sets are seeded until the tree store lands. Every price shown is computed by the live
-          DL-LMSR frontier, and each side sums to 1.
+          {variant === "market"
+            ? "This market's own book on the demo floor. Every price is its live DL-LMSR price, the branches sum to 1, and the graph moves when anyone trades."
+            : "Demo data, real maths: the branch sets are seeded until the tree store lands. Every price shown is computed by the live DL-LMSR frontier, and each side sums to 1."}
         </p>
       ) : null}
 
@@ -215,7 +229,7 @@ export default function PaseomeGraph() {
               <span style={{ fontSize: 11, lineHeight: 1.55 }}>
                 {reason ? `${reason[0].toUpperCase()}${reason.slice(1)}. ` : ""}Nothing is drawn rather than inventing a tree — every figure reads {EM_DASH}.
               </span>
-              <button type="button" onClick={() => { setLoad({ status: "loading" }); setRevision((r) => r + 1); }} style={chip}>Retry</button>
+              <button type="button" onClick={() => { setFetched({ status: "loading" }); setRevision((r) => r + 1); }} style={chip}>Retry</button>
             </div>
           </Centered>
         ) : showCanvas && graph ? (
@@ -286,7 +300,7 @@ export default function PaseomeGraph() {
             <span><i style={{ color: skin.accent, fontStyle: "normal" }}>●</i> Forward</span>
             <span><i style={{ color: skin.accent2, fontStyle: "normal" }}>◆</i> Counterfactual</span>
             <span><i style={{ color: skin.gold, fontStyle: "normal" }}>◯</i> Sharpest knife edge</span>
-            {SIDES.map((side) => {
+            {SIDES.filter((side) => variant !== "market" || graph?.sides.includes(side)).map((side) => {
               const snap = load.status === "ready" ? load.snaps.find((s) => s.side === side) : undefined;
               return <span key={side}>{SIDE_LABEL[side]} Σ {fmtFixed(snap?.sum, 3)}</span>;
             })}

@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "migrate": "node scripts/migrate.mjs",
     "db:smoke": "node scripts/db-smoke.mjs",
+    "smoke:paseome": "node scripts/paseome-graph-smoke.mjs",
     "migrate:deploy": "node scripts/migrate.mjs",
     "schema:verify": "node scripts/schema-verify.mjs"
   },

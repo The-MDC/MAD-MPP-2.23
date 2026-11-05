@@ -26,7 +26,11 @@
  *     counterfactual that asserts rather than supposes is a claim about a real
  *     party, and the grammar is the only thing making it benign.
  */
-import { FRONTIER_MAX, type PaseomeSide } from "@/lib/paseome";
+import {
+  FRONTIER_MAX, FRONTIER_MIN, hasIrrealisMood, knifeEdgeDistance, mciScore, rankByKnifeEdge,
+  type PaseomeSide,
+} from "@/lib/paseome";
+import { closesLabel, prices as marketPrices, type OMMarket } from "@/lib/open-markets";
 
 export const EM_DASH = "—";
 
@@ -203,7 +207,9 @@ export interface PaseomeGraph {
   sides: PaseomeSide[];
   /** Counterfactual branches withheld for lacking irrealis mood. */
   withheld: number;
-  /** Largest |coordinate| + radius per axis — what the camera fits. */
+  /** Middle of the drawn nodes — what the camera looks at. A one-sided graph is not centred on the hub. */
+  center: Vec3;
+  /** Half the size of the drawn nodes' bounding box around `center` — what the camera fits. */
   extent: Vec3;
 }
 
@@ -338,12 +344,66 @@ export function buildPaseomeGraph(snapshots: FrontierSnapshot[]): PaseomeGraph {
     });
   }
 
-  const extent: Vec3 = [0, 0, 0];
+  const lo: Vec3 = [Infinity, Infinity, Infinity];
+  const hi: Vec3 = [-Infinity, -Infinity, -Infinity];
   for (const n of nodes) {
-    for (let a = 0; a < 3; a++) extent[a] = Math.max(extent[a], Math.abs(n.position[a]) + n.radius);
+    for (let a = 0; a < 3; a++) {
+      lo[a] = Math.min(lo[a], n.position[a] - n.radius);
+      hi[a] = Math.max(hi[a], n.position[a] + n.radius);
+    }
   }
+  const center: Vec3 = nodes.length ? [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2] : [0, 0, 0];
+  const extent: Vec3 = nodes.length ? [(hi[0] - lo[0]) / 2, (hi[1] - lo[1]) / 2, (hi[2] - lo[2]) / 2] : [0, 0, 0];
 
-  return { nodes, edges, source: live ? "live" : "demo", sides, withheld, extent };
+  return { nodes, edges, source: live ? "live" : "demo", sides, withheld, center, extent };
+}
+
+/* ── 3b · A MARKET AS A FRONTIER ─────────────────────────────────────── */
+
+/**
+ * One Paseome tree from the demo floor, shaped like a frontier response so the same
+ * graph draws it. Every figure is computed from the market's own book (`prices` is
+ * the DL-LMSR the desk quotes with) — nothing is seeded here. It is `source: "demo"`
+ * because the floor's books live in the browser, not on the server.
+ *
+ * Returns null for anything that is not a Paseome tree: a binary prediction, a
+ * perpetual, or a frontier outside the founder's 3..5.
+ */
+export function snapshotFromMarket(m: OMMarket): FrontierSnapshot | null {
+  if (m.cls !== "conviction" || m.perp || !m.side) return null;
+  if (m.outcomes.length < FRONTIER_MIN || m.outcomes.length > FRONTIER_MAX) return null;
+
+  const side: PaseomeSide = m.side === "forward" ? "foresight" : "hindsight";
+  const p = marketPrices(m.outcomes, m.b);
+  const sum = p.reduce((a, v) => a + v, 0);
+  const priced = m.outcomes.map((o, i) => ({ o, price: p[i] }));
+  const order = rankByKnifeEdge(priced).map((x) => x.o.id);
+
+  return {
+    side,
+    root: m.title,
+    source: "demo",
+    sum: Number.isFinite(sum) ? sum : null,
+    rollsIn: m.closesAt === null ? null : closesLabel(m),
+    legSlot: null,
+    settles: m.resolution,
+    untaken: side === "foresight" ? "refunded" : "carried",
+    branches: priced.map(({ o, price }) => {
+      const mci = mciScore(o.label);
+      return {
+        id: o.id,
+        claim: o.label,
+        price: Number.isFinite(price) && price >= 0 && price <= 1 ? price : null,
+        shares: Number.isFinite(o.q) ? o.q : null,
+        knifeEdge: Number.isFinite(price) ? knifeEdgeDistance(price) : null,
+        pathPriceAtDepth2: Number.isFinite(price) ? price * price : null,
+        mciFitness: mci.fitness,
+        mciViolations: mci.violations,
+        irrealis: hasIrrealisMood(o.label),
+      };
+    }),
+    knifeEdgeOrder: order,
+  };
 }
 
 /* ── 4 · CAMERA FIT ──────────────────────────────────────────────────── */
