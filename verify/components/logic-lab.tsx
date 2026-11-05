@@ -117,7 +117,7 @@ export default function LogicLab({ activeDeck }: { activeDeck?: OVDeck }) {
             <div className="flex justify-between font-mono text-[9px] uppercase tracking-wider text-neutral-500 mb-1">
               <span>Volatility Score</span><span className="text-amber-400">{(volatility * 100).toFixed(0)}%</span>
             </div>
-            <input type="range" min={0} max={1} step={0.01} value={volatility}
+            <input type="range" aria-label="Volatility score" min={0} max={1} step={0.01} value={volatility}
               onChange={(e) => setVolatility(parseFloat(e.target.value))}
               className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
               style={{ accentColor: "#fbbf24", background: "#11151c" }} />

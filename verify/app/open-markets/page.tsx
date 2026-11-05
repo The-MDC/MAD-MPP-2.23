@@ -10,16 +10,17 @@ import React, { useEffect, useMemo, useState } from "react";
 import { OMShell, Headline, MarketTile, SectionTitle, Stat, GOLD, ROSSA, MUTED, LINE } from "@/components/om-ui";
 import OMCarousel from "@/components/om-carousel";
 import TabStrip from "@/components/tab-strip";
+import BrandSymbol from "@/components/brand-symbol";
 import { useOpenMarkets } from "@/lib/open-markets-store";
 import { compact, isPerp, PERP_LABEL, PERPS, prices, type OMMarket, type OMPerp } from "@/lib/open-markets";
 
 type Tab = "all" | "prediction" | "conviction" | "certain" | "perps";
-const TABS: { id: Tab; label: string }[] = [
+const TABS: { id: Tab; label: string; icon?: React.ReactNode }[] = [
   { id: "all", label: "All" },
-  { id: "prediction", label: "Prediction" },
-  { id: "conviction", label: "Conviction" },
-  { id: "certain", label: "Certain-UnCertainty" },
-  { id: "perps", label: "Perps" },
+  { id: "prediction", label: "Prediction", icon: <BrandSymbol id="ball" size={16} /> },
+  { id: "conviction", label: "Conviction", icon: <BrandSymbol id="scales" size={16} /> },
+  { id: "certain", label: "Certain-UnCertainty", icon: <BrandSymbol id="ballPurple" size={16} /> },
+  { id: "perps", label: "Perps", icon: <BrandSymbol id="bolt" size={16} /> },
 ];
 
 function filterFor(tab: Tab, perp: OMPerp | null) {

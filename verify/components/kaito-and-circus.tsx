@@ -121,7 +121,7 @@ export function KaitoPriceTicker({ deck, stake = 500 }: { deck?: OVDeck; stake?:
             {cur.value}
           </span>
         </div>
-        <span className="font-mono text-[7px] text-neutral-600 shrink-0 tabular-nums" aria-hidden="true">
+        <span className="font-mono text-[7px] text-neutral-400 shrink-0 tabular-nums" aria-hidden="true">
           {String(at + 1).padStart(2, "0")}/{String(stats.length).padStart(2, "0")}
         </span>
       </div>

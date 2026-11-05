@@ -360,7 +360,7 @@ function Knob({ label, value, onChange, color }: { label: string; value: number;
       <div className="flex justify-between font-mono text-[9px] uppercase tracking-wider text-neutral-500 mb-1">
         <span>{label}</span><span style={{ color }}>{(value * 100).toFixed(0)}%</span>
       </div>
-      <input type="range" min={0} max={1} step={0.01} value={value} onChange={(e) => onChange(parseFloat(e.target.value))}
+      <input type="range" aria-label={label} min={0} max={1} step={0.01} value={value} onChange={(e) => onChange(parseFloat(e.target.value))}
         className="w-full h-1.5 rounded-full appearance-none cursor-pointer" style={{ accentColor: color, background: "#11151c" }} />
     </div>
   );
