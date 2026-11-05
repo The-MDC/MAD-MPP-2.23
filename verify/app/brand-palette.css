@@ -70,3 +70,12 @@
   --color-yellow-900: #794816;
   --color-yellow-950: #43280c;
 }
+
+/* ---- San Pellegrino red, tuned by job (2026-11-02) ----
+   Small text on the dark panels was 4.24-4.49:1 in #f5242a (needs 4.5). So the red now has two working tones:
+   - TEXT   brighter  #ff4a50  (5.2-5.5:1 on #261621 / #111520) - for any red utility used as a text colour
+   - FILL   darker    #d01f24  (white text on it 5.4:1)         - for red utilities used as a surface
+   The brand red #f5242a itself is unchanged for borders, glows, charts and the logo. */
+:root { --red-text: #ff4a50; --red-fill: #d01f24; }
+.text-red-500, .text-rose-500, .text-pink-500, .text-fuchsia-500 { color: var(--red-text); }
+.bg-red-500, .bg-rose-500, .bg-pink-500, .bg-fuchsia-500 { background-color: var(--red-fill); }
