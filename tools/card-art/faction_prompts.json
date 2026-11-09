@@ -1,0 +1,67 @@
+{
+  "_note": "Keyed by the app's canonical on-chain faction ids (verify/lib/gambit-game-math.ts FACTION_CANONICAL_IDS). Every example is an ARCHETYPE, never a real person: no names, no likenesses. Colours are the faction accents used by the card frame.",
+  "disruptors": {
+    "display": "Disruptors",
+    "style": "futuristic, holographic, circuit-board patterns, glass office, cyan neon and chrome",
+    "examples": [
+      "a founder in a hoodie with a unicorn horn growing from their head, stock ticker behind",
+      "a robot executive holding an oversized phone, confetti made of notifications"
+    ]
+  },
+  "elites": {
+    "display": "Classics & Influencers",
+    "style": "selfie pose, ring light, velvet and rose gold, followers counter, old-money portraits",
+    "examples": [
+      "an influencer inside a gilded picture frame, viral notifications exploding around them",
+      "an aristocrat with a monocle and a teacup, scandal newspaper folded under one arm"
+    ]
+  },
+  "chaos": {
+    "display": "The Villains",
+    "style": "dark theatrical lighting, smoke, crimson and black onyx, dramatic cape, scheming grin",
+    "examples": [
+      "a cartoon mastermind at an enormous desk, a trap door under their chair",
+      "a corporate raider on a trading floor, money raining, a cigar the size of a baguette"
+    ]
+  },
+  "drama-guild": {
+    "display": "Pop Icons",
+    "style": "stage lights, microphone, vinyl records, purple neon and platinum shimmer",
+    "examples": [
+      "a pop star with oversized headphones and a sound-wave aura",
+      "a rapper with a gold chain that spells out the beat drop"
+    ]
+  },
+  "degens": {
+    "display": "The Memes",
+    "style": "internet chaos, glitch art, pixel stars, orange glow, absurd proportions",
+    "examples": [
+      "a frog in a tiny crown riding a rocket made of notifications",
+      "a dog in sunglasses at a trading terminal, the chart going vertical"
+    ]
+  },
+  "royalists": {
+    "display": "Screen Gods",
+    "style": "glamorous, spotlight, red carpet, golden statue, dramatic shadows, magenta glow",
+    "examples": [
+      "a leading actor frozen mid-gasp as paparazzi flashes burst around them",
+      "a director with a megaphone and an ego that has its own spotlight"
+    ]
+  },
+  "masses": {
+    "display": "The Athletes",
+    "style": "athletic, stadium lights, trophy, sweat, intensity, green neon and bronze",
+    "examples": [
+      "a champion hoisting an oversized trophy, a stadium roaring behind",
+      "a sports agent in sunglasses holding a briefcase that is bigger than they are"
+    ]
+  },
+  "mad-council": {
+    "display": "Politicos",
+    "style": "podium, flags, power suit, stern expression, crimson and silver",
+    "examples": [
+      "a politician at a podium with an oversized gavel, courtroom drawn in the background",
+      "campaign-trail chaos: confetti, a debate stage, a microphone on a very long boom"
+    ]
+  }
+}
