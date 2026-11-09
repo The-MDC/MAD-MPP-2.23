@@ -50,8 +50,10 @@ there.
 >
 > Founder answers gate parts of both. Canon: creators slide 28.8% → 40%, **60% is a VIP share
 > limited to 4,888 seats**; code still grants 60% by traction (`CR8TR`, `gambit-game-math.ts`)
-> with no cap, so *how a seat is obtained* gates the seat registry. The `$MADx` total supply is
-> still unwritten.
+> with no cap. A seat is **bought as a Golden Ticket NFT** (founder, 2026-11-09, the open-beta-launch
+> campaign); whether a purchased ticket *is* the seat or still converts gates the seat registry.
+> `$MADx` total supply is 888,888,888, with 270 or 280 million purchasable in the sale (which one is
+> unconfirmed) — above the 224,573,096 cap the ledger enforces.
 >
 > Do NOT redo: hosting (Vercel — settled), ADR-008 (`pg` Pool + Route Handlers — settled), the fee
 > waterfall, the frontier log-sum-exp fix, the `brandSafe` split, the mutation audit, the
@@ -150,7 +152,7 @@ wrong. Do not act on the original wording.
 | **Paseome:** rename "MAD Upshot" → MAD Gambit is *ready now*, 17 occurrences in 7 files, not applied | ✅ **Done 2026-10-27** — both in-app decks, `ov-pitch-deck.html` slide 3, `AGENTS.md`, both Kotlin prompts, the MADHAT'r knowledge base. MASTER keeps its historical mentions on purpose. Remaining hits outside MASTER are lineage text only (`docs/archive/…/HANDOFF_MAD_GAMBIT.md`, the `AGENT_MEMORY_FILES.md` mirror) | MASTER PART 0 §5 (struck row); `git grep` |
 | **Engine-room:** *which* `$MADx` address is real — `0xb61ae772…fd18` eliminated, `0x6972370e…151f` **unverified**; **"Do NOT change the `$MADx` token address in any file"** | ✅ **Resolved 2026-10-26.** Founder confirmed `0x6972370e1caAA3624F37D7e87C28e1089D00151f`; `59fb062` replaced the ORKx address in the three files that cited it as canonical (plus the runbook and `pitch/index.html`; MASTER also records the data-room page). **The "do not change it" instruction is withdrawn** — it was right while the address was unresolved. Caveat kept: a Blockscout read of `0x6972…` shows a *verified contract* named `MyToken` (creator `0x4975…0149`, the same creator as ORKx) with **no token record indexed**, so naming it MADx/MADDEX rests on the founder's word, not on-chain display | MASTER PART 0 §3 (the `$MADx supply` and `0xb61ae772…fd18 is NOT $MADx` rows); `git grep 0xb61ae772` (only the runbook note and `docs/boardy/` that call it unrelated) |
 | **Engine-room:** nothing shipped; **T1 "not started"**, "the one job" | T1 **phases 1 and 2a are merged** (#154). **2b (`zeitgeist/auction`) is deliberately not started**, phase 3 (ledger check in `check-route-guards.mjs`) not started | `spendWithin` in `lib/perp-store.ts`; `chargeAndInsertShieldPosition` in `lib/shield.ts`; MASTER PART 0 §5 |
-| **Paseome:** *how is a VIP seat obtained* — wholly open | **Partly answered** by the Golden Ticket decision (MASTER §3): supply 2,488 → **4,888** (= the seat pool), minimum conversion **2,888**, a holder converts with **three creator markets that each reach 188K volume**. Still open — see §6 | MASTER PART 0 §3 |
+| **Paseome:** *how is a VIP seat obtained* — wholly open | **Answered 2026-11-09:** a seat is *bought* as a Golden Ticket NFT, in the open-beta-launch campaign. **Partly answered** earlier by the Golden Ticket decision (MASTER §3): supply 2,488 → **4,888** (= the seat pool), minimum conversion **2,888**, a holder converts with **three creator markets that each reach 188K volume**. Still open — see §6 | MASTER PART 0 §3 |
 | **Paseome:** `article` on `POST /api/v1/satire/roast` "has no length cap" | **Half wrong.** `localRoast` clips `article` to 1,800 chars before it enters the prompt (`lib/local-satire.ts:140`, present since #144), and `headline` is capped at 400 at the route. The *injection* concern stands: both fields are interpolated into the prompt verbatim, undelimited | `git show 72a370e:verify/lib/local-satire.ts` |
 | **Engine-room:** `#26 … #42` in its open-work table | Those are that session's **task-list ids, not GitHub numbers.** GitHub PR #40 is "article .txt ingest + dual images", #41 a skill doc, #42 a Neon runbook — none is "distribute the swap fee" | `gh pr view 38..42` |
 | **Paseome:** "The 1.888% contamination is already gone — zero occurrences" | True of **live use**. The string still appears where it is named as the wrong figure — `docs/boardy/CANONICAL_NUMBERS_2026-08-19.md`, `.agents/…/canonical-numbers.md`, two `PROJECTS/platform/` notes — and in `gambit-game-math.test.ts:46` ("never 1.888"). Do not "clean" those | `git grep -F "1.888%"` |
@@ -231,19 +233,25 @@ only uncertainty left is the epistemic kind worth paying for.
 
 ### Founder only
 
-1. **How is a VIP seat obtained?** Canon: creators 28.8% → 40%, and **60% is a VIP profit share
-   limited to 4,888 seats**. The code still grants 60% as `CR8TR` by traction with no cap
-   (`gambit-game-math.ts:76,84-87`), so canon and code diverge. The Golden Ticket decision
-   (§3) gives one route in; **still open:** is the event the *only* route · does `CR8TR` traction
-   stop reaching 60% (it lowers payouts) · which volume counts (notional both sides, or cash at
-   risk) · is the floor 28.8% or a flat 28% (the founder wrote "28 to 40%") · which platform
-   "Lit" is. That answer gates the seat registry (MASTER §5). The 28.8% base rung I flagged as a
-   conflation is **correct**; the flag was wrong.
+1. **A VIP seat is bought as a Golden Ticket NFT — and what is still open.** Answered 2026-11-09:
+   *"VIP seat is obtained by purchase of a golden ticket (NFT), this campaign is for open beta
+   launch."* Canon: creators 28.8% → 40%, and **60% is a VIP profit share limited to 4,888
+   seats**. The code still grants 60% as `CR8TR` by traction with no cap
+   (`gambit-game-math.ts:76,84-87`), so canon and code diverge. **Still open:** is a purchased
+   ticket the seat itself, or does its holder still convert it with the three-markets-each-≥188K
+   test (the 2,888 minimum conversion implies a step after purchase) · the price and sale
+   mechanism · does `CR8TR` traction stop reaching 60% (it lowers payouts) · which volume counts
+   (notional both sides, or cash at risk) · is the floor 28.8% or a flat 28% (the founder wrote "28
+   to 40%") · which platform "Lit" is. That gates the seat registry (MASTER §5). The 28.8% base rung
+   I flagged as a conflation is **correct**; the flag was wrong.
 2. **Paseome open questions:** artefact-gate timing; what roots a Hindsight tree.
-3. **The `$MADx` total supply.** Your stated source is the Crystex fair-launch campaign; that
-   domain is egress-blocked, so the number has to come from you. It settles PART 0 §3 and
-   PART II §9 contradiction 1 at once. Do not let anyone infer it from the `224,573,096` in
-   the code — that is an **owner-modifiable cap**, not a total supply.
+3. **The `$MADx` sale size — 270 or 280 million?** Answered 2026-11-09: total supply is
+   **888,888,888**, and only "270 280million" is purchasable in the token sale. The message reads as
+   two numbers, so say which. Either is above the `224,573,096` cap the deployed contract carries
+   and the beta ledger enforces (MASTER §3, `$MADx supply`), so that cap has to be raised or
+   another contract used before the sale; and 30.4% / 31.5% of the supply matches no single bucket
+   in either recorded distribution split. Still do not infer a total from the code's cap — it is an
+   **owner-modifiable cap**, not a total supply.
 4. **Run migration `0016`** — `npm run migrate:deploy`, then `npm run schema:verify` expecting
    **41/41**. Until then the market book, the price tape and the paid pack-mint all fall back
    to demo paths. ‹verify› — whether it has been applied cannot be read from the container;
@@ -331,7 +339,8 @@ only uncertainty left is the epistemic kind worth paying for.
   `{"error_type":"EGRESS_BLOCKED","domain":"app.crystex.app"}` — the proxy refuses the host
   outright. This is not a 404 and not rate-limiting: retrying, rewording the URL, or trying
   the campaign API path will all fail the same way. **It blocked the one thing you asked for**
-  — the fair-launch total supply. No workaround exists from inside the container.
+  — the fair-launch total supply. No workaround exists from inside the container. *Resolved another
+  way:* the founder stated the supply in chat on 2026-11-09 (§6).
 - **Blockscout cut the audit off half-finished.** The MCP server allows ~**10 tool calls per
   free session**, and the session was declared dead after two: the unlock call and one address
   lookup. The second call returned *"This session's `session_id` can no longer be used… obtain
