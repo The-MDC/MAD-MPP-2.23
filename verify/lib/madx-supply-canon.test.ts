@@ -10,7 +10,7 @@ import { calculateConviction as mppConviction } from "./mpp-math";
  *
  * `PLATFORM.MADX_FIXED_SUPPLY` (888,888,888) is the TOTAL supply. `MADX_BETA.cap`
  * (224,573,096) is the number the beta ledger actually ENFORCES, mirroring the deployed
- * contract's mint cap. The founder answered the total on 2026-11-09 and said 270 or 280
+ * contract's mint cap. The founder answered the total on 2026-11-09 and said 270
  * million is purchasable in the sale — above the enforced cap, which is unresolved
  * (MASTER PART 0 §3). The founder chose "just document" for CF2, so this does not decide
  * which number is current; it makes sure neither can MOVE unnoticed. `gambit-game-math.test.ts`

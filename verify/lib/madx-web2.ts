@@ -22,7 +22,7 @@ export const MADX_BETA = {
   // `madx_supply.total_minted` past it. It mirrors the deployed contract's mint cap
   // (lib/contracts.ts#MADX.maxSupplyCap). It is NOT the total supply: that is
   // PLATFORM.MADX_FIXED_SUPPLY = 888,888,888 (lib/gambit-game-math.ts), and the founder's
-  // 2026-11-09 answer puts 270 or 280 million purchasable in the sale — above this cap. Which
+  // 2026-11-09 answer puts 270 million purchasable in the sale — above this cap. Which
   // number the beta should enforce is a founder call (MASTER PART 0 §3); until it is made
   // this stays the contract's cap, and lib/madx-supply-canon.test.ts fails loudly if it moves.
   cap: 224_573_096,

@@ -34,7 +34,7 @@ export const DEFAULT_CHAIN_ID = 42161;
  *
  * `maxSupplyCap` is the DEPLOYED CONTRACT'S mint cap, not the total supply. The total is
  * 888,888,888 (PLATFORM.MADX_FIXED_SUPPLY, lib/gambit-game-math.ts; founder, 2026-11-09),
- * with 270 or 280 million purchasable in the sale — above this cap, which is unresolved
+ * with 270 million purchasable in the sale — above this cap, which is unresolved
  * (MASTER PART 0 §3). The beta ledger enforces this same cap (MADX_BETA.cap, lib/madx-web2.ts).
  * The address is pinned by lib/madx-address-pin.test.ts.
  */
