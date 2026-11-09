@@ -1,4 +1,4 @@
-# Thread close-out — consolidated 2026-11-01 · updated 2026-11-09 (+ the Paseome 3D graph thread)
+# Thread close-out — consolidated 2026-11-01 · updated 2026-11-09 (+ the Paseome 3D graph thread, + the consolidation thread)
 
 **Source of truth is `docs/MAD_GAMBIT_MASTER.md`.** This file is transient: what happened,
 what is broken, and what to do next. It is overwritten every close-out.
@@ -13,6 +13,7 @@ this one is unread, carry its open items forward **into this file**; do not add 
 | **Paseome thread** — Paseome maths, fee waterfall, the 4,888 VIP seats | `claude/mad-gambit-enhancement-timeline-zdnx47` | [#153](https://github.com/The-MDC/MAD-MPP-2.23/pull/153) | **MERGED** 2026-10-25 (`6432087`) |
 | **Engine-room thread** — on-chain token audit, the tokenomics bypass (T1) | `claude/maths-engine-room-ship-ai67e6` | [#154](https://github.com/The-MDC/MAD-MPP-2.23/pull/154) | **MERGED** 2026-10-27 (`2de1735`; its close-out was written at head `3067c6b`) |
 | **Paseome 3D graph thread** — the interactive 3D graph of both frontiers (hub + desk), the `/preview` hydration fix, a browser smoke test | `claude/paseome-3d-graph-f268bf`, `claude/paseome-graph-followups` (both deleted 2026-11-09) | [#179](https://github.com/The-MDC/MAD-MPP-2.23/pull/179), [#196](https://github.com/The-MDC/MAD-MPP-2.23/pull/196) | **MERGED** 2026-11-02 / 2026-11-05 · live in production since 2026-11-06 (`5c5c41e`) |
+| **Consolidation thread**: production consolidated, logins, repo roles, the private repo folded in | `claude/consolidate-production`, `claude/tech-debt-register`, `claude/fold-official-mmp` | [#195](https://github.com/The-MDC/MAD-MPP-2.23/pull/195), [#194](https://github.com/The-MDC/MAD-MPP-2.23/pull/194), [#209](https://github.com/The-MDC/MAD-MPP-2.23/pull/209) | #195 and #194 **MERGED** 2026-11-05 · #209 **OPEN** · production `1bcea24` live since 2026-11-09 |
 
 Both were drafts when their close-outs were written. Facts below were re-checked against `main`
 @ `955f8f7` on 2026-11-01 (the sections folded into MASTER on 2026-11-09 were re-checked against
@@ -32,20 +33,16 @@ there.
 
 ## 1 · Start the next chat with this
 
-> Repo `The-MDC/MAD-MPP-2.23`, app in `verify/`. PRs target **`main`** — GitHub's default branch
-> is still `The-MDC` (MASTER PART 0 §3). Read `docs/MAD_GAMBIT_MASTER.md` **PART 0** first — it is
+> Repo `The-MDC/MAD-MPP-2.23`, app in `verify/`. PRs target **`main`**, which has also been
+> GitHub's default branch since 2026-11-09. Read `docs/MAD_GAMBIT_MASTER.md` **PART 0** first — it is
 > the only planning document, and the outstanding work is at the top — then
 > `docs/THREAD_CLOSEOUT.md`.
 >
 > Two engineering jobs are ready and touch different files:
-> 1. **T1 phase 2b — `zeitgeist/auction`.** Phases 1 (`perps/convict`, `faces/stake`) and 2a
->    (`shield/opt-in`) merged in #154. The sealed-bid deposit needs its **whole lifecycle or
->    none**: `refundWithin(client, …)` in `madx-web2.ts` (the `madx_ledger` `kind` CHECK already
->    allows `'refund'` — no migration), the clear loop in one transaction, tests for the three
->    terminal states (debit on commit · refund on reveal-and-lose · forfeit to the platform on
->    no-reveal). Then phase 3: a ledger check in `check-route-guards.mjs`, proven
->    to fail before it is trusted. Copy the shape of `market-book.ts#fill()` — one transaction,
->    `SELECT … FOR UPDATE`, `spendWithin(client, …)`. **Delete nothing and relabel nothing.**
+> 1. **T1 phase 3: merge [#208](https://github.com/The-MDC/MAD-MPP-2.23/pull/208)**, the ledger check in `check-route-guards.mjs`, proven
+> to fail; CI is green and it waits on a reviewer. Phases 1, 2a and 2b are merged (#154, #200, #207).
+> #208 found two routes that move value with no ledger leg, `POST /api/v1/bets` and
+> `POST /api/v1/faces/exit`; both need a product call (MASTER PART 0 §5). **Delete nothing and relabel nothing.**
 > 2. **Paseome to a tradeable book** — tree persistence, refund ledger, artefact-gated
 >    authorship, oracle path.
 >
@@ -73,6 +70,12 @@ there.
 > only rate in the repo is `25,267 MADx per ETH` (a code comment); the Crystex ETH goal is nowhere —
 > §6, "Blocked on environment / access".
 
+>
+> **Also (the consolidation thread):** production runs `main` @ `1bcea24`, deployed by Git source
+> (MASTER §7). There is **one repo**: the private `MADGambit-Official-MMP` was retired and its work
+> folded in by [#209](https://github.com/The-MDC/MAD-MPP-2.23/pull/209). Founder steps, in order: merge #208 and #209 · run `set-vercel-env.js`
+> (MASTER §4) · delete `MADGambit-Official-MMP` on GitHub · then ask an agent to redeploy and check
+> that `/api/admin/session` answers 401, not 503.
 ---
 
 ## 2 · Shipped
@@ -152,6 +155,17 @@ plan and account, not by code) and `e2158a7` (the build on `18216a0` did pass).
 - **#196** (merged 2026-11-05, `5c5c41e`) — the same graph on the Paseome desk (`/open-markets/[id]`, *Show the tree in 3D*) from the market's own book (`snapshotFromMarket`, **DEMO FLOOR**); the shared lazy slot (`paseome-graph-lazy.tsx`); the `/preview` hydration fix (`EqualizerStrip` seeded 44 bar heights with `Math.random()`); and `scripts/paseome-graph-smoke.mjs` (`npm run smoke:paseome`).
 - **Live:** production deployment `5c5c41e` (2026-11-06, READY) — its uploaded source contains all of the above. Both PR branches were deleted on 2026-11-09.
 
+
+### Consolidation thread (#191–#195, #209)
+
+- **#191** — `/admin` no longer 404s (bare `admin` left the scanner tarpit); both crons added to `BEARER_PATHS`, with `lib/cron-bearer-paths.test.ts`.
+- **#192** — `lib/probe-routes.test.ts`: every page, route and public file must pass `isProbePath`.
+- **#193** — the old `madgambit` Vercel team's leftovers recorded for retirement; MASTER corrected.
+- **#194** — the tech-debt register (Workstream TD, TD1–TD18) and the repo roles.
+- **#195** — Dependabot #180–#185 brought to `main`, plus Official-MMP #11's brand work (symbols, tier ladder, contrast, four accessibility fixes).
+- **Production, 2026-11-09** — `1bcea24` deployed by Git source and promoted; `madgambit.fun`, `www` and `mad-mpp-2-23-two.vercel.app` all serve it. Checked with a browser User-Agent: `/` → `/beta`, `/beta`, `/admin/sign-in` and `/api/v1/beta/challenge` 200, cron route 401 without its bearer, `/brand/symbols/gavel.webp` 200.
+- **GitHub default branch** set to `main` (was `The-MDC`).
+- **#209** — the retired private repo folded in: `site/`, `datahouse/`, `tools/card-art/`, the site fee test, Workstreams D and E, and the one-repo rule.
 ---
 
 ## 3 · Settled since these threads were written
@@ -277,6 +291,11 @@ only uncertainty left is the epistemic kind worth paying for.
    real-money surfaces · the serverless-driver question vs ADR-008 (ADR-008 stands; the decision
    is yours).
 
+7. **Merge #208 and #209.** Agent merges are refused by the permission check ("Merge Without Review"), so a person merges.
+8. **Run `set-vercel-env.js`** (MASTER §4). It adds your local creator logins to production's list (production wins on a clash) and sets `ADMIN_*` and `NIM_*`; it prints names only. Agents are refused (Secret-Store Writes). Until then the admin suite answers "not configured" and the concierge runs without NIM. Then an agent redeploys by Git source.
+9. **Delete `MADGambit-Official-MMP`** on GitHub (Settings → Danger Zone). The agent's `gh` token has no `delete_repo` scope. Its open PRs (#11, #12 and the Dependabot ones) go with it. An agent also mirrored it to the founder's disk under `mdc-raw\backup` without being asked; that copy has been removed.
+10. **madgambit.io** — DNS is at Unstoppable Domains (apex A `76.76.21.21`, `www` CNAME `cname.vercel-dns.com`, or Vercel nameservers). Before the site goes live, check its token figures: it shows the 45/15/15/15/10 split, and the 2026-11-09 answer puts 270 million in the sale.
+
 ### Engineering — ready now
 
 - **T1 — one tokenomics engine** — MASTER PART 0 §5 holds the measurement and every call site: the
@@ -304,6 +323,9 @@ only uncertainty left is the epistemic kind worth paying for.
   is "on PR #169, not yet merged" (#169 merged 2026-10-28).
 - **Look at the Paseome 3D graph on the live site** — needs a guest login, so a person: sign in on a phone and open `/preview` (scroll to Certain-UnCertainty) and `/open-markets/plat-merger` → *Show the tree in 3D*. It has only been exercised on a local production build.
 - **Paseome graph depth** — blocked on the tree store (above). MASTER §5's *Paseome to a tradeable book* row carries the proposed contract (`GET …/frontier?node=<id>`, `parentId`, `path`); nothing to build until a route sends real child nodes.
+
+- **Deploy madgambit.io** as its own Vercel project, root `site/` (MASTER Workstream D, W5), once the founder has checked its figures (Founder item 10).
+- **The private repo's Dependabot bumps were not carried** (setup-node 7, upload-artifact 7, slither-action 0.4.2, trufflehog 3.99.7, dotenv 18). With `main` now the default branch, this repo's Dependabot raises its own against `main`. Its older PRs against `The-MDC` can be closed.
 
 ### Blocked on environment / access
 
@@ -338,6 +360,14 @@ only uncertainty left is the epistemic kind worth paying for.
   in both directions; calls failed with `InputValidationError` or a hard disconnect and had to be
   re-loaded through `ToolSearch`. Budget for this: a tool that worked ten minutes ago may need
   its schema re-fetched.
+
+### Consolidation thread
+
+- **The permission check refused, each time, and each is a founder step:** `set-vercel-env.js` (Secret-Store Writes, three times) · merging #195 (no reason given) and #208 ("Merge Without Review") · deleting the seven stale GitHub environments · an app-access audit row in this public MASTER · another session pushing private-repo content here.
+- **GitHub dropped repeatedly** (`error connecting to api.github.com`, once `Could not resolve host`). Retrying the same call worked; a `signed-commit.js` run died mid-call once and succeeded on retry with the same head.
+- **CLI production deploys landed STAGED three times**; the 2026-11-06 one never went live. Deploy by Git source instead (MASTER §7).
+- **Node `fetch` gets 403 from the bot guard** on every route; a browser User-Agent fixes it (MASTER §7).
+- **Not verified:** a real creator or admin sign-in (no agent holds those credentials), and why merges to `main` no longer create a production deployment.
 
 ### Paseome 3D graph thread
 
@@ -476,3 +506,9 @@ Every suggestion from both threads is now a row in MASTER, so nothing here needs
 - The graph, its desk view (`snapshotFromMarket`), the shared lazy slot, the `EqualizerStrip` hydration fix and the smoke test are **done and live** — do not rebuild them. Depth (child nodes) waits on the tree store: do not draw nodes from the two-hop *price*.
 - The smoke test **must not bypass the capture guard** (MASTER §7). Run it against a production build; `next dev --webpack` is too slow and times chunks out.
 - Do not treat 224,573,096 ÷ 25,267 = exactly 8,888 as the campaign's ETH goal — it is a clue derived from the cap, not a source (MASTER §7).
+
+**Consolidation thread (#191–#195, #209)**
+- **One repo** (founder, 2026-11-09). Do not recreate a private mirror, and never build, open PRs or deploy from an old clone of `MADGambit-Official-MMP`.
+- #195 already carries Dependabot #180–#185 and Official-MMP #11's app work; Official-MMP #12 (NIM) was already on `main`. Do not port either again.
+- `main` is the default branch. Deploy production by Git source; it promotes itself.
+- Do not copy repos or data to the founder's disk unless asked.
