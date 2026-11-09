@@ -16,6 +16,13 @@ export interface GambitProfile {
 /**
  * Calculates staked conviction growth/decay at an epoch under a continuous model.
  * formula: C(t) = C_max * (1 - e^(-alpha * t))
+ *
+ * NOT `calculateConviction` from lib/gambit-game-math.ts, despite the name. That one is the
+ * Cobb-Douglas score `t^1.35 · c^0.75 · d^1.45 · p^1.15 · M_nft · L_θ` (six arguments, the
+ * canonical §1 conviction); this one is a saturating adoption curve (four). The two cannot be
+ * confused at a call site — the arities differ and tsc rejects a swap — but a search for
+ * "calculateConviction" finds both, so the shadowing is recorded here and pinned in
+ * lib/madx-supply-canon.test.ts rather than renamed (renames are a Part VI call, not a tidy-up).
  */
 export function calculateConviction(
   currentStake: number,

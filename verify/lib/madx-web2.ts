@@ -18,7 +18,14 @@ import { STAKING_TIERS, getStakingTier } from "@/lib/gambit-game-math";
 export const MADX_BETA = {
   symbol: "MADx",
   label: "MADx · Beta",
-  cap: 224_573_096, // mirrors the on-chain fair-launch hard cap
+  // The number this ledger ENFORCES: `mintAgainstCap` refuses any mint that would push
+  // `madx_supply.total_minted` past it. It mirrors the deployed contract's mint cap
+  // (lib/contracts.ts#MADX.maxSupplyCap). It is NOT the total supply: that is
+  // PLATFORM.MADX_FIXED_SUPPLY = 888,888,888 (lib/gambit-game-math.ts), and the founder's
+  // 2026-11-09 answer puts 270 or 280 million purchasable in the sale — above this cap. Which
+  // number the beta should enforce is a founder call (MASTER PART 0 §3); until it is made
+  // this stays the contract's cap, and lib/madx-supply-canon.test.ts fails loudly if it moves.
+  cap: 224_573_096,
   welcomeGrant: 500, // onboarding faucet
   maxBuyPerTx: 100_000, // placeholder-purchase ceiling
   tiers: STAKING_TIERS,
