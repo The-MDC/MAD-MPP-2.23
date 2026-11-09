@@ -183,10 +183,11 @@ export interface CommitInput {
 /**
  * Why a commit was refused.
  *   no-auction            → 404: nothing is open for this vintage.
+ *   auction-cleared       → 409: the auction has already settled; a bid now would never be refunded.
  *   insufficient-balance  → 402: well-formed, but the wallet cannot cover the deposit.
  *   bad-deposit           → 400: the bid is so small its deposit rounds to nothing.
  */
-export type CommitFailure = "no-auction" | "insufficient-balance" | "bad-deposit";
+export type CommitFailure = "no-auction" | "auction-cleared" | "insufficient-balance" | "bad-deposit";
 
 export interface CommitSuccess {
   /** False when this exact commitment was already on file — nothing was charged again. */
@@ -210,11 +211,23 @@ export async function commitSealedBid(pool: Pool, input: CommitInput): Promise<C
   try {
     await client.query("BEGIN");
 
-    const auction = await client.query(`SELECT id FROM slot_auctions WHERE vintage = $1`, [input.vintage]);
+    // FOR SHARE, and `cleared_at` is read under it. `clearAndSettle` takes this same row FOR UPDATE,
+    // so the two exclude each other: a clear in flight makes this wait, and once the clear commits
+    // this sees `cleared_at` and refuses. Without the lock a commit that reached here after the
+    // clear had read the bid list would insert a bid and take its deposit INSIDE a transaction the
+    // clear never saw — a debit with no refund and no forfeit, ever. The route's clock check
+    // narrows that window; it cannot close it.
+    const auction = await client.query(`SELECT id, cleared_at FROM slot_auctions WHERE vintage = $1 FOR SHARE`, [
+      input.vintage,
+    ]);
     const auctionId = auction.rows[0]?.id;
     if (auctionId == null) {
       await client.query("ROLLBACK");
       return "no-auction";
+    }
+    if (auction.rows[0]?.cleared_at) {
+      await client.query("ROLLBACK");
+      return "auction-cleared";
     }
 
     // The AMOUNT IS NOT STORED. Only the commitment reaches the database, so an
@@ -275,9 +288,32 @@ export interface SettlementSummary {
 }
 
 export interface ClearOutcome {
+  /** The vintage of the auction that was actually cleared — read from its row, not assumed. */
   vintage: number;
   result: AuctionResult;
   settlement: SettlementSummary;
+}
+
+/**
+ * Which auction to clear.
+ *
+ * THE VINTAGE CANNOT COME FROM THE LIVE CLOCK ALONE. The route used to clear
+ * `vintageAt(now) + 1`. `vintageAt` is the TURNING number, and the auction for the next slate
+ * runs in the last leg of a Turning and settles in that leg's tail (~5.9 days). Once the next
+ * Turning begins, `vintageAt(now) + 1` names the FOLLOWING auction — so an auction nobody
+ * cleared during its own tail could never be addressed again, and every deposit it had taken
+ * stayed debited for good. That is the stranding the route's own comment says clearing from
+ * the stored row prevents; it only prevented it for the current vintage.
+ *
+ *   • `vintage` given  → clear exactly that auction.
+ *   • otherwise        → clear the OLDEST auction that has closed and not cleared, so a
+ *     missed tail is picked up by the next call (repeat to drain a backlog, oldest first).
+ *   • none is due      → answer about `currentVintage` — the auction the clock says is open —
+ *     so a premature or repeated clear still gets the same 404/409 it always did.
+ */
+export interface ClearTarget {
+  vintage?: number;
+  currentVintage: number;
 }
 
 interface RawBidRow {
@@ -323,15 +359,30 @@ function toBidRow(r: RawBidRow): BidRow {
  */
 export async function clearAndSettle(
   pool: Pool,
-  vintage: number,
+  target: ClearTarget,
   nowMs: number,
 ): Promise<ClearOutcome | ClearRefusal> {
   const client: PoolClient = await pool.connect();
   try {
     await client.query("BEGIN");
 
-    const auctionRes = await client.query(`SELECT * FROM slot_auctions WHERE vintage = $1 FOR UPDATE`, [vintage]);
-    const row = auctionRes.rows[0];
+    let row: Record<string, unknown> | undefined;
+    if (target.vintage === undefined) {
+      // `FOR UPDATE` re-checks the predicate after a wait, so of two simultaneous clears the second
+      // finds the row no longer qualifies and falls through to the diagnostics below — it cannot
+      // settle the same auction twice.
+      const due = await client.query(
+        `SELECT * FROM slot_auctions WHERE cleared_at IS NULL AND closes_at <= $1 ORDER BY closes_at, id LIMIT 1 FOR UPDATE`,
+        [new Date(nowMs)],
+      );
+      row = due.rows[0];
+    }
+    if (!row) {
+      const named = await client.query(`SELECT * FROM slot_auctions WHERE vintage = $1 FOR UPDATE`, [
+        target.vintage ?? target.currentVintage,
+      ]);
+      row = named.rows[0];
+    }
     if (!row) {
       await client.query("ROLLBACK");
       return { refused: "no-auction" };
@@ -340,13 +391,14 @@ export async function clearAndSettle(
       await client.query("ROLLBACK");
       return { refused: "already-cleared" };
     }
-    const closesAt = new Date(row.closes_at).getTime();
+    const closesAt = new Date(row.closes_at as Date | string).getTime();
     if (nowMs < closesAt) {
       await client.query("ROLLBACK");
       return { refused: "still-open", closesAt: new Date(closesAt).toISOString() };
     }
 
-    const bidRes = await client.query(`SELECT * FROM slot_bids WHERE auction_id = $1 ORDER BY id FOR UPDATE`, [row.id]);
+    const auctionId = row.id as string | number;
+    const bidRes = await client.query(`SELECT * FROM slot_bids WHERE auction_id = $1 ORDER BY id FOR UPDATE`, [auctionId]);
     const bids = (bidRes.rows as RawBidRow[]).map(toBidRow);
 
     const sealed: SealedBid[] = (bidRes.rows as RawBidRow[]).map((b) => ({
@@ -371,8 +423,8 @@ export async function clearAndSettle(
     const result = clearAuction({
       sealed,
       reveals,
-      slots: Number(row.slots) || 3,
-      reservePrice: Number(row.reserve_price) || 0,
+      slots: Number(row.slots as string | number) || 3,
+      reservePrice: Number(row.reserve_price as string | number) || 0,
     });
     const plan = planSettlement(bids, result);
 
@@ -380,12 +432,17 @@ export async function clearAndSettle(
     // looked up, never assumed — see the module header.
     const notes: string[] = [];
     for (const p of plan) {
-      notes.push(depositNote(row.id, p.commitment), refundNote(row.id, p.commitment));
+      notes.push(depositNote(auctionId, p.commitment), refundNote(auctionId, p.commitment));
     }
+    // Scoped by OWNER as well as note: the only index on `madx_ledger` is (owner, created_at), so a
+    // bare `note = ANY(…)` is a sequential scan of the whole ledger — run here, while this
+    // transaction holds FOR UPDATE on the auction and every bid. The ledger stores the owner
+    // normalised (`spendWithin` / `refundWithin` lower-case and trim), so do the same.
+    const owners = Array.from(new Set(plan.map((p) => p.bidder.trim().toLowerCase())));
     const ledger = notes.length
       ? await client.query(
-          `SELECT kind, note, amount FROM madx_ledger WHERE kind IN ('spend','refund') AND note = ANY($1::text[])`,
-          [notes],
+          `SELECT kind, note, amount FROM madx_ledger WHERE owner = ANY($1::text[]) AND kind IN ('spend','refund') AND note = ANY($2::text[])`,
+          [owners, notes],
         )
       : { rows: [] as Array<{ kind: string; note: string; amount: string | number }> };
     const debited = new Map<string, number>();
@@ -396,7 +453,7 @@ export async function clearAndSettle(
     }
 
     await client.query(`UPDATE slot_auctions SET clearing_price = $2, cleared_at = now() WHERE id = $1`, [
-      row.id,
+      auctionId,
       result.clearingPrice,
     ]);
 
@@ -410,7 +467,7 @@ export async function clearAndSettle(
     };
 
     for (const p of plan) {
-      const paidIn = debited.get(depositNote(row.id, p.commitment));
+      const paidIn = debited.get(depositNote(auctionId, p.commitment));
       if (p.outcome === "forfeited") {
         summary.forfeited += 1;
         if (paidIn === undefined) summary.undebited += 1;
@@ -420,8 +477,8 @@ export async function clearAndSettle(
         else summary.refunded += 1;
         if (paidIn === undefined) {
           summary.undebited += 1;
-        } else if (!refunded.has(refundNote(row.id, p.commitment))) {
-          await refundWithin(client, p.bidder, paidIn, refundNote(row.id, p.commitment));
+        } else if (!refunded.has(refundNote(auctionId, p.commitment))) {
+          await refundWithin(client, p.bidder, paidIn, refundNote(auctionId, p.commitment));
           summary.depositsReturned = round6(summary.depositsReturned + paidIn);
         }
       }
@@ -433,7 +490,7 @@ export async function clearAndSettle(
     }
 
     await client.query("COMMIT");
-    return { vintage, result, settlement: summary };
+    return { vintage: Number(row.vintage), result, settlement: summary };
   } catch (e) {
     await client.query("ROLLBACK").catch(() => {});
     throw e;

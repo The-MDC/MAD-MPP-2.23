@@ -38,6 +38,8 @@ interface Body {
   amount?: number;
   salt?: string;
   deposit?: number;
+  /** `clear` only: settle this auction rather than the oldest one that is due. */
+  vintage?: number;
 }
 
 const DEFAULT_START = 25_000;
@@ -195,6 +197,9 @@ export async function POST(req: Request) {
       if (committed === "no-auction") {
         return NextResponse.json({ success: false, error: "no auction open" }, { status: 404 });
       }
+      if (committed === "auction-cleared") {
+        return NextResponse.json({ success: false, error: "auction already cleared" }, { status: 409 });
+      }
       if (committed === "bad-deposit") {
         return NextResponse.json({ success: false, error: "bid is too small to carry a deposit" }, { status: 400 });
       }
@@ -276,7 +281,17 @@ export async function POST(req: Request) {
     if (!hasDatabaseUrl()) {
       return NextResponse.json({ success: false, error: "clearing needs DATABASE_URL" }, { status: 503 });
     }
-    const vintage = vintageAt(now) + 1;
+    // An explicit `vintage` clears that auction. Without one, the OLDEST closed-and-uncleared auction
+    // is cleared — NOT `vintageAt(now) + 1`, which names the next auction once the Turning rolls over
+    // and would leave a missed one un-clearable with its deposits still debited. The clock's vintage
+    // is passed only so a premature or repeated clear gets its usual 404/409.
+    let requested: number | undefined;
+    if (body.vintage !== undefined && body.vintage !== null) {
+      requested = Number(body.vintage);
+      if (!Number.isInteger(requested) || requested < 0) {
+        return NextResponse.json({ success: false, error: "vintage must be a non-negative integer" }, { status: 400 });
+      }
+    }
 
     // One transaction: lock the auction, decide it, and pay every refund — or
     // none of it. This used to be four separate pool.query calls, so a crash
@@ -285,7 +300,7 @@ export async function POST(req: Request) {
     // The gate is the auction's OWN closing time, read from its row inside the
     // transaction — not the live clock. That is what lets a late clear succeed
     // instead of leaving deposits locked behind a missed deadline.
-    const cleared = await clearAndSettle(getDbPool(), vintage, now);
+    const cleared = await clearAndSettle(getDbPool(), { vintage: requested, currentVintage: vintageAt(now) + 1 }, now);
     if ("refused" in cleared) {
       if (cleared.refused === "no-auction") {
         return NextResponse.json({ success: false, error: "no auction open" }, { status: 404 });
@@ -307,7 +322,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       source: "live",
-      vintage,
+      vintage: cleared.vintage,
       result: cleared.result,
       settlement: cleared.settlement,
     });
