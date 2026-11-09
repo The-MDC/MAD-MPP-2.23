@@ -1,4 +1,4 @@
-# Thread close-out — consolidated 2026-11-01
+# Thread close-out — consolidated 2026-11-01 · updated 2026-11-09 (+ the Paseome 3D graph thread)
 
 **Source of truth is `docs/MAD_GAMBIT_MASTER.md`.** This file is transient: what happened,
 what is broken, and what to do next. It is overwritten every close-out.
@@ -12,6 +12,7 @@ this one is unread, carry its open items forward **into this file**; do not add 
 |---|---|---|---|
 | **Paseome thread** — Paseome maths, fee waterfall, the 4,888 VIP seats | `claude/mad-gambit-enhancement-timeline-zdnx47` | [#153](https://github.com/The-MDC/MAD-MPP-2.23/pull/153) | **MERGED** 2026-10-25 (`6432087`) |
 | **Engine-room thread** — on-chain token audit, the tokenomics bypass (T1) | `claude/maths-engine-room-ship-ai67e6` | [#154](https://github.com/The-MDC/MAD-MPP-2.23/pull/154) | **MERGED** 2026-10-27 (`2de1735`; its close-out was written at head `3067c6b`) |
+| **Paseome 3D graph thread** — the interactive 3D graph of both frontiers (hub + desk), the `/preview` hydration fix, a browser smoke test | `claude/paseome-3d-graph-f268bf`, `claude/paseome-graph-followups` (both deleted 2026-11-09) | [#179](https://github.com/The-MDC/MAD-MPP-2.23/pull/179), [#196](https://github.com/The-MDC/MAD-MPP-2.23/pull/196) | **MERGED** 2026-11-02 / 2026-11-05 · live in production since 2026-11-06 (`5c5c41e`) |
 
 Both were drafts when their close-outs were written. Facts below were re-checked against `main`
 @ `955f8f7` on 2026-11-01 (the sections folded into MASTER on 2026-11-09 were re-checked against
@@ -50,8 +51,10 @@ there.
 >
 > Founder answers gate parts of both. Canon: creators slide 28.8% → 40%, **60% is a VIP share
 > limited to 4,888 seats**; code still grants 60% by traction (`CR8TR`, `gambit-game-math.ts`)
-> with no cap, so *how a seat is obtained* gates the seat registry. The `$MADx` total supply is
-> still unwritten.
+> with no cap. A seat is **bought as a Golden Ticket NFT** (founder, 2026-11-09, the open-beta-launch
+> campaign); whether a purchased ticket *is* the seat or still converts gates the seat registry.
+> `$MADx` total supply is 888,888,888, with 270 or 280 million purchasable in the sale (which one is
+> unconfirmed) — above the 224,573,096 cap the ledger enforces.
 >
 > Do NOT redo: hosting (Vercel — settled), ADR-008 (`pg` Pool + Route Handlers — settled), the fee
 > waterfall, the frontier log-sum-exp fix, the `brandSafe` split, the mutation audit, the
@@ -63,6 +66,13 @@ there.
 > Constraints: `npm ci` 403s from the container (CI is the only verification); the Postgres host
 > and TCP 5432 are blocked, so no agent can touch the database; `app.crystex.app` is
 > egress-blocked.
+>
+> **Also shipped and live (the Paseome 3D graph thread, #179 + #196):** do not rebuild the graph, its
+> desk view, the `EqualizerStrip` hydration fix or the smoke test (`npm run smoke:paseome`; §2). Two
+> things are only half-checked: nobody has looked at the graph on the deployed site at phone width (it
+> needs a guest login), and the smoke test is local-only (§7). **Sale arithmetic still open:** the
+> only rate in the repo is `25,267 MADx per ETH` (a code comment); the Crystex ETH goal is nowhere —
+> §6, "Blocked on environment / access".
 
 ---
 
@@ -137,6 +147,12 @@ plan and account, not by code) and `e2158a7` (the build on `18216a0` did pass).
   credential.
 - **#152** — agent personas consolidated under MAD-Gambit-Concierge.
 
+### Paseome 3D graph thread (#179, #196)
+
+- **#179** (merged 2026-11-02, `d664fff`) — an interactive 3D node-link graph of both Paseome frontiers on the hub, under the Certain-UnCertainty carousel: `lib/paseome-graph.ts` (pure model: validate, layout, formatting), `components/paseome-graph.tsx` + `paseome-graph-scene.tsx` (shell + R3F scene on the already-installed three / R3F / drei). Fed by `GET /api/v1/paseome/frontier`; **DEMO DATA** while the route says `source: "demo"`; a missing figure is an em dash; a route failure draws nothing; a counterfactual branch without irrealis mood is withheld.
+- **#196** (merged 2026-11-05, `5c5c41e`) — the same graph on the Paseome desk (`/open-markets/[id]`, *Show the tree in 3D*) from the market's own book (`snapshotFromMarket`, **DEMO FLOOR**); the shared lazy slot (`paseome-graph-lazy.tsx`); the `/preview` hydration fix (`EqualizerStrip` seeded 44 bar heights with `Math.random()`); and `scripts/paseome-graph-smoke.mjs` (`npm run smoke:paseome`).
+- **Live:** production deployment `5c5c41e` (2026-11-06, READY) — its uploaded source contains all of the above. Both PR branches were deleted on 2026-11-09.
+
 ---
 
 ## 3 · Settled since these threads were written
@@ -150,7 +166,7 @@ wrong. Do not act on the original wording.
 | **Paseome:** rename "MAD Upshot" → MAD Gambit is *ready now*, 17 occurrences in 7 files, not applied | ✅ **Done 2026-10-27** — both in-app decks, `ov-pitch-deck.html` slide 3, `AGENTS.md`, both Kotlin prompts, the MADHAT'r knowledge base. MASTER keeps its historical mentions on purpose. Remaining hits outside MASTER are lineage text only (`docs/archive/…/HANDOFF_MAD_GAMBIT.md`, the `AGENT_MEMORY_FILES.md` mirror) | MASTER PART 0 §5 (struck row); `git grep` |
 | **Engine-room:** *which* `$MADx` address is real — `0xb61ae772…fd18` eliminated, `0x6972370e…151f` **unverified**; **"Do NOT change the `$MADx` token address in any file"** | ✅ **Resolved 2026-10-26.** Founder confirmed `0x6972370e1caAA3624F37D7e87C28e1089D00151f`; `59fb062` replaced the ORKx address in the three files that cited it as canonical (plus the runbook and `pitch/index.html`; MASTER also records the data-room page). **The "do not change it" instruction is withdrawn** — it was right while the address was unresolved. Caveat kept: a Blockscout read of `0x6972…` shows a *verified contract* named `MyToken` (creator `0x4975…0149`, the same creator as ORKx) with **no token record indexed**, so naming it MADx/MADDEX rests on the founder's word, not on-chain display | MASTER PART 0 §3 (the `$MADx supply` and `0xb61ae772…fd18 is NOT $MADx` rows); `git grep 0xb61ae772` (only the runbook note and `docs/boardy/` that call it unrelated) |
 | **Engine-room:** nothing shipped; **T1 "not started"**, "the one job" | T1 **phases 1 and 2a are merged** (#154). **2b (`zeitgeist/auction`) is deliberately not started**, phase 3 (ledger check in `check-route-guards.mjs`) not started | `spendWithin` in `lib/perp-store.ts`; `chargeAndInsertShieldPosition` in `lib/shield.ts`; MASTER PART 0 §5 |
-| **Paseome:** *how is a VIP seat obtained* — wholly open | **Partly answered** by the Golden Ticket decision (MASTER §3): supply 2,488 → **4,888** (= the seat pool), minimum conversion **2,888**, a holder converts with **three creator markets that each reach 188K volume**. Still open — see §6 | MASTER PART 0 §3 |
+| **Paseome:** *how is a VIP seat obtained* — wholly open | **Answered 2026-11-09:** a seat is *bought* as a Golden Ticket NFT, in the open-beta-launch campaign. **Partly answered** earlier by the Golden Ticket decision (MASTER §3): supply 2,488 → **4,888** (= the seat pool), minimum conversion **2,888**, a holder converts with **three creator markets that each reach 188K volume**. Still open — see §6 | MASTER PART 0 §3 |
 | **Paseome:** `article` on `POST /api/v1/satire/roast` "has no length cap" | **Half wrong.** `localRoast` clips `article` to 1,800 chars before it enters the prompt (`lib/local-satire.ts:140`, present since #144), and `headline` is capped at 400 at the route. The *injection* concern stands: both fields are interpolated into the prompt verbatim, undelimited | `git show 72a370e:verify/lib/local-satire.ts` |
 | **Engine-room:** `#26 … #42` in its open-work table | Those are that session's **task-list ids, not GitHub numbers.** GitHub PR #40 is "article .txt ingest + dual images", #41 a skill doc, #42 a Neon runbook — none is "distribute the swap fee" | `gh pr view 38..42` |
 | **Paseome:** "The 1.888% contamination is already gone — zero occurrences" | True of **live use**. The string still appears where it is named as the wrong figure — `docs/boardy/CANONICAL_NUMBERS_2026-08-19.md`, `.agents/…/canonical-numbers.md`, two `PROJECTS/platform/` notes — and in `gambit-game-math.test.ts:46` ("never 1.888"). Do not "clean" those | `git grep -F "1.888%"` |
@@ -231,19 +247,25 @@ only uncertainty left is the epistemic kind worth paying for.
 
 ### Founder only
 
-1. **How is a VIP seat obtained?** Canon: creators 28.8% → 40%, and **60% is a VIP profit share
-   limited to 4,888 seats**. The code still grants 60% as `CR8TR` by traction with no cap
-   (`gambit-game-math.ts:76,84-87`), so canon and code diverge. The Golden Ticket decision
-   (§3) gives one route in; **still open:** is the event the *only* route · does `CR8TR` traction
-   stop reaching 60% (it lowers payouts) · which volume counts (notional both sides, or cash at
-   risk) · is the floor 28.8% or a flat 28% (the founder wrote "28 to 40%") · which platform
-   "Lit" is. That answer gates the seat registry (MASTER §5). The 28.8% base rung I flagged as a
-   conflation is **correct**; the flag was wrong.
+1. **A VIP seat is bought as a Golden Ticket NFT — and what is still open.** Answered 2026-11-09:
+   *"VIP seat is obtained by purchase of a golden ticket (NFT), this campaign is for open beta
+   launch."* Canon: creators 28.8% → 40%, and **60% is a VIP profit share limited to 4,888
+   seats**. The code still grants 60% as `CR8TR` by traction with no cap
+   (`gambit-game-math.ts:76,84-87`), so canon and code diverge. **Still open:** is a purchased
+   ticket the seat itself, or does its holder still convert it with the three-markets-each-≥188K
+   test (the 2,888 minimum conversion implies a step after purchase) · the price and sale
+   mechanism · does `CR8TR` traction stop reaching 60% (it lowers payouts) · which volume counts
+   (notional both sides, or cash at risk) · is the floor 28.8% or a flat 28% (the founder wrote "28
+   to 40%") · which platform "Lit" is. That gates the seat registry (MASTER §5). The 28.8% base rung
+   I flagged as a conflation is **correct**; the flag was wrong.
 2. **Paseome open questions:** artefact-gate timing; what roots a Hindsight tree.
-3. **The `$MADx` total supply.** Your stated source is the Crystex fair-launch campaign; that
-   domain is egress-blocked, so the number has to come from you. It settles PART 0 §3 and
-   PART II §9 contradiction 1 at once. Do not let anyone infer it from the `224,573,096` in
-   the code — that is an **owner-modifiable cap**, not a total supply.
+3. **The `$MADx` sale size — 270 or 280 million?** Answered 2026-11-09: total supply is
+   **888,888,888**, and only "270 280million" is purchasable in the token sale. The message reads as
+   two numbers, so say which. Either is above the `224,573,096` cap the deployed contract carries
+   and the beta ledger enforces (MASTER §3, `$MADx supply`), so that cap has to be raised or
+   another contract used before the sale; and 30.4% / 31.5% of the supply matches no single bucket
+   in either recorded distribution split. Still do not infer a total from the code's cap — it is an
+   **owner-modifiable cap**, not a total supply.
 4. **Run migration `0016`** — `npm run migrate:deploy`, then `npm run schema:verify` expecting
    **41/41**. Until then the market book, the price tape and the paid pack-mint all fall back
    to demo paths. ‹verify› — whether it has been applied cannot be read from the container;
@@ -281,6 +303,8 @@ only uncertainty left is the epistemic kind worth paying for.
   Concrete stale rows re-found 2026-11-09: PART 0 §1 still says the agent brand is "on
   `MAD-Gambit-Concierge`, not yet merged" (#152 merged 2026-09-19) and the private-beta front door
   is "on PR #169, not yet merged" (#169 merged 2026-10-28).
+- **Look at the Paseome 3D graph on the live site** — needs a guest login, so a person: sign in on a phone and open `/preview` (scroll to Certain-UnCertainty) and `/open-markets/plat-merger` → *Show the tree in 3D*. It has only been exercised on a local production build.
+- **Paseome graph depth** — blocked on the tree store (above). MASTER §5's *Paseome to a tradeable book* row carries the proposed contract (`GET …/frontier?node=<id>`, `parentId`, `path`); nothing to build until a route sends real child nodes.
 
 ### Blocked on environment / access
 
@@ -292,6 +316,8 @@ only uncertainty left is the epistemic kind worth paying for.
   have never run.
 - **eslint / eslint-config-next / @types/node realignment** — needs a lockfile regen the
   sandbox cannot do.
+- **The Crystex ETH goal and rate** (found 2026-11-09) — `app.crystex.app` is still unreadable. The only rate in the repo is the comment `Rate: 25,267 MADx per ETH` in `contracts/madhat-core/src/tokens/MADxToken.sol` (imported 2026-07-21 from `demo-repository`, unsourced); no thread or session transcript states an ETH goal. On-chain (Arbitrum One, read 2026-11-09): `maxTotalSupply` = 224,573,096 tokens, `totalSupply` = 0 — and 224,573,096 ÷ 25,267 is **exactly 8,888**, so 8,888 ETH × 25,267 would reproduce the cap. The founder's 2026-11-09 answer (270 or 280 million purchasable, #199) needs 10,685.87 / 11,081.65 ETH at that rate and is 45.4M / 55.4M above the cap. **Paste the campaign's ETH goal and rate** and "tokens for sale" is one multiplication.
+- **The smoke test is not in CI** — CI has no browser, no running server and no guest login. It is run by hand against a production build or a preview (`npm run smoke:paseome`; capture-guard note in §7).
 
 ---
 
@@ -314,6 +340,19 @@ only uncertainty left is the epistemic kind worth paying for.
   re-loaded through `ToolSearch`. Budget for this: a tool that worked ten minutes ago may need
   its schema re-fetched.
 
+### Paseome 3D graph thread
+
+Each of these cost real time:
+
+- **Turbopack refuses a junctioned `node_modules`** in a fresh worktree ("files outside of the workspace root are not compiled"; every page 500s). Use `next dev --webpack` (MASTER §6).
+- **`next dev --webpack` is too slow to verify a lazy chunk here** — 30–200 s per rebuild, and a chunk requested mid-rebuild fails with `ChunkLoadError`. The hub → chunk path could only be seen working on a **production build** (`next build --webpack`, ~4 min) served locally. Use that, not dev.
+- **The in-app Browser pane runs no `requestAnimationFrame` or IntersectionObserver while hidden**, so it cannot render WebGL or fire a near-viewport gate. Headless Edge driven over DevTools worked instead.
+- **The app refuses automated browsers twice:** `proxy.ts` 403s a `HeadlessChrome` user agent (present a normal mobile UA), and the **capture guard** veils any `navigator.webdriver` browser in a production build, swallowing taps. Do not script around the veil (MASTER §7).
+- **`npx tsc` once answered "This is not the tsc command you are looking for"** inside a worktree; `./node_modules/.bin/tsc --noEmit` worked. Cause not found ‹verify›.
+- **Blockscout MCP:** `get_address_info` returned a 500 for the token; the ABI and `read_contract` calls worked. The free session budget is 8 calls.
+- **A cross-session message was not delivered** the first time ("gave no sign of starting within 20s"); the answer arrived later in that session's own message.
+- **Not verified:** the graph on the deployed site at phone width (no guest login); a physical phone (touch was emulated); the Vercel preview of #196 (the bot reported DEPLOYED; not opened). The red **"Vercel" check** on every PR is "Account is blocked" — account state, not code (MASTER PART 0 §3).
+
 ### Paseome thread
 
 | What | Effect | Workaround |
@@ -331,7 +370,8 @@ only uncertainty left is the epistemic kind worth paying for.
   `{"error_type":"EGRESS_BLOCKED","domain":"app.crystex.app"}` — the proxy refuses the host
   outright. This is not a 404 and not rate-limiting: retrying, rewording the URL, or trying
   the campaign API path will all fail the same way. **It blocked the one thing you asked for**
-  — the fair-launch total supply. No workaround exists from inside the container.
+  — the fair-launch total supply. No workaround exists from inside the container. *Resolved another
+  way:* the founder stated the supply in chat on 2026-11-09 (§6).
 - **Blockscout cut the audit off half-finished.** The MCP server allows ~**10 tool calls per
   free session**, and the session was declared dead after two: the unlock call and one address
   lookup. The second call returned *"This session's `session_id` can no longer be used… obtain
@@ -432,3 +472,8 @@ Every suggestion from both threads is now a row in MASTER, so nothing here needs
 - **A green gate is not evidence until you confirm it is looking at something.** Three gates
   in this repo have silently scanned nothing. Check the **file count** a filter yields.
 - **A vitest file outside `lib/` silently does not run** — `include` is `["lib/**/*.test.ts"]`.
+
+**Paseome 3D graph thread (#179, #196)**
+- The graph, its desk view (`snapshotFromMarket`), the shared lazy slot, the `EqualizerStrip` hydration fix and the smoke test are **done and live** — do not rebuild them. Depth (child nodes) waits on the tree store: do not draw nodes from the two-hop *price*.
+- The smoke test **must not bypass the capture guard** (MASTER §7). Run it against a production build; `next dev --webpack` is too slow and times chunks out.
+- Do not treat 224,573,096 ÷ 25,267 = exactly 8,888 as the campaign's ETH goal — it is a clue derived from the cap, not a source (MASTER §7).
