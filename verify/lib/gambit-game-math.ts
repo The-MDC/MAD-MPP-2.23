@@ -26,7 +26,7 @@ export const PLATFORM = {
   SHIELD_PREMIUM_MAX: 0.04,
   SHIELD_SAFETY_MARGIN: 0.35, // Premium = Stake·P(win)·σ·0.35 (17-corrections #4 — was 1.05)
   MADX_FIXED_SUPPLY: 888_888_888, // the TOTAL supply — founder, 2026-11-09: "MADx total supply is
-                                   // 888,888,888", of which only 270 or 280 million is purchasable in
+                                   // 888,888,888", of which only 270 million is purchasable in
                                    // the token sale. The deployed contract (0x6972...151f, Arbitrum
                                    // One) mints on purchase with a mint cap of 224,573,096, and that is
                                    // the number the beta ledger ENFORCES (MADX_BETA.cap in
