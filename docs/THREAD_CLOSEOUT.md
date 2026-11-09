@@ -53,8 +53,7 @@ there.
 > limited to 4,888 seats**; code still grants 60% by traction (`CR8TR`, `gambit-game-math.ts`)
 > with no cap. A seat is **bought as a Golden Ticket NFT** (founder, 2026-11-09, the open-beta-launch
 > campaign); whether a purchased ticket *is* the seat or still converts gates the seat registry.
-> `$MADx` total supply is 888,888,888, with 270 or 280 million purchasable in the sale (which one is
-> unconfirmed) — above the 224,573,096 cap the ledger enforces.
+> `$MADx` total supply is 888,888,888, with 270 million purchasable in the sale (confirmed 2026-11-09) — above the 224,573,096 cap the ledger enforces.
 >
 > Do NOT redo: hosting (Vercel — settled), ADR-008 (`pg` Pool + Route Handlers — settled), the fee
 > waterfall, the frontier log-sum-exp fix, the `brandSafe` split, the mutation audit, the
@@ -259,13 +258,13 @@ only uncertainty left is the epistemic kind worth paying for.
    to 40%") · which platform "Lit" is. That gates the seat registry (MASTER §5). The 28.8% base rung
    I flagged as a conflation is **correct**; the flag was wrong.
 2. **Paseome open questions:** artefact-gate timing; what roots a Hindsight tree.
-3. **The `$MADx` sale size — 270 or 280 million?** Answered 2026-11-09: total supply is
-   **888,888,888**, and only "270 280million" is purchasable in the token sale. The message reads as
-   two numbers, so say which. Either is above the `224,573,096` cap the deployed contract carries
-   and the beta ledger enforces (MASTER §3, `$MADx supply`), so that cap has to be raised or
-   another contract used before the sale; and 30.4% / 31.5% of the supply matches no single bucket
-   in either recorded distribution split. Still do not infer a total from the code's cap — it is an
-   **owner-modifiable cap**, not a total supply.
+3. **The `$MADx` sale is above the enforced cap.** Answered 2026-11-09: total supply is
+   **888,888,888**, and **270 million** is purchasable in the token sale (the message read "270
+   280million"; the founder confirmed 270). That is above the `224,573,096` cap the deployed
+   contract carries and the beta ledger enforces (MASTER §3, `$MADx supply`), so that cap has to
+   be raised or another contract used before the sale; and 30.4% of the supply matches no single
+   bucket in either recorded distribution split. Still do not infer a total from the code's cap —
+   it is an **owner-modifiable cap**, not a total supply.
 4. **Run migration `0016`** — `npm run migrate:deploy`, then `npm run schema:verify` expecting
    **41/41**. Until then the market book, the price tape and the paid pack-mint all fall back
    to demo paths. ‹verify› — whether it has been applied cannot be read from the container;
@@ -316,7 +315,7 @@ only uncertainty left is the epistemic kind worth paying for.
   have never run.
 - **eslint / eslint-config-next / @types/node realignment** — needs a lockfile regen the
   sandbox cannot do.
-- **The Crystex ETH goal and rate** (found 2026-11-09) — `app.crystex.app` is still unreadable. The only rate in the repo is the comment `Rate: 25,267 MADx per ETH` in `contracts/madhat-core/src/tokens/MADxToken.sol` (imported 2026-07-21 from `demo-repository`, unsourced); no thread or session transcript states an ETH goal. On-chain (Arbitrum One, read 2026-11-09): `maxTotalSupply` = 224,573,096 tokens, `totalSupply` = 0 — and 224,573,096 ÷ 25,267 is **exactly 8,888**, so 8,888 ETH × 25,267 would reproduce the cap. The founder's 2026-11-09 answer (270 or 280 million purchasable, #199) needs 10,685.87 / 11,081.65 ETH at that rate and is 45.4M / 55.4M above the cap. **Paste the campaign's ETH goal and rate** and "tokens for sale" is one multiplication.
+- **The Crystex ETH goal and rate** (found 2026-11-09) — `app.crystex.app` is still unreadable. The only rate in the repo is the comment `Rate: 25,267 MADx per ETH` in `contracts/madhat-core/src/tokens/MADxToken.sol` (imported 2026-07-21 from `demo-repository`, unsourced); no thread or session transcript states an ETH goal. On-chain (Arbitrum One, read 2026-11-09): `maxTotalSupply` = 224,573,096 tokens, `totalSupply` = 0 — and 224,573,096 ÷ 25,267 is **exactly 8,888**, so 8,888 ETH × 25,267 would reproduce the cap. The founder's 2026-11-09 answer (270 million purchasable, confirmed; #199) needs 10,685.87 ETH at that rate and is 45.4M above the cap. **Paste the campaign's ETH goal and rate** and "tokens for sale" is one multiplication.
 - **The smoke test is not in CI** — CI has no browser, no running server and no guest login. It is run by hand against a production build or a preview (`npm run smoke:paseome`; capture-guard note in §7).
 
 ---
