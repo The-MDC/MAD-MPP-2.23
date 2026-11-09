@@ -72,10 +72,23 @@ describe("deVig", () => {
 });
 
 describe("deriveSeries", () => {
-  it("is deterministic — the same id yields the same walk", () => {
+  it("is deterministic — the same id yields THIS walk", () => {
     // Load-bearing for SSR: a random walk would differ between the server and
-    // client render and break hydration.
-    expect(deriveSeries("abc", 0.6)).toEqual(deriveSeries("abc", 0.6));
+    // client render and break hydration. `f(x)` equalling `f(x)` proves only that
+    // two calls agreed (a Math.random seeded per render would still pass if both
+    // calls shared a seed); pinning the points proves the walk itself is the one
+    // the server and the client both draw.
+    const round = (xs: number[]) => xs.map((n) => Math.round(n * 1e6) / 1e6);
+    expect(round(deriveSeries("abc", 0.6))).toEqual([
+      0.451042, 0.75777, 0.61557, 0.512503, 0.573573, 0.482457, 0.603415, 0.700481, 0.681755, 0.576961, 0.591082,
+      0.655276, 0.601502, 0.516163, 0.569525, 0.557395, 0.610733, 0.568942, 0.573105, 0.607814, 0.568464, 0.563684,
+      0.629633, 0.6,
+    ]);
+    expect(round(deriveSeries("xyz", 0.6))).toEqual([
+      0.7, 0.642461, 0.472793, 0.565877, 0.540577, 0.726915, 0.524697, 0.625904, 0.639618, 0.581221, 0.504048,
+      0.61594, 0.58882, 0.547905, 0.541953, 0.556899, 0.604256, 0.592527, 0.645411, 0.576071, 0.577748, 0.61226,
+      0.59674, 0.6,
+    ]);
   });
 
   it("differs across ids so a grid of cards does not read as one line", () => {

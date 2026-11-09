@@ -56,8 +56,17 @@ describe("computeHeatForPool", () => {
     expect(out[1].signals.crossSource).toBe(1);
   });
 
-  it("is deterministic", () => {
+  it("is pinned: one lone item at a fixed clock scores exactly these signals", () => {
+    // Was `expect(f(x)).toEqual(f(x))`, which holds for any deterministic function and
+    // pins nothing. These are the values the weights in HEAT_WEIGHTS produce today.
     const pool = [item({ id: "a", title: "Alpha beta gamma delta" })];
+    expect(computeHeatForPool(pool, NOW)).toEqual([
+      {
+        heat: 45,
+        signals: { crossSource: 1, velocity: 100, authority: 60, virality: 25, satire: 50, engagementEst: 44 },
+      },
+    ]);
+    // …and repeats exactly.
     expect(computeHeatForPool(pool, NOW)).toEqual(computeHeatForPool(pool, NOW));
   });
 

@@ -25,12 +25,15 @@ export const PLATFORM = {
   SHIELD_PREMIUM_MIN: 0.02, // MAD-Shield opt-in fee 2%..4% of stake
   SHIELD_PREMIUM_MAX: 0.04,
   SHIELD_SAFETY_MARGIN: 0.35, // Premium = Stake·P(win)·σ·0.35 (17-corrections #4 — was 1.05)
-  MADX_FIXED_SUPPLY: 888_888_888, // the design cap, per founder direction — the deployed contract
-                                   // (0x6972...151f, Arbitrum One) mints on purchase, not once at
-                                   // launch; "FIXED" in this name describes the cap, not a one-time
-                                   // mint. verify/lib/contracts.ts separately records the on-chain
-                                   // cap as 224,573,096 — which of the two is current needs founder
-                                   // confirmation before either number is pitched.
+  MADX_FIXED_SUPPLY: 888_888_888, // the TOTAL supply — founder, 2026-11-09: "MADx total supply is
+                                   // 888,888,888", of which only 270 or 280 million is purchasable in
+                                   // the token sale. The deployed contract (0x6972...151f, Arbitrum
+                                   // One) mints on purchase with a mint cap of 224,573,096, and that is
+                                   // the number the beta ledger ENFORCES (MADX_BETA.cap in
+                                   // lib/madx-web2.ts; MADX.maxSupplyCap in lib/contracts.ts). Two
+                                   // numbers, two meanings — neither replaces the other, and the cap
+                                   // sits BELOW the sale figure, which is unresolved (MASTER PART 0 §3,
+                                   // `$MADx` supply). Pinned by lib/madx-supply-canon.test.ts.
   FURNACE_BURN_CAP: 0.049, // The Furnace burn cap (≤4.9%)
   LMSR_DEFAULT_B: 1200, // DL-LMSR liquidity parameter (17-corrections #3 — was 100)
   PERP_TRIGGER_THRESHOLD: 0.60, // perpetual conversion gate (17-corrections #2 — was 0.65)
@@ -293,6 +296,8 @@ export const bpsToPct = (bps: number): number => bps / 10_000;
  *    Conviction = t^1.35 · c^0.75 · d^1.45 · p^1.15 · M_nft · L_θ
  *    Source: MATH_REPORT §1 (GambitMath.kt calculateConviction)
  * ==================================================================== */
+// NB: lib/mpp-math.ts exports a DIFFERENT function with this same name (a 4-argument saturating
+// adoption curve). Import from the module you mean; see the note there.
 export function calculateConviction(
   timeScaled: number,
   capitalScaled: number,
