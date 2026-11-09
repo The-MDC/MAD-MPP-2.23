@@ -327,6 +327,42 @@ export async function spendWithin(
   return true;
 }
 
+/**
+ * The credit leg that undoes a `spendWithin`, on a caller-owned transaction.
+ *
+ * THE LEDGER'S SIGN CONVENTION. `spend` takes balance out of the account and
+ * does NOT touch `madx_supply.total_minted`: the value leaves the account and
+ * the platform keeps it. So the inverse must not touch `total_minted` either —
+ * a refund hands back value that was already minted and spent, it does not mint
+ * anything. Routing it through `mintAgainstCap` would count the same credits
+ * against the 224,573,096 ceiling twice and, near the cap, refuse a legitimate
+ * refund. (The mutation-audit lesson of CF2 applies here: the number that
+ * matters is the one the ledger enforces, and a refund must not move it.)
+ *
+ * Takes the `kind = 'refund'` ledger row that `sql/0008` already permits, so no
+ * migration. Returns false (does NOT throw) for a non-positive amount, so a
+ * caller can treat "nothing to refund" as an outcome rather than an error.
+ *
+ * THE CALLER OWNS THE QUESTION "WAS THIS EVER DEBITED?". This function credits
+ * unconditionally — it cannot know. A caller that refunds without proof of the
+ * original debit mints money, so `lib/slot-auction-store.ts` looks for the
+ * matching `spend` row before it calls this.
+ */
+export async function refundWithin(
+  c: PoolClient,
+  owner: string,
+  amount: number,
+  note: string,
+): Promise<boolean> {
+  const o = norm(owner);
+  const amt = round6(amount);
+  if (amt <= 0) return false;
+  await ensureRow(c, o);
+  await c.query(`UPDATE madx_accounts SET balance = balance + $2, updated_at = now() WHERE owner = $1`, [o, amt]);
+  await insertLedger(c, o, "refund", amt, null, note);
+  return true;
+}
+
 export async function getSupply(pool: Pool): Promise<{ minted: number; cap: number; remaining: number }> {
   const res = await pool.query(`SELECT total_minted FROM madx_supply WHERE id = 1`);
   const minted = Number(res.rows[0]?.total_minted ?? 0);

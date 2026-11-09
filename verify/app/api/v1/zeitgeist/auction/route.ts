@@ -5,17 +5,14 @@ import { enforceRateLimit } from "@/lib/rate-limit";
 import { isAuthResponse, requireMadxRouteAuth } from "@/lib/madx-route-auth";
 import {
   auctionWindow,
-  clearAuction,
   clockPriceAt,
   commitmentHash,
   phaseAt,
   poolNominations,
-  requiredDeposit,
   REVEAL_DEPOSIT_SHARE,
   type Nomination,
-  type RevealedBid,
-  type SealedBid,
 } from "@/lib/slot-auction";
+import { clearAndSettle, commitSealedBid, depositFor } from "@/lib/slot-auction-store";
 import { currentLeg, vintageAt } from "@/lib/lunar-legs";
 import { SEED_SLATE } from "@/lib/trend-slate";
 import { calculateEigenTrustScore, type Engagement } from "@/lib/gambit-game-math";
@@ -178,26 +175,37 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, error: "trendKey and salt required" }, { status: 400 });
       }
       const commitment = commitmentHash(auth.owner, trendKey, amount, salt);
-      const deposit = requiredDeposit(amount);
+      // Rounded the ledger's way, so the number stored, the number debited and the
+      // number refunded at clear are one number.
+      const deposit = depositFor(amount);
 
       if (!hasDatabaseUrl()) {
         return NextResponse.json({ success: true, source: "demo", commitment, deposit });
       }
-      const pool = getDbPool();
-      const auction = await pool.query(`SELECT id FROM slot_auctions WHERE vintage = $1`, [vintageAt(now) + 1]);
-      const auctionId = auction.rows[0]?.id;
-      if (!auctionId) {
+      // The deposit is CHARGED here, in the same transaction that seals the bid.
+      // It used to be recorded and never debited, which left the forfeit-on-no-reveal
+      // rule with nothing to forfeit. See lib/slot-auction-store.ts.
+      const committed = await commitSealedBid(getDbPool(), {
+        vintage: vintageAt(now) + 1,
+        bidder: auth.owner,
+        trendKey,
+        commitment,
+        deposit,
+      });
+      if (committed === "no-auction") {
         return NextResponse.json({ success: false, error: "no auction open" }, { status: 404 });
       }
-      // The AMOUNT IS NOT STORED. Only the commitment reaches the database, so
-      // an operator reading it learns nothing they could front-run.
-      await pool.query(
-        `INSERT INTO slot_bids (auction_id, bidder, trend_key, commitment, deposit)
-         VALUES ($1,$2,$3,$4,$5)
-         ON CONFLICT (auction_id, commitment) DO NOTHING`,
-        [auctionId, auth.owner, trendKey, commitment, deposit],
-      );
-      return NextResponse.json({ success: true, source: "live", commitment, deposit });
+      if (committed === "bad-deposit") {
+        return NextResponse.json({ success: false, error: "bid is too small to carry a deposit" }, { status: 400 });
+      }
+      if (committed === "insufficient-balance") {
+        // 402, not 400: the request was well-formed — the wallet cannot cover the deposit.
+        return NextResponse.json(
+          { success: false, error: "insufficient $MADx balance for the sealed-bid deposit", depositDue: deposit },
+          { status: 402 },
+        );
+      }
+      return NextResponse.json({ success: true, source: "live", commitment, deposit, charged: committed.charged });
     }
 
     if (action === "nominate") {
@@ -268,77 +276,41 @@ export async function POST(req: Request) {
     if (!hasDatabaseUrl()) {
       return NextResponse.json({ success: false, error: "clearing needs DATABASE_URL" }, { status: 503 });
     }
-    const pool = getDbPool();
     const vintage = vintageAt(now) + 1;
-    const auction = await pool.query(`SELECT * FROM slot_auctions WHERE vintage = $1`, [vintage]);
-    const row = auction.rows[0];
-    if (!row) return NextResponse.json({ success: false, error: "no auction open" }, { status: 404 });
-    if (row.cleared_at) {
-      return NextResponse.json({ success: false, error: "already cleared" }, { status: 409 });
-    }
-    // The real gate: this auction's own reveal window must have closed. Reading
-    // it from the row rather than the live clock is what lets a late clear
-    // succeed instead of leaving deposits locked behind a missed deadline.
-    const auctionClosesAt = new Date(row.closes_at).getTime();
-    if (now < auctionClosesAt) {
+
+    // One transaction: lock the auction, decide it, and pay every refund — or
+    // none of it. This used to be four separate pool.query calls, so a crash
+    // between them could settle some bidders and not others.
+    //
+    // The gate is the auction's OWN closing time, read from its row inside the
+    // transaction — not the live clock. That is what lets a late clear succeed
+    // instead of leaving deposits locked behind a missed deadline.
+    const cleared = await clearAndSettle(getDbPool(), vintage, now);
+    if ("refused" in cleared) {
+      if (cleared.refused === "no-auction") {
+        return NextResponse.json({ success: false, error: "no auction open" }, { status: 404 });
+      }
+      if (cleared.refused === "already-cleared") {
+        return NextResponse.json({ success: false, error: "already cleared" }, { status: 409 });
+      }
       return NextResponse.json(
         {
           success: false,
           error: "auction is still open — clearing begins when reveal closes",
-          closesAt: new Date(auctionClosesAt).toISOString(),
+          closesAt: cleared.closesAt,
           phase,
         },
         { status: 409 },
       );
     }
 
-    const bids = await pool.query(`SELECT * FROM slot_bids WHERE auction_id = $1`, [row.id]);
-    const sealed: SealedBid[] = bids.rows.map((b) => ({
-      bidder: String(b.bidder),
-      trendKey: String(b.trend_key),
-      commitment: String(b.commitment),
-      committedAt: new Date(b.committed_at).getTime(),
-      deposit: Number(b.deposit) || 0,
-    }));
-    const reveals: RevealedBid[] = bids.rows
-      .filter((b) => b.revealed_at != null)
-      .map((b) => ({
-        bidder: String(b.bidder),
-        trendKey: String(b.trend_key),
-        amount: Number(b.revealed_amount) || 0,
-        salt: String(b.revealed_salt ?? ""),
-        revealedAt: new Date(b.revealed_at).getTime(),
-      }));
-
-    // The reserve at clear time is the clock's floor, read from the auction's
-    // own row. The previous version evaluated the clock against `w` — the
-    // CURRENT leg's window — which is not this auction's window once a clear
-    // arrives late, and would have priced the reserve off the wrong clock.
-    const result = clearAuction({
-      sealed,
-      reveals,
-      slots: Number(row.slots) || 3,
-      reservePrice: Number(row.reserve_price) || 0,
+    return NextResponse.json({
+      success: true,
+      source: "live",
+      vintage,
+      result: cleared.result,
+      settlement: cleared.settlement,
     });
-
-    await pool.query(
-      `UPDATE slot_auctions SET clearing_price = $2, cleared_at = now() WHERE id = $1`,
-      [row.id, result.clearingPrice],
-    );
-    for (const win of result.winners) {
-      await pool.query(
-        `UPDATE slot_bids SET status = 'won' WHERE auction_id = $1 AND bidder = $2 AND trend_key = $3 AND status = 'revealed'`,
-        [row.id, win.bidder, win.trendKey],
-      );
-    }
-    for (const f of result.forfeited) {
-      await pool.query(
-        `UPDATE slot_bids SET status = 'forfeited' WHERE auction_id = $1 AND bidder = $2 AND status = 'sealed'`,
-        [row.id, f.bidder],
-      );
-    }
-
-    return NextResponse.json({ success: true, source: "live", vintage, result });
   } catch (e) {
     console.error("zeitgeist/auction POST error:", e);
     return NextResponse.json({ success: false, error: "auction action failed" }, { status: 500 });
