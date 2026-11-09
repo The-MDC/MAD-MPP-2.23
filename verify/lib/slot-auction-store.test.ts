@@ -39,6 +39,9 @@ const CLOSES_AT = Date.UTC(2026, 10, 1);
 const AFTER = CLOSES_AT + 60_000;
 const BEFORE = CLOSES_AT - 60_000;
 
+/** What the route passes for a plain `clear`: no explicit vintage, the clock's vintage for diagnostics. */
+const CURRENT = { currentVintage: VINTAGE };
+
 const A = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const B = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 const C = "0xcccccccccccccccccccccccccccccccccccccccc";
@@ -318,7 +321,7 @@ describe("clear — the three terminal states", () => {
     const { fake, c } = await fourBidders();
     expect(bal(fake, C)).toBe(10_000 - 50);
 
-    const out = await clearAndSettle(fake.pool, VINTAGE, AFTER);
+    const out = await clearAndSettle(fake.pool, CURRENT, AFTER);
 
     expect("refused" in out).toBe(false);
     expect(bal(fake, C)).toBe(10_000);
@@ -331,7 +334,7 @@ describe("clear — the three terminal states", () => {
     const { fake, d } = await fourBidders();
     expect(bal(fake, D)).toBe(10_000 - 200);
 
-    const out = await clearAndSettle(fake.pool, VINTAGE, AFTER);
+    const out = await clearAndSettle(fake.pool, CURRENT, AFTER);
 
     expect(bal(fake, D)).toBe(10_000 - 200);
     expect(statusOf(fake, d.commitment)).toBe("forfeited");
@@ -344,7 +347,7 @@ describe("clear — the three terminal states", () => {
 
   it("WIN: the bond is returned too, and the slot is recorded as won", async () => {
     const { fake, a, b } = await fourBidders();
-    const out = await clearAndSettle(fake.pool, VINTAGE, AFTER);
+    const out = await clearAndSettle(fake.pool, CURRENT, AFTER);
 
     expect(bal(fake, A)).toBe(10_000);
     expect(bal(fake, B)).toBe(10_000);
@@ -360,7 +363,7 @@ describe("clear — the three terminal states", () => {
     const before = 40_000;
     expect(sumBalances(fake) + 0).toBe(before - (100 + 90 + 50 + 200)); // everything committed is out
 
-    const out = await clearAndSettle(fake.pool, VINTAGE, AFTER);
+    const out = await clearAndSettle(fake.pool, CURRENT, AFTER);
     if ("refused" in out) throw new Error("expected a clear");
 
     const s = out.settlement;
@@ -375,7 +378,7 @@ describe("clear — the three terminal states", () => {
 
   it("stamps the auction cleared, with the clearing price", async () => {
     const { fake } = await fourBidders();
-    await clearAndSettle(fake.pool, VINTAGE, AFTER);
+    await clearAndSettle(fake.pool, CURRENT, AFTER);
     expect(fake.state.auctions[0].cleared_at).not.toBeNull();
     expect(fake.state.auctions[0].clearing_price).toBe(900);
     expect(fake.openClients()).toBe(0);
@@ -383,11 +386,11 @@ describe("clear — the three terminal states", () => {
 
   it("clearing twice refunds nobody twice", async () => {
     const { fake } = await fourBidders();
-    await clearAndSettle(fake.pool, VINTAGE, AFTER);
+    await clearAndSettle(fake.pool, CURRENT, AFTER);
     const balancesAfterFirst = new Map(fake.state.accounts);
     const refundsAfterFirst = ledgerOf(fake, "refund").length;
 
-    const second = await clearAndSettle(fake.pool, VINTAGE, AFTER);
+    const second = await clearAndSettle(fake.pool, CURRENT, AFTER);
 
     expect(second).toEqual({ refused: "already-cleared" });
     expect(fake.state.accounts).toEqual(balancesAfterFirst);
@@ -398,7 +401,7 @@ describe("clear — the three terminal states", () => {
     const { fake } = await fourBidders();
     const before = sumBalances(fake);
 
-    const out = await clearAndSettle(fake.pool, VINTAGE, BEFORE);
+    const out = await clearAndSettle(fake.pool, CURRENT, BEFORE);
 
     expect(out).toMatchObject({ refused: "still-open", closesAt: new Date(CLOSES_AT).toISOString() });
     expect(sumBalances(fake)).toBe(before);
@@ -407,7 +410,10 @@ describe("clear — the three terminal states", () => {
 
   it("answers no-auction for a vintage with no row", async () => {
     const fake = setup();
-    expect(await clearAndSettle(fake.pool, 12345, AFTER)).toEqual({ refused: "no-auction" });
+    // Explicit vintage, so the closed auction that IS on file (vintage 7) is not picked up instead.
+    expect(await clearAndSettle(fake.pool, { vintage: 12345, currentVintage: 12345 }, AFTER)).toEqual({
+      refused: "no-auction",
+    });
   });
 
   it("is ATOMIC: a failure part-way through the refunds rolls the whole clear back", async () => {
@@ -426,7 +432,7 @@ describe("clear — the three terminal states", () => {
       return false;
     });
 
-    await expect(clearAndSettle(fake.pool, VINTAGE, AFTER)).rejects.toThrow(/injected failure/);
+    await expect(clearAndSettle(fake.pool, CURRENT, AFTER)).rejects.toThrow(/injected failure/);
 
     expect(refundWrites).toBe(2);
     expect(fake.state.accounts).toEqual(balancesBefore);
@@ -436,7 +442,7 @@ describe("clear — the three terminal states", () => {
     expect(fake.openClients()).toBe(0);
 
     // And because nothing was left half-done, a retry clears cleanly.
-    const retry = await clearAndSettle(fake.pool, VINTAGE, AFTER);
+    const retry = await clearAndSettle(fake.pool, CURRENT, AFTER);
     expect("refused" in retry).toBe(false);
     expect(ledgerOf(fake, "refund")).toHaveLength(3);
   });
@@ -459,7 +465,7 @@ describe("clear — the three terminal states", () => {
       status: "revealed",
     });
 
-    const out = await clearAndSettle(fake.pool, VINTAGE, AFTER);
+    const out = await clearAndSettle(fake.pool, CURRENT, AFTER);
 
     if ("refused" in out) throw new Error("expected a clear");
     expect(bal(fake, A)).toBe(10_000); // not 10_100
@@ -473,16 +479,205 @@ describe("clear — the three terminal states", () => {
     // Tamper with the column. The refund must follow the `spend` row, not this.
     fake.state.bids.find((x) => x.commitment === c.commitment)!.deposit = 9_999;
 
-    await clearAndSettle(fake.pool, VINTAGE, AFTER);
+    await clearAndSettle(fake.pool, CURRENT, AFTER);
 
     expect(bal(fake, C)).toBe(10_000);
   });
 
   it("an auction nobody bid in clears with nothing to settle", async () => {
     const fake = setup();
-    const out = await clearAndSettle(fake.pool, VINTAGE, AFTER);
+    const out = await clearAndSettle(fake.pool, CURRENT, AFTER);
     if ("refused" in out) throw new Error("expected a clear");
     expect(out.settlement).toMatchObject({ won: 0, refunded: 0, forfeited: 0, undebited: 0 });
     expect(fake.state.auctions[0].cleared_at).not.toBeNull();
+  });
+});
+
+/* ────────────────────────────────────────────────────────────────
+ * Follow-up to #200: the three defects found reviewing it
+ * ──────────────────────────────────────────────────────────────── */
+
+const DAY = 86_400_000;
+
+/** A second auction, closing `closesAt`, for vintage `vintage`. */
+function addAuction(fake: FakeLedgerPool, id: number, vintage: number, closesAt: number) {
+  fake.state.auctions.push({
+    id,
+    vintage,
+    slots: 2,
+    reserve_price: 100,
+    closes_at: new Date(closesAt),
+    clearing_price: null,
+    cleared_at: null,
+  });
+}
+
+async function commitTo(fake: FakeLedgerPool, vintage: number, bidder: string, trendKey: string, amount: number, salt: string) {
+  const commitment = commitmentHash(bidder, trendKey, amount, salt);
+  const out = await commitSealedBid(fake.pool, { vintage, bidder, trendKey, commitment, deposit: depositFor(amount) });
+  return { commitment, out };
+}
+
+describe("clear targeting — a missed settlement tail no longer strands deposits", () => {
+  it("REGRESSION: after the Turning rolls over, a plain clear still settles the auction that closed", async () => {
+    const { fake, c, d } = await fourBidders();
+    expect(bal(fake, C)).toBe(10_000 - 50); // the deposits are really out
+    expect(bal(fake, D)).toBe(10_000 - 200);
+
+    // Nobody cleared during the tail. The clock has moved into the NEXT Turning, so the live-clock
+    // vintage is now VINTAGE + 1. The old route cleared `vintageAt(now) + 1` — i.e. that one.
+    const nextTurning = { currentVintage: VINTAGE + 1 };
+    const out = await clearAndSettle(fake.pool, nextTurning, CLOSES_AT + 30 * DAY);
+
+    if ("refused" in out) throw new Error(`expected a clear, got ${JSON.stringify(out)}`);
+    expect(out.vintage).toBe(VINTAGE); // read from the row it cleared, not assumed
+    expect(bal(fake, C)).toBe(10_000); // refunded
+    expect(bal(fake, D)).toBe(10_000 - 200); // forfeited
+    expect(statusOf(fake, c.commitment)).toBe("refunded");
+    expect(statusOf(fake, d.commitment)).toBe("forfeited");
+  });
+
+  it("…and this is what the OLD behaviour did: naming the clock's vintage finds nothing, deposits stay out", async () => {
+    const { fake } = await fourBidders();
+    const before = sumBalances(fake);
+    const out = await clearAndSettle(fake.pool, { vintage: VINTAGE + 1, currentVintage: VINTAGE + 1 }, CLOSES_AT + 30 * DAY);
+    expect(out).toEqual({ refused: "no-auction" });
+    expect(sumBalances(fake)).toBe(before);
+    expect(fake.state.auctions[0].cleared_at).toBeNull();
+  });
+
+  it("an explicit vintage clears exactly that auction, even when an older one is also due", async () => {
+    const fake = setup();
+    addAuction(fake, 2, VINTAGE + 1, CLOSES_AT + 10 * DAY);
+    const out = await clearAndSettle(fake.pool, { vintage: VINTAGE + 1, currentVintage: VINTAGE + 2 }, CLOSES_AT + 30 * DAY);
+    if ("refused" in out) throw new Error("expected a clear");
+    expect(out.vintage).toBe(VINTAGE + 1);
+    expect(fake.state.auctions.find((a) => a.vintage === VINTAGE)!.cleared_at).toBeNull();
+    expect(fake.state.auctions.find((a) => a.vintage === VINTAGE + 1)!.cleared_at).not.toBeNull();
+  });
+
+  it("without a vintage it drains a backlog oldest first, one auction per call", async () => {
+    const fake = setup();
+    addAuction(fake, 2, VINTAGE + 1, CLOSES_AT + 10 * DAY);
+    const now = CLOSES_AT + 30 * DAY;
+    const cur = { currentVintage: VINTAGE + 5 };
+
+    const first = await clearAndSettle(fake.pool, cur, now);
+    const second = await clearAndSettle(fake.pool, cur, now);
+    const third = await clearAndSettle(fake.pool, cur, now);
+
+    expect("refused" in first ? -1 : first.vintage).toBe(VINTAGE);
+    expect("refused" in second ? -1 : second.vintage).toBe(VINTAGE + 1);
+    expect(third).toEqual({ refused: "no-auction" }); // nothing due, and none on file for the clock's vintage
+  });
+
+  it("an auction that has not closed is never picked up, even when it is the oldest uncleared", async () => {
+    const fake = setup(); // closes at CLOSES_AT
+    const out = await clearAndSettle(fake.pool, CURRENT, BEFORE);
+    expect(out).toMatchObject({ refused: "still-open" });
+    expect(fake.state.auctions[0].cleared_at).toBeNull();
+  });
+
+  it("two simultaneous plain clears cannot settle the same auction twice", async () => {
+    // The fake has no row locks, so this models the SEQUENCE the lock produces: the second clear's
+    // `cleared_at IS NULL` predicate no longer matches, and it falls through to the diagnostics.
+    const { fake } = await fourBidders();
+    const a = await clearAndSettle(fake.pool, CURRENT, AFTER);
+    const b = await clearAndSettle(fake.pool, CURRENT, AFTER);
+    expect("refused" in a).toBe(false);
+    expect(b).toEqual({ refused: "already-cleared" });
+    expect(ledgerOf(fake, "refund")).toHaveLength(3);
+  });
+});
+
+describe("commit after the auction has settled", () => {
+  it("is refused, charges nothing and writes no bid — it could never be refunded", async () => {
+    const { fake } = await fourBidders();
+    await clearAndSettle(fake.pool, CURRENT, AFTER);
+    const bidsBefore = fake.state.bids.length;
+    const ledgerBefore = fake.state.ledger.length;
+    const balanceBefore = bal(fake, A);
+
+    const late = await commit(fake, A, "q", 500, "late");
+
+    expect(late.out).toBe("auction-cleared");
+    expect(bal(fake, A)).toBe(balanceBefore);
+    expect(fake.state.bids).toHaveLength(bidsBefore);
+    expect(fake.state.ledger).toHaveLength(ledgerBefore);
+    expect(fake.openClients()).toBe(0);
+  });
+
+  it("takes a SHARED lock on the auction row before inserting, so a clear in flight excludes it", async () => {
+    const fake = setup();
+    await commit(fake, A, "x", 1000, "s");
+    const lockAt = fake.log.findIndex((q) => q.includes("FROM slot_auctions") && q.endsWith("FOR SHARE"));
+    const insertAt = fake.log.findIndex((q) => q.startsWith("INSERT INTO slot_bids"));
+    expect(lockAt).toBeGreaterThan(-1);
+    expect(insertAt).toBeGreaterThan(lockAt);
+  });
+
+  it("while clearAndSettle locks the same row FOR UPDATE before it reads a single bid", async () => {
+    const { fake } = await fourBidders();
+    fake.log.length = 0;
+    await clearAndSettle(fake.pool, CURRENT, AFTER);
+    const lockAt = fake.log.findIndex((q) => q.includes("FROM slot_auctions") && q.endsWith("FOR UPDATE"));
+    const bidsAt = fake.log.findIndex((q) => q.startsWith("SELECT * FROM slot_bids"));
+    expect(lockAt).toBeGreaterThan(-1);
+    expect(bidsAt).toBeGreaterThan(lockAt);
+  });
+});
+
+describe("the refund-proof lookup is scoped by owner, so it can use the ledger's index", () => {
+  it("passes the distinct, lower-cased bidders as the owner filter", async () => {
+    const { fake } = await fourBidders();
+    await clearAndSettle(fake.pool, CURRENT, AFTER);
+    const q = fake.calls.find((c) => c.sql.startsWith("SELECT kind, note, amount FROM madx_ledger"));
+    expect(q).toBeDefined();
+    expect(q!.sql).toContain("owner = ANY($1::text[])");
+    expect((q!.params[0] as string[]).slice().sort()).toEqual([A, B, C, D]);
+  });
+
+  it("still finds a debit made under a checksummed (mixed-case) bidder address", async () => {
+    const MIXED = "0xAbCdEfAbCdEfAbCdEfAbCdEfAbCdEfAbCdEfAbCd";
+    const fake = setup({ balances: { [MIXED.toLowerCase()]: 10_000 } });
+    const { commitment } = await commit(fake, MIXED, "x", 1000, "s");
+    reveal(fake, commitment, 1000, "s");
+    expect(bal(fake, MIXED.toLowerCase())).toBe(10_000 - 100);
+
+    const out = await clearAndSettle(fake.pool, CURRENT, AFTER);
+
+    if ("refused" in out) throw new Error("expected a clear");
+    // Had the owner filter used the bidder as stored, it would miss the lower-cased ledger row,
+    // treat the bid as undebited, and quietly refund nothing.
+    expect(out.settlement.undebited).toBe(0);
+    expect(bal(fake, MIXED.toLowerCase())).toBe(10_000);
+  });
+
+  it("does not refund a deposit that was debited to a different owner under the same note", async () => {
+    const { fake, c } = await fourBidders();
+    // Re-attribute C's debit to someone else: the owner scope must not match it.
+    const spend = fake.state.ledger.find((l) => l.note === depositNote(1, c.commitment))!;
+    spend.owner = "0x0000000000000000000000000000000000000bad";
+    const out = await clearAndSettle(fake.pool, CURRENT, AFTER);
+    if ("refused" in out) throw new Error("expected a clear");
+    expect(out.settlement.undebited).toBe(1);
+    expect(bal(fake, C)).toBe(10_000 - 50); // nothing minted for a debit that is not C's
+  });
+});
+
+describe("commits to a later vintage are unaffected by an earlier auction's clear", () => {
+  it("settles per auction", async () => {
+    const fake = setup();
+    addAuction(fake, 2, VINTAGE + 1, CLOSES_AT + 10 * DAY);
+    const first = await commitTo(fake, VINTAGE, A, "x", 1000, "a");
+    const second = await commitTo(fake, VINTAGE + 1, B, "y", 1000, "b");
+    reveal(fake, first.commitment, 1000, "a");
+    reveal(fake, second.commitment, 1000, "b", CLOSES_AT + 10 * DAY - 1000);
+
+    await clearAndSettle(fake.pool, { vintage: VINTAGE, currentVintage: VINTAGE }, AFTER);
+
+    expect(bal(fake, A)).toBe(10_000); // refunded
+    expect(bal(fake, B)).toBe(10_000 - 100); // the other auction's deposit is untouched
+    expect(statusOf(fake, second.commitment)).toBe("revealed");
   });
 });

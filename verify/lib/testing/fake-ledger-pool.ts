@@ -74,6 +74,8 @@ export interface FakeLedgerPool {
   state: FakeState;
   /** Statements seen, in order, normalised — for asserting ordering. */
   log: string[];
+  /** The same statements with their bound parameters — for asserting what a query was scoped by. */
+  calls: Array<{ sql: string; params: unknown[] }>;
   /** Make the next statement matching `when` throw, once, to test rollback. */
   failOnce(when: (sql: string, params: unknown[]) => boolean): void;
   /** Clients checked out and not yet released. A leak here is a leak in production. */
@@ -100,12 +102,14 @@ export function createFakeLedgerPool(): FakeLedgerPool {
   let state = fresh();
   let snapshot: FakeState | null = null;
   const log: string[] = [];
+  const calls: Array<{ sql: string; params: unknown[] }> = [];
   let open = 0;
   let failure: ((sql: string, params: unknown[]) => boolean) | null = null;
 
   function exec(rawSql: string, params: unknown[] = []): { rows: unknown[]; rowCount: number } {
     const sql = norm(rawSql);
     log.push(sql);
+    calls.push({ sql, params: [...params] });
     if (failure && failure(sql, params)) {
       failure = null;
       throw new Error(`fake pg: injected failure on: ${sql}`);
@@ -126,9 +130,21 @@ export function createFakeLedgerPool(): FakeLedgerPool {
     }
 
     // ── slot_auctions ──────────────────────────────────────────────────────
-    if (sql === "SELECT id FROM slot_auctions WHERE vintage = $1") {
+    if (sql === "SELECT id, cleared_at FROM slot_auctions WHERE vintage = $1 FOR SHARE") {
       const a = state.auctions.find((x) => x.vintage === Number(params[0]));
-      return a ? { rows: [{ id: a.id }], rowCount: 1 } : { rows: [], rowCount: 0 };
+      return a ? { rows: [{ id: a.id, cleared_at: a.cleared_at }], rowCount: 1 } : { rows: [], rowCount: 0 };
+    }
+    if (
+      sql ===
+      "SELECT * FROM slot_auctions WHERE cleared_at IS NULL AND closes_at <= $1 ORDER BY closes_at, id LIMIT 1 FOR UPDATE"
+    ) {
+      const now = (params[0] as Date).getTime();
+      const due = state.auctions
+        .filter((x) => x.cleared_at === null && x.closes_at.getTime() <= now)
+        .sort((a, b) => a.closes_at.getTime() - b.closes_at.getTime() || a.id - b.id)[0];
+      return due
+        ? { rows: [{ ...due, slots: String(due.slots), reserve_price: String(due.reserve_price) }], rowCount: 1 }
+        : { rows: [], rowCount: 0 };
     }
     if (sql === "SELECT * FROM slot_auctions WHERE vintage = $1 FOR UPDATE") {
       const a = state.auctions.find((x) => x.vintage === Number(params[0]));
@@ -218,11 +234,15 @@ export function createFakeLedgerPool(): FakeLedgerPool {
     }
     if (
       sql ===
-      "SELECT kind, note, amount FROM madx_ledger WHERE kind IN ('spend','refund') AND note = ANY($1::text[])"
+      "SELECT kind, note, amount FROM madx_ledger WHERE owner = ANY($1::text[]) AND kind IN ('spend','refund') AND note = ANY($2::text[])"
     ) {
-      const notes = new Set(params[0] as string[]);
+      const owners = new Set(params[0] as string[]);
+      const notes = new Set(params[1] as string[]);
       const rows = state.ledger
-        .filter((l) => (l.kind === "spend" || l.kind === "refund") && l.note != null && notes.has(l.note))
+        .filter(
+          (l) =>
+            owners.has(l.owner) && (l.kind === "spend" || l.kind === "refund") && l.note != null && notes.has(l.note),
+        )
         .map((l) => ({ kind: l.kind, note: l.note, amount: String(l.amount) }));
       return { rows, rowCount: rows.length };
     }
@@ -254,6 +274,7 @@ export function createFakeLedgerPool(): FakeLedgerPool {
       return state;
     },
     log,
+    calls,
     failOnce(when) {
       failure = when;
     },
