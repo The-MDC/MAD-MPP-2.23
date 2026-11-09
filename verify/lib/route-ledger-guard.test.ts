@@ -270,6 +270,69 @@ export async function POST(req: Request) {
   });
 });
 
+describe("the ledger check — a call named inside a string is not a call", () => {
+  const widget = (body: string) => `import { requireMadxRouteAuth, isAuthResponse } from "@/lib/madx-route-auth";
+import { spend } from "@/lib/madx-web2";
+export async function POST(req: Request) {
+  const auth = requireMadxRouteAuth(req, "w", 5, 1000);
+  if (isAuthResponse(auth)) return auth;
+  const { amount } = (await req.json()) as { amount: number };
+${body}
+  return Response.json({ ok: true });
+}
+`;
+
+  it("the pre-T1 convict route plus a diagnostic string naming the removed call still fails (the PR #208 review)", () => {
+    const root = copyApp();
+    // The debit call is gone, but a message that spells it out remains. The first scanner matched
+    // `stakeConviction(` inside the string and called the route paid-for.
+    edit(
+      root,
+      "app/api/v1/perps/convict/route.ts",
+      (s) => `${s.replace(/\bstakeConviction\(/g, "recordConvictionForFree(")}\nconst diagnostic = "stakeConviction() failed";\nvoid diagnostic;\n`,
+    );
+    const r = run(root);
+    expect(r.status).toBe(1);
+    expect(r.out).toContain("app/api/v1/perps/convict/route.ts is PINNED to the ledger");
+  });
+
+  it("a new route whose only `spend(` is inside a string still reads as unpriced", () => {
+    const root = copyApp();
+    add(root, "app/api/v1/widgets/strcall/route.ts", widget(`  const msg = "spend() failed"; void msg;`));
+    const r = run(root);
+    expect(r.status).toBe(1);
+    expect(r.out).toContain("app/api/v1/widgets/strcall/route.ts reads a monetary field");
+  });
+
+  it("the TEXT of a template literal is not a call either", () => {
+    const root = copyApp();
+    add(root, "app/api/v1/widgets/tplcall/route.ts", widget("  const msg = `spend() failed for ${auth.owner}`; void msg;"));
+    const r = run(root);
+    expect(r.status).toBe(1);
+    expect(r.out).toContain("app/api/v1/widgets/tplcall/route.ts reads a monetary field");
+  });
+
+  it("a call inside a template substitution IS a call — it really runs", () => {
+    const root = copyApp();
+    add(
+      root,
+      "app/api/v1/widgets/tplsub/route.ts",
+      widget('  const note = `paid ${await spend(null as never, auth.owner, amount, "w")}`; void note;'),
+    );
+    expect(run(root).status).toBe(0);
+  });
+
+  it("a real call on a line that also holds a string is still seen", () => {
+    const root = copyApp();
+    add(
+      root,
+      "app/api/v1/widgets/mixed/route.ts",
+      widget('  await spend(null as never, auth.owner, amount, "w: spend() ok");'),
+    );
+    expect(run(root).status).toBe(0);
+  });
+});
+
 describe("the ledger check — the escape hatches work, and only as documented", () => {
   it("`// LEDGER-FREE: reason` lets a route that reads an amount through", () => {
     const root = copyApp();

@@ -270,8 +270,17 @@ const KNOWN_LEDGER_FREE = new Map([
  * in the one script whose job is not to pass silently). So it is a small scanner: it tracks
  * whether it is inside a string or template (with `${ }` nesting) and recognises a regex literal
  * by the token before the slash, so only real comments are dropped.
+ *
+ * With `{ blankLiterals: true }` it also blanks the TEXT of string and template literals
+ * (the quotes stay; `${ … }` substitutions are real code and are kept). That view is for
+ * deciding whether a CALL exists: without it, a diagnostic string such as
+ * `"stakeConviction() failed"` satisfies the ledger-call check after the real debit was
+ * removed — a silent pass (found by the Vercel review of PR #208). Regex literals are left
+ * alone on purpose: telling a regex from a division is a heuristic, and misjudging one in this
+ * mode would hide a real call. Known limit: a string literal INSIDE a `${ … }` substitution is
+ * still read as code.
  */
-function stripComments(src) {
+function stripComments(src, { blankLiterals = false } = {}) {
   const n = src.length;
   // After one of these a `/` begins a regex literal; after an identifier, `)` or `]` it is division.
   const REGEX_AFTER = new Set(["(", ",", "=", ":", "[", "!", "&", "|", "?", "{", "}", ";", "+", "-", "*", "%", "<", ">", "~", "^"]);
@@ -293,7 +302,8 @@ function stripComments(src) {
     if (c === '"' || c === "'") {
       let j = i + 1;
       while (j < n && src[j] !== c && src[j] !== "\n") j += src[j] === "\\" ? 2 : 1;
-      out += src.slice(i, j + 1);
+      // src[j] is the closing quote, or the newline/end that ended an unterminated string.
+      out += blankLiterals ? c + " ".repeat(Math.max(0, j - i - 1)) + src.slice(j, j + 1) : src.slice(i, j + 1);
       i = j + 1;
       prev = c;
       continue;
@@ -301,24 +311,33 @@ function stripComments(src) {
     if (c === "`") {
       let j = i + 1;
       let depth = 0;
+      let lit = "`";
       while (j < n) {
         const ch = src[j];
+        const inSubstitution = depth > 0; // inside `${ … }`: real code, never blanked
         if (ch === "\\") {
+          lit += blankLiterals && !inSubstitution ? "  " : src.slice(j, j + 2);
           j += 2;
           continue;
         }
-        if (depth === 0 && ch === "`") break;
+        if (!inSubstitution && ch === "`") {
+          lit += "`";
+          j += 1;
+          break;
+        }
         if (ch === "$" && src[j + 1] === "{") {
           depth += 1;
+          lit += "${";
           j += 2;
           continue;
         }
-        if (depth > 0 && ch === "{") depth += 1;
-        else if (depth > 0 && ch === "}") depth -= 1;
+        if (inSubstitution && ch === "{") depth += 1;
+        else if (inSubstitution && ch === "}") depth -= 1;
+        lit += blankLiterals && !inSubstitution ? " " : ch;
         j += 1;
       }
-      out += src.slice(i, j + 1);
-      i = j + 1;
+      out += lit;
+      i = j;
       prev = "`";
       continue;
     }
@@ -371,11 +390,12 @@ function importedBindings(src) {
 
 /** Registered ledger entrypoints this source imports AND calls. */
 function ledgerCallsIn(source) {
-  const src = stripComments(source);
+  const src = stripComments(source); // keeps literals: import specifiers are strings
+  const code = stripComments(source, { blankLiterals: true }); // calls are matched here, never in string text
   const called = [];
   for (const [local, { mod, orig }] of importedBindings(src)) {
     if (!(LEDGER_ENTRYPOINTS[mod] ?? []).includes(orig)) continue;
-    if (new RegExp(`(?<![.\\w])${local}\\s*\\(`).test(src)) called.push(`${mod}.${orig}`);
+    if (new RegExp(`(?<![.\\w])${local}\\s*\\(`).test(code)) called.push(`${mod}.${orig}`);
   }
   return called;
 }
