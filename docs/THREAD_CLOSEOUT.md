@@ -1,4 +1,4 @@
-# Thread close-out — consolidated 2026-11-01
+# Thread close-out — consolidated 2026-11-01 · updated 2026-11-09 (+ the Paseome 3D graph thread)
 
 **Source of truth is `docs/MAD_GAMBIT_MASTER.md`.** This file is transient: what happened,
 what is broken, and what to do next. It is overwritten every close-out.
@@ -12,6 +12,7 @@ this one is unread, carry its open items forward **into this file**; do not add 
 |---|---|---|---|
 | **Paseome thread** — Paseome maths, fee waterfall, the 4,888 VIP seats | `claude/mad-gambit-enhancement-timeline-zdnx47` | [#153](https://github.com/The-MDC/MAD-MPP-2.23/pull/153) | **MERGED** 2026-10-25 (`6432087`) |
 | **Engine-room thread** — on-chain token audit, the tokenomics bypass (T1) | `claude/maths-engine-room-ship-ai67e6` | [#154](https://github.com/The-MDC/MAD-MPP-2.23/pull/154) | **MERGED** 2026-10-27 (`2de1735`; its close-out was written at head `3067c6b`) |
+| **Paseome 3D graph thread** — the interactive 3D graph of both frontiers (hub + desk), the `/preview` hydration fix, a browser smoke test | `claude/paseome-3d-graph-f268bf`, `claude/paseome-graph-followups` (both deleted 2026-11-09) | [#179](https://github.com/The-MDC/MAD-MPP-2.23/pull/179), [#196](https://github.com/The-MDC/MAD-MPP-2.23/pull/196) | **MERGED** 2026-11-02 / 2026-11-05 · live in production since 2026-11-06 (`5c5c41e`) |
 
 Both were drafts when their close-outs were written. Facts below were re-checked against `main`
 @ `955f8f7` on 2026-11-01 (the sections folded into MASTER on 2026-11-09 were re-checked against
@@ -63,6 +64,13 @@ there.
 > Constraints: `npm ci` 403s from the container (CI is the only verification); the Postgres host
 > and TCP 5432 are blocked, so no agent can touch the database; `app.crystex.app` is
 > egress-blocked.
+>
+> **Also shipped and live (the Paseome 3D graph thread, #179 + #196):** do not rebuild the graph, its
+> desk view, the `EqualizerStrip` hydration fix or the smoke test (`npm run smoke:paseome`; §2). Two
+> things are only half-checked: nobody has looked at the graph on the deployed site at phone width (it
+> needs a guest login), and the smoke test is local-only (§7). **Sale arithmetic still open:** the
+> only rate in the repo is `25,267 MADx per ETH` (a code comment); the Crystex ETH goal is nowhere —
+> §6, "Blocked on environment / access".
 
 ---
 
@@ -136,6 +144,12 @@ plan and account, not by code) and `e2158a7` (the build on `18216a0` did pass).
   one exported source of truth; complaint resolution moved onto a fail-closed registrar
   credential.
 - **#152** — agent personas consolidated under MAD-Gambit-Concierge.
+
+### Paseome 3D graph thread (#179, #196)
+
+- **#179** (merged 2026-11-02, `d664fff`) — an interactive 3D node-link graph of both Paseome frontiers on the hub, under the Certain-UnCertainty carousel: `lib/paseome-graph.ts` (pure model: validate, layout, formatting), `components/paseome-graph.tsx` + `paseome-graph-scene.tsx` (shell + R3F scene on the already-installed three / R3F / drei). Fed by `GET /api/v1/paseome/frontier`; **DEMO DATA** while the route says `source: "demo"`; a missing figure is an em dash; a route failure draws nothing; a counterfactual branch without irrealis mood is withheld.
+- **#196** (merged 2026-11-05, `5c5c41e`) — the same graph on the Paseome desk (`/open-markets/[id]`, *Show the tree in 3D*) from the market's own book (`snapshotFromMarket`, **DEMO FLOOR**); the shared lazy slot (`paseome-graph-lazy.tsx`); the `/preview` hydration fix (`EqualizerStrip` seeded 44 bar heights with `Math.random()`); and `scripts/paseome-graph-smoke.mjs` (`npm run smoke:paseome`).
+- **Live:** production deployment `5c5c41e` (2026-11-06, READY) — its uploaded source contains all of the above. Both PR branches were deleted on 2026-11-09.
 
 ---
 
@@ -281,6 +295,8 @@ only uncertainty left is the epistemic kind worth paying for.
   Concrete stale rows re-found 2026-11-09: PART 0 §1 still says the agent brand is "on
   `MAD-Gambit-Concierge`, not yet merged" (#152 merged 2026-09-19) and the private-beta front door
   is "on PR #169, not yet merged" (#169 merged 2026-10-28).
+- **Look at the Paseome 3D graph on the live site** — needs a guest login, so a person: sign in on a phone and open `/preview` (scroll to Certain-UnCertainty) and `/open-markets/plat-merger` → *Show the tree in 3D*. It has only been exercised on a local production build.
+- **Paseome graph depth** — blocked on the tree store (above). MASTER §5's *Paseome to a tradeable book* row carries the proposed contract (`GET …/frontier?node=<id>`, `parentId`, `path`); nothing to build until a route sends real child nodes.
 
 ### Blocked on environment / access
 
@@ -292,6 +308,8 @@ only uncertainty left is the epistemic kind worth paying for.
   have never run.
 - **eslint / eslint-config-next / @types/node realignment** — needs a lockfile regen the
   sandbox cannot do.
+- **The Crystex ETH goal and rate** (found 2026-11-09) — `app.crystex.app` is still unreadable. The only rate in the repo is the comment `Rate: 25,267 MADx per ETH` in `contracts/madhat-core/src/tokens/MADxToken.sol` (imported 2026-07-21 from `demo-repository`, unsourced); no thread or session transcript states an ETH goal. On-chain (Arbitrum One, read 2026-11-09): `maxTotalSupply` = 224,573,096 tokens, `totalSupply` = 0 — and 224,573,096 ÷ 25,267 is **exactly 8,888**, so 8,888 ETH × 25,267 would reproduce the cap. The founder's 2026-11-09 answer (270 or 280 million purchasable, #199) needs 10,685.87 / 11,081.65 ETH at that rate and is 45.4M / 55.4M above the cap. **Paste the campaign's ETH goal and rate** and "tokens for sale" is one multiplication.
+- **The smoke test is not in CI** — CI has no browser, no running server and no guest login. It is run by hand against a production build or a preview (`npm run smoke:paseome`; capture-guard note in §7).
 
 ---
 
@@ -313,6 +331,19 @@ only uncertainty left is the epistemic kind worth paying for.
   in both directions; calls failed with `InputValidationError` or a hard disconnect and had to be
   re-loaded through `ToolSearch`. Budget for this: a tool that worked ten minutes ago may need
   its schema re-fetched.
+
+### Paseome 3D graph thread
+
+Each of these cost real time:
+
+- **Turbopack refuses a junctioned `node_modules`** in a fresh worktree ("files outside of the workspace root are not compiled"; every page 500s). Use `next dev --webpack` (MASTER §6).
+- **`next dev --webpack` is too slow to verify a lazy chunk here** — 30–200 s per rebuild, and a chunk requested mid-rebuild fails with `ChunkLoadError`. The hub → chunk path could only be seen working on a **production build** (`next build --webpack`, ~4 min) served locally. Use that, not dev.
+- **The in-app Browser pane runs no `requestAnimationFrame` or IntersectionObserver while hidden**, so it cannot render WebGL or fire a near-viewport gate. Headless Edge driven over DevTools worked instead.
+- **The app refuses automated browsers twice:** `proxy.ts` 403s a `HeadlessChrome` user agent (present a normal mobile UA), and the **capture guard** veils any `navigator.webdriver` browser in a production build, swallowing taps. Do not script around the veil (MASTER §7).
+- **`npx tsc` once answered "This is not the tsc command you are looking for"** inside a worktree; `./node_modules/.bin/tsc --noEmit` worked. Cause not found ‹verify›.
+- **Blockscout MCP:** `get_address_info` returned a 500 for the token; the ABI and `read_contract` calls worked. The free session budget is 8 calls.
+- **A cross-session message was not delivered** the first time ("gave no sign of starting within 20s"); the answer arrived later in that session's own message.
+- **Not verified:** the graph on the deployed site at phone width (no guest login); a physical phone (touch was emulated); the Vercel preview of #196 (the bot reported DEPLOYED; not opened). The red **"Vercel" check** on every PR is "Account is blocked" — account state, not code (MASTER PART 0 §3).
 
 ### Paseome thread
 
@@ -432,3 +463,8 @@ Every suggestion from both threads is now a row in MASTER, so nothing here needs
 - **A green gate is not evidence until you confirm it is looking at something.** Three gates
   in this repo have silently scanned nothing. Check the **file count** a filter yields.
 - **A vitest file outside `lib/` silently does not run** — `include` is `["lib/**/*.test.ts"]`.
+
+**Paseome 3D graph thread (#179, #196)**
+- The graph, its desk view (`snapshotFromMarket`), the shared lazy slot, the `EqualizerStrip` hydration fix and the smoke test are **done and live** — do not rebuild them. Depth (child nodes) waits on the tree store: do not draw nodes from the two-hop *price*.
+- The smoke test **must not bypass the capture guard** (MASTER §7). Run it against a production build; `next dev --webpack` is too slow and times chunks out.
+- Do not treat 224,573,096 ÷ 25,267 = exactly 8,888 as the campaign's ETH goal — it is a clue derived from the cap, not a source (MASTER §7).
