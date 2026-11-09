@@ -31,6 +31,12 @@ export const DEFAULT_CHAIN_ID = 42161;
  * $MADx — the real, verified fair-launch token (MADDEX / "MADx", 18 decimals)
  * on Arbitrum One. Cap 224,573,096; mint-on-purchase; owner-modifiable;
  * totalSupply was 0 at last read (nothing minted until legitimately purchased).
+ *
+ * `maxSupplyCap` is the DEPLOYED CONTRACT'S mint cap, not the total supply. The total is
+ * 888,888,888 (PLATFORM.MADX_FIXED_SUPPLY, lib/gambit-game-math.ts; founder, 2026-11-09),
+ * with 270 or 280 million purchasable in the sale — above this cap, which is unresolved
+ * (MASTER PART 0 §3). The beta ledger enforces this same cap (MADX_BETA.cap, lib/madx-web2.ts).
+ * The address is pinned by lib/madx-address-pin.test.ts.
  */
 export const MADX = {
   address: "0x6972370e1caAA3624F37D7e87C28e1089D00151f",

@@ -137,8 +137,34 @@ describe("buildPaseomeGraph", () => {
     }
   });
 
-  it("is deterministic — the same input lays out identically", () => {
-    expect(buildPaseomeGraph([foresight, hindsight])).toEqual(buildPaseomeGraph([foresight, hindsight]));
+  it("is deterministic — the same input lays out THIS way", () => {
+    // Pinned, not self-compared: the layout is what the 3D view draws, and two
+    // identical-but-wrong layouts would have passed `f(x) === f(x)`. Positions are
+    // rounded to 3 places so a last-bit float difference between engines is not a failure.
+    const g = buildPaseomeGraph([foresight, hindsight]);
+    const r = (n: number) => Math.round(n * 1000) / 1000;
+    expect(g.nodes.map((n) => [n.id, n.position.map(r), r(n.radius), n.rank])).toEqual([
+      ["hub", [0, 0, 0], 0.24, null],
+      ["root:foresight", [3.6, 0, 0], 0.42, null],
+      ["foresight:a", [5.974, 1.178, 0], 0.514, 1],
+      ["foresight:b", [5.545, -1.516, 1.389], 0.434, 2],
+      ["foresight:c", [4.998, 0.224, -2.554], 0.384, 3],
+      ["root:hindsight", [-3.6, 0, 0], 0.42, null],
+      ["hindsight:a", [-5.974, 1.178, 0], 0.514, 1],
+      ["hindsight:b", [-5.545, -1.516, 1.389], 0.434, 2],
+      ["hindsight:c", [-4.998, 0.224, -2.554], 0.384, 3],
+    ]);
+    expect(g.edges.map((e) => [e.from, e.to, e.structural])).toEqual([
+      ["hub", "root:foresight", true],
+      ["root:foresight", "foresight:a", false],
+      ["root:foresight", "foresight:b", false],
+      ["root:foresight", "foresight:c", false],
+      ["hub", "root:hindsight", true],
+      ["root:hindsight", "hindsight:a", false],
+      ["root:hindsight", "hindsight:b", false],
+      ["root:hindsight", "hindsight:c", false],
+    ]);
+    expect(buildPaseomeGraph([foresight, hindsight])).toEqual(g);
   });
 
   it("works with a single side, and is empty with none — no invented hub", () => {
