@@ -14,7 +14,8 @@ this one is unread, carry its open items forward **into this file**; do not add 
 | **Engine-room thread** — on-chain token audit, the tokenomics bypass (T1) | `claude/maths-engine-room-ship-ai67e6` | [#154](https://github.com/The-MDC/MAD-MPP-2.23/pull/154) | **MERGED** 2026-10-27 (`2de1735`; its close-out was written at head `3067c6b`) |
 
 Both were drafts when their close-outs were written. Facts below were re-checked against `main`
-@ `955f8f7` on 2026-11-01; where a claim in either original has since changed, §3 says what and
+@ `955f8f7` on 2026-11-01 (the sections folded into MASTER on 2026-11-09 were re-checked against
+`main` @ `5c5c41e`); where a claim in either original has since changed, §3 says what and
 shows the evidence. The full product write-up for the Paseome — maths, market-making, earning
 functions, inspiration — is **`docs/product-sheets/PASEOME.md`**; §4 narrates how the thread got
 there.
@@ -265,35 +266,28 @@ only uncertainty left is the epistemic kind worth paying for.
   `cards/evolve` are compute-only and need a product call — a real backend, or stop presenting
   their output as a position — not a ledger write.
 - **Paseome persistence + refund ledger + oracle** — MASTER §5.
-- **Six product sheets never written** — `SCANDAL_VELOCITY`, `Z_LIAR_METER`, `CONVICTION_MARKETS`,
-  `OPEN_MARKETS`, `MAD_SHIELD`, `CREATOR_PROFIT_SHARE`. The founder later said to set sheets aside
-  in favour of code; listed so they are not mistaken for done. (Only `PASEOME.md` and
-  `PREDICTION_MARKETS.md` exist in `docs/product-sheets/`.)
-- **Prompt-injection hardening on `POST /api/v1/satire/roast`** — `headline`/`article` go straight
-  into the model prompt, undelimited (`lib/local-satire.ts` `userPrompt`). The length half is
-  already bounded (§3). Flagged, not built.
-
-The rest are from the engine-room thread's task list (ids `#26`–`#42` are **task ids, not GitHub
-numbers** — §3). Line numbers are as of `72a370e`; the T1 work has since edited some of these
-routes, so re-find before trusting them.
-
-| # | Item | Note |
-|---|---|---|
-| #40 | Distribute the swap fee | You chose **"conserve now, distribute later"**: credit the gross fee to one treasury account, record the computed creator/community/protocol split as metadata, decide no waterfall. **Not started.** Needs a migration extending the `madx_ledger` `kind` CHECK constraint (`'welcome','buy','transfer_in','transfer_out','stake','unstake','claim','spend','refund'`) plus a treasury owner id. T1 phase 1 did the equivalent for perp conviction fees (split computed and recorded in the ledger note, never distributed). |
-| #42 | Canon drift — two supply caps disagree | You chose **"just document"**: comment both sites naming the other, and add a test asserting `MADX_BETA.cap = 224_573_096` so the enforced number stops being unguarded. **Not started.** Also in scope: `lib/mpp-math.ts` shadows `calculateConviction`. |
-| #41 | Settle-escalation siblings | The complaint route is fixed and merged. Remaining self-attested/body-supplied authority: `zeitgeist/succession:99`, `zeitgeist/auction`, `shield/opt-in:57-62` (whale eligibility), `tournament/match:39-44`, `markets/route.ts:76-79` (body-supplied `creatorWallet`). |
-| #38 | Card collection display | Map `CardRow` → `NftCard` so owned cards render. |
-| #39 | `logic-lab` and `sentiment-equalizer` wiring | Z-Liar is done; these two still render local tables. |
-| #30 | Reconcile MASTER against shipped reality | Partly advanced; not finished. |
-| #31 | `master-maths` Gradle gate (C5) | `master-maths/` is still matched by **no workflow at all**. |
-| #26 | **HELD (billing)** — batch POST to the satire engine | Your hold, not a blocker. |
+- **Workstream CF — MASTER PART 0 §5, CF1–CF11.** The items only these close-outs held now live in
+  MASTER (folded in 2026-11-09), not here: distribute the swap fee (CF1) · the two disagreeing
+  supply numbers (CF2) · settle-escalation siblings (CF3) · card collection display (CF4) ·
+  `logic-lab` / `sentiment-equalizer` wiring (CF5) · roast prompt-injection hardening (CF6) ·
+  the weak determinism tests (CF7) · a test pinning the `$MADx` address (CF8) · stale pack
+  economics in the decks (CF9) · six product sheets never written (CF10) · a live Ollama
+  round-trip (CF11). The engine-room thread's task ids map as #40→CF1, #42→CF2, #41→CF3,
+  #38→CF4, #39→CF5; they are task ids, not GitHub numbers (§3). Its held batch POST to the
+  satire engine and the `config-drift-checker` question are PART 0 §3 rows.
+- **`master-maths` Gradle gate** (task #31) — MASTER's C5; `master-maths/` is still matched by
+  **no workflow at all**.
+- **Reconcile MASTER against shipped reality** (task #30) — partly advanced, not finished.
+  Concrete stale rows re-found 2026-11-09: PART 0 §1 still says the agent brand is "on
+  `MAD-Gambit-Concierge`, not yet merged" (#152 merged 2026-09-19) and the private-beta front door
+  is "on PR #169, not yet merged" (#169 merged 2026-10-28).
 
 ### Blocked on environment / access
 
-- **A live Ollama round-trip has never run** — no Ollama in the container, and Vercel cannot reach
-  a desktop by design.
-- **Database consolidation** — still no single source database, so "sync the DBs" has no
-  well-defined target. Agents cannot reach the Postgres host (403) or TCP 5432.
+- **Database consolidation** — the "no single source database" point predates the founder's
+  2026-11-02 decision to move the database from Neon to Supabase (MASTER PART 0 §3), so check
+  there before treating a three-Neon-database merge as the target. Agents cannot reach the Neon
+  host (403) or TCP 5432.
 - **The two `.lock.yml` files** (`gh aw compile`) — both AI review gates are configured and
   have never run.
 - **eslint / eslint-config-next / @types/node realignment** — needs a lockfile regen the
@@ -379,35 +373,13 @@ routes, so re-find before trusting them.
 
 ## 8 · Suggested — not asked for, worth doing
 
-**From the Paseome thread**
-- **Reconcile the projections before an investor sees them.** Stated Y3 volume of $3.6–4.2B × 1.88%
-  = **$73.3M** of market fees against **$154.5M** stated gross — the other ~53% depends on streams
-  `revenue-engine.ts` marks `planned`. A model has to show that split. (MASTER PART VI §13 item 6
-  already says "Y3 revenue — pick one" across $154.5M / $121.4M / $86–154M; this is the volume-side cross-check.)
-- **Pin the three weak determinism tests** (`expect(f(x)).toBe(f(x))`), especially
-  `derivePackNonce` — security-relevant, and a clock-dependent implementation could pass it.
-- **Clear the stale pack economics in the design decks** — mockups say 888 $MADx / 8 cards; the
-  engine says 4.88 / 5. ‹verify› — the decks moved to `MADdegen/MADGambit-Presentation-Engine` on
-  2026-10-26 and were not re-checked there.
-
-**From the engine-room thread**
-- **The `config-drift-checker` request may already be satisfied — in the other repo.** You
-  asked to implement `https://github.com/jameskomo/config-drift-checker` and it was never
-  actioned. Before building anything, note that `MADHATs-Claude-Enhancement` already ships
-  `scripts/check-config-drift.py` (exit 0 clean / 1 drift / 2 unreadable) **and**
-  `scripts/test_config_drift.py`, wired into `hermes-verify.ps1`. So the real question is
-  which of three things you meant: adopt the upstream tool there, port the existing checker
-  into `MAD-MPP-2.23` to watch `vercel.json` / workflow / env drift, or something else.
-  One sentence from you avoids building the wrong one.
-- **Guard the `$MADx` address the way the canon numbers are guarded.** `gambit-game-math.test.ts`
-  locks every constant by value; the token address is enforced in several files and asserted
-  nowhere. One test would have caught the ORKx mismatch years earlier — and now that the address
-  has been changed once, it is the thing most worth pinning.
-- **A `verify/lib/` test for the ledger boundary.** T1's real risk is a *new* value route
-  being added outside the ledger. A test that enumerates routes touching stake/conviction/bid
-  and asserts each reaches `spendWithin` would make the boundary enforceable instead of
-  aspirational — the same trick `check-route-guards.mjs` already plays for auth. (This is T1
-  phase 3.)
+Every suggestion from both threads is now a row in MASTER, so nothing here needs carrying forward
+(folded in 2026-11-09):
+- Reconcile the Y3 projections → PART VI §13 item 6 (the $73.3M vs $154.5M volume-side cross-check).
+- Pin the weak determinism tests → CF7. Stale pack economics in the design decks → CF9.
+- The `config-drift-checker` question → PART 0 §3.
+- Guard the `$MADx` address like the canon numbers → CF8.
+- A test for the ledger boundary → T1 phase 3 (PART 0 §5).
 
 ---
 
