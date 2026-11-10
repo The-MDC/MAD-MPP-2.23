@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   Rarity, RARITY_TABLE, RARITY_ORDER, streakReward, nextEvolution, EVOLUTION_BURN_COSTS,
   isVrsTrigger, prizeForRank, calculateVictoryProbability, mmrDelta,
@@ -13,6 +13,7 @@ import {
   calculateShieldPayoutFull, calculateShieldPremium,
   WhaleEligibilityInput,
 } from "../lib/gambit-game-math";
+import { cardRowsToNft, dropCardsById, mergeOwnedCards } from "../lib/card-view";
 
 /* ─── Types ─────────────────────────────────────────────────────── */
 
@@ -179,6 +180,8 @@ const OPPONENTS = ["ScandalScraper","TopHatTommy","LunarLiquidity","DegenDiana",
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [cards, setCards]       = useState<NftCard[]>(SEED_CARDS);
+  /** Ids of cards merged in from the signed-in wallet's ledger collection (CF4). Never persisted. */
+  const ledgerCardIdsRef        = useRef<ReadonlySet<string>>(new Set<string>());
   const [eigenTrustScore, setEigenTrustScore] = useState<number>(10); // default 10 (wallet-age only, no social)
 
   const [socialAuth, setSocialAuth] = useState<{ isAuthenticated: boolean; provider: string | null; email: string | null }>({
@@ -249,12 +252,48 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   // persist
   useEffect(() => {
     if (typeof window === "undefined") return;
+    // Ledger-owned cards belong to a wallet, not to this browser: never write them to localStorage,
+    // or the next wallet to use the browser would load them as its own.
+    const ledgerIds = ledgerCardIdsRef.current;
     localStorage.setItem("mad_game_state_v3", JSON.stringify({
-      cards, streak, madCredits: demoCredits, userMmr, ladder, positions, socialAccounts, socialAmplification
+      cards: dropCardsById(cards, ledgerIds), streak, madCredits: demoCredits, userMmr, ladder, positions, socialAccounts, socialAmplification
     }));
   }, [cards, streak, demoCredits, userMmr, ladder, positions, socialAccounts, socialAmplification]);
 
   const addCard       = useCallback((c: NftCard) => setCards(p => [c, ...p]), []);
+
+  /**
+   * OWNED CARDS (CF4). Once a wallet is signed in, read its real collection and put those cards
+   * first. Before this, nothing called `/api/v1/cards/collection/<wallet>`, so a card a wallet had
+   * actually minted never showed in its own collection. Silent on failure and on `source: "demo"`
+   * (no database): the seed and session cards stay exactly as they were. `mergeOwnedCards` is
+   * idempotent, so a reconnect cannot stack copies.
+   *
+   * THE COLLECTION FOLLOWS THE WALLET, NOT THE BROWSER. The ids merged here are remembered in a ref;
+   * when the wallet changes or signs out they are dropped first, and they are never persisted
+   * (see the persist effect). Without that, wallet B on a shared browser saw wallet A's cards.
+   */
+  useEffect(() => {
+    const previous = ledgerCardIdsRef.current;
+    if (previous.size > 0) {
+      ledgerCardIdsRef.current = new Set<string>();
+      setCards((prev) => dropCardsById(prev, previous));
+    }
+    const address = walletAuth.address;
+    if (!address) return;
+    let cancelled = false;
+    fetch(`/api/v1/cards/collection/${encodeURIComponent(address)}`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (cancelled || !d || d.source !== "live") return;
+        const owned = cardRowsToNft(d.cards);
+        if (owned.length === 0) return;
+        ledgerCardIdsRef.current = new Set(owned.map((c) => c.id));
+        setCards((prev) => mergeOwnedCards(prev, owned));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [walletAuth.address]);
   /**
    * Read the real $MADx ledger. Silent on failure by design — a signed-out
    * visitor gets a 401 here on every page load, which is normal, not an error.
