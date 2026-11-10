@@ -299,9 +299,9 @@ describe("migrations", () => {
   });
 
   it("a gap in the numbering is caught", () => {
-    const r = withFile("verify/sql/0030_gap.sql", "CREATE TABLE IF NOT EXISTS gap (id int);\n");
+    const r = withFile("verify/sql/0090_gap.sql", "CREATE TABLE IF NOT EXISTS gap (id int);\n");
     expect(r.status).toBe(1);
-    expect(r.out).toContain("jumps from 0026 to 0030");
+    expect(r.out).toMatch(/jumps from 00\d\d to 0090\b/);  // the real last migration changes; the jump is what matters
   });
 
   it("a letter-suffixed follow-up (0026 then 0026b) is allowed — it sorts right after its base", () => {
@@ -322,10 +322,10 @@ describe("migrations", () => {
     } finally {
       rmSync(path.join(dir, "0026b_one.sql"), { force: true });
     }
-    // a suffixed file whose base does not exist (0030b with no 0030)
-    const orphan = withFile("verify/sql/0030b_orphan.sql", "SELECT 1;\n");
+    // a suffixed file whose base does not exist (0090b with no 0090)
+    const orphan = withFile("verify/sql/0090b_orphan.sql", "SELECT 1;\n");
     expect(orphan.status).toBe(1);
-    expect(orphan.out).toContain("jumps from 0026 to 0030b");
+    expect(orphan.out).toMatch(/jumps from 00\d\d to 0090b\b/);
   });
 
   it("a badly named migration is caught", () => {
@@ -335,10 +335,12 @@ describe("migrations", () => {
   });
 
   it("non-idempotent DDL is caught, and DDL that merely appears in a comment is not", () => {
-    const bad = withFile("verify/sql/0027_bad.sql", "CREATE TABLE widgets (id int);\n");
+    // The next free number, derived from the repo so a new real migration never collides with the fixture.
+    const nextNo = String(Math.max(...readdirSync(path.join(FIX, "verify", "sql")).filter((f) => /^\d{4}/.test(f)).map((f) => parseInt(f.slice(0, 4), 10))) + 1).padStart(4, "0");
+    const bad = withFile(`verify/sql/${nextNo}_bad.sql`, "CREATE TABLE widgets (id int);\n");
     expect(bad.status).toBe(1);
     expect(bad.out).toContain("non-idempotent DDL");
-    const ok = withFile("verify/sql/0027_ok.sql", "-- CREATE TABLE widgets (id int);\nCREATE TABLE IF NOT EXISTS widgets (id int);\n");
+    const ok = withFile(`verify/sql/${nextNo}_ok.sql`, "-- CREATE TABLE widgets (id int);\nCREATE TABLE IF NOT EXISTS widgets (id int);\n");
     expect(ok.status, ok.out).toBe(0);
   });
 });

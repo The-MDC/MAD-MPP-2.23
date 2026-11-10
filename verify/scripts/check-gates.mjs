@@ -57,6 +57,8 @@ const KNOWN_DARK = new Map([
   ["lib", "Root-level duplicate of lib/, outside Vercel's `verify/` root; deploys nothing (MASTER TD12)."],
   ["scripts", "Root-level helper scripts; nothing runs them in CI."],
   ["next.config.mjs", "Root-level config for the root-level duplicate app; deploys nothing (MASTER TD12)."],
+  ["site", "The static madgambit.io site (folded in from the retired private repo, #209). A separate Vercel project serves it; no workflow builds or tests it yet."],
+  ["tools", "Card-art generation helper (tools/card-art, folded in from the retired private repo, #209). A manual Python tool; nothing runs it in CI."],
 ]);
 
 /** Steps that cannot fail the job. Key: `<workflow file>::<step name>`. */
