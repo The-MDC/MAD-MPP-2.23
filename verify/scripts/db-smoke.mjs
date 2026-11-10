@@ -84,9 +84,16 @@ async function main() {
       "card_stats write+read",
     );
 
+    // 0027: a market cannot exist without a resolution spec, so the smoke market gets one (rolled back with the rest).
+    const smokeHash = "a".repeat(64);
     await client.query(
-      `INSERT INTO markets (id, title, creator_wallet) VALUES ('smoke_market', 'Smoke market?', $1)`,
-      [ZERO],
+      `INSERT INTO resolution_specs (id, family, schema_version, spec, spec_hash)
+       VALUES ('rs_' || left($1::text, 16), 'smoke', 1, '{}'::jsonb, $1::text)`,
+      [smokeHash],
+    );
+    await client.query(
+      `INSERT INTO markets (id, title, creator_wallet, resolution_spec_id) VALUES ('smoke_market', 'Smoke market?', $1, $2)`,
+      [ZERO, "rs_" + smokeHash.slice(0, 16)],
     );
     assert(
       (await client.query(`SELECT count(*)::int AS n FROM markets WHERE id='smoke_market'`)).rows[0].n >= 1,
