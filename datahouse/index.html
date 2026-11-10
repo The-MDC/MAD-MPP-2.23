@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MAD Gambit — Data House</title>
+<meta name="description" content="The MAD Gambit data house: the canonical numbers, what is built and what is not, and the documents available on request.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#080a12">
+<link rel="icon" href="assets/logo-square.jpg">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="MAD Gambit data house"><img src="assets/logo-square.jpg" alt="" width="36" height="36"><span>MAD Gambit · Data House</span></a>
+    <nav class="main" aria-label="Primary" style="display:flex">
+      <a href="#canon">Canon</a>
+      <a href="#status">Status</a>
+      <a href="#documents">Documents</a>
+      <a class="btn primary sm" href="mailto:nick@madgambit.fun?subject=MAD%20Gambit%20data%20house%20access">Request access</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<section class="hero" id="top">
+  <div class="wrap">
+    <p class="eyebrow">The data house</p>
+    <h1>The numbers, <span class="gold">and where the build stops.</span></h1>
+    <p class="lede" style="margin-top:20px">Every figure here is the one the product's code enforces. Every part of the product carries a state: implemented, in design or planned. A data room that names its own gaps reads as competence, so this one does.</p>
+    <p class="fine" style="margin-top:14px">Checked against the code and the chain on 2026-11-02. Proprietary coefficients, fundraising terms and the full engine reference are shared on request, under NDA.</p>
+  </div>
+</section>
+
+<section id="canon" class="alt">
+  <div class="wrap">
+    <div class="head"><p class="eyebrow">Canon</p><h2>The numbers the code enforces</h2></div>
+    <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Figure</th><th scope="col">Value</th><th scope="col">State</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Platform fee (rake)</th><td>1.88% flat, on every surface · $18.80 per $1,000</td><td><span class="chip s-impl">Implemented</span></td></tr>
+        <tr><th scope="row">Creator share</th><td>28.8% rising to 40% on the creator's own markets; a limited invitation-only share above that</td><td><span class="chip s-impl">Implemented</span></td></tr>
+        <tr><th scope="row">Community share</th><td>28.8% of the platform's net after the creator is paid</td><td><span class="chip s-impl">Implemented</span></td></tr>
+        <tr><th scope="row">Volatility clamp</th><td>σ held between 0.09 and 0.68 (GARCH(1,1))</td><td><span class="chip s-impl">Implemented</span></td></tr>
+        <tr><th scope="row">MAD Shield</th><td>Opt-in. Premium clamped to 2–4% of stake. Recovery 28.8% standard, up to a 40% maximum. Not insurance.</td><td><span class="chip s-impl">Implemented</span></td></tr>
+        <tr><th scope="row">Card deck</th><td>992 cards · 8 factions · 7 rarities · seed 8888</td><td><span class="chip s-impl">Implemented</span></td></tr>
+        <tr><th scope="row">Perpetual legs</th><td>One leg is 59.061 days; six legs make a Turning</td><td><span class="chip s-impl">Implemented</span></td></tr>
+        <tr><th scope="row">Furnace burn cap</th><td>At most 4.9% per 30 days: a ceiling, never a yield</td><td><span class="chip s-design">Designed</span></td></tr>
+        <tr><th scope="row">$MADx design supply</th><td>888,888,888. Planned allocation 45% community and gameplay · 15% DAO treasury · 15% liquidity · 15% team and advisors · 10% seed and private</td><td><span class="chip s-plan">Planned</span></td></tr>
+        <tr><th scope="row">$MADx contract</th><td>Arbitrum One <code>0x6972370e1caAA3624F37D7e87C28e1089D00151f</code>: name MADDEX, symbol MADx, verified source, total supply 0 when read on 2026-11-01. The fair launch has not started.</td><td><span class="chip s-impl">On-chain</span></td></tr>
+        <tr><th scope="row">Waitlist</th><td>15,000 early sign-ups from an email campaign: a waitlist, not active users</td><td><span class="chip s-concept">Interest signal</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="fine" style="margin-top:12px">Planned product design and positioning to test, not realized earnings or validated market performance. Model values are targets, not forecasts.</p>
+  </div>
+</section>
+
+<section id="status">
+  <div class="wrap">
+    <div class="head"><p class="eyebrow">Status</p><h2>What exists, and what does not yet</h2></div>
+    <div class="grid g2">
+      <div class="card">
+        <h3>Exists today</h3>
+        <ul class="ticks">
+          <li><span>The maths engine: conviction scoring, volatility, DL-LMSR pricing, the deterministic market classifier, the fee waterfall and card pricing, in code.</span></li>
+          <li><span>Binary and Progression markets, and the Z-Liar Meter, Gossip-Cop and Perpetual Epiphanies families.</span></li>
+          <li><span>A private-beta app with the MADHAT'r concierge, the Octavian live mesh, the card game and the open-markets floor on free-play $MADx.</span></li>
+          <li><span>RSS ingestion from public publishers, with a satire writer and a brand-safety gate that holds risky lines for a human.</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Does not exist yet</h3>
+        <ul class="ticks no">
+          <li><span>A live pilot market with real creators and volume: the next milestone.</span></li>
+          <li><span>Market and Shield-vault contracts on a public testnet or mainnet. Resolution is owner-attested today.</span></li>
+          <li><span>A security audit.</span></li>
+          <li><span>Multiple choice, Over/Under, PvP and Chaos as app formats (designed), Market+ and P2P escrow (planned).</span></li>
+          <li><span>Active users beyond the waitlist.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="documents" class="alt">
+  <div class="wrap">
+    <div class="head"><p class="eyebrow">Documents</p><h2>Available on request</h2>
+      <p class="lede">Ask for access and you get the reference material together with its open items.</p></div>
+    <div class="grid g3">
+      <article class="card"><h3>Engine Room</h3><p class="muted">The interactive maths reference, sections 1 to 13, with the general form of every equation.</p></article>
+      <article class="card"><h3>Master maths and algorithms</h3><p class="muted">The mastersheet the code is checked against, including the coefficients, under NDA.</p></article>
+      <article class="card"><h3>Executive brief and conviction deck</h3><p class="muted">The infographic, the executive brief, the IP hot sheet and the conviction deck with its validation pass and corrections ledger.</p></article>
+      <article class="card"><h3>Product sheets</h3><p class="muted">Prediction Markets and the Paseome: how a market is made, priced, resolved and shielded.</p></article>
+      <article class="card"><h3>Canonical numbers and traceability</h3><p class="muted">Every number traced to the file and line that enforces it, plus the feature traceability matrix.</p></article>
+      <article class="card"><h3>Open items</h3><p class="muted">Cap table, financial model with a revenue decomposition, Shield solvency model and legal opinions: stated as not yet done.</p></article>
+    </div>
+    <div class="actions"><a class="btn primary" href="mailto:nick@madgambit.fun?subject=MAD%20Gambit%20data%20house%20access">Request access</a><a class="btn" href="https://madgambit.fun" rel="noopener">Open the beta</a></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="disc">MAD Gambit LLC. This page describes planned product design and positioning to test, not realized earnings, revenue or validated market performance. Model values are targets, not forecasts. Nothing here is an offer to sell, or a solicitation of an offer to buy, any security or token, and nothing here is investment, legal or tax advice. The code is the implementation authority.</p>
+  </div>
+</footer>
+</body>
+</html>

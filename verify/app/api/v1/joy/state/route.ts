@@ -4,6 +4,8 @@ import { enforceRateLimit } from "@/lib/rate-limit";
 
 // PUBLIC-ROUTE: pure calculator, no DB, no side effects (see below).
 // Rate-limited as a cost ceiling only.
+// LEDGER-FREE: `contributions[].amount` is an input to the engagement maths, not a $MADx amount —
+// nothing is debited, credited or recorded here.
 /**
  * POST /api/v1/joy/state — pure engagement-mechanics calculator. Surfaces the
  * composed joy-engineering math (virality index · attention momentum · Fibonacci

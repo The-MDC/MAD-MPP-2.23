@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MAD Gambit — the conviction market for culture</title>
+<meta name="description" content="Prediction markets don't have to stop at yes or no. MAD Gambit is the conviction market for culture: creators earn from the moments they start, and fans back their conviction in real time.">
+<meta name="theme-color" content="#080a12">
+<link rel="icon" href="assets/logo-square.jpg">
+<meta property="og:title" content="MAD Gambit — the conviction market for culture">
+<meta property="og:description" content="Continuous conviction markets for entertainment and creator culture. One flat 1.88% rake. A live maths engine.">
+<meta property="og:image" content="assets/logo-stacked.webp">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<noscript><div class="noscript">The interactive parts of this page need JavaScript. Everything else reads fine without it.</div></noscript>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="MAD Gambit home"><img src="assets/logo-square.jpg" alt="" width="36" height="36"><span>MAD Gambit</span></a>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
+    <nav class="main" id="nav" aria-label="Primary">
+      <a href="#product">Product</a>
+      <a href="#engine">Engine</a>
+      <a href="#formats">Markets</a>
+      <a href="#creators">Creators</a>
+      <a href="#economics">Economics</a>
+      <a href="#token">$MADx</a>
+      <a href="#road">Road</a>
+      <a href="#ecosystem">Ecosystem</a>
+      <a href="#dataroom">Data room</a>
+      <a class="btn primary sm" href="https://madgambit.fun" rel="noopener">Open the beta</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <p class="eyebrow">Prediction · Conviction · Affliction</p>
+        <h1>Prediction markets don't have to stop at <span class="gold">yes or no.</span></h1>
+        <p class="lede" style="margin-top:22px">MAD Gambit is the conviction market for culture, where creators earn from the moments they start and fans back their conviction in real time.</p>
+        <div class="actions">
+          <a class="btn primary" href="#engine">See the engine</a>
+          <a class="btn" href="https://madgambit.fun" rel="noopener">Open the beta</a>
+          <a class="btn" href="#dataroom">Request the data room</a>
+        </div>
+      </div>
+      <figure class="hero-art" style="margin:0">
+        <img src="assets/logo-wide.jpg" width="1400" height="771" alt="MAD Gambit logo in neon: Prediction, Conviction, Affliction — the economic engine of entertainment prediction markets.">
+      </figure>
+    </div>
+
+    <div class="kpis" role="list">
+      <div class="kpi" role="listitem"><b>1.88%</b><span>flat platform rake on every surface</span></div>
+      <div class="kpi" role="listitem"><b>28.8% → 40%</b><span>creator profit-share ladder — planned design, not realized earnings</span></div>
+      <div class="kpi" role="listitem"><b>15,000</b><span>early sign-ups from an email campaign — a waitlist, not active users</span></div>
+      <div class="kpi" role="listitem"><b>992</b><span>cards · 8 factions · 7 rarities in the MADHAT's Gambit deck</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCT -->
+<section id="product" class="alt">
+  <div class="wrap">
+    <div class="head rv">
+      <p class="eyebrow">The idea</p>
+      <h2>Culture is the asset. <span class="gold">Creators own the economics.</span></h2>
+      <p class="lede">Prediction products are built for traders, so they leave out the culture and creators that drive attention. MAD Gambit turns that attention into markets with fair economics for the people who create it.</p>
+    </div>
+    <div class="grid g3 rv">
+      <article class="card"><span class="num">01 · PROBLEM</span><h3>Built for traders</h3><p class="muted">Binary contracts reward people who already trade. The viral moment, the creator who started it and the crowd that cares are all outside the market.</p></article>
+      <article class="card"><span class="num">02 · SOLUTION</span><h3>Attention becomes a market</h3><p class="muted">A creator turns a live headline into a market. People take a position through a card or a stake. The market prices continuously and does not wait for an outcome to settle.</p></article>
+      <article class="card"><span class="num">03 · WEDGE</span><h3>Entertainment and creator culture</h3><p class="muted">Every viral headline or creator moment becomes a market people can back with conviction — specific ground a generic binary venue does not own.</p></article>
+    </div>
+
+    <div class="trio rv" aria-label="The three words of MAD Gambit">
+      <figure><img src="assets/sym-prediction.webp" width="96" height="96" alt="" loading="lazy"><figcaption><b>Prediction</b>Take a position on how a story ends, or where it goes next.</figcaption></figure>
+      <figure><img src="assets/sym-conviction.webp" width="96" height="96" alt="" loading="lazy"><figcaption><b>Conviction</b>How much you believe it, scored for how long and how deep, not only how much you staked.</figcaption></figure>
+      <figure><img src="assets/sym-affliction.webp" width="96" height="96" alt="" loading="lazy"><figcaption><b>Affliction</b>When a position loses, the card keeps the scar: a permanent history instead of a quiet exit.</figcaption></figure>
+    </div>
+
+    <div class="grid g2 rv" style="margin-top:26px;align-items:start">
+      <div class="card">
+        <h3>Binary vs continuous</h3>
+        <p class="muted">A binary market asks one question and closes. A conviction market is priced every moment, so a storyline with no clean ending is still tradable.</p>
+        <div class="seg" role="group" aria-label="Chart mode">
+          <button class="tab" type="button" data-mode="binary" aria-pressed="false">Binary</button>
+          <button class="tab" type="button" data-mode="continuous" aria-pressed="true">Continuous conviction</button>
+        </div>
+        <div class="chart"><svg id="chart" viewBox="0 0 560 220" role="img" aria-label="Illustrative chart comparing a binary market price, which jumps at resolution, with a continuous conviction price that moves every moment."></svg></div>
+        <p class="fine" style="margin-top:10px">Illustrative only — not market data.</p>
+      </div>
+      <div class="card">
+        <h3>Five things that don't exist elsewhere</h3>
+        <ul class="ticks">
+          <li><span><b>The market never has to close.</b> No event-fatigue cliff, because there is no event.</span></li>
+          <li><span><b>The creator is the counterparty.</b> A traction-gated profit-share ladder, not an affiliate fee.</span></li>
+          <li><span><b>A market whose subject is a belief.</b> Perpetual Epiphanies prices mental models and adages; they resolve never, by construction.</span></li>
+          <li><span><b>Loss mitigation priced off the book.</b> MAD Shield is opt-in, fee-funded, capped — never insurance.</span></li>
+          <li><span><b>Deterministic classification.</b> No machine learning in the taxonomy: the first matching rule wins, so every split is a sentence a user can read.</span></li>
+        </ul>
+        <p class="fine">Each is a design claim with a state — see "Where the build stands" below.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ENGINE -->
+<section id="engine">
+  <div class="wrap">
+    <div class="head rv">
+      <p class="eyebrow">The live maths engine</p>
+      <h2>Six steps from <span class="gold">headline to price.</span></h2>
+      <p class="lede">Every claim carries a state: <span class="chip s-impl">Implemented</span> in code, <span class="chip s-design">In design</span>, <span class="chip s-plan">Planned</span>. The code is the implementation authority. Equations are shown in general form; coefficients and weights stay server-side.</p>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Engine steps" data-tabs="engine">
+      <button class="tab" role="tab" id="t-sig" aria-controls="p-sig" aria-selected="true">1 · Signal</button>
+      <button class="tab" role="tab" id="t-cls" aria-controls="p-cls" aria-selected="false" tabindex="-1">2 · Classify</button>
+      <button class="tab" role="tab" id="t-con" aria-controls="p-con" aria-selected="false" tabindex="-1">3 · Conviction</button>
+      <button class="tab" role="tab" id="t-vol" aria-controls="p-vol" aria-selected="false" tabindex="-1">4 · Volatility</button>
+      <button class="tab" role="tab" id="t-prc" aria-controls="p-prc" aria-selected="false" tabindex="-1">5 · Price</button>
+      <button class="tab" role="tab" id="t-shd" aria-controls="p-shd" aria-selected="false" tabindex="-1">6 · Protect</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="p-sig" aria-labelledby="t-sig">
+      <div class="row"><h3>Signal</h3><span class="chip s-impl">Implemented</span></div>
+      <p>News and the open web are scored for scandal velocity from GDELT matches. Emotion is weighted, and a happy story is a bad perpetual: markets are opened by a signal, not by hand.</p>
+      <div class="eq">p(perp) = 1 − exp[ −k · n · w · (1 + v) ]<br>n = matches · w = theme weight · v = scandal velocity</div>
+      <p class="fine" style="margin-top:10px">Above the gate a storyline opens as a perpetual rather than a binary. The curve saturates: roughly 0.87 at eight matches and 0.95 at twelve.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="p-cls" aria-labelledby="t-cls" hidden>
+      <div class="row"><h3>Classify</h3><span class="chip s-impl">Implemented</span></div>
+      <p>A deterministic priority cascade decides what kind of market a storyline is. The first rule that matches wins, which is why a long gossip perpetual can never be filed as a saga, and why the classifier also writes the market title and resolution criteria.</p>
+      <div class="eq">first_match( rule₁, rule₂, … ) → market type</div>
+      <p class="fine" style="margin-top:10px">No machine learning in the taxonomy. Legible odds need legible rules.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="p-con" aria-labelledby="t-con" hidden>
+      <div class="row"><h3>Conviction</h3><span class="chip s-impl">Implemented</span></div>
+      <p>How much a position <em>means</em>, not how large it is. A Cobb-Douglas score composes tenure, capital, depth, psychology and odds, with amplifiers for meme, satire, liar and volatility.</p>
+      <div class="eq">M = Π xᵢ^wᵢ × amplifiers</div>
+      <p class="fine" style="margin-top:10px">Exponents and weights are proprietary and shared under NDA in the data room.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="p-vol" aria-labelledby="t-vol" hidden>
+      <div class="row"><h3>Volatility</h3><span class="chip s-impl">Implemented</span></div>
+      <p>GARCH(1,1) lets yesterday's turbulence inform today's. A clamp keeps a market interesting without turning it into a casino: conviction is amplified, never detonated.</p>
+      <div class="eq">σ²ₜ = ω + α·ε²ₜ₋₁ + β·σ²ₜ₋₁ &nbsp;·&nbsp; σ clamped to [0.09, 0.68]</div>
+      <p class="fine" style="margin-top:10px">The floor sits above the unconditional level, so the clamp binds even at rest.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="p-prc" aria-labelledby="t-prc" hidden>
+      <div class="row"><h3>Price</h3><span class="chip s-impl">Implemented</span></div>
+      <p>A continuous book with a dynamic-liquidity LMSR. Buying moves the price along a curve instead of matching an order, and the liquidity parameter scales with volume.</p>
+      <div class="eq">C(q) = b · ln Σ e^(qᵢ/b) &nbsp;·&nbsp; pᵢ = softmax(q/b) &nbsp;·&nbsp; cost = C(q + δeᵢ) − C(q)</div>
+      <p class="fine" style="margin-top:10px">What the liquidity parameter should be at low volume is not yet modelled — an open item, not a hidden one.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="p-shd" aria-labelledby="t-shd" hidden>
+      <div class="row"><h3>Protect</h3><span class="chip s-impl">Implemented</span></div>
+      <p>MAD Shield is opt-in, fee-funded loss mitigation with capped recovery. Its premium is priced off the same book as the bet, so protection costs more where the market is more volatile. It is not insurance and it is not a guarantee.</p>
+      <div class="eq">premium ∝ stake × P(win) × σ × K &nbsp;·&nbsp; clamped to 2–4% of stake<br>recovery: 28.8% standard, rising to a 40% maximum</div>
+      <p class="fine" style="margin-top:10px">Shield solvency modelling is not yet published.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MARKETS -->
+<section id="formats" class="alt">
+  <div class="wrap">
+    <div class="head rv">
+      <p class="eyebrow">What you can play</p>
+      <h2>Six formats. <span class="gold">One engine.</span></h2>
+      <p class="lede">Creator-made open markets and platform-run formats share one maths engine and one 1.88% rake. Two of the six formats are in the engine today; the other four are designed and labelled that way.</p>
+    </div>
+
+    <div class="grid g3 rv">
+      <article class="card"><div class="row" style="display:flex;justify-content:space-between;gap:8px;margin-bottom:10px"><h3 style="margin:0">Binary</h3><span class="chip s-impl">In the engine</span></div><p class="muted">YES / NO. Creator-made markets — the format the creator share applies to.</p></article>
+      <article class="card"><div class="row" style="display:flex;justify-content:space-between;gap:8px;margin-bottom:10px"><h3 style="margin:0">Progression</h3><span class="chip s-impl">In the engine</span></div><p class="muted">Staged voting through a storyline. Platform-run.</p></article>
+      <article class="card"><div class="row" style="display:flex;justify-content:space-between;gap:8px;margin-bottom:10px"><h3 style="margin:0">Multiple choice</h3><span class="chip s-design">In design</span></div><p class="muted">Pick one outcome from several. The pricing maths already handles any number of outcomes.</p></article>
+      <article class="card"><div class="row" style="display:flex;justify-content:space-between;gap:8px;margin-bottom:10px"><h3 style="margin:0">Over / Under</h3><span class="chip s-design">In design</span></div><p class="muted">A line on a number: above or below.</p></article>
+      <article class="card"><div class="row" style="display:flex;justify-content:space-between;gap:8px;margin-bottom:10px"><h3 style="margin:0">PvP</h3><span class="chip s-design">In design</span></div><p class="muted">Head-to-head duels between two players, with trash talk.</p></article>
+      <article class="card"><div class="row" style="display:flex;justify-content:space-between;gap:8px;margin-bottom:10px"><h3 style="margin:0">Chaos</h3><span class="chip s-design">In design</span></div><p class="muted">Wild-card markets on viral moments. Platform-run.</p></article>
+    </div>
+
+    <div class="head rv" style="margin-top:56px">
+      <h2 style="font-size:clamp(1.5rem,3.2vw,2.2rem)">Perpetual families — markets that <span class="gold">never have to end</span></h2>
+    </div>
+    <div class="grid g2 rv">
+      <article class="card"><div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:10px"><h3 style="margin:0">Z-Liar Meter</h3><span class="chip s-impl">Implemented</span></div><p class="muted">The one family whose subject is a <em>claim</em>, not a storyline. It prices the statement, never the speaker: no name, handle or photograph appears on the surface, even where the speaker is known.</p></article>
+      <article class="card"><div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:10px"><h3 style="margin:0">Gossip-Cop</h3><span class="chip s-impl">Implemented</span></div><p class="muted">Celebrity, tabloid and hearsay sagas with no clean binary end. Positions roll while the circus stays live.</p></article>
+      <article class="card"><div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:10px"><h3 style="margin:0">Perpetual Epiphanies</h3><span class="chip s-impl">Implemented</span></div><p class="muted">Continuous conviction on mental models, adages and urban legends — Murphy, Peter, Hofstadter, Littlewood; "no smoke without fire." They resolve never, by construction.</p></article>
+      <article class="card"><div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:10px"><h3 style="margin:0">Five Faces · Zeitgeist</h3><span class="chip s-design">Direction</span></div><p class="muted">Part of the broader product direction: permanent-versus-transitory masks, and succession and turning-point slates.</p></article>
+    </div>
+  </div>
+</section>
+
+<!-- ECONOMICS -->
+<section id="economics">
+  <div class="wrap">
+    <div class="head rv">
+      <p class="eyebrow">One rake, every surface</p>
+      <h2>1.88% — <span class="gold">$18.80 per $1,000.</span></h2>
+      <p class="lede">The fee is flat and global. Where a creator made the market, the creator is paid first and the community is paid from what remains. Try it: the calculator below runs the same waterfall as the engine, and a test keeps the two identical.</p>
+    </div>
+
+    <div class="calc rv">
+      <div class="card">
+        <div class="field"><label for="vol">Trading volume (USD)</label><input id="vol" type="number" inputmode="decimal" min="0" step="any" value="10000"></div>
+        <div class="field"><label for="rung">Who made the market</label><select id="rung"></select></div>
+        <p class="fine">Planned product design, not revenue and not a forecast. A 60% creator share is offered only to a limited number of invitation-only VIPs and is not modelled here.</p>
+      </div>
+      <div class="card" aria-live="polite">
+        <div class="big" id="out-gross">$188.00</div>
+        <p class="muted" style="margin:6px 0 0">gross fee on <b id="out-vol">$10,000</b></p>
+        <div class="bar" id="bar" aria-hidden="true"><i style="background:var(--gold)"></i><i style="background:var(--cyan)"></i><i style="background:var(--pink)"></i></div>
+        <ul class="legend">
+          <li><span><i class="sw" style="background:var(--gold)"></i>Creator</span><b id="out-creator">—</b></li>
+          <li><span><i class="sw" style="background:var(--cyan)"></i>Community (28.8% of what remains)</span><b id="out-community">—</b></li>
+          <li><span><i class="sw" style="background:var(--pink)"></i>Protocol</span><b id="out-protocol">—</b></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid g3 rv" style="margin-top:26px">
+      <article class="card"><span class="num">THE CREATOR</span><h3>Paid first</h3><p class="muted">A traction-gated ladder: 28.8% rising to a 40% standard maximum on the creator's own markets. A different counterparty, not a better price.</p></article>
+      <article class="card"><span class="num">THE COMMUNITY</span><h3>Shares the rest</h3><p class="muted">28.8% of the platform's net flows to the community treasury. The rake and the creator share are never on the governance ballot.</p></article>
+      <article class="card"><span class="num">THE FURNACE</span><h3>A burn with a ceiling</h3><p class="muted">Buy-and-burn is capped at 4.9% per 30 days — a governance ceiling, never a yield.</p></article>
+    </div>
+    <p class="fine rv" style="margin-top:14px">"Net" here means the fee after the creator share, as the engine computes it. A final founder definition of "net" is still an open item, so no creator-dollar figure is quoted on this site.</p>
+  </div>
+</section>
+
+<!-- CREATORS -->
+<section id="creators" class="alt">
+  <div class="wrap">
+    <div class="head rv">
+      <p class="eyebrow">The creator hub</p>
+      <h2>Your standing. Your markets. <span class="gold">Your share.</span></h2>
+      <p class="lede">The creator is the counterparty. The hub is where a creator builds a following, turns headlines into markets and watches the ladder climb. The ladder maths is in the engine today; the hub is the planned experience built around it.</p>
+    </div>
+
+    <div class="hub rv">
+      <div class="card profile" aria-live="polite">
+        <div class="who"><img src="assets/madhat-hat.webp" width="64" height="64" alt="" loading="lazy"><div><b>@yourhandle</b><span class="chip s-design">Illustrative</span></div></div>
+        <div class="rungname" id="rung-name">Starting rung</div>
+        <div class="big" id="rung-share">28.8%</div>
+        <p class="muted" style="margin:6px 0 12px">of the fee on your own markets</p>
+        <div class="meter" role="progressbar" aria-label="Progress to the next rung" aria-valuemin="0" aria-valuemax="12" aria-valuenow="4"><i id="rung-bar"></i></div>
+        <p class="fine" id="rung-next">8 more tractioned markets to the 40% rung</p>
+      </div>
+      <div class="card">
+        <div class="field"><label for="tm">Tractioned markets you've created: <output id="tm-out">4</output></label><input id="tm" type="range" min="0" max="20" value="4"></div>
+        <div class="field"><label for="cv">Volume across your markets (USD)</label><input id="cv" type="number" inputmode="decimal" min="0" step="any" value="25000"></div>
+        <ul class="legend">
+          <li><span>Gross fee on that volume (1.88%)</span><b id="c-gross">—</b></li>
+          <li><span>Your creator share</span><b id="c-you">—</b></li>
+        </ul>
+        <p class="fine" style="margin-top:10px">Illustrative arithmetic from the engine, not a forecast or a promise of earnings. In the engine a market counts as tractioned once its total conviction reaches 1,200 $MADx and it has paid out at least once.</p>
+      </div>
+    </div>
+
+    <div class="grid g3 rv" style="margin-top:22px">
+      <article class="card"><div class="row2"><h3>Public profile and standing</h3><span class="chip s-plan">Planned</span></div><p class="muted">One page per creator: handle, ladder rung, markets created, traction and track record, shareable anywhere. Today's profile is a private positions and wallet view.</p></article>
+      <article class="card"><div class="row2"><h3>Market studio</h3><span class="chip s-impl">In the beta</span></div><p class="muted">Turn a live headline into a market in a few taps, with a policy check before it opens. The creation flow and the harm-policy validator exist in the beta.</p></article>
+      <article class="card"><div class="row2"><h3>One-tap share cards</h3><span class="chip s-impl">In the beta</span></div><p class="muted">Roast and meme cards: card art, your take and the outcome, shared in one tap with a watermark back to your market.</p></article>
+      <article class="card"><div class="row2"><h3>Arena and crews</h3><span class="chip s-impl">Arena in the beta</span></div><p class="muted">Tournament arena and head-to-head duels are in the app. Crews, with shared standing and trash talk, are planned.</p></article>
+      <article class="card"><div class="row2"><h3>Followers and creator feed</h3><span class="chip s-plan">Planned</span></div><p class="muted">Follow the creators who call it right, and get a feed of their new markets, convictions and cards.</p></article>
+      <article class="card"><div class="row2"><h3>Earnings ledger</h3><span class="chip s-design">Early</span></div><p class="muted">Your share per market shows in the profile today. A full ledger by market and by week is planned.</p></article>
+    </div>
+  </div>
+</section>
+
+<!-- TOKEN -->
+<section id="token" class="alt">
+  <div class="wrap">
+    <div class="head rv">
+      <p class="eyebrow">MADDEX · $MADx</p>
+      <h2>888,888,888 <span class="gold">design supply.</span></h2>
+      <p class="lede">The $MADx fair launch is planned, not started. The token contract exists and is verified; nothing has been minted.</p>
+    </div>
+    <div class="donut-wrap rv">
+      <div class="donut"><svg id="donut" viewBox="0 0 200 200" role="img" aria-label="Allocation: 45% Community and Gameplay, 15% DAO Treasury, 15% Liquidity, 15% Team and Advisors, 10% Seed and Private."><text x="100" y="108">888M</text></svg></div>
+      <div>
+        <ul class="legend" id="alloc"></ul>
+        <p class="fine" style="margin-top:10px">Planned distribution and vesting. Utility is designed: governance, staking, fee share, discounted trading fees and buy-and-burn.</p>
+      </div>
+    </div>
+
+    <div class="card rv" style="margin-top:26px">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;margin-bottom:12px"><h3 style="margin:0">On-chain: Arbitrum One</h3><span class="chip s-impl">Contract verified</span></div>
+      <code class="addr">0x6972370e1caAA3624F37D7e87C28e1089D00151f</code>
+      <p class="fine" style="margin-top:10px">Read directly from the chain on 2026-11-01: <b>name</b> MADDEX · <b>symbol</b> MADx · <b>total supply</b> 0. The fair launch has not started. Check it yourself on <a href="https://arbiscan.io/address/0x6972370e1caAA3624F37D7e87C28e1089D00151f" rel="noopener">Arbiscan</a>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ROAD -->
+<section id="road">
+  <div class="wrap">
+    <div class="head rv">
+      <p class="eyebrow">The launch path</p>
+      <h2>Road to the <span class="gold">Everything Market.</span></h2>
+      <p class="lede">Eight stages, one engine. The sequence is planned; timing depends on counsel, audit and pilot results.</p>
+    </div>
+    <ol class="road rv">
+      <li class="now"><div><h3>Closed Beta</h3><p>Closed-Alpha is complete. The self-funded app is ready for the first creators and an invited cohort.</p></div><span class="chip s-impl">Now</span></li>
+      <li><div><h3>Open Beta · Golden Ticket event</h3><p>A pre-launch event opens access to the sign-up list and builds the first market activity.</p></div><span class="chip s-plan">Planned</span></li>
+      <li><div><h3>Fair-launch build-up</h3><p>Community and creator momentum builds toward the MADDEX ($MADx) fair-launch event.</p></div><span class="chip s-plan">Planned</span></li>
+      <li><div><h3>Open Markets reveal</h3><p>A creator crowdfund event or limited TGE: markets open to creators and the community.</p></div><span class="chip s-plan">Planned</span></li>
+      <li><div><h3>MADHAT's Gambit card game</h3><p>The full official launch of the card game on the card economy.</p></div><span class="chip s-plan">Planned</span></li>
+      <li><div><h3>MADHAT'r Concierge</h3><p>Reveal of the concierge experience.</p></div><span class="chip s-plan">Planned</span></li>
+      <li><div><h3>Future perps and expansion</h3><p>New perpetual families added as creators request them, on the same engine.</p></div><span class="chip s-plan">Planned</span></li>
+      <li><div><h3>The Everything Market</h3><p>Market+: one venue for every digital asset and every storyline, on the same 1.88% rake.</p></div><span class="chip s-plan">Planned</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- MADHATR -->
+<section id="madhatr">
+  <div class="wrap">
+    <div class="mad rv">
+      <figure class="vid"><img src="assets/madhatr-bust.webp" width="560" height="600" alt="The MADHAT&#39;r: a furious red character in a neon PASEOME top hat, hands on his head." loading="lazy"></figure>
+      <div>
+        <p class="eyebrow">The concierge</p>
+        <h2>Meet the <span class="gold">MADHAT'r.</span></h2>
+        <p class="lede" style="margin-top:14px">One character behind every surface. The MADHAT'r is the voice of the beta front door and the concierge across the app: it answers, teases and points you to the market worth your conviction.</p>
+        <p><span class="chip s-impl">In the beta</span> &nbsp; <span class="chip s-plan">Full reveal planned</span></p>
+        <img class="hat" src="assets/madhat-hat.webp" width="120" height="120" alt="" loading="lazy">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROOF -->
+<section id="proof" class="alt">
+  <div class="wrap">
+    <div class="head rv">
+      <p class="eyebrow">Where the build stands</p>
+      <h2>Here's what's live. <span class="gold">And here's what isn't.</span></h2>
+      <p class="lede">A register that claims everything is shipped is worth less than one that tells you where the edge of the build is.</p>
+    </div>
+
+    <div class="card rv" style="margin-bottom:22px">
+      <h3>IP register — 23 entries</h3>
+      <div class="ip-bar" id="ip" role="img" aria-label="Of 23 register entries: 14 implemented, 2 verified or canon, 1 new and in design, 5 conceptual or planned, 1 retired at surface."></div>
+      <ul class="legend" id="ip-legend" style="margin-top:14px"></ul>
+    </div>
+
+    <div class="grid g2 rv">
+      <div class="card">
+        <h3>Exists today</h3>
+        <ul class="ticks">
+          <li><span>The maths engine: conviction, volatility, pricing, classification, fee architecture and card pricing, in code.</span></li>
+          <li><span>A private-beta app (MPP) and the Engine Room interactive maths reference.</span></li>
+          <li><span>An investor presentation and data-room index.</span></li>
+          <li><span>A verified $MADx token contract on Arbitrum One (nothing minted).</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Does not exist yet</h3>
+        <ul class="ticks no">
+          <li><span>A live pilot market with real creators and volume — the next milestone.</span></li>
+          <li><span>Market and Shield-vault contracts on a public testnet or mainnet.</span></li>
+          <li><span>A security audit.</span></li>
+          <li><span>An on-chain settlement cascade: specified, not built.</span></li>
+          <li><span>Users beyond the 15,000-strong waitlist, which is an email-campaign sign-up list.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ECOSYSTEM -->
+<section id="ecosystem">
+  <div class="wrap">
+    <div class="head rv">
+      <p class="eyebrow">One family</p>
+      <h2>MAD Gambit · The MDC · <span class="gold">MADDAO · MADdegens.</span></h2>
+      <p class="lede">A platform, a community, a governance layer and a movement, built to pay it forward to the Web3 community that freed us.</p>
+    </div>
+    <figure class="banner rv"><img src="assets/mdc-dao-banner.webp" width="1600" height="578" alt="The MADDAO and MADdegens emblems on a smoky banner." loading="lazy"></figure>
+    <div class="grid g2 rv">
+      <article class="card"><span class="num">THE PLATFORM</span><h3>MAD Gambit</h3><p class="muted">The entertainment-first prediction and conviction market. <b>MADHAT's Gambit</b> is the card game line inside it. Operated by MAD Gambit LLC.</p><a href="https://madgambit.fun" rel="noopener">Open the beta →</a></article>
+      <article class="card"><span class="num">THE COMMUNITY</span><img class="ico lg" src="assets/maddegens-logo.webp" width="72" height="65" alt="MADdegens emblem" loading="lazy"><h3>The MDC — MADdegens</h3><p class="muted">The MΛĐdegens Community: a Blockchain-for-Good crowdfund community building a social crowdfund superDAO and Web3 accelerator called MADforge. One rule: common decency, respect and honesty to our fellow degens. Zero tolerance for hatred or harm.</p></article>
+      <article class="card"><span class="num">THE GOVERNANCE</span><img class="ico lg" src="assets/maddao-logo.webp" width="72" height="60" alt="MADDAO emblem" loading="lazy"><h3>MADDAO</h3><p class="muted">Community governance: quadratic funding, stake-weighted voting with a cap, and futarchy-style decision pools. The rake and the creator share are never on the ballot.</p><span class="chip s-design">Maths in code · contracts planned</span></article>
+      <article class="card"><span class="num">THE NORTH STAR</span><h3>An open, fair Web3</h3><p class="muted">"An open, transparent, fair, decentralised and equitable Web3 for all." The MADdegens exist to defend that original promise — and to have a great time doing it.</p></article>
+    </div>
+    <div class="actions rv">
+      <a class="btn" href="https://linktr.ee/MADdegens" rel="noopener">MADdegens links</a>
+      <a class="btn" href="https://x.com/maddegens" rel="noopener">X</a>
+      <a class="btn" href="https://www.instagram.com/maddegens/" rel="noopener">Instagram</a>
+      <a class="btn" href="https://www.linkedin.com/company/maddegens/" rel="noopener">LinkedIn</a>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section id="team" class="alt">
+  <div class="wrap">
+    <div class="head rv">
+      <p class="eyebrow">The operators</p>
+      <h2>Three co-founders. <span class="gold">One engine.</span></h2>
+    </div>
+    <div class="grid g3 rv">
+      <article class="card"><h3>Nick J. McLeod</h3><p class="muted" style="margin:0">Founder</p></article>
+      <article class="card"><h3>Carlo B. Fernandez</h3><p class="muted" style="margin:0">Co-founder · COO</p></article>
+      <article class="card"><h3>Zena Shah</h3><p class="muted" style="margin:0">Co-founder · Head of Economics and Finance</p></article>
+    </div>
+  </div>
+</section>
+
+<!-- DATA ROOM -->
+<section id="dataroom">
+  <div class="wrap">
+    <div class="head rv">
+      <p class="eyebrow">For partners and investors</p>
+      <h2>The data room — <span class="gold">including its gaps.</span></h2>
+      <p class="lede">A data room that names its own gaps reads as competence. Ask for access and you get the engine, the maths and the open items together.</p>
+    </div>
+    <div class="grid g2 rv">
+      <div class="card">
+        <h3>What's inside today</h3>
+        <ul class="ticks">
+          <li><span>Engine Room §1–§13 — the interactive maths reference</span></li>
+          <li><span>The master maths and algorithms sheet</span></li>
+          <li><span>The conviction deck with its validation pass and corrections ledger</span></li>
+          <li><span>The executive brief, infographic and IP hot sheet</span></li>
+        </ul>
+        <div class="actions"><a class="btn primary" href="mailto:nick@madgambit.fun?subject=MAD%20Gambit%20data%20room%20request">Request access</a></div>
+      </div>
+      <div class="card">
+        <h3>Open items we state ourselves</h3>
+        <ul class="ticks no">
+          <li><span>Cap table and operating agreement: not yet executed.</span></li>
+          <li><span>Financial model with a driver-by-driver revenue decomposition.</span></li>
+          <li><span>Shield solvency model: assumptions unpublished.</span></li>
+          <li><span>Legal opinion on perpetuals: not commissioned.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="assets/logo-square.jpg" alt="" width="36" height="36"><span>MAD Gambit</span></a>
+    <div class="links">
+      <a href="https://madgambit.fun" rel="noopener">madgambit.fun</a>
+      <a href="mailto:nick@madgambit.fun">nick@madgambit.fun</a>
+      <a href="https://linktr.ee/MADdegens" rel="noopener">The MDC</a>
+    </div>
+    <p class="disc">MAD Gambit LLC. This site describes planned product design and positioning to test, not realized earnings, revenue or validated market performance. Model values are targets, not forecasts. The 15,000 figure is an email-campaign waitlist, not active users. Planned items may change with counsel, audit and pilot results. Nothing here is an offer to sell, or a solicitation of an offer to buy, any security or token, and nothing here is investment, legal or tax advice. Proprietary coefficients are withheld and shared under NDA. The code is the implementation authority.</p>
+    <p class="disc">© 2026 MAD Gambit LLC · MADHAT's Gambit, MADdegens and MDC are marks of their respective owners.</p>
+  </div>
+</footer>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

@@ -56,12 +56,11 @@ Never let the close-out become the record while MASTER goes stale. MASTER first,
 
 ## Repo shape
 
-**Two repos, one source of truth (founder decision, 2026-11-03).** `The-MDC/MAD-MPP-2.23` is the
-working repo: all code changes land on its `main`, and it feeds Vercel preview and production and
-Supabase. `The-MDC/MADGambit-Official-MMP` (private) stores the Supabase and Vercel material and the
-official, untainted production build, and receives only what production already runs. If a session
-opens in a clone of the private repo, do not build, open PRs or deploy from it. `MAD-MPP-2.23` is
-public, so check private material before pushing it there.
+**One repo (founder decision, 2026-11-09).** `The-MDC/MAD-MPP-2.23` is the only code repo: all work
+lands on its `main`, and it feeds Vercel preview and production and Supabase. The private
+`MADGambit-Official-MMP` was retired on 2026-11-09 after its remaining work was folded in here. If a
+session opens in an old clone of it, do not build, open PRs or deploy from it. This repo is public, so
+check private material before pushing it.
 
 - `verify/` — the Next.js 16 app, and **Vercel's configured root directory**
 - `contracts/` — Solidity + Foundry, Arbitrum One
