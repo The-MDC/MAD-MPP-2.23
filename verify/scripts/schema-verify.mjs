@@ -1,27 +1,25 @@
 /**
- * MAD Gambit — Neon schema readiness check.
+ * MAD Gambit — database schema readiness check.
  *
  * Read-only verification for an environment where DATABASE_URL is available.
- * It checks the migration ledger, the pgvector extension, and every required
- * application table without exposing connection details or application data.
+ * It checks the migration ledger, the extensions the migrations create, and every
+ * application table the migrations create — without exposing connection details or
+ * application data.
+ *
+ * WHAT IT REQUIRES IS DERIVED FROM `verify/sql/`, NOT TYPED HERE. This file used to hold a
+ * hand-written list of 41 table names and "migrations 0001–0014"; the migrations grew to 26
+ * files and 67 tables and the lists did not, so it reported "Schema readiness: verified" for a
+ * database missing migrations 0017–0026. See `scripts/lib/schema-inventory.mjs`, which also holds
+ * the comparison (`evaluateSchema`) so it is unit-tested without a database.
  */
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import pg from "pg";
+import { evaluateSchema, schemaInventory } from "./lib/schema-inventory.mjs";
 
 const { Client } = pg;
 const FALLBACK_DATABASE_URL_KEYS = ["NEON_SKY_PARK_DATABASE_URL", "NEO_DATABASE_URL"];
-const REQUIRED_MIGRATIONS = Array.from({ length: 14 }, (_, index) => `${String(index + 1).padStart(4, "0")}_`);
-const REQUIRED_TABLES = [
-  "events_stream", "cdp_profiles", "agg_platform_hourly", "agg_user_daily",
-  "shield_positions", "cards", "market_intelligence", "celebrity_whitelist",
-  "gdelt_signals", "card_stats", "markets", "bets", "audit_log", "madx_accounts",
-  "madx_ledger", "madx_supply", "siwe_nonces", "user_profiles", "customer_accounts",
-  "customer_login_events", "customer_profile_audit", "perp_markets", "faces_simplex",
-  "zeitgeist_slates", "zeitgeist_succession", "epiphany_models", "perp_positions",
-  "portrait_keys", "portrait_key_destructions", "registrar_queue", "subject_replies",
-  "subject_complaints", "subject_identity_map", "pause_state", "pause_events",
-  "registry_readiness", "slot_auctions", "slot_nominations", "slot_bids",
-  "market_book", "market_prices",
-];
+const SQL_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "sql");
 
 const connectionString = process.env.DATABASE_URL
   ?? FALLBACK_DATABASE_URL_KEYS.map((key) => process.env[key]).find(Boolean);
@@ -31,32 +29,42 @@ if (!connectionString) {
   process.exit(1);
 }
 
+const inventory = await schemaInventory(SQL_DIR);
+
+// A verifier that looked at nothing is not a passing verifier.
+if (inventory.migrations.length === 0 || inventory.tables.length === 0) {
+  console.error(
+    `Schema verification refused: found ${inventory.migrations.length} migration file(s) and ` +
+      `${inventory.tables.length} table(s) under ${SQL_DIR}. Nothing to check against.`,
+  );
+  process.exit(1);
+}
+
 const client = new Client({ connectionString });
 try {
   await client.connect();
   const [{ rows: migrations }, { rows: extensions }, { rows: tables }] = await Promise.all([
     client.query("SELECT name FROM _migrations ORDER BY name"),
-    client.query("SELECT extname FROM pg_extension WHERE extname = 'vector'"),
+    client.query("SELECT extname FROM pg_extension"),
     client.query(
       "SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename = ANY($1::text[])",
-      [REQUIRED_TABLES],
+      [inventory.tables],
     ),
   ]);
 
-  const present = new Set(tables.map(({ tablename }) => tablename));
-  const missing = REQUIRED_TABLES.filter((name) => !present.has(name));
-  const appliedMigrations = new Set(migrations.map(({ name }) => name));
-  const missingMigrations = REQUIRED_MIGRATIONS.filter((prefix) => ![...appliedMigrations].some((name) => name.startsWith(prefix)));
-  const migrationCount = migrations.length;
-  const vectorReady = extensions.length === 1;
+  const result = evaluateSchema(inventory, {
+    presentTables: tables.map(({ tablename }) => tablename),
+    appliedMigrations: migrations.map(({ name }) => name),
+    extensions: extensions.map(({ extname }) => extname),
+  });
 
-  console.log(`Migrations recorded: ${migrationCount}`);
-  console.log(`Application tables: ${present.size}/${REQUIRED_TABLES.length}`);
-  console.log(`pgvector: ${vectorReady ? "ready" : "missing"}`);
-  if (missing.length || !vectorReady || missingMigrations.length) {
-    if (missing.length) console.error(`Missing tables: ${missing.join(", ")}`);
-    if (!vectorReady) console.error("Missing extension: vector");
-    if (missingMigrations.length) console.error(`Missing migration ledger entries: ${missingMigrations.join(", ")}`);
+  console.log(`Migrations recorded: ${migrations.length} of ${inventory.migrations.length} in sql/`);
+  console.log(`Application tables: ${inventory.tables.length - result.missingTables.length}/${inventory.tables.length}`);
+  console.log(`Extensions: ${inventory.extensions.filter((e) => e !== "plpgsql").join(", ") || "none required"}${result.missingExtensions.length ? " (MISSING)" : " (ready)"}`);
+  if (!result.ok) {
+    if (result.missingTables.length) console.error(`Missing tables: ${result.missingTables.join(", ")}`);
+    if (result.missingExtensions.length) console.error(`Missing extension(s): ${result.missingExtensions.join(", ")}`);
+    if (result.missingMigrations.length) console.error(`Missing migration ledger entries: ${result.missingMigrations.join(", ")}`);
     process.exitCode = 1;
   } else {
     console.log("Schema readiness: verified");

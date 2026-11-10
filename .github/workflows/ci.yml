@@ -91,6 +91,12 @@ jobs:
       - name: Type-check (tsc --noEmit)
         run: npm run type-check
 
+      # tsconfig.json EXCLUDES **/*.test.ts (they do not ship), so the step above never sees them, and
+      # vitest strips types without checking them. A type error in a test — a wrong argument, a stale
+      # import shape — therefore passed every gate (one already had). This project includes them.
+      - name: Type-check tests (tsc -p tsconfig.tests.json)
+        run: npm run type-check:tests
+
       # ── Lint gate (report-only) ──────────────────────────────────────
       # ESLint (next/core-web-vitals) — catches react-hooks/rules-of-hooks and
       # @next/next correctness rules that had no gate before. Invokes eslint

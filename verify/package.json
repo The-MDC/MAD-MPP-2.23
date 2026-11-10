@@ -8,6 +8,7 @@
     "start": "node .next/standalone/server.js",
     "lint": "node --require ./scripts/eslint-ts6-shim.cjs node_modules/eslint/bin/eslint.js app components context hooks lib proxy.ts",
     "type-check": "tsc --noEmit",
+    "type-check:tests": "tsc --noEmit -p tsconfig.tests.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "migrate": "node scripts/migrate.mjs",
