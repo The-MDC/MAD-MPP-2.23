@@ -33,6 +33,8 @@ const ZERO_ELIG: WhaleEligibilityInput = {
  */
 // PUBLIC-ROUTE: Premium quote — pure maths, no DB, no position opened.
 // Rate-limited, because open still needs a cost ceiling.
+// LEDGER-FREE: a quote only. The premium is CHARGED by shield/opt-in (chargeAndInsertShieldPosition);
+// this route prices it and moves nothing.
 export async function POST(req: Request) {
   const limited = enforceRateLimit(req, "shield-quote", 60, 60_000);
   if (limited) return limited;
