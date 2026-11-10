@@ -67,7 +67,7 @@ describe("computeHeatForPool", () => {
       },
     ]);
     // …and repeats exactly.
-    expect(computeHeatForPool(pool, NOW)).toEqual(computeHeatForPool(pool, NOW));
+    expect(computeHeatForPool(pool, NOW)).toEqual(computeHeatForPool(pool, NOW)); // SELF-COMPARE-OK: the literal pin is above; this only checks it repeats
   });
 
   it("rewards freshness: a newer item out-scores an identical older one on velocity", () => {

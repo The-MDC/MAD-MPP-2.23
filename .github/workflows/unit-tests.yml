@@ -40,12 +40,12 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: verify/package-lock.json
+      # vitest comes from the lockfile like every other dependency. This job used to run
+      # `npm install --no-save vitest@^3.2.4` after `npm ci`, a leftover from when vitest was not in
+      # package.json. package.json now locks vitest ^5, so that step silently DOWNGRADED the test
+      # runner in CI to 3.x while every developer ran 5.x: the suite CI passed was not the suite
+      # people ran. scripts/check-gates.mjs fails if a workflow installs over the locked tree again.
       - name: Install app dependencies (locked)
         run: npm ci
-      # vitest is a dev-only test runner. It is installed with --no-save so the
-      # committed package-lock.json stays in sync with package.json (the type-check
-      # job runs `npm ci` against that same lockfile and must not break).
-      - name: Install vitest (not persisted to the lockfile)
-        run: npm install --no-save vitest@^3.2.4
       - name: Run unit tests
         run: npx vitest run

@@ -167,7 +167,7 @@ describe("codex binding — the compliance mechanism", () => {
 
   it("omits the catchphrase from every stakeable label", () => {
     for (const face of FACE_ORDER) {
-      const label = stakeableLabel(face, 0.5) as Record<string, unknown>;
+      const label = stakeableLabel(face, 0.5) as unknown as Record<string, unknown>;
       expect(label.catchphrase).toBeUndefined();
       expect(Object.keys(label).sort()).toEqual(["definition", "face", "name", "price"]);
     }
