@@ -36,6 +36,8 @@ export async function nimRoast(headline: string, category: NewsCategory, article
         input: user(attempt > 0),
         maxTokens: 220,
         temperature: attempt > 0 ? 0.7 : 0.95,
+        // The answer is a strict JSON object: a thinking model burns the budget on the long rules prompt first.
+        thinking: "off",
       });
       if (text === null) throw new Error("nim unavailable");
       if (looksLikeLeak(text)) throw new Error("nim reply rejected");
