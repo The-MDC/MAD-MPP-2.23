@@ -29,7 +29,7 @@ function run(args: string[], env: Record<string, string> = {}) {
   const r = spawnSync(process.execPath, [SCRIPT, "--dry-run", ...args], {
     encoding: "utf8",
     // A clean environment: nothing from the developer's shell may leak a real URL or a real `vercel` into the test.
-    env: { PATH: `${SHIM_DIR}${path.delimiter}${path.dirname(process.execPath)}`, SystemRoot: process.env.SystemRoot ?? "", ...env },
+    env: { PATH: `${SHIM_DIR}${path.delimiter}${path.dirname(process.execPath)}`, SystemRoot: process.env.SystemRoot ?? "", NODE_ENV: "test", ...env },
   });
   return { status: r.status, out: `${r.stdout}\n${r.stderr}` };
 }

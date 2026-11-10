@@ -20,7 +20,7 @@ const SUPA = "postgresql://postgres.ref:p@aws-0-us-east-1.pooler.supabase.com:65
 function run(env: Record<string, string>, args: string[] = []) {
   const r = spawnSync(process.execPath, [SCRIPT, ...args], {
     encoding: "utf8",
-    env: { PATH: path.dirname(process.execPath), PG_MODULE: "pg-that-does-not-exist-on-purpose", ...env },
+    env: { PATH: path.dirname(process.execPath), PG_MODULE: "pg-that-does-not-exist-on-purpose", NODE_ENV: "test", ...env },
   });
   return { status: r.status, out: `${r.stdout}\n${r.stderr}` };
 }

@@ -23,7 +23,7 @@ function run(args: string[]) {
   const r = spawnSync(process.execPath, [SCRIPT, ...args], {
     encoding: "utf8",
     cwd: VERIFY,
-    env: { PATH: `${SHIM_DIR}${path.delimiter}${path.dirname(process.execPath)}`, SystemRoot: process.env.SystemRoot ?? "" },
+    env: { PATH: `${SHIM_DIR}${path.delimiter}${path.dirname(process.execPath)}`, SystemRoot: process.env.SystemRoot ?? "", NODE_ENV: "test" },
   });
   return { status: r.status, out: `${r.stdout}\n${r.stderr}` };
 }
