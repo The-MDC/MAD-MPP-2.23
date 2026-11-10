@@ -27,7 +27,8 @@ export async function POST(req: NextRequest) {
   const modelOk = gate.level === "normal" && !gate.crossOrigin && (gate.screen?.allow ?? true);
   if (modelOk && nimEnabled()) {
     const { system, input } = quipPrompt(temper, node);
-    const raw = await nimChat({ system, input, maxTokens: 60, temperature: 0.95 });
+    // A one-line joke has nothing to reason about; a thinking model spends seconds on it.
+    const raw = await nimChat({ system, input, maxTokens: 60, temperature: 0.95, thinking: "off" });
     const line = fitQuip(raw);
     if (line) return NextResponse.json({ line, source: "nim", temper });
   }

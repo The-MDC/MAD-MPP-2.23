@@ -7,7 +7,7 @@
  * Three panels:
  *   1. δ-Limit Cap Calculator: δ = π × Multiplier × √ConvictionStake
  *   2. φ-Ratio MAD Shield:     φ = 1.618 structural safety factor
- *   3. Code Checker Simulator: build-check progress with log streaming
+ *   3. Platform Integrity Checker: runs REAL checks of the maths engine (lib/integrity-checks.ts)
  * All formulas from gambit-game-math.ts (verified engine).
  */
 
@@ -20,24 +20,7 @@ import {
   OVDeck,
 } from "@/lib/gambit-game-math";
 import { Terminal, Shield, Calculator, CheckCircle2, Loader } from "lucide-react";
-
-const CHECK_LOGS = [
-  "[Sentinel] Bootstrapping conviction-parity oracle...",
-  "[GARCH] Loading σ² volatility surface — baseline 0.02",
-  "[DL-LMSR] Bond curve integrity → α(V) nominal",
-  "[Lunar] Phase multiplier L_θ = 1.027 ✓",
-  "[TeaBag Shield] φ-ratio protective limit loaded",
-  "[δ-Limit] π × Multiplier × √Stake bounds verified",
-  "[VRS] Fibonacci nodes [5,8,13,21,34] seeded",
-  "[Evolution] Burn ladder integrity → OK",
-  "[Tournament] 8-tier prize distribution → verified",
-  "[Z-Liar] Sentinel BS-Index engine online",
-  "[MADx] Supply 888,888,888 — immutable ✓",
-  "[Fee Engine] 1.88% rake → creator off gross (own markets) → community 28.8% of net",
-  "[Elomatic] PvP clamp [0.12, 0.88] → verified",
-  "[Kelly] Fractional criterion scale 0.5 → nominal",
-  "[Build] ALL SYSTEMS GREEN. Platform integrity: 100%",
-];
+import { runIntegrityChecks, type IntegrityCheck } from "@/lib/integrity-checks";
 
 export default function LogicLab({ activeDeck }: { activeDeck?: OVDeck }) {
   const deck = activeDeck ?? OV_DECKS[0];
@@ -59,31 +42,41 @@ export default function LogicLab({ activeDeck }: { activeDeck?: OVDeck }) {
   // code checker
   const [checking, setChecking] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [logs, setLogs] = useState<string[]>([]);
+  // Results are computed for real when Run is pressed; they are REVEALED one at a time for readability.
+  const [results, setResults] = useState<IntegrityCheck[]>([]);
+  const [total, setTotal] = useState(0);
   const [done, setDone] = useState(false);
   const logRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   useEffect(() => {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
-  }, [logs]);
+  }, [results]);
 
   // sync multiplier when deck changes
   useEffect(() => { setMultiplier(deck.multiplier.toString()); }, [deck.multiplier]);
 
+  const allClear = results.every((r) => r.ok);
+
   function runCheck() {
     if (checking) return;
-    setChecking(true); setDone(false); setProgress(0); setLogs([]);
+    // The checks run NOW, against the same pure functions the server uses. Only the reveal is paced.
+    const all = runIntegrityChecks();
+    setChecking(true); setDone(false); setProgress(0); setResults([]); setTotal(all.length);
     let i = 0;
-    const interval = setInterval(() => {
-      if (i >= CHECK_LOGS.length) {
-        clearInterval(interval);
+    timerRef.current = setInterval(() => {
+      if (i >= all.length) {
+        if (timerRef.current) clearInterval(timerRef.current);
+        timerRef.current = null;
         setProgress(100);
         setDone(true);
         setChecking(false);
         return;
       }
-      setLogs((p) => [...p, CHECK_LOGS[i]]);
-      setProgress(Math.round(((i + 1) / CHECK_LOGS.length) * 100));
+      const next = all[i];
+      setResults((p) => [...p, next]);
+      setProgress(Math.round(((i + 1) / all.length) * 100));
       i++;
     }, 280);
   }
@@ -140,7 +133,7 @@ export default function LogicLab({ activeDeck }: { activeDeck?: OVDeck }) {
       {/* CODE CHECKER */}
       <Panel title="Platform Integrity Checker" icon={<Terminal className="w-4 h-4" />} accent="#7cffc7">
         <p className="font-mono text-[9px] text-neutral-500 mb-3">
-          Runs a simulated audit of all MAD Gambit math engines and canonical constants.
+          Runs live checks of the MAD Gambit maths engine in this browser — the same pure functions the server uses. Each line is a real comparison; a failure shows in red.
         </p>
 
         {/* progress bar */}
@@ -152,11 +145,17 @@ export default function LogicLab({ activeDeck }: { activeDeck?: OVDeck }) {
         {/* log terminal */}
         <div ref={logRef}
           className="rounded-lg bg-[#010203] border border-neutral-900 p-3 h-40 overflow-y-auto font-mono text-[10px] text-emerald-400 space-y-0.5">
-          {logs.length === 0 && <p className="text-neutral-700">Awaiting check — press Run below.</p>}
-          {logs.map((l, i) => <p key={i}>{l}</p>)}
+          {results.length === 0 && <p className="text-neutral-700">Awaiting check — press Run below.</p>}
+          {results.map((r) => (
+            <p key={r.id} className={r.ok ? "" : "text-red-400"}>
+              {r.ok ? "✓" : "✗"} {r.label} <span className={r.ok ? "text-neutral-600" : "text-red-300"}>— {r.detail}</span>
+            </p>
+          ))}
           {done && (
             <p className="text-cyan-400 font-black animate-resolve-win">
-              ✓ ALL {CHECK_LOGS.length} checks passed — integrity confirmed.
+              {allClear
+                ? `✓ ALL ${total} checks passed.`
+                : `✗ ${results.filter((r) => !r.ok).length} of ${total} checks FAILED.`}
             </p>
           )}
         </div>
@@ -164,12 +163,12 @@ export default function LogicLab({ activeDeck }: { activeDeck?: OVDeck }) {
         <button
           onClick={runCheck}
           disabled={checking}
-          className={`mt-3 w-full rounded-xl py-2.5 font-mono text-xs uppercase tracking-widest font-bold transition-all disabled:opacity-40 flex items-center justify-center gap-2 ${done ? "animate-gold-jackpot" : ""}`}
+          className={`mt-3 w-full rounded-xl py-2.5 font-mono text-xs uppercase tracking-widest font-bold transition-all disabled:opacity-40 flex items-center justify-center gap-2 ${done && allClear ? "animate-gold-jackpot" : ""}`}
           style={{ background: "#7cffc715", border: "1px solid #7cffc740", color: "#7cffc7" }}>
           {checking
             ? <><Loader className="w-3.5 h-3.5 animate-spin" /> Checking…</>
             : done
-            ? <><CheckCircle2 className="w-3.5 h-3.5" /> All Clear — Run Again</>
+            ? <><CheckCircle2 className="w-3.5 h-3.5" /> {allClear ? "All Clear — Run Again" : "Failures — Run Again"}</>
             : <><CheckCircle2 className="w-3.5 h-3.5" /> Run Integrity Check</>
           }
         </button>

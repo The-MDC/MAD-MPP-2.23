@@ -95,7 +95,8 @@ export async function captionFor(base: Pick<TickerSnapshot, "analytics" | "marke
     perps: base.perps,
     markets: base.markets.slice(0, 8).map((m) => ({ title: m.title, category: m.category, yesPct: m.yesPct, volume: m.volume, kind: m.kind })),
   });
-  const reply = await ask({ system: CAPTION_SYSTEM, input: `Numbers for this minute:\n${digest}`, maxTokens: 90, temperature: 0.7 });
+  // One line over a few numbers: no thinking, so the wire caption lands well inside the timeout.
+  const reply = await ask({ system: CAPTION_SYSTEM, input: `Numbers for this minute:\n${digest}`, maxTokens: 90, temperature: 0.7, thinking: "off" });
   if (!reply) return fallback;
   const cleaned = cleanModelOutput(reply, 260);
   const line = cleaned.text.replace(/^["']|["']$/g, "");

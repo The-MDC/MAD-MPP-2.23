@@ -1,0 +1,101 @@
+name: Database
+
+# A REAL Postgres in CI.
+#
+# Until now CI had no database (ci.yml says so: "CI has no database — skip loudly here"), so:
+#   • nothing proved the 26 migrations apply to an EMPTY database in order;
+#   • `schema:verify` and `db:smoke` — scripts written for exactly this — never ran;
+#   • every SQL string in the app first executed in production, including the slot auction's
+#     `FOR SHARE` / `LIMIT 1 FOR UPDATE` money path (#200, #207), whose only tests ran against an
+#     in-memory pool that has no locks and is not Postgres.
+# This job closes that. It is deliberately NOT report-only: a red here is a real defect.
+#
+# The image is pgvector's, because migration 0004 runs CREATE EXTENSION vector. Migration 0026 is written
+# to be safe on plain Postgres (it only touches the Supabase roles if they exist), so none are faked.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "verify/sql/**"
+      - "verify/scripts/migrate.mjs"
+      - "verify/scripts/schema-verify.mjs"
+      - "verify/scripts/db-smoke.mjs"
+      - "verify/scripts/lib/schema-inventory.mjs"
+      - "verify/lib/**"
+      - ".github/workflows/database.yml"
+  push:
+    branches: [ main ]
+    paths:
+      - "verify/sql/**"
+      - "verify/scripts/migrate.mjs"
+      - "verify/scripts/schema-verify.mjs"
+      - "verify/scripts/db-smoke.mjs"
+      - "verify/scripts/lib/schema-inventory.mjs"
+      - "verify/lib/**"
+      - ".github/workflows/database.yml"
+
+concurrency:
+  group: database-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  database:
+    name: Postgres (migrations, schema, SQL tests)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: madgambit
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d madgambit"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/madgambit
+    defaults:
+      run:
+        working-directory: verify
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: verify/package-lock.json
+      - name: Install dependencies (locked)
+        run: npm ci
+
+      # Every migration, in order, on an empty database. migrate.mjs exits non-zero on the first failure.
+      - name: Apply every migration to an empty database
+        run: node scripts/migrate.mjs
+
+      # Idempotence: a second run must apply nothing. (migrate.mjs promises every migration is safe to re-run.)
+      - name: Re-running migrations is a no-op
+        run: |
+          set -euo pipefail
+          out="$(node scripts/migrate.mjs)"
+          echo "$out"
+          echo "$out" | grep -q "0 applied"
+
+      # Requirements are derived from verify/sql/ (scripts/lib/schema-inventory.mjs), so this checks all of them.
+      - name: Schema readiness
+        run: node scripts/schema-verify.mjs
+
+      - name: Core tables write and read (db:smoke)
+        run: node scripts/db-smoke.mjs
+
+      # lib/*.db.test.ts are skipped everywhere else (no DATABASE_URL_TEST); here they run against the real
+      # database — real locks, real unique indexes, real rollbacks.
+      - name: SQL tests against real Postgres
+        run: npx vitest run lib/slot-auction-store.db.test.ts
+        env:
+          DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/madgambit

@@ -13,6 +13,7 @@ import {
   calculateShieldPayoutFull, calculateShieldPremium,
   WhaleEligibilityInput,
 } from "../lib/gambit-game-math";
+import { cardRowsToNft, persistableCards, reconcileOwnedCards } from "../lib/card-view";
 
 /* ─── Types ─────────────────────────────────────────────────────── */
 
@@ -50,6 +51,8 @@ export interface NftCard {
   earnsCount: number;    // cumulative lifetime $MADx earned by this card
   canonicalFactionId: string; // on-chain snake_case faction ID
   artUrl?: string;       // optional real art (AI-Studio, keyed by serial); falls back to brand logo
+  /** Set ONLY on cards read from the server ledger: the (lower-cased) wallet that owns them. See lib/card-view.ts. */
+  ownerWallet?: string;
 }
 
 export interface TournamentEntry {
@@ -250,11 +253,39 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     localStorage.setItem("mad_game_state_v3", JSON.stringify({
-      cards, streak, madCredits: demoCredits, userMmr, ladder, positions, socialAccounts, socialAmplification
+      cards: persistableCards(cards), streak, madCredits: demoCredits, userMmr, ladder, positions, socialAccounts, socialAmplification
     }));
   }, [cards, streak, demoCredits, userMmr, ladder, positions, socialAccounts, socialAmplification]);
 
   const addCard       = useCallback((c: NftCard) => setCards(p => [c, ...p]), []);
+
+  /**
+   * OWNED CARDS (CF4). Once a wallet is signed in, read its real collection and put those cards first.
+   * Before this nothing called `/api/v1/cards/collection/<wallet>`, so a card a wallet had actually
+   * minted never showed in its own collection.
+   *
+   * Two rules keep it from leaking between accounts: ledger cards are tagged with their owner and
+   * NEVER persisted to localStorage (see `persistableCards`), and whenever the signed-in wallet changes
+   * — including to nobody — cards belonging to any other wallet are dropped first
+   * (`reconcileOwnedCards`). Silent on failure and on `source: "demo"` (no database): the seed and
+   * session cards stay as they were. Reconciling is idempotent, so a reconnect cannot stack copies.
+   */
+  useEffect(() => {
+    const address = walletAuth.address;
+    setCards((prev) => reconcileOwnedCards(prev, [], address));
+    if (!address) return;
+    let cancelled = false;
+    fetch(`/api/v1/cards/collection/${address}`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (cancelled || !d || d.source !== "live") return;
+        const owned = cardRowsToNft(d.cards);
+        if (owned.length > 0) setCards((prev) => reconcileOwnedCards(prev, owned, address));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [walletAuth.address]);
+
   /**
    * Read the real $MADx ledger. Silent on failure by design — a signed-out
    * visitor gets a 401 here on every page load, which is normal, not an error.
