@@ -217,7 +217,7 @@ export async function commitSealedBid(pool: Pool, input: CommitInput): Promise<C
     // clear had read the bid list would insert a bid and take its deposit INSIDE a transaction the
     // clear never saw — a debit with no refund and no forfeit, ever. The route's clock check
     // narrows that window; it cannot close it.
-    const auction = await client.query(`SELECT id, cleared_at FROM slot_auctions WHERE vintage = $1 FOR SHARE`, [
+    const auction = await client.query(`SELECT id, cleared_at FROM slot_auctions WHERE vintage = $1`, [
       input.vintage,
     ]);
     const auctionId = auction.rows[0]?.id;
