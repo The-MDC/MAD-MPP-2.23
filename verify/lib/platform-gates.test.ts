@@ -304,6 +304,30 @@ describe("migrations", () => {
     expect(r.out).toContain("jumps from 0026 to 0030");
   });
 
+  it("a letter-suffixed follow-up (0026 then 0026b) is allowed — it sorts right after its base", () => {
+    const r = withFile("verify/sql/0026b_follow_up.sql", "REVOKE ALL ON SCHEMA public FROM PUBLIC;\n");
+    expect(r.status, r.out).toBe(0);
+  });
+
+  it("but a suffixed migration may not be repeated, or skip its base", () => {
+    const base = withFile("verify/sql/0026b_one.sql", "SELECT 1;\n");
+    expect(base.status).toBe(0);
+    // two 0026b files
+    const dir = path.join(FIX, "verify", "sql");
+    writeFileSync(path.join(dir, "0026b_one.sql"), "SELECT 1;\n");
+    try {
+      const r = withFile("verify/sql/0026b_two.sql", "SELECT 2;\n");
+      expect(r.status).toBe(1);
+      expect(r.out).toContain("two migrations are numbered 0026b");
+    } finally {
+      rmSync(path.join(dir, "0026b_one.sql"), { force: true });
+    }
+    // a suffixed file whose base does not exist (0030b with no 0030)
+    const orphan = withFile("verify/sql/0030b_orphan.sql", "SELECT 1;\n");
+    expect(orphan.status).toBe(1);
+    expect(orphan.out).toContain("jumps from 0026 to 0030b");
+  });
+
   it("a badly named migration is caught", () => {
     const r = withFile("verify/sql/add_things.sql", "CREATE TABLE IF NOT EXISTS things (id int);\n");
     expect(r.status).toBe(1);

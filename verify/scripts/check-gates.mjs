@@ -397,17 +397,24 @@ async function main() {
   /* ── migrations ── */
   const sqlFiles = files.filter((f) => /^verify\/sql\/[^/]+\.sql$/.test(f)).map((f) => f.split("/").pop()).sort();
   if (sqlFiles.length === 0) fail("migrations", "no verify/sql/*.sql files found");
-  const nums = [];
+  // NNNN_name.sql, or NNNNx_name.sql for a follow-up that must run right after NNNN (0026 then 0026b: the runner
+  // sorts by name and "_" sorts before a letter). A bare duplicate (two 0026_…) is still wrong.
+  const seq = [];
   for (const f of sqlFiles) {
-    const m = /^(\d{4})_[a-z0-9_]+\.sql$/.exec(f);
-    if (!m) fail("migrations", `verify/sql/${f} does not match NNNN_snake_case.sql — the runner sorts by name, so a stray name runs in the wrong place`);
-    else nums.push(Number(m[1]));
+    const m = /^(\d{4})([a-z]?)_[a-z0-9_]+\.sql$/.exec(f);
+    if (!m) fail("migrations", `verify/sql/${f} does not match NNNN_snake_case.sql (or NNNNx_… for a follow-up) — the runner sorts by name, so a stray name runs in the wrong place`);
+    else seq.push({ n: Number(m[1]), s: m[2], label: `${m[1]}${m[2]}` });
   }
-  nums.forEach((n, i) => {
-    if (i > 0 && n === nums[i - 1]) fail("migrations", `two migrations are numbered ${String(n).padStart(4, "0")}`);
-    else if (i > 0 && n !== nums[i - 1] + 1) fail("migrations", `migration numbering jumps from ${String(nums[i - 1]).padStart(4, "0")} to ${String(n).padStart(4, "0")}`);
+  seq.forEach((cur, i) => {
+    if (i === 0) return;
+    const prev = seq[i - 1];
+    if (cur.n === prev.n && cur.s === prev.s) fail("migrations", `two migrations are numbered ${cur.label}`);
+    else if (cur.n === prev.n && cur.s > prev.s) return; // 0026 → 0026b
+    else if (cur.n === prev.n + 1 && cur.s === "") return; // 0026 → 0027
+    else fail("migrations", `migration numbering jumps from ${prev.label} to ${cur.label}`);
   });
-  if (nums.length && nums[0] !== 1) fail("migrations", `migrations start at ${String(nums[0]).padStart(4, "0")}, not 0001`);
+  if (seq.length && !(seq[0].n === 1 && seq[0].s === "")) fail("migrations", `migrations start at ${seq[0].label}, not 0001`);
+  const nums = seq.map((x) => x.n);
   let nonIdempotent = 0;
   for (const f of sqlFiles) {
     const sql = (await readFile(path.join(VERIFY, "sql", f), "utf8")).replace(/\/\*[\s\S]*?\*\//g, " ").replace(/--[^\n]*/g, " ");
@@ -416,7 +423,7 @@ async function main() {
       fail("migrations", `verify/sql/${f}: non-idempotent DDL (\`${m[1].replace(/\s+/g, " ").trim().slice(0, 60)}\`) — migrate.mjs promises every migration is safe to re-run`);
     }
   }
-  stats["migrations"] = `${sqlFiles.length} file(s), numbering ${nums.length ? `${String(nums[0]).padStart(4, "0")}–${String(nums[nums.length - 1]).padStart(4, "0")}` : "n/a"}, ${nonIdempotent} non-idempotent statement(s)`;
+  stats["migrations"] = `${sqlFiles.length} file(s), numbering ${seq.length ? `${seq[0].label}–${seq[seq.length - 1].label}` : "n/a"}, ${nonIdempotent} non-idempotent statement(s)`;
 
   /* ── report ── */
   for (const n of notes) console.log(n + "\n");
