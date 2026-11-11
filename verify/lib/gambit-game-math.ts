@@ -424,14 +424,44 @@ export function garchUpdate(
   return Number.isFinite(result) ? result : 0.02;
 }
 
-/** Canonical GARCH tick — takes/returns σ (not σ²), clamped to [0.09, 0.68].
- *  σ_{t+1} = CLAMP(√(ω + α·ε²_t + β·σ²_t), SIGMA_MIN, SIGMA_MAX) */
+/** softplus(z) = ln(1 + eˣ), computed without overflow. */
+function softplus(z: number): number {
+  if (z > 30) return z;
+  if (z < -30) return Math.exp(z);
+  return Math.log1p(Math.exp(z));
+}
+
+/** How wide the rounded corner of the σ bound is. Far from the bounds the map is the identity to within e^(−d/width). */
+export const SIGMA_SOFT_WIDTH = 0.02;
+
+/**
+ * A smooth, strictly increasing stand-in for `min(hi, max(lo, x))`.
+ *
+ * A hard clamp stops responding the instant the raw estimate crosses an edge while the driver keeps moving, so anyone
+ * who can estimate where the edge is gets a free directional read on a variable that feeds pricing (a tradeable kink).
+ * This map has no edge: its slope is positive everywhere, it is continuous, it approaches `lo` and `hi` asymptotically
+ * and never reaches them (in floating point, only for inputs more than ~25 widths outside the band).
+ *
+ *   u = lo + w·softplus((x − lo)/w)        lifts the floor into a curve that stays above `lo`
+ *   y = hi − w·softplus((hi − u)/w)        bends the ceiling the same way, staying below `hi`
+ *
+ * Both steps have slope in (0, 1), so the composition does too.
+ */
+export function softClamp(x: number, lo: number, hi: number, width: number = SIGMA_SOFT_WIDTH): number {
+  if (!Number.isFinite(x)) return Number.isNaN(x) ? (lo + hi) / 2 : x > 0 ? hi : lo;
+  const u = lo + width * softplus((x - lo) / width);
+  return hi - width * softplus((hi - u) / width);
+}
+
+/** Canonical GARCH tick — takes/returns σ (not σ²), softly bounded inside (0.09, 0.68).
+ *  σ_{t+1} = SOFTCLAMP(√(ω + α·ε²_t + β·σ²_t), SIGMA_MIN, SIGMA_MAX)
+ *  Was a hard CLAMP; see `softClamp` for why (remediation item 7, 2026-11-10). */
 export function garchSigma(prevSigma: number, prevShock: number): number {
   const variance = garchUpdate(
     PLATFORM.GARCH_OMEGA, PLATFORM.GARCH_ALPHA, PLATFORM.GARCH_BETA,
     Math.pow(Math.max(prevSigma, 0), 2), prevShock,
   );
-  return Math.min(PLATFORM.SIGMA_MAX, Math.max(PLATFORM.SIGMA_MIN, Math.sqrt(variance)));
+  return softClamp(Math.sqrt(variance), PLATFORM.SIGMA_MIN, PLATFORM.SIGMA_MAX);
 }
 
 /** Volatility amplification: 1 + 0.8·σ — capped at 1.544 by the σ clamp. */
