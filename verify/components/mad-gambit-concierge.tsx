@@ -39,6 +39,7 @@ import { SKILL_CHIPS } from "@/lib/concierge-skill-chips";
 import { emptyRapport, noteVisit, sanitizeRapport, updateRapport, type Rapport } from "@/lib/concierge-personality";
 import { GOLD_CHISEL_STOPS, INSTRUMENT_FONT, INK } from "@/lib/gambit-design-tokens";
 import { Send, X, RotateCw } from "lucide-react";
+import RichText from "@/components/rich-text";
 
 /** Verbatim from MAD-MPP-2.23/GEMINI.md — inject directly into GenerateContentRequest.
  *  Do not edit for tone. Do not shorten. This is the actual production instruction. */
@@ -517,7 +518,7 @@ export default function MadGambitConcierge({ uid = "concierge" }: { uid?: string
                     fontFamily: INSTRUMENT_FONT, fontSize: "10px", lineHeight: 1.55,
                     color: m.from === "user" ? "#8fe8ff" : "#ffd98a",
                   }}>
-                    {m.text}
+                    {m.from === "user" ? m.text : <RichText text={m.text} />}
                   </div>
                   {m.from === "madhatr" && m.id !== "seed" && prevUserMsg && (
                     <button

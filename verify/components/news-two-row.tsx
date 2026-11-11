@@ -12,6 +12,7 @@
 import React, { useEffect, useState } from "react";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
+import { fetchJsonShared } from "@/lib/shared-fetch";
 import MetricPopover from "@/components/metric-popover";
 import TabStrip, { type TabItem } from "@/components/tab-strip";
 import { HEAT_EXPLAINER, type HeatSignals } from "@/lib/heat-score";
@@ -246,7 +247,7 @@ export default function NewsTwoRow() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/v1/news/satirical").then((r) => r.json()).catch(() => null),
+      fetchJsonShared("/api/v1/news/satirical").catch(() => null),
       fetch("/api/v1/markets/proposals?limit=40").then((r) => r.json()).catch(() => null),
     ]).then(([news, markets]) => {
       const out: Card[] = [];

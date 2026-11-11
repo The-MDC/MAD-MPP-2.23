@@ -60,7 +60,26 @@ const repo =
   fail("could not work out owner/name from the origin remote; pass --repo");
 
 const toRepoPath = (p) => path.relative(top, path.resolve(p)).split(path.sep).join("/");
-const additions = opts.files.map((f) => ({ path: toRepoPath(f), contents: readFileSync(f).toString("base64") }));
+/**
+ * The bytes to commit for one file. On Windows, `core.autocrlf=true` leaves CRLF on disk while the repository stores LF;
+ * committing the disk bytes through the API would then rewrite EVERY line of an edited file (a 3-line change showing as
+ * +1587/-1557, found on PR #224). So a text file with CRLF is sent as LF unless origin/main stores that same path with
+ * CRLF. Binary files (any NUL byte) and files with no CRLF are sent exactly as they are.
+ */
+function bytesFor(f) {
+  const raw = readFileSync(f);
+  if (raw.includes(0) || !raw.includes("\r\n")) return raw;
+  let mainHasCrlf = false;
+  try {
+    mainHasCrlf = execFileSync("git", ["show", `origin/main:${toRepoPath(f)}`], { maxBuffer: 256 * 1024 * 1024, stdio: ["ignore", "pipe", "ignore"] }).includes("\r\n");
+  } catch {
+    mainHasCrlf = false; // not on main (a new file), or no origin/main: LF
+  }
+  if (mainHasCrlf) return raw;
+  return Buffer.from(raw.toString("utf8").replace(/\r\n/g, "\n"), "utf8");
+}
+
+const additions = opts.files.map((f) => ({ path: toRepoPath(f), contents: bytesFor(f).toString("base64") }));
 const deletions = opts.deletes.map((p) => ({ path: toRepoPath(p) }));
 for (const x of [...additions, ...deletions]) if (x.path.startsWith("..")) fail(`${x.path} is outside the repository`);
 

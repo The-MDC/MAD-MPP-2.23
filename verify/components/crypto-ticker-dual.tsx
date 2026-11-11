@@ -34,6 +34,7 @@
 import React from "react";
 import { useSkin } from "@/components/skin-provider";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
+import { fetchJsonShared } from "@/lib/shared-fetch";
 import MetricPopover, { type MetricRow } from "@/components/metric-popover";
 import HoldHint from "@/components/hold-hint";
 
@@ -198,8 +199,7 @@ export default function CryptoTickerDual() {
   const [liveHeadlines, setLiveHeadlines] = React.useState<Tick[] | null>(null);
   React.useEffect(() => {
     let alive = true;
-    fetch("/api/v1/news/satirical")
-      .then((r) => r.json())
+    fetchJsonShared("/api/v1/news/satirical")
       .then((j) => {
         if (!alive) return;
         const arr = Array.isArray(j?.items) ? j.items : Array.isArray(j) ? j : [];
