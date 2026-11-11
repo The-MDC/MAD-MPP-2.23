@@ -344,7 +344,7 @@ export default function NewsTwoRow() {
         </div>
       )}
       <style>{`
-        .mg-nr-track { animation-timing-function: linear; animation-iteration-count: infinite; animation-duration: 46s; }
+        .mg-nr-track { animation-timing-function: linear; animation-iteration-count: infinite; animation-duration: 71s; }
         .mg-nr-track.mg-nr-l { animation-name: mgNrL; }
         .mg-nr-track.mg-nr-r { animation-name: mgNrR; }
         .mg-nr-row:hover .mg-nr-track { animation-play-state: paused; }
