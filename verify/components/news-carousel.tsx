@@ -12,6 +12,7 @@ import React, { useEffect, useState } from "react";
 import { useSkin } from "@/components/skin-provider";
 import TabStrip from "@/components/tab-strip";
 import { INSTRUMENT_FONT } from "@/lib/gambit-design-tokens";
+import { fetchJsonShared } from "@/lib/shared-fetch";
 
 type NewsCategory = "headlines" | "entertainment" | "sports" | "viraltech" | "crypto" | "tabloid";
 interface Item {
@@ -65,8 +66,7 @@ export default function NewsCarousel() {
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReduce(mq.matches);
-    fetch("/api/v1/news/satirical")
-      .then((r) => r.json())
+    fetchJsonShared("/api/v1/news/satirical")
       .then((d: Resp) => {
         if (d?.success) setData(d);
       })
