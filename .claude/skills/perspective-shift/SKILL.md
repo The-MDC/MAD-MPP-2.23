@@ -1,153 +1,236 @@
 ---
 name: perspective-shift
-description: Evaluate a feature, engine, repo, or decision from six stakeholder lenses paired as three adversarial dualities, stress-tested with six perspective-shifting methods (Round Table, Phoenix Checklist, Day in the Life, Inversion, Reframing, Vuja Dé). Use when a build looks "done" and you need to find what's missing, when choosing between approaches, when auditing an inherited repo or capability, when scoping a product sheet, or when a decision keeps circling. Triggers on "perspective", "six lenses", "dual perspective", "stress test this", "what are we missing", "evaluate this capability", "should we keep or kill", "product scope", "second opinion", "poke holes".
+description: Interrogate a product, mechanism, pricing or positioning decision from nine perspectives before changing it. Use when asked to refine, sharpen, critique or rethink part of the platform; when a decision feels obvious; when two reasonable people disagree; or when a change passed review but was only ever tested at one scale.
+version: 2.0
 ---
 
-# Perspective Shift — six lenses, three dualities, six methods
+# perspective-shift
 
-> "One perspective is no perspective." — Game-Changer
-> "Perspective is worth more than IQ." — Alan Kay
+The three principles this is built to serve: people can earn sustainably, the engine stays hard to figure out, the surface stays simple enough to play. Any finding that improves one and wrecks another is not a finding.
 
-Most evaluation checklists fail the same way: they score each dimension in isolation, every dimension comes back "fine," and the real problem — which lives in the *tension between* dimensions — is never surfaced. A feature can be technically excellent and ethically indefensible. A joke can be funnier and thereby less trustworthy. Scoring those separately hides the trade; pairing them exposes it.
+## The one line
 
-This skill does three things in order:
+Three lenses at three horizons make nine perspectives. Six personas argue inside each. Every perspective is read three ways before it reports. The output is what changed your mind, not a verdict.
 
-1. **Pair** the six lenses into three dualities, so each lens is interrogated by its natural adversary.
-2. **Apply** a perspective-shifting method to each duality — a different one per pair, because each method breaks a different kind of stuck.
-3. **Extract** the top 5–6 needs per lens, then report only the **conflicts**, because that is where the design decision actually is.
+## Vocabulary, fixed
 
-## When to use this
+Do not vary these words. They have been drifting.
 
-- A build passes CI and looks finished — find what "finished" is hiding
-- Deciding keep / rebuild / kill on an inherited repo or capability
-- Scoping a product sheet or dev plan and needing the requirement set to be complete
-- A decision keeps circling with no new information
-- Before anything user-facing, revenue-touching, or legally exposed ships
-
-**Do not** use it for mechanical tasks, single-fact lookups, or when the answer is already known and the analysis would be theatre.
-
----
-
-## Step 1 — The three dualities
-
-Never evaluate a lens alone. Each pair below is chosen because the two sides *want incompatible things*, and the incompatibility is the finding.
-
-### Duality 1 · Customer ↔ User
-**Who pays vs. who consumes.** Often the same human in different modes, which is exactly why teams conflate them and ship for one at the other's expense.
-
-- **Customer (Experience)** — the buyer or external recipient. Value, satisfaction, ROI, the end-to-end journey, trust in what they're paying for.
-- **User (Product)** — direct interaction. Usability, friction, interface, how smoothly the daily task completes.
-
-*Classic conflict:* what delights the User in the moment (speed, spectacle, edge) can erode the thing the Customer is actually paying for (trust, accuracy, durability).
-
-**Method: Inversion.** Charlie Munger: *"Don't think about what you want. Think about what you want to avoid."* Ask what would make each side abandon the product, then check whether the other side's wins cause exactly that.
-
-### Duality 2 · Employee ↔ Business
-**Who operates it at 2am vs. the P&L it serves.**
-
-- **Employee (People)** — internal adoption, required skills, workflow changes, on-call burden, readiness and resistance.
-- **Business (Strategy)** — alignment with goals, financial impact, operating cost, competitive advantage, defensibility.
-
-*Classic conflict:* the cheapest thing to build is frequently the most expensive thing to run, and the operating cost is invisible on the day the decision is made.
-
-**Method: Vuja Dé.** Look at the familiar thing as if you have never seen it, with a child's willingness to question the obvious. *Why does it work this way? Why does it have four legs?* This is where you notice the system has no memory, no ledger, no kill-switch — the absences that are invisible precisely because they've always been absent.
-
-### Duality 3 · Technical ↔ Societal/Ethical
-**What we can build vs. what we should ship.**
-
-- **Technical (Systems)** — architecture, security, data integration, scalability, maintenance, failure modes.
-- **Societal/Ethical (Impact)** — cultural, environmental, governance and compliance implications; who is harmed if this works exactly as designed.
-
-*Classic conflict:* the most elegant technical solution often externalises its cost onto someone not in the room.
-
-**Method: King Arthur's Round Table.** Seat people — living, dead, fictional — who would each see this differently, and ask their questions rather than yours. Seat *adversaries*, not fans: the regulator, the plaintiff's lawyer, the competitor, the person the feature is done *to*. Ask: *How would ___ approach this? What would ___ find interesting? What would ___ ask that I wouldn't?*
-
----
-
-## Step 2 — The six methods
-
-Three are assigned above. All six are available; reach for the one that matches how you're stuck.
-
-| Method | Use when | The move |
+| Term | Means | Count |
 |---|---|---|
-| **King Arthur's Round Table** | You're stuck inside your own expertise | Seat living/dead/fictional people with genuinely different vantage points. Ask their questions, not yours. Adversaries beat admirers. |
-| **The Phoenix Checklist** | You're not sure you're asking the right question | CIA-origin question battery. Especially: *Why do we need to solve this? What do we know vs. not know for sure? **What is NOT the problem?** What if we drew a picture of it?* |
-| **A Day in the Life** | You're guessing at someone's needs | Ethnography. Don't imagine the user — become one. Run the flow yourself, on their device, with their constraints, withholding judgment. |
-| **Inversion** | You keep listing what you want | Ask what you want to *avoid*, then work backwards. Avoiding stupidity is easier than seeking brilliance. |
-| **Reframing** | The solution space feels narrow or expensive | Reword the problem statement. *"How do I compete with MBAs?"* → *"How do I get rewarded for expertise without one?"* — different question, entirely different answers. How you frame it determines which paths exist. |
-| **Vuja Dé** | The thing is too familiar to see | The inverse of déjà vu: look at the familiar as if brand new. Question what everyone stopped questioning. Effectively the 5 Whys with better branding. |
+| Lens | a duality: two stakeholders in genuine conflict | 3 |
+| Perspective | a lens at a horizon | 9 |
+| Persona | a voice that speaks from a perspective | 6 |
+| Register | how a finding is examined | 3 |
 
-> **Sourcing note.** The Game-Changer article this derives from titles itself "6 methods" but its own numbered list has seven entries — it opens with "Contact" and never explains it. Six have substance; Contact is a dropped thread. Do not invent content for it.
+A perspective is a place to stand. A register is a way of looking. A persona is who is talking.
 
----
+Nine perspectives, three registers each: twenty-seven readings.
 
-## Step 3 — Extract, then report only conflicts
+## Why the horizons exist
 
-For each of the six lenses, list the **top 5–6 needs / wants / requirements**. Then discard most of it.
+A conflict reported once is reported for whichever world the author was imagining. Almost every serious failure in a growing system is a conflict tested at one scale, passed, then treated as a property of the design rather than a property of the scale. Actor Critic found this the hard way, and so does every market that works at ten markets and dies at ten thousand.
 
-The deliverable is **not** thirty-six bullet points. It is:
+### The three horizons
 
-1. **The conflicts** — where two paired lenses want incompatible things. Name the trade explicitly.
-2. **The absences** — what no lens asked for because nobody thought to (Vuja Dé's harvest).
-3. **A ranked action list** — 5–6 items, each tagged with the lens that produced it and a difficulty/blast-radius note.
-4. **A split** — which actions are small and confident (do them now) vs. architecturally significant or policy-level (ask first).
+**Now.** Pre-close, one operator, a handful of markets, nobody adversarial has read the docs.
 
-That last split is mandatory. An analysis that recommends ten things with equal weight has made no decision.
+**At scale.** Thousands of markets, thousands of subjects, one shared book across five families, an adversary who has had a month with your published parameters.
 
-### Output shape
+**At maturity.** Crowded category, regulatory precedent exists, competitors have copied the surface, rake compressed.
 
-```markdown
-## Dual-6 Perspective Audit — <subject>
+## The three lenses
 
-### Duality 1 · Customer ↔ User    [Method: Inversion]
-| | Top needs |
-|---|---|
-| Customer | 1. … 2. … 3. … 4. … 5. … |
-| User | 1. … 2. … 3. … 4. … 5. … |
+### Customer ↔ User
 
-**The conflict this exposes:** …
-**Insight → action:** …
+Customer is the buyer: value, trust, return on what they paid. User is the person using it: friction, attention, usability.
 
-### Duality 2 · Employee ↔ Business    [Method: Vuja Dé]
-…
+Meta-conflict: what delights the user now, speed and spectacle, is paid for by the customer later, in trust and accuracy.
 
-### Duality 3 · Technical ↔ Societal/Ethical    [Method: Round Table]
-*Seated:* <adversary>, <adversary>, <adversary>
-**What the table returns:** …
+Inversion question: what would make each side abandon this? The customer abandons on a resolution they would be ashamed to defend in public. The user abandons on friction, or on a losing run with no exit.
 
-### Cross-cutting: Phoenix Checklist
-Running *"what is NOT the problem?"* → …
+### Employee ↔ Business
 
-## Top 5–6 actions
-1. **<action>** — <why> *(lens — size)*
-…
+Employee is who runs it at 2am: adoption, on-call burden, cognitive load. Business is the P&L: cost, advantage, defensibility.
 
-**Confident + small:** #, #, #  ·  **Needs your call:** #, #
+Meta-conflict: the cheapest thing to build is the costliest to run, and that cost is invisible on decision day.
+
+Vuja Dé question: inherited tomorrow from a stranger, with no memory of designing it, would you take this on? If the answer is no, it is a later feature and the roadmap should say so.
+
+### Technical ↔ Societal
+
+Technical is architecture, security, failure modes. Societal is who is harmed if it works exactly as designed, plus compliance.
+
+Meta-conflict: the elegant solution pushes its cost onto someone not in the room.
+
+This is the lens that only speaks when the product is working. A failure-modes review cannot find a harm caused by correct operation, because it is looking for the wrong thing. Round Table: seat a regulator, a plaintiff's lawyer, and a competitor who would rather litigate than compete.
+
+## The six personas
+
+Not lenses. Not perspectives. The voices that turn up and interrogate, and they never agree.
+
+**The Drainer.** Wants to take money out and post no risk. Asks: where can I extract without a position? Refuses to accept a design as safe because it has not been drained. Fires on pricing, liquidity, settlement, anything with a payout.
+
+**The Sybil.** Wants influence from quantity rather than stake. Asks: how many accounts, and what does each cost? Refuses the claim that identity is expensive. Fires on credibility, voting, reputation, market creation, engagement metrics.
+
+**The Insider.** Wants profit from knowing what happens next. Asks: who knows before the market does? Refuses any mechanism that assumes simultaneous revelation. Fires on timing, oracles, anchors, funding epochs, disclosure.
+
+**The Statistician.** Wants to show the model is wrong for the space it operates in. Asks: where is this misspecified, and what does it cost in practice? Refuses a fit as evidence of correctness without a control. Fires on volatility, forecasting, fitted parameters, any bounded variable modelled as unbounded.
+
+**The LP.** Wants to know where the book goes naked. Asks: what am I holding when three things break at once? Refuses average-day thinking. Fires on inventory, collateral, funding, liquidation, shared budgets.
+
+**The Auditor.** Wants to prove nobody outside can check the outcome. Asks: how do I reproduce this from the repo alone? Refuses an unlogged decision. Fires on settlement finality, resolution specs, test artifacts, anything server-side.
+
+## The nine perspectives, with personas seated
+
+Two personas per perspective. They disagree in their own voice. The finding comes out of the disagreement, not from beside it.
+
+### 1. Customer ↔ User, Now — Auditor, Insider
+
+- **Auditor:** the buyer is a named partner and the trust is personal, so nothing is written down and nothing can be checked. A relationship is not a control, it is a control you have not tested.
+- **Insider:** the partner knows more about their audience than you do, so you are pricing on information you cannot see.
+- **Finding:** the conflict is quiet at one partner, and quiet because nothing is documented rather than because nothing is wrong.
+
+### 2. Customer ↔ User, At scale — Sybil, LP
+
+- **Sybil:** creators are now a number, so how many fake ones does it take to look like demand?
+- **LP:** the buyer is not holding the bag, you are. Every creator-brokered market is inventory the house carries, and the buyer was already paid.
+- **Finding:** per-market caps fail. Exposure on a subject is cumulative across every market naming them, so the cap must be per subject.
+
+### 3. Customer ↔ User, At maturity — Auditor, Drainer
+
+- **Auditor:** five venues with identical mechanics, so the only thing left to buy is a resolution the buyer can defend. Can a third party audit it from the evidence alone?
+- **Drainer:** and where they cannot, that is where I live. Every unauditable resolution is a market where the house can be wrong and nobody prices the difference.
+- **Finding:** resolution quality is the last defensible position and the most expensive. Cutting resolution cost here is liquidation wearing efficiency's clothes.
+
+### 4. Employee ↔ Business, Now — Insider, Statistician
+
+- **Insider:** one person holds the engine, so the business is a person. The coefficient library being server-side means the value sits in someone's head and nobody has valued it.
+- **Statistician:** build speed is the constraint and correctness is the casualty. Every family added before the specification is settled is a family that gets rebuilt.
+- **Finding:** at this horizon surface discipline looks like a luxury and is the only thing that prevents the rebuild.
+
+### 5. Employee ↔ Business, At scale — LP, Sybil
+
+- **LP:** four families on one budget is not four risks, it is one risk counted four times. Value at risk scales linearly in family count when the anchors are correlated, and entertainment news cycles are among the most correlated series available.
+- **Sybil:** and the operational load is not the families, it is the interactions. Surface scales as n(n−1)/2, so one more family is +67% in things that page you at 2am.
+- **Finding:** the fifth family is a permanent tax. Compute the anchor dependence matrix; if median tail dependence is high, it adds risk without adding independent revenue.
+
+### 6. Employee ↔ Business, At maturity — Insider, Auditor
+
+- **Insider:** the builder has left or is the only fixer, and knowledge concentration peaks exactly as the business becomes worth something. Un-copyable and un-survivable are the same property from different seats.
+- **Auditor:** and because the coefficients are not in the repo, reconstitution cost is not bounded by version history. What is the expected loss from departure, in number?
+- **Finding:** a buyer prices that concentration as a discount whether or not anyone names it. Target a second holder.
+
+### 7. Technical ↔ Societal, Now — Statistician, Drainer
+
+- **Statistician:** the volatility filter runs on a bounded series and should run on the logit. The clamp is not a safety feature, it is a tradeable kink, and here is the control test that proves it.
+- **Drainer:** then I trade the kink. Any hard bound in a price is a place to stand and take value from the other side.
+- **Finding:** the clamp is a defect wearing a constraint's clothes. Mandatory control: continuity passes on tanh and fails on the clamp.
+
+### 8. Technical ↔ Societal, At scale — Sybil, LP
+
+- **Sybil:** if credibility aggregates by count, or by weight anyone can buy, the anchor is purchasable. What does it cost to move it ten points?
+- **LP:** if reputation severity has a heavy tail, my expected loss does not converge. Under a tail index at or below one, no finite rake is an adequate premium and the only honest answer is a capped exposure.
+- **Finding:** state the jump intensity and the support of the jump per market class. Unbounded support means no launch without a legal bound or a mechanism that caps it.
+
+### 9. Technical ↔ Societal, At maturity — Auditor, Insider
+
+- **Auditor:** precedent exists and it was set by someone else's market. The licence to operate named-subject markets becomes the scarce asset, not the engine.
+- **Insider:** and the competitor who would rather litigate than compete knows exactly which of your markets to point at.
+- **Finding:** what is being accumulated now may be the wrong asset class. This is the finding no test of the current frame produces, because it questions the frame.
+
+## The three registers
+
+Entry standard inside every perspective. Not an axis.
+
+**Argued.** Case and counter-case in plain prose, with the values underneath. Philosophy belongs here and decides which question is being computed. An engine that prices conviction rather than accuracy is a philosophical position before it is a technical one.
+
+**Quantified.** A bound, a threshold, a distribution, or a test with a control. An argument with no falsifiable consequence is a mood. A number with no argument answers a question nobody asked.
+
+**Imagined.** One step past the obvious framing. A market on a fact has a resolution; a market on a story has an arc. If the underlying is narrative rather than fact, the family reorganises around a narrative term structure.
+
+A perspective read in one register has not been read.
+
+## Classifications
+
+**Harmonic.** Same verdict at all three horizons. Structural. Blocks now, because waiting buys nothing and costs time.
+
+**Chaotic.** Verdict flips between horizons. Roadmap debt with a stated trigger. Name the horizon and the condition. A flip without a trigger is anxiety, not a finding.
+
+**Shear.** The gap between the Now and At-scale readings in one perspective. Steep shear means the design holds only near the origin, which is the definition of a thing that breaks on contact with success.
+
+**Convergent.** Two lenses with opposite priors land on the same requirement, as when Societal wants a restoration path because the subject is a person and Technical wants one because without it the price is not a martingale. Highest-confidence finding available, outranks anything either lens produced alone.
+
+**Absent.** What no persona asked. Usually the most valuable output, because a persona only sees what its own appetite points at.
+
+## Procedure
+
+1. Read the actual files. Never run from memory. A persona applied to a remembered design reviews the design as remembered.
+2. Name the decision in one sentence: what changes, and from what.
+3. Fill the nine. Two personas per perspective. Skip only with a stated reason.
+4. Read each filled cell three times: argued, quantified, imagined.
+5. Root the findings. Group by shared cause. Most cells share one.
+6. Classify each finding per the list above.
+7. Rank the actions by expected value.
+8. Report to the contract, then make the change.
+
+## Ranking
+
+`R(a) = P(fail) × L(fail) × D(h) − C(now)`
+
+Three consequences.
+
+- An unbounded loss term dominates everything, so harmonic findings block regardless of how improbable they look.
+- A flip can reverse the sign of R between horizons, because cost rises faster the later you pay. That is what makes roadmap debt expensive.
+- Cheap and confident outranks expensive and important, because the first buys information about the second.
+
+## Output contract
+
+Literal fields. Fill them; do not compose prose around them. Field-shaped output makes padding obvious.
+
+<!-- The placeholders inside the angle brackets below were stripped from the pasted source; they are rebuilt from Hard rules 5 and 6 (name persona, perspective and register; mark epistemic status). Adjust if your original differed. -->
+
+```
+Decision: <one sentence: what changes, and from what>
+Nuance: <what the obvious reading misses>
+
+Harmonic (blocks now)
+* <finding> | <perspective #> | <persona> | <register> | <status>
+
+Chaotic (flips at <horizon> when <condition>)
+* <finding> | <perspective #> | <persona> | <register> | <status>
+
+Convergent
+* <finding> | <lens A + lens B> | <persona> | <register> | <status>
+
+Absent
+* <what no persona asked>
+
+Roots
+* <shared cause> | <perspectives it explains>
+
+Ranked
+Small and confident: 1. <action> | <perspective> | <R>
+Needs your call:     2. <action> | <perspective> | <R>
+
+What I would change, and what I would leave alone
 ```
 
----
+## Hard rules
 
-## Rules that keep this honest
+1. Read the actual files first.
+2. Seat adversaries, not fans. A persona that agrees with the design has produced nothing.
+3. Separate new flaws from inherited ones. An inherited finding is logged, not blocking.
+4. Both sides produce a figure where a figure exists. Challenger-only numbers are a veto; defender-only numbers are an assertion. Neither is a reading.
+5. Name the persona, the perspective and the register on every finding. A finding attributed to nobody is an opinion with a table around it.
+6. Mark epistemic status: proven, derived, assumed, founder's statement, unverified. An unmarked claim is an opinion.
+7. Quiet cells get one line and a reason. Padding every perspective to look thorough is how a real finding gets buried.
+8. No numbers, no verdict.
 
-1. **Read the actual artifact first.** Perspective analysis on top of an assumed implementation produces confident fiction. Open the files. If you cannot, say so and scope the conclusion.
-2. **Seat adversaries at the Round Table.** A table of admirers returns nothing you didn't already believe.
-3. **Report conflicts, not coverage.** "All six lenses look fine" means the pairing wasn't done.
-4. **Separate pre-existing from introduced.** When auditing a change, say plainly whether a flaw is new or inherited. Both matter; conflating them misassigns blame and mis-sizes the fix.
-5. **Name the blast radius.** Storage changes, public API contracts, and legal/policy calls are never "small," however few lines they take.
-6. **Never let the analysis become the deliverable.** It exists to change what gets built.
+## Why Sybil sits in Technical, not Customer
 
-## Feeding results into product scope
+Fake engagement looks like a demand problem. It is not. Demand inflation is a growth issue you catch with deduplication. Information contamination is a pricing issue: a sybil trades, and if its trades enter the book the price is no longer an aggregation of independent signals, it is signal mixed with manufactured noise that knows it is noise.
 
-The extracted needs map directly onto the MAD Gambit product-sheet format
-(`§1 Overview · §2 Canonical Constants · §Taxonomy · §Technical Development Scope
-7.1–7.4 · §Compliance · §Success Metrics`):
+So the metric that matters is not engagement and not unique wallets. It is effective independent information per market: distinct uncorrelated participants, weighted by how much each disagrees with consensus. Thirty dissenters in a thin market carry more information than ten thousand agreeing in a deep one, and those two look identical on a dashboard.
 
-- **Customer + User** needs → §1 Overview, tagline, core loop, and §Success Metrics
-- **Employee + Business** needs → §7.4 Phased Build, operating-cost notes, and the metrics that gate each phase
-- **Technical** needs → §7.1 Smart Contracts / §7.2 Backend / §7.3 Frontend
-- **Societal/Ethical** needs → §Compliance — and any of them that are launch-blocking belong in Phase 1, not Phase 4
-
-A requirement that no lens produced probably belongs to no one. Cut it.
-
-See `references/lens-questions.md` for the per-lens question batteries and the
-Phoenix Checklist subset worth running verbatim.
+The hard consequence: if the product's claim is information rather than volume, sybil resistance is not a compliance feature, it is the core property. A market that cannot be defended as sybil-resistant should not open.
