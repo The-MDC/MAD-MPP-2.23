@@ -31,6 +31,7 @@ import {
   calculateDLLMSRMarginalCost,
   garchUpdate,
   garchSigma,
+  softClamp,
   garchAmplification,
   votingPower,
   zLiarMeter,
@@ -382,12 +383,39 @@ describe("GARCH — canonical parameters, sigma-space clamp, amplification", () 
     const v = garchUpdate(NaN, NaN, NaN, 0.04, 0.1);
     expect(v).toBeCloseTo(0.0001 + 0.05 * 0.01 + 0.9 * 0.04, 9);
   });
-  it("garchSigma stays clamped to [0.09, 0.68]", () => {
-    expect(garchSigma(0.0, 0.0)).toBeCloseTo(0.09, 9); // floor
-    expect(garchSigma(5, 5)).toBeCloseTo(0.68, 9); // ceiling
+  it("garchSigma stays inside (0.09, 0.68), approaching the bounds without touching them", () => {
+    expect(garchSigma(0.0, 0.0)).toBeGreaterThan(0.09); // floor: lifted off the edge, not pinned to it
+    expect(garchSigma(0.0, 0.0)).toBeLessThan(0.0905);
+    expect(garchSigma(5, 5)).toBeLessThanOrEqual(0.68); // ceiling
+    expect(garchSigma(5, 5)).toBeGreaterThan(0.679);
     const mid = garchSigma(0.3, 0.1);
-    expect(mid).toBeGreaterThanOrEqual(0.09);
-    expect(mid).toBeLessThanOrEqual(0.68);
+    expect(mid).toBeGreaterThan(0.09);
+    expect(mid).toBeLessThan(0.68);
+  });
+  it("softClamp is the identity far from the bounds (remediation item 7: no behaviour change in the working band)", () => {
+    for (const x of [0.2, 0.3, 0.4, 0.5, 0.6]) expect(Math.abs(softClamp(x, 0.09, 0.68) - x)).toBeLessThan(1e-3);
+  });
+  it("softClamp is continuous and strictly increasing across and beyond both bounds, and never reaches them", () => {
+    let prev = -Infinity;
+    for (let x = -0.2; x <= 1.2 + 1e-12; x += 0.001) {
+      const y = softClamp(x, 0.09, 0.68);
+      expect(y).toBeGreaterThan(0.09);
+      expect(y).toBeLessThan(0.68);
+      expect(y).toBeGreaterThan(prev); // strictly monotone: no flat region, so no edge to trade
+      if (Number.isFinite(prev)) expect(y - prev).toBeLessThan(0.0015); // continuous: a 0.001 step moves it by at most ~0.001
+      prev = y;
+    }
+  });
+  it("softClamp's sensitivity never reaches zero just outside the band (a flat region is the same trade as a hard edge)", () => {
+    for (const x of [0.0, 0.05, 0.7, 0.75, 0.8]) {
+      const slope = (softClamp(x + 1e-4, 0.09, 0.68) - softClamp(x, 0.09, 0.68)) / 1e-4;
+      expect(slope).toBeGreaterThan(1e-4);
+    }
+  });
+  it("softClamp handles non-finite input without NaN", () => {
+    expect(Number.isNaN(softClamp(NaN, 0.09, 0.68))).toBe(false);
+    expect(softClamp(Infinity, 0.09, 0.68)).toBe(0.68);
+    expect(softClamp(-Infinity, 0.09, 0.68)).toBe(0.09);
   });
   it("amplification is 1 + 0.8·sigma, capped at 1.544", () => {
     expect(garchAmplification(0.3)).toBeCloseTo(1.24, 9);

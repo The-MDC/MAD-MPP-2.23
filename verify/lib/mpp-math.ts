@@ -35,9 +35,41 @@ export function calculateConviction(
 }
 
 /**
+ * The PUBLIC price: a function of book state only (floor, conviction, slope, time), never of who is asking.
+ * Two callers with different account attributes at the same state get the same number — so there is no price
+ * difference between a high- and a low-multiplier account to arbitrage (remediation item 1, 2026-11-10).
+ * formula: P(t) = P_floor * (1 + slope * ln(1 + conviction_t)) * slippage
+ */
+export function calculateBookPrice(
+  baseFloor: number,
+  conviction: number,
+  pricingSlope: number,
+  elasticityPercent: number,
+  epoch: number,
+  maxEpochs: number
+): number {
+  const logScale = Math.log1p(conviction);
+  const slippageCushion = calculateSlippageCushion(elasticityPercent, epoch, maxEpochs);
+  return baseFloor * (1 + pricingSlope * logScale) * slippageCushion;
+}
+
+/**
+ * What an account's multiplier is worth: a term in the account's OWN payoff, applied at the position or settlement
+ * layer. It never enters the public price. Multiplier^(2.23), the MPP-2.23 exponent.
+ */
+export function accountPayoutFactor(userMultiplier: number): number {
+  return Math.pow(userMultiplier, 2.23);
+}
+
+/**
  * Calculates MAD-MPP-2.23 Continuous Bonding pricing.
  * Handles exponential curve scaling influenced by user multipliers and elastic temporal penalties.
  * formula: P(t) = P_floor * (1 + slope * ln(1 + conviction_t)) * Multiplier^(2.23) * slippage
+ *
+ * @deprecated This price depends on the caller's multiplier, so the same book quotes two accounts two prices.
+ * Quote with `calculateBookPrice` and apply `accountPayoutFactor` to the account's own payoff instead. It is kept,
+ * unchanged, only because the published formula and the chart copy still name it; it equals
+ * `calculateBookPrice(...) * accountPayoutFactor(userMultiplier)` (pinned in lib/mpp-math.test.ts).
  */
 export function calculateMppPrice(
   baseFloor: number,

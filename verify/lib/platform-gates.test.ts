@@ -304,23 +304,31 @@ describe("migrations", () => {
     expect(r.out).toMatch(/jumps from 00\d\d to 0090\b/);  // the real last migration changes; the jump is what matters
   });
 
-  it("a letter-suffixed follow-up (0026 then 0026b) is allowed — it sorts right after its base", () => {
-    const r = withFile("verify/sql/0026b_follow_up.sql", "REVOKE ALL ON SCHEMA public FROM PUBLIC;\n");
+  // The highest real migration number, derived from the repo so a new real migration (or a real suffixed one such as
+  // 0026b) never collides with these fixtures. The suffix 'z' is never used by a real migration.
+  const lastNo = () =>
+    String(
+      Math.max(...readdirSync(path.join(FIX, "verify", "sql")).filter((f) => /^\d{4}/.test(f)).map((f) => parseInt(f.slice(0, 4), 10))),
+    ).padStart(4, "0");
+
+  it("a letter-suffixed follow-up (a number then its 'z' sibling) is allowed — it sorts right after its base", () => {
+    const r = withFile(`verify/sql/${lastNo()}z_follow_up.sql`, "REVOKE ALL ON SCHEMA public FROM PUBLIC;\n");
     expect(r.status, r.out).toBe(0);
   });
 
   it("but a suffixed migration may not be repeated, or skip its base", () => {
-    const base = withFile("verify/sql/0026b_one.sql", "SELECT 1;\n");
+    const suffixed = `${lastNo()}z`;
+    const base = withFile(`verify/sql/${suffixed}_one.sql`, "SELECT 1;\n");
     expect(base.status).toBe(0);
-    // two 0026b files
+    // two files with the same suffixed number
     const dir = path.join(FIX, "verify", "sql");
-    writeFileSync(path.join(dir, "0026b_one.sql"), "SELECT 1;\n");
+    writeFileSync(path.join(dir, `${suffixed}_one.sql`), "SELECT 1;\n");
     try {
-      const r = withFile("verify/sql/0026b_two.sql", "SELECT 2;\n");
+      const r = withFile(`verify/sql/${suffixed}_two.sql`, "SELECT 2;\n");
       expect(r.status).toBe(1);
-      expect(r.out).toContain("two migrations are numbered 0026b");
+      expect(r.out).toContain(`two migrations are numbered ${suffixed}`);
     } finally {
-      rmSync(path.join(dir, "0026b_one.sql"), { force: true });
+      rmSync(path.join(dir, `${suffixed}_one.sql`), { force: true });
     }
     // a suffixed file whose base does not exist (0090b with no 0090)
     const orphan = withFile("verify/sql/0090b_orphan.sql", "SELECT 1;\n");
